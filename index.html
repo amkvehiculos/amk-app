@@ -545,6 +545,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="fbSubirTodo" style="width:100%">⇧ Subir todos mis datos a la nube</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="fbLeer" style="width:100%">Comprobar lectura desde la nube</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="resBtn" style="width:100%">⇩ Restaurar datos faltantes desde un respaldo</button></div>
+      <input type="file" id="resFile" accept=".json,application/json" style="display:none">
+      <div id="resEstado" class="mtr" style="margin-top:9px"></div>
+      <div class="mtr" style="margin-top:6px">Compara un archivo de respaldo con lo que hay ahora y rellena solo los campos que estén vacíos. Nunca pisa un dato que ya tengas.</div>
       <div id="fbMigEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">La subida completa se hace una sola vez, y solo cuando tú la aprietas. Después de eso, cada cambio viaja solo. Antes de usarla, ten descargado el respaldo completo en JSON.</div></div>
     <div class="box"><h3>Publicar en Facebook (página)</h3>
@@ -1017,7 +1022,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe'];
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov'];
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw'];
 
@@ -1225,6 +1230,59 @@ async function fbContarNube(){
     if(el) el.innerHTML='<span style="color:#B5533C">✗ '+(e.message||e.code||e)+'</span>';
   }
 }
+function resExtrae(paquete){
+  /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
+  if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
+  if(paquete && paquete.datos){
+    const salida=[];
+    for(const k of ['amk_v_cache','amk_extra']){
+      const v=paquete.datos[k];
+      if(!v) continue;
+      try{ const arr=(typeof v==='string')?JSON.parse(v):v; if(Array.isArray(arr)) salida.push(...arr); }catch(_){}
+    }
+    if(salida.length) return salida;
+  }
+  if(Array.isArray(paquete)) return paquete;
+  return null;
+}
+function resVacio(x){ return x===undefined || x===null || x==='' || (Array.isArray(x)&&!x.length); }
+async function resRestaurar(archivo){
+  const el=document.getElementById('resEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  pinta('Leyendo el archivo…');
+  try{
+    const texto=await archivo.text();
+    const paquete=JSON.parse(texto);
+    const lista=resExtrae(paquete);
+    if(!lista||!lista.length) throw new Error('el archivo no tiene una lista de vehículos que pueda leer');
+    let tocados=0, campos=0, noEstan=0;
+    const detalle={};
+    for(const orig of lista){
+      if(!orig || !orig.ch) continue;
+      const v=IDX[orig.ch];
+      if(!v){ noEstan++; continue; }
+      let cambio=false;
+      for(const k in orig){
+        if(k==='ch') continue;
+        if(!resVacio(orig[k]) && resVacio(v[k])){
+          v[k]=orig[k]; campos++; cambio=true;
+          detalle[k]=(detalle[k]||0)+1;
+        }
+      }
+      if(cambio) tocados++;
+    }
+    if(!campos){ pinta('No faltaba nada: todos los datos del respaldo ya están en la app.','#2E7D32'); return; }
+    guardaCacheV(); draw();
+    const resumen=Object.keys(detalle).map(k=>k+': '+detalle[k]).join(' · ');
+    pinta('✓ Restaurados '+campos+' datos en '+tocados+' vehículos ('+resumen+')'
+      +(noEstan?('. '+noEstan+' del respaldo ya no están en el stock actual'):'')
+      +'. Ahora aprieta "Subir todos mis datos a la nube" para que viajen.','#2E7D32');
+    toast('Datos restaurados');
+  }catch(e){
+    console.error('resRestaurar',e);
+    pinta('✗ '+(e.message||e),'#B5533C');
+  }
+}
 async function fbComprobarLectura(){
   const el=document.getElementById('fbMigEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
@@ -1272,6 +1330,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(fbReady){ toast('La sesión ya está iniciada'); return; }
     fbMuestraLogin(true);
   });
+  const rb=document.getElementById('resBtn');
+  if(rb) rb.addEventListener('click',()=>document.getElementById('resFile').click());
+  const rf=document.getElementById('resFile');
+  if(rf) rf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) resRestaurar(f); e.target.value=''; });
   const lc=document.getElementById('fbLeer');
   if(lc) lc.addEventListener('click',fbComprobarLectura);
   const r=document.getElementById('fbReintentar');
