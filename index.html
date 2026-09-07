@@ -1153,21 +1153,32 @@ function fbApplyRemote(ch, pub, priv){
   fbActualizaAviso();
 }
 
+let fbDrawTimer=null;
+function fbDibujaPronto(){
+  clearTimeout(fbDrawTimer);
+  fbDrawTimer=setTimeout(()=>{ try{ draw(); }catch(e){ console.error('draw',e); } }, 200);
+}
 function fbStartListening(){
   if(!fbReady) return;
-  fbDb.collection(FB_COL).onSnapshot(snap=>{
-    snap.docChanges().forEach(async chg=>{
-      const chasis=chg.doc.id;
-      if(chg.type==='removed') return;
-      const pub=chg.doc.data();
-      let priv=null;
-      try{
-        const ps=await fbDb.collection(FB_COL).doc(chasis).collection('privado').doc('costos').get();
-        if(ps.exists) priv=ps.data();
-      }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
-      fbApplyRemote(chasis, pub, priv);
-      draw();
-    });
+  fbDb.collection(FB_COL).onSnapshot(async snap=>{
+    const cambios=snap.docChanges().filter(ch=>ch.type!=='removed');
+    if(!cambios.length) return;
+    /* 1) primero los datos generales, que llegan en una sola consulta: la lista
+          aparece de inmediato en vez de esperar los costos de cada vehículo. */
+    cambios.forEach(chg=>{ fbApplyRemote(chg.doc.id, chg.doc.data(), null); });
+    fbDibujaPronto();
+    /* 2) después los costos, en tandas de 10, para no disparar 130 consultas de golpe
+          ni redibujar la pantalla una vez por vehículo. */
+    for(let i=0;i<cambios.length;i+=10){
+      const tanda=cambios.slice(i,i+10);
+      await Promise.all(tanda.map(async chg=>{
+        try{
+          const ps=await fbDb.collection(FB_COL).doc(chg.doc.id).collection('privado').doc('costos').get();
+          if(ps.exists) fbApplyRemote(chg.doc.id, null, ps.data());
+        }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
+      }));
+      fbDibujaPronto();
+    }
   }, e=>console.error('fbListen', e));
 }
 
