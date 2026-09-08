@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AMK · Vendedores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#7B8B8E;--paper:#152B35;--card:#183640;--line:#3D5D6B;
+ --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
+ --amber:#E8B04B;--amberBg:#332914;--red:#E8736A;--redBg:#331F1D;
+ --azul:#6AA9E0;--azulBg:#132B3C;--plata:#C8D2D4;--btn2:#3D5D6B;--btn2b:#618292;
+ --fVerde:#3FAE72;--fAzul:#5E97C7;--fAmbar:#CE9C45;--fPlata:#8C9DA3;
+ --disp:'Archivo',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.45;padding-bottom:76px;font-size:16px}
+.wrap{max-width:720px;margin:0 auto;padding:0 15px}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 14px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:8px}
+.hd b{font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.hd em{font-style:normal;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.65}
+.who{margin-top:9px;font-size:12.5px;opacity:.85}
+.who button{background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;margin-left:6px}
+main{padding:14px 0}
+h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-spacing:-.02em}
+.sub{color:var(--mute);font-size:13.5px;margin:0 0 13px}
+.search{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 13px;font-size:16px;background:var(--card);color:var(--ink)}
+.chips{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.chip{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13px;color:var(--ink2);cursor:pointer}
+.chip[aria-selected="true"]{background:var(--btn2);border-color:var(--btn2b);color:#EAF0F1}
+.cnt{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin:13px 0 9px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 13px 13px 17px;margin-bottom:10px;position:relative;
+ transition:border-color .2s ease,transform .12s ease,box-shadow .2s ease}
+.card:active{transform:scale(.985)}
+@media(hover:hover){.card:hover{border-color:var(--btn2b);box-shadow:0 10px 22px -14px rgba(4,18,25,.55)}}
+.card>.strip{position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:52%;border-radius:0 3px 3px 0}
+.sw{width:13px;height:13px;border-radius:4px;border:1px solid rgba(255,255,255,.25);display:inline-block;vertical-align:-2px;margin-left:5px}
+.est{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
+.e-pat{background:rgba(70,201,125,.15);color:var(--green);border-color:rgba(70,201,125,.4)}
+.e-cam{background:rgba(106,169,224,.14);color:var(--azul);border-color:rgba(106,169,224,.36)}
+.sp-sv{background:rgba(70,201,125,.13);border-color:rgba(70,201,125,.35);color:var(--green)}
+.thumb{height:5px;border-radius:4px 4px 0 0;margin:-13px -13px 11px}
+.r1{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}
+.tt{font-family:var(--disp);font-weight:800;font-size:16px;text-transform:uppercase;color:#EAF0F1}.tt .y{color:var(--mute)}
+.ch{font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.05em;margin-top:2px}
+.cover{width:52px;height:39px;border-radius:7px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto}
+.specs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.sp{font-size:11.5px;font-weight:500;background:var(--seaL);border:1px solid var(--line);color:var(--ink2);padding:3px 7px;border-radius:6px}
+.tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.t-sv{background:var(--greenBg);color:var(--green)}.t-of{background:var(--amberBg);color:var(--amber)}
+.minbox{margin-top:10px;background:var(--amberBg);border:1px solid #4A4230;border-radius:9px;
+ padding:9px 12px;font-size:13px;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
+.minbox b{font-family:var(--mono);font-size:15px}
+.acts{display:flex;gap:8px;margin-top:11px}
+.btn{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14px;cursor:pointer}
+.b-pri{background:var(--plata);color:#0B1C23}
+.b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
+.empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--seaL);border-top:1px solid var(--btn2b);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer}
+.tb i{display:block;font-family:var(--disp);font-size:17px;font-style:normal;margin-bottom:2px}
+.tb[aria-selected="true"],.tb[aria-selected="true"] i{color:var(--plata)}
+.panel{display:none}.panel.on{display:block}
+.scrim{position:fixed;inset:0;background:rgba(4,18,25,.62);z-index:60;display:none}.scrim.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--card);border-top:1px solid var(--line);border-radius:19px 19px 0 0;
+ padding:17px 17px calc(17px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;
+ transform:translateY(101%);transition:transform .2s ease;max-height:92vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.sheet h3{font-family:var(--disp);font-weight:700;font-size:18px;margin:0 0 2px}
+.sheet .sb{color:var(--mute);font-size:12.5px;margin-bottom:13px;font-family:var(--mono)}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+.fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:16px;background:var(--paper);color:var(--ink)}
+.sact{display:flex;gap:9px;margin-top:6px}
+.sact button{flex:1;border:none;border-radius:11px;padding:14px;font-weight:800;font-size:16px;cursor:pointer}
+.cx{background:var(--seaL);color:var(--ink)}.ok{background:var(--sea);color:#fff}
+.updrop{border:1.5px dashed var(--line);border-radius:11px;padding:20px;text-align:center;color:var(--mute);font-size:13.5px;cursor:pointer;background:var(--seaL);margin-bottom:12px}
+.mtr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
+.phg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+.ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph.sel{outline:3px solid var(--sea);outline-offset:-3px}
+.ph .sk{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--sea);color:#fff;
+ font-size:12px;display:none;align-items:center;justify-content:center;font-weight:700}
+.ph.sel .sk{display:flex}
+.ph .ix{position:absolute;top:4px;left:4px;background:rgba(4,18,25,.85);color:#fff;font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:4px}
+.ph .ctl{position:absolute;bottom:0;left:0;right:0;display:flex;background:rgba(4,18,25,.82)}
+.ph .ctl button{flex:1;background:none;border:none;color:#fff;font-size:13px;padding:5px 0;cursor:pointer}
+.sendbar{margin-bottom:11px}
+.sendbar button{width:100%;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:14.5px;cursor:pointer;background:var(--sea);color:#fff}
+.gen{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:11px}
+.gen .gh{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:9px}
+.gen h4{font-family:var(--disp);font-weight:700;font-size:14.5px;margin:0}
+.gen .cpy{background:var(--sea);color:#fff;border:none;border-radius:8px;padding:8px 13px;font-size:12.5px;font-weight:700;cursor:pointer}
+.gen pre{white-space:pre-wrap;word-wrap:break-word;font-family:var(--body);font-size:13.5px;color:var(--ink2);margin:0;background:var(--seaL);border:1px solid var(--line);border-radius:9px;padding:11px;line-height:1.55}
+.box{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:11px}
+.box h3{font-family:var(--disp);font-weight:700;font-size:16px;margin:0 0 4px}
+.box p{margin:0 0 11px;font-size:13.5px;color:var(--ink2)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;
+ padding:12px 17px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.22s;z-index:90;pointer-events:none;max-width:88%;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.pk{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:9px;cursor:pointer}
+</style></head><body>
+
+<header><div class="wrap">
+  <div class="hd"><svg viewBox="0 2 673 309" xmlns="http://www.w3.org/2000/svg" style="height:34px;width:auto;display:block" aria-label="AMK Vehículos Selectos"><path fill="#C8D2D4" d="M 115 9 L 6 227 L 49 227 L 114 90 L 180 226 L 224 226 Z M 267 9 L 267 226 L 303 198 L 304 84 L 376 140 L 450 84 L 452 199 L 488 226 L 487 8 L 377 93 Z M 621 8 L 534 115 L 620 226 L 667 227 L 581 115 L 667 9 Z"/><path fill="#9DACB2" fill-rule="evenodd" d="M 488 291 L 488 293 L 489 294 L 503 294 L 503 290 L 489 290 Z M 414 291 L 414 293 L 415 294 L 428 294 L 429 293 L 429 291 L 428 290 L 415 290 Z M 63 291 L 63 293 L 64 294 L 77 294 L 77 293 L 78 292 L 77 291 L 77 290 L 64 290 Z M 636 280 L 633 284 L 634 291 L 638 294 L 652 294 L 655 299 L 651 302 L 635 301 L 633 305 L 656 304 L 659 296 L 655 291 L 637 288 L 639 283 L 656 283 L 656 279 Z M 596 280 L 591 287 L 591 296 L 593 301 L 598 305 L 615 304 L 619 299 L 618 283 L 612 279 Z M 599 283 L 602 282 L 610 282 L 615 286 L 616 288 L 616 297 L 612 301 L 610 302 L 600 302 L 595 297 L 595 288 Z M 554 279 L 555 283 L 565 284 L 565 305 L 568 305 L 568 286 L 570 283 L 579 283 L 580 280 Z M 521 280 L 519 283 L 520 303 L 523 305 L 542 305 L 542 302 L 539 301 L 526 302 L 522 299 L 522 286 L 525 283 L 541 283 L 542 279 Z M 483 279 L 482 302 L 486 305 L 505 305 L 505 302 L 487 301 L 485 299 L 485 284 L 504 283 L 505 279 Z M 445 279 L 445 304 L 469 305 L 469 302 L 467 301 L 454 302 L 449 300 L 449 279 Z M 407 280 L 408 302 L 411 305 L 430 305 L 431 303 L 428 301 L 413 301 L 411 299 L 411 284 L 430 283 L 431 280 Z M 371 280 L 368 284 L 369 291 L 373 294 L 387 294 L 390 299 L 386 302 L 371 301 L 368 304 L 391 304 L 394 300 L 393 294 L 388 290 L 374 290 L 372 285 L 374 283 L 391 283 L 392 279 Z M 312 280 L 309 284 L 310 291 L 314 294 L 328 294 L 331 299 L 326 302 L 311 301 L 309 305 L 332 304 L 335 296 L 331 291 L 313 288 L 315 283 L 331 283 L 332 279 Z M 272 280 L 268 284 L 267 288 L 268 300 L 274 305 L 291 304 L 295 299 L 295 285 L 293 282 L 288 279 Z M 275 283 L 277 282 L 286 282 L 291 286 L 291 298 L 286 302 L 277 302 L 272 299 L 271 297 L 271 288 Z M 232 279 L 232 304 L 255 305 L 256 302 L 240 301 L 239 302 L 236 300 L 236 280 Z M 191 279 L 192 299 L 200 305 L 216 305 L 217 280 L 213 279 L 213 299 L 211 301 L 200 301 L 194 294 L 194 279 Z M 156 280 L 154 282 L 154 302 L 158 305 L 177 305 L 177 302 L 161 302 L 157 299 L 157 285 L 159 283 L 177 283 L 177 279 Z M 135 279 L 135 305 L 138 305 L 139 304 L 139 280 L 138 279 Z M 94 279 L 94 305 L 98 304 L 99 294 L 115 294 L 116 304 L 120 305 L 120 279 L 116 280 L 115 290 L 99 290 L 98 280 Z M 57 279 L 57 302 L 61 305 L 80 305 L 80 302 L 64 302 L 60 300 L 60 284 L 79 283 L 80 279 Z M 16 279 L 27 303 L 31 305 L 43 282 L 43 279 L 39 280 L 30 297 L 27 295 L 20 279 Z"/></svg><em style="margin-left:2px">Vendedores</em></div>
+  <div class="who">Vendedor: <b id="who">—</b><button id="chWho">Cambiar</button></div>
+</div></header>
+
+<main class="wrap">
+  <div id="boot" style="padding:50px 0;text-align:center;color:var(--mute)">Cargando…</div>
+  <div id="loginBox" style="display:none;position:fixed;inset:0;z-index:200;background:var(--bg,#fff);align-items:center;justify-content:center;padding:20px">
+    <div style="width:100%;max-width:360px">
+      <h2 style="margin:0 0 6px">AMK · Vendedores</h2>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--mute)">Inicia sesión para ver el stock actualizado. Queda abierta en este teléfono.</p>
+      <input id="logUser" autocomplete="username" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:10px">
+      <input id="logPass" type="password" autocomplete="current-password" placeholder="Contraseña" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:12px">
+      <button class="btn b-pri" id="logEntrar" style="width:100%">Entrar</button>
+      <div id="logEstado" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+
+  <section class="panel" id="pStock">
+    <h2>Vehículos disponibles</h2><p class="sub">Sube tus propias fotos y compártelas con tus clientes.</p>
+    <input class="search" id="q" placeholder="Buscar marca, modelo o chasis…" autocomplete="off">
+    <div class="chips" role="tablist">
+      <button class="chip" data-f="todos" aria-selected="true">Todos</button>
+      <button class="chip" data-f="autos" aria-selected="false">Autos y SUV</button>
+      <button class="chip" data-f="trab" aria-selected="false">De trabajo</button>
+      <button class="chip" data-f="mias" aria-selected="false">Con mis fotos</button>
+    </div>
+    <p class="cnt" id="cnt"></p>
+    <div id="list"></div>
+  </section>
+
+  <section class="panel" id="pConten">
+    <h2>Textos y guiones</h2><p class="sub">Elige un vehículo y copia lo que necesites.</p>
+    <input class="search" id="qc" placeholder="Buscar vehículo…" autocomplete="off">
+    <div id="lPick"></div>
+    <div id="genWrap" hidden>
+      <div class="box" style="background:var(--seaL);border-color:#CFE3E1">
+        <h3 id="genT"></h3><p id="genC" style="font-family:var(--mono);font-size:12px;margin:0"></p>
+        <div class="acts" style="margin-top:11px">
+          <button class="btn b-sec" id="genVar">Otra versión</button>
+          <button class="btn b-sec" id="genBack">Cambiar auto</button></div>
+      </div>
+      <div id="genOut"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="pAjustes">
+    <h2>Ajustes</h2><p class="sub">Mantén tu lista al día.</p>
+    <div class="box"><h3>Actualizar stock</h3>
+      <p>Pega acá el código que te envía la administración para actualizar los vehículos disponibles. Tus fotos no se borran.</p>
+      <div class="fld"><textarea id="upTxt" rows="4" placeholder="Pega el código aquí…"></textarea></div>
+      <button class="btn b-pri" id="upBtn" style="width:100%">Actualizar</button></div>
+    <div class="box"><h3>Cotización de liberación</h3>
+      <p>Para clientes con cupo de discapacidad.</p>
+      <div class="fld"><label for="cbV">Vehículo (opcional)</label>
+        <input id="cbV" list="dlCbV" autocomplete="off" placeholder="Escribe marca, modelo o chasis">
+        <datalist id="dlCbV"></datalist></div>
+      <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="$0"></div>
+      <div class="fld"><label for="cbBase">Base imponible</label><input id="cbBase" inputmode="numeric" placeholder="$0">
+        <div class="mtr">Si no la sabes, consúltala con la administración.</div></div>
+      <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
+      <div id="cbDet"></div>
+      <button class="btn b-pri" id="cbEnv" style="width:100%;margin-top:11px">➦ Enviar cotización</button></div>
+    <div class="box"><h3>Imágenes para publicar</h3>
+      <p>Elige el vehículo, genera las dos imágenes y publícalas.</p>
+      <div class="fld"><label for="ivV">Vehículo</label>
+        <input id="ivV" list="dlIvV" autocomplete="off" placeholder="Escribe marca, modelo o chasis">
+        <datalist id="dlIvV"></datalist></div>
+      <div class="fld"><label for="ivTitulo">Título</label><input id="ivTitulo" placeholder="KIA SORENTO 2010"></div>
+      <div class="fld"><label>Características</label>
+        <input id="ivF1" placeholder="PARA PRIMER DUEÑO, ZOFRI" style="margin-bottom:7px">
+        <input id="ivF2" placeholder="MOTOR DIESEL" style="margin-bottom:7px">
+        <input id="ivF3" placeholder="TECHO PANORAMICO" style="margin-bottom:7px">
+        <input id="ivF4" placeholder="07 PASAJEROS" style="margin-bottom:7px">
+        <input id="ivF5" placeholder="PANT. BLUET. C/ CAM. RETROC."></div>
+      <div class="fld"><label for="ivDest">Destacado</label><input id="ivDest" placeholder="T. PANORAMICO"></div>
+      <button class="btn b-pri" id="ivGen" style="width:100%">Generar</button>
+      <div id="ivPrev" class="phg" style="grid-template-columns:1fr 1fr;margin-top:12px"></div>
+      <div class="acts" id="ivActs" hidden><button class="btn b-sec" id="ivDl">⇩ Descargar</button>
+        <button class="btn b-pri" id="ivShare">➦ Enviar</button></div>
+      <div class="acts" id="ivMk" hidden style="margin-top:9px">
+        <button class="btn b-sec" id="ivMkBtn" style="flex:1">Publicar en Marketplace</button></div>
+      <div class="mtr" id="ivTplT" style="margin-top:8px"></div></div>
+    <div class="box"><h3>Adelantos</h3>
+      <p>Deja constancia de lo que recibiste. Se envía al administrador.</p>
+      <div class="fld"><label for="avM">Monto recibido</label><input id="avM" inputmode="numeric" placeholder="$0"></div>
+      <div class="fld"><label for="avD">Fecha</label><input id="avD" type="date"></div>
+      <div class="fld"><label for="avN">Nota (opcional)</label><input id="avN" placeholder="Ej: para la micro"></div>
+      <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto</button>
+      <div id="avList" style="margin-top:12px"></div></div>
+    <div class="box"><h3>Espacio usado</h3><p id="spTxt">—</p></div>
+    <div class="box"><h3>Cómo funciona</h3>
+      <p>Las fotos que subes se guardan solo en <b>tu</b> teléfono. Cada vendedor tiene sus propias fotos, para que los avisos no se vean repetidos en Marketplace.</p>
+      <p>Los precios los define la administración. Si un vehículo no muestra precio, consúltalo antes de cotizar.</p>
+      <p style="margin:0"><b>Precio mínimo:</b> es lo más bajo que puedes ofrecer sin consultar. No lo compartas con el cliente como si fuera el precio de lista.</p></div>
+  </section>
+</main>
+
+<nav class="tabbar" role="tablist">
+  <button class="tb" role="tab" data-p="pStock" aria-selected="true"><i>▦</i>Vehículos</button>
+  <button class="tb" role="tab" data-p="pConten" aria-selected="false"><i>✎</i>Textos</button>
+  <button class="tb" role="tab" data-p="pAjustes" aria-selected="false"><i>⚙</i>Ajustes</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" id="shPhoto">
+  <h3 id="phT"></h3><div class="sb" id="phC"></div>
+  <div class="updrop" id="phDrop">Toca para tomar fotos o elegir de la galería<div class="mtr" id="phMtr"></div></div>
+  <input type="file" id="phFile" accept="image/*" multiple hidden>
+  <div class="sendbar" id="phSend" hidden><button id="phShare">➦ Enviar fotos</button></div>
+  <div class="phg" id="phGrid"></div>
+  <div class="sact"><button class="cx" data-close>Cerrar</button></div>
+</div>
+
+<div class="sheet" id="shWho">
+  <h3>¿Quién eres?</h3><div class="sb">Se usa para tus mensajes</div>
+  <div class="fld"><label for="whoIn">Tu nombre</label><input id="whoIn" placeholder="Víctor"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="whoOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shSold">
+  <h3 id="soT"></h3><div class="sb" id="soC"></div>
+  <div class="fld"><label for="soP">Precio de venta</label><input id="soP" inputmode="numeric" placeholder="$0"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="soOk">Avisar venta</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- SDK de Firebase (versión compat) -->
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script>
+
+/* ---------- Almacenamiento local (IndexedDB) ----------
+   Reemplaza el window.storage que solo existia en el entorno de artifacts de Claude.ai.
+   Misma interfaz que se usa en todo el archivo: get(key) -> {value}|undefined, set(key,value), delete(key). */
+window.storage = (function(){
+  const DB='amk_kv', STORE='kv', VER=1;
+  let dbp=null;
+  function open(){
+    if(dbp) return dbp;
+    dbp = new Promise((res,rej)=>{
+      const req = indexedDB.open(DB, VER);
+      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE); };
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+    return dbp;
+  }
+  async function get(key){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const rq = db.transaction(STORE,'readonly').objectStore(STORE).get(key);
+        rq.onsuccess = () => res(rq.result===undefined ? undefined : {value: rq.result});
+        rq.onerror = () => rej(rq.error);
+      });
+    }catch(e){ console.error('storage.get', key, e); return undefined; }
+  }
+  async function set(key, value){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).put(value, key);
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => rej(tx.error);
+      });
+    }catch(e){ console.error('storage.set', key, e); throw e; }
+  }
+  async function del(key){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).delete(key);
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => rej(tx.error);
+      });
+    }catch(e){ console.error('storage.delete', key, e); throw e; }
+  }
+  return {get, set, delete: del};
+})();
+
+let V=[];  /* el catálogo llega desde Firestore al iniciar sesión y queda en caché local (amkv_catalogo) */
+const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
+
+/* ---------- Sincronización con la nube (solo lectura) ----------
+   Vendedores lee la colección real "vehiculos": datos generales, precio de venta,
+   oferta y precio mínimo. Los costos viven en un subdocumento aparte al que esta
+   cuenta NO tiene permiso, así que nunca llegan acá. Tampoco escribe nada. */
+const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
+const FB_USER='vendedores@amk-vehiculos.app';
+const FB_COL='vehiculos';
+const FB_CAMPOS=['ch','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev'];
+let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
+
+function fbEstado(txt,color){
+  const el=document.getElementById('syncEstado');
+  if(el) el.innerHTML='<span style="color:'+(color||'#5A6B70')+'">'+txt+'</span>';
+}
+function fbMuestraLogin(mostrar){
+  const el=document.getElementById('loginBox');
+  if(!el) return;
+  el.style.display = mostrar ? 'flex' : 'none';
+  if(mostrar){ const u=document.getElementById('logUser'); if(u && !u.value) u.value=FB_USER; }
+}
+let fbDrawTimer=null;
+function fbDibujaPronto(){
+  clearTimeout(fbDrawTimer);
+  fbDrawTimer=setTimeout(()=>{ try{ reindex(); draw(); }catch(e){ console.error('draw',e); } }, 200);
+}
+let fbCacheTimer=null;
+function fbGuardaCatalogo(){
+  clearTimeout(fbCacheTimer);
+  fbCacheTimer=setTimeout(async()=>{
+    try{ await window.storage.set(CATK, JSON.stringify(V)); }catch(e){ console.error('cache',e); }
+  }, 1200);
+}
+function fbAplica(ch, d){
+  const vendido = !!d.sold;
+  const i = V.findIndex(x=>x.ch===ch);
+  if(vendido){ if(i>=0) V.splice(i,1); return; }
+  let v = i>=0 ? V[i] : null;
+  if(!v){ v={ch:ch}; V.push(v); }
+  FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
+  v.oferta = !!d.of;
+  if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin;
+  if(d.of && d.pprice) v.vev=d.pprice;
+}
+function fbEscucha(){
+  if(!fbReady || fbEscuchando) return;
+  fbEscuchando=true;
+  fbDb.collection(FB_COL).onSnapshot(snap=>{
+    const cambios=snap.docChanges();
+    if(!cambios.length) return;
+    cambios.forEach(chg=>{
+      if(chg.type==='removed'){ const i=V.findIndex(x=>x.ch===chg.doc.id); if(i>=0) V.splice(i,1); return; }
+      fbAplica(chg.doc.id, chg.doc.data());
+    });
+    fbGuardaCatalogo();
+    fbDibujaPronto();
+    fbEstado('✓ Stock al día · '+V.length+' vehículos','#2E7D32');
+  }, e=>{ console.error('fbListen',e); fbEstado('✗ No se pudo leer el stock: '+(e.message||e.code||e),'#B5533C'); });
+}
+async function fbInit(){
+  try{
+    if(typeof firebase==='undefined') throw new Error('No se cargó Firebase (¿sin internet?)');
+    fbEstado('Conectando…');
+    firebase.initializeApp(FB_CONFIG);
+    fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    fbAuth.onAuthStateChanged(u=>{
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
+      else { fbReady=false; fbEscuchando=false; fbEstado('Sin sesión iniciada','#B5533C'); fbMuestraLogin(true); }  /* siempre: sin sesión el stock queda viejo y el vendedor no se enteraría */
+    });
+  }catch(e){ console.error('fbInit',e); fbReady=false; fbEstado('✗ '+(e.message||e),'#B5533C'); }
+}
+async function fbEntrar(){
+  const el=document.getElementById('logEstado');
+  const u=(document.getElementById('logUser').value||'').trim();
+  const p=document.getElementById('logPass').value||'';
+  if(!u||!p){ el.innerHTML='<span style="color:#B5533C">Escribe la cuenta y la contraseña.</span>'; return; }
+  if(!fbAuth){ el.innerHTML='<span style="color:#B5533C">Sin conexión a internet.</span>'; return; }
+  el.textContent='Entrando…';
+  try{
+    await fbAuth.signInWithEmailAndPassword(u,p);
+    document.getElementById('logPass').value='';
+    el.innerHTML='<span style="color:#2E7D32">✓ Sesión iniciada</span>';
+  }catch(e){
+    const cod=(e.code||'');
+    const msg = cod.includes('wrong-password')||cod.includes('invalid-credential') ? 'Contraseña incorrecta.'
+              : cod.includes('user-not-found') ? 'Esa cuenta no existe.'
+              : cod.includes('network') ? 'Sin conexión a internet.'
+              : cod.includes('too-many-requests') ? 'Demasiados intentos; espera un rato.'
+              : (e.message||cod);
+    el.innerHTML='<span style="color:#B5533C">✗ '+msg+'</span>';
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('logEntrar');
+  if(b) b.addEventListener('click',fbEntrar);
+  const p=document.getElementById('logPass');
+  if(p) p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbEntrar(); });
+});
+const WEB_BASE='https://amkvehiculos.github.io/amk-web/'; // URL pública de la web (GitHub Pages).
+function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
+async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
+ if(!link){toast('Todavía no está lista la web para compartir el link');return}
+ const txt='Hola, te comparto el '+v.ma+' '+v.mo+' '+(v.an||'')+', puedes verlo aquí: '+link;
+ if(navigator.share){try{await navigator.share({url:link,text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}
+  catch(e){if(e&&e.name==='AbortError')return}}
+ try{await navigator.clipboard.writeText(txt);toast('Link copiado')}catch(_){toast('No se pudo copiar el link')}}
+const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=20,CAP=4.2e6;
+const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
+const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
+let IDX={}, ST={vend:'',f:{},adel:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
+let phCh=null, phArr=[], phSel=new Set();
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
+const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
+const kb=n=>Math.round(n/1024)+' KB';
+const iso=()=>new Date().toISOString().slice(0,10);
+const fst=c=>ST.f[c]||(ST.f[c]={nf:0,cov:''});
+function reindex(){IDX={};V.forEach(v=>IDX[v.ch]=v)}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
+
+async function boot(){
+  try{const r=await window.storage.get(CATK); if(r&&r.value){const c=JSON.parse(r.value); if(Array.isArray(c)&&c.length) V=c}}catch(e){console.error('boot V',e)}
+  try{const r=await window.storage.get(KEY); if(r&&r.value) ST=Object.assign(ST,JSON.parse(r.value))}catch(e){console.error('boot ST',e)}
+  reindex(); $('#boot').remove(); show(tab); fbInit();
+  $('#who').textContent=ST.vend||'sin nombre';
+  if(!ST.vend) openSheet('shWho');
+  draw(); drawPick(); espacio(); pintaAV(); $('#avD').value=iso();
+  $('#dlCbV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+  pintaCB();
+  $('#dlIvV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+  $('#ivTplT').textContent='Usarás la plantilla '+miTpl()+', distinta a la de los demás.';
+}
+async function save(){try{await window.storage.set(KEY,JSON.stringify(ST))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
+
+function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
+$$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+function openSheet(id){$('#scrim').classList.add('on');$('#'+id).classList.add('on')}
+function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'))}
+$('#scrim').addEventListener('click',closeAll);
+$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
+
+/* --- textos --- */
+function feats(v){const f=[];
+ if(v.tr)f.push('Tracción '+v.tr); if(v.pa)f.push(v.pa+' pasajeros');
+ if(v.ca&&CARN[v.ca])f.push('Carrocería '+CARN[v.ca]); if(v.tp)f.push('Techo panorámico');
+ if(v.ce)f.push('Color '+v.ce.toLowerCase()); if(v.km)f.push(v.km.toLocaleString('es-CL')+' km');
+ return f}
+const priceLine=v=>(v.oferta&&v.vev)?clp(v.vev):'Consultar precio por interno';
+function tags(v){const b=['#Iquique','#ZonaFranca','#AutosIquique','#ImportadosDesdeCorea','#AMKVehiculosSelectos',
+ '#'+v.ma.replace(/\s+/g,''),'#'+v.mo.replace(/[^A-Za-z0-9]/g,'')];
+ if(v.trab)b.push('#VehiculosDeTrabajo','#Camioneta'); else b.push('#AutosUsados');
+ if(v.sv)b.push('#SelloVerde'); b.push('#Tarapaca'); return b.join(' ')}
+function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso y O\u2019Higgins (apto sello verde).':'';
+ const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nLo revisamos en persona en Corea antes de comprarlo, y lo preparamos acá en Iquique.\n\n${priceLine(v)}\nEscríbeme por interno y coordinamos que lo veas.\n\nAMK Vehículos Selectos · Iquique`;
+ const B=`Disponible: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.join(' · ')}${sv}\n\nSeleccionado en persona en Corea antes de subirlo al contenedor.\n\n${priceLine(v)}\nConsultas por mensaje.\n\nAMK Vehículos Selectos · Iquique`;
+ const C=`${v.ma} ${v.mo} ${v.an||''} en stock\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nPreparado y listo para entrega en Iquique.\n\n${priceLine(v)}\nTe respondo al tiro.\n\nAMK Vehículos Selectos`;
+ return [A,B,C][k%3]}
+function genMP(v,k){const t=[`${v.ma} ${v.mo} ${v.an||''} ${v.tr||''}`.trim(),
+ `${v.ma} ${v.mo} ${v.an||''} importado Corea`,`${v.ma} ${v.mo} ${v.an||''} ${CATN[v.cat]||''}`.trim()][k%3];
+ return `TÍTULO\n${t}\n\nDESCRIPCIÓN\n${genFB(v,k)}`}
+function genIG(v,k){const f=feats(v).slice(0,4);
+ const A=`${v.ma} ${v.mo} ${v.an||''} 🇰🇷➡️🇨🇱\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nElegido en persona en Corea. Preparado en Iquique.\n${priceLine(v)}\n\n📍 Iquique · Escríbeme por DM\n\n${tags(v)}`;
+ const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nNo compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.\n${priceLine(v)}\n\n📍 DM para agendar\n\n${tags(v)}`;
+ return [A,B][k%2]}
+function genTT(v,k){const f=feats(v);
+ const hooks=v.trab?[`¿Necesitas ${CARN[v.ca]||'camioneta'} para trabajar?`,`Esta ${v.mo} llegó lista para producir.`,`Si trabajas con carga, mira esto.`]
+  :[`Este ${v.mo} llegó directo de Corea.`,`${v.mo} ${v.an||''}. Mira cómo llega.`,`¿Buscas ${CATN[v.cat]||'auto'} en Iquique?`];
+ const h=hooks[k%hooks.length], b=f.slice(0,4);
+ return `GUIÓN — 32 s aprox. · vertical 9:16\n\n[0-3 s] GANCHO\nToma: frontal 3/4 acercándose.\nTexto en pantalla: "${h}"\nVoz: "${h}"\n\n[3-8 s] PRESENTACIÓN\nToma: paneo lateral completo.\nVoz: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."\n\n[8-18 s] DETALLES\n${b.map((x,i)=>`  Toma ${i+1}: ${['interior desde la puerta','tablero y volante','asientos traseros','detalle exterior'][i]||'detalle'}\n  Texto: "${x}"`).join('\n')}\n\n[18-26 s] DIFERENCIADOR\nVoz: "Lo revisamos en persona en Corea antes de comprarlo."\n${v.sv?'Texto: "Apto sello verde · circula en Santiago"\n':''}\n[26-32 s] CIERRE\nVoz: "${priceLine(v)==='Consultar precio por interno'?'Escríbeme y te cuento el precio.':'Precio: '+priceLine(v)+'.'} Estamos en Iquique."\nCierre: logo AMK + contacto.\n\nMÚSICA: canción en tendencia, volumen bajo.\n\nDESCRIPCIÓN:\n${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷\n${tags(v)}`}
+function genWA(v){const f=feats(v), yo=ST.vend?`\n\n${ST.vend} · AMK Vehículos Selectos`:'';
+ return `¡Hola! Gracias por escribir 👋\n\nSobre el ${v.ma} ${v.mo} ${v.an||''}:\n${f.map(x=>'• '+x).join('\n')}\n${v.sv?'• Apto sello verde (circula en Santiago, V y VI región)\n':''}\n${priceLine(v)}\n\nLo tenemos acá en Iquique y lo puedes venir a ver cuando quieras. ¿Te acomoda algún día de esta semana?${yo}`}
+
+/* --- fotos --- */
+function shrink(file,w,qq){return new Promise((res,rej)=>{const r=new FileReader();
+ r.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,w/Math.max(im.width,im.height));
+  const cv=document.createElement('canvas');cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',qq))};
+  im.onerror=()=>rej(new Error('img'));im.src=r.result};r.onerror=()=>rej(new Error('read'));r.readAsDataURL(file)})}
+const weight=()=>phArr.reduce((a,b)=>a+b.length,0)*.75;
+async function loadPhotos(c){try{const r=await window.storage.get(PK(c));return r&&r.value?JSON.parse(r.value):[]}catch(e){return[]}}
+async function savePhotos(c,a){try{a.length?await window.storage.set(PK(c),JSON.stringify(a)):await window.storage.delete(PK(c));return true}catch(e){toast('No se pudieron guardar');return false}}
+async function openPhotos(c){phCh=c;const v=IDX[c];
+ $('#phT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#phC').textContent=v.ch;
+ $('#phGrid').innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-size:13px">Cargando…</div>';
+ openSheet('shPhoto');phSel=new Set();phArr=await loadPhotos(c);drawPhotos()}
+function drawPhotos(){
+ $('#phSend').hidden=!phArr.length;
+ $('#phShare').textContent=phSel.size?`➦ Enviar ${phSel.size} foto${phSel.size===1?'':'s'}`:'➦ Enviar fotos';
+ $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph ${phSel.has(i)?'sel':''}" data-sel="${i}">
+  <img src="${d}" alt="Foto ${i+1}"><span class="sk">✓</span><span class="ix">${i===0?'PORTADA':i+1}</span>
+  <div class="ctl"><button data-mv="${i}|-1" ${i===0?'disabled style="opacity:.35"':''}>◀</button>
+  <button data-mv="${i}|1" ${i===phArr.length-1?'disabled style="opacity:.35"':''}>▶</button>
+  <button data-rm="${i}">✕</button></div></div>`).join('')
+  :'<div style="grid-column:1/-1;color:var(--mute);font-size:13px;text-align:center;padding:14px 0">Sin fotos todavía.</div>';
+ $('#phMtr').textContent=phArr.length?`${phArr.length} de ${MAXN} · ${kb(weight())} · toca una foto para elegirla`:''}
+$('#phDrop').addEventListener('click',()=>$('#phFile').click());
+$('#phFile').addEventListener('change',async e=>{const fs=[...e.target.files];e.target.value='';
+ if(!fs.length)return; const room=MAXN-phArr.length; if(room<=0){toast('Máximo '+MAXN+' fotos');return}
+ toast('Procesando…'); let full=false,added=0;
+ for(const f of fs.slice(0,room)){try{const d=await shrink(f,MAXW,Q);
+  if(weight()+d.length*.75>CAP){full=true;break} phArr.push(d);added++}catch(_){}}
+ await persist(); if(full)toast('Espacio lleno. Se guardaron '+added+'.')});
+async function persist(){
+ if(!await savePhotos(phCh,phArr))return;
+ const t=fst(phCh); t.nf=phArr.length;
+ if(phArr.length){try{const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=phArr[0]});
+  const sc=Math.min(1,COVW/Math.max(im.width||1,im.height||1));const cv=document.createElement('canvas');
+  cv.width=Math.round((im.width||COVW)*sc);cv.height=Math.round((im.height||COVW)*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);t.cov=cv.toDataURL('image/jpeg',COVQ)}catch(_){t.cov=''}}
+ else t.cov='';
+ await save();drawPhotos();draw();espacio()}
+
+async function toFiles(a,ch){const o=[];for(let i=0;i<a.length;i++){try{const b=await(await fetch(a[i])).blob();
+ o.push(new File([b],`${ch}-${String(i+1).padStart(2,'0')}.jpg`,{type:'image/jpeg'}))}catch(_){}}return o}
+async function shareVehicle(ch,idxs){const v=IDX[ch];let a=await loadPhotos(ch);
+ if(!a.length){toast('Este vehículo no tiene fotos tuyas');return}
+ if(idxs&&idxs.length)a=idxs.slice().sort((x,y)=>x-y).map(i=>a[i]).filter(Boolean);
+ const txt=genWA(v); try{await navigator.clipboard.writeText(txt)}catch(_){}
+ const files=await toFiles(a,ch);
+ if(navigator.canShare&&navigator.canShare({files})){
+  try{await navigator.share({files,text:txt,title:`${v.ma} ${v.mo} ${v.an||''}`});toast('Compartido · el texto quedó copiado');return}
+  catch(e){if(e&&e.name==='AbortError')return}}
+ let n=0;for(const f of files){const u=URL.createObjectURL(f);const el=document.createElement('a');
+  el.href=u;el.download=f.name;el.click();setTimeout(()=>URL.revokeObjectURL(u),4000);n++}
+ toast(n?('Descargadas '+n+' fotos · texto copiado'):'No se pudo compartir')}
+
+/* --- listas --- */
+function pass(v){const t=fst(v.ch);
+ if(fS==='autos')return !v.trab; if(fS==='trab')return v.trab; if(fS==='mias')return (t.nf||0)>0; return true}
+function draw(){
+ const s=q.trim().toLowerCase();
+ const L=V.filter(v=>pass(v)&&(!s||(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(s)));
+ $('#cnt').textContent=L.length+(L.length===1?' vehículo':' vehículos');
+ $('#list').innerHTML=L.length?L.map(v=>{const t=fst(v.ch),nf=t.nf||0;
+  const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
+  const COLP={'Blanco':'#E9EAE6','Negro':'#20262A','Gris':'#8A9296','Plateado':'#B9C0C3','Azul':'#1F4E86','Rojo':'#9B2A28',
+   'Beige':'#C9B79A','Amarillo':'#D6A81C','Naranja':'#C4661F','Dorado':'#B29246','Burdeo':'#6B2231','Verde':'#2C5B41','Marrón':'#6A4C38'};
+  const cp=COLP[v.ce]||'#8A9296';
+  const enCam=v.st==='ORIGEN';
+  const estado=enCam?'var(--fAzul)':'var(--fVerde)';
+  const chip=enCam?'<span class="est e-cam">En camino</span>':'<span class="est e-pat">En patio</span>';
+  const cars=[];
+  if(v.trab&&CARN[v.ca]) cars.push(CARN[v.ca]);
+  if(!v.trab&&v.tp) cars.push('T. panorámico');
+  if(v.tr) cars.push(v.tr);
+  if(v.pa&&v.pa>=7) cars.push(v.pa+' pasajeros');
+  if(v.sv) cars.push('Sello verde');
+  const sp=cars.map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${x}</span>`).join('');
+  return `<div class="card"><span class="strip" style="background:${estado}"></span>
+   <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
+    <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
+    <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${cp}"></span>${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
+    ${chip}</div>
+   ${sp?`<div class="specs">${sp}</div>`:''}
+   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}</b></div>`:''}
+   <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos ${nf||''}</button>
+    ${nf?`<button class="btn b-sec" data-share="${v.ch}" style="flex:0 0 auto">➦</button>`:''}
+    <button class="btn b-sec" data-link="${v.ch}" style="flex:0 0 auto">🔗</button>
+    <button class="btn b-sec" data-sold="${v.ch}" style="flex:0 0 auto">✓</button></div></div>`}).join('')
+  :'<div class="empty">Sin resultados.</div>'}
+function drawPick(){const s=qc.trim().toLowerCase();
+ const L=V.filter(v=>!s||(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(s)).slice(0,40);
+ $('#lPick').innerHTML=L.length?L.map(v=>`<div class="pk" data-pick="${v.ch}">
+  <div><div class="tt" style="font-size:15px">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
+  <div class="ch">${v.ch} · ${v.ce}</div></div><div style="color:var(--sea);font-weight:700">→</div></div>`).join('')
+  :'<div class="empty">Sin resultados.</div>'}
+function drawGen(){
+ if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;return}
+ $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;
+ $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
+ $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
+ const b=[['Facebook Marketplace',genMP(gv,gvar)],['Publicación de Facebook',genFB(gv,gvar)],
+  ['Instagram',genIG(gv,gvar)],['Guión TikTok / Reels',genTT(gv,gvar)],
+  ['Respuesta de WhatsApp',genWA(gv)],['Hashtags',tags(gv)]];
+ $('#genOut').innerHTML=b.map((x,i)=>`<div class="gen"><div class="gh"><h4>${x[0]}</h4>
+  <button class="cpy" data-cp="${i}">Copiar</button></div><pre>${x[1].replace(/</g,'&lt;')}</pre></div>`).join('');
+ window.__BLK=b}
+
+async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}
+ catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();
+ try{document.execCommand('copy');toast(m)}catch(_){toast('No se pudo copiar')}a.remove()}}
+
+/* --- eventos --- */
+$('#phShare').addEventListener('click',()=>shareVehicle(phCh,[...phSel]));
+document.addEventListener('click',async e=>{
+ const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
+  sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
+  c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]');
+ if(sh){shareVehicle(sh.dataset.share,null);return}
+ if(lk){shareLink(lk.dataset.link);return}
+ if(so){const v=IDX[so.dataset.sold];$('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
+  $('#soC').textContent=v.ch;$('#soP').value='';$('#soOk').dataset.ch=v.ch;openSheet('shSold');return}
+ if(sl&&!m&&!r){const i=+sl.dataset.sel;phSel.has(i)?phSel.delete(i):phSel.add(i);drawPhotos();return}
+ if(p){openPhotos(p.dataset.photo);return}
+ if(m){const[i,d]=m.dataset.mv.split('|').map(Number),j=i+d;if(j<0||j>=phArr.length)return;
+  [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
+ if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
+ if(pk){gv=IDX[pk.dataset.pick];gvar=0;drawGen();return}
+ if(c&&window.__BLK){cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
+});
+$('#soP').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
+$('#soOk').addEventListener('click',async()=>{const ch=$('#soOk').dataset.ch,v=IDX[ch];
+ const txt=`Venta ${ST.vend?'('+ST.vend+')':''}\n${v.ma} ${v.mo} ${v.an||''}\nChasis: ${ch}\nPrecio: ${clp(pnum($('#soP').value))||'por confirmar'}\nFecha: ${new Date().toLocaleDateString('es-CL')}`;
+ try{if(navigator.share){await navigator.share({text:txt,title:'Venta AMK'});closeAll();toast('Aviso enviado');return}}catch(e){if(e&&e.name==='AbortError')return}
+ cp(txt,'Aviso copiado · pégalo en WhatsApp');closeAll()});
+$('#q').addEventListener('input',e=>{q=e.target.value;draw()});
+$('#qc').addEventListener('input',e=>{qc=e.target.value;drawPick()});
+$('#genVar').addEventListener('click',()=>{gvar++;drawGen()});
+$('#genBack').addEventListener('click',()=>{gv=null;gvar=0;drawGen();drawPick()});
+$$('#pStock .chip').forEach(ch=>ch.addEventListener('click',()=>{
+ $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
+ ch.setAttribute('aria-selected','true');fS=ch.dataset.f;draw()}));
+$('#chWho').addEventListener('click',()=>{$('#whoIn').value=ST.vend||'';openSheet('shWho')});
+$('#whoOk').addEventListener('click',async()=>{ST.vend=$('#whoIn').value.trim();
+ $('#who').textContent=ST.vend||'sin nombre';await save();closeAll();toast('Guardado')});
+$('#upBtn').addEventListener('click',async()=>{
+ const t=$('#upTxt').value.trim(); if(!t){toast('Pega el código primero');return}
+ let d; try{d=JSON.parse(t)}catch(e){toast('El código no es válido');return}
+ if(!Array.isArray(d)||!d.length){toast('El código no trae vehículos');return}
+ V=d; reindex(); try{await window.storage.set(CATK,JSON.stringify(d))}catch(e){}
+ $('#upTxt').value=''; draw(); drawPick(); toast(d.length+' vehículos actualizados')});
+async function espacio(){let n=0,c=0;for(const k in ST.f){if(ST.f[k].nf){n+=ST.f[k].nf;c++}}
+ $('#spTxt').textContent=n?`${n} fotos en ${c} vehículo${c===1?'':'s'}.`:'Todavía no subes fotos.'}
+function pintaAV(){
+  const L=ST.adel||[];
+  const mes=iso().slice(0,7);
+  const tot=L.filter(x=>(x.f||'').slice(0,7)===mes).reduce((a,x)=>a+x.m,0);
+  $('#avList').innerHTML=L.length
+    ?'<div class="mtr" style="margin-bottom:7px">Este mes: '+clp(tot)+'</div>'
+      +L.slice().reverse().slice(0,8).map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+        <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span><span>${clp(x.m)}</span></div>`).join('')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos anotados.</p>';
+}
+$('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
+$('#avOk').addEventListener('click',async()=>{
+  const m=pnum($('#avM').value)||0;
+  if(!m){toast('Ingresa el monto');return}
+  const f=$('#avD').value||iso(), nota=$('#avN').value.trim();
+  ST.adel=ST.adel||[]; ST.adel.push({ts:Date.now(),m,f,nota});
+  await save(); $('#avM').value='';$('#avN').value=''; pintaAV();
+  const txt=`Adelanto recibido\n\n${ST.vend||'Vendedor'}\n${clp(m)} el ${fd(f)}`+(nota?`\n${nota}`:'');
+  try{ if(navigator.share){await navigator.share({text:txt,title:'Adelanto AMK'});return} }
+  catch(e){ if(e&&e.name==='AbortError')return }
+  cp(txt,'Copiado · mándalo al administrador');
+});
+const CBTASA=23.57;
+const CBFIJOS=[['Patente',90000],['Revisión técnica',24000],['Seguro obligatorio',14000],
+  ['Permiso de circulación',40000],['Grabado de patente',15000]];
+function cbVeh(){
+  const t=$('#cbV').value.trim(); if(!t) return null;
+  const m=t.match(/([A-Z0-9]{6,})\s*$/i);
+  if(m&&IDX[m[1].toUpperCase()]) return IDX[m[1].toUpperCase()];
+  const q=t.toLowerCase();
+  return V.find(v=>(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(q))||null;
+}
+function pintaCB(){
+  const venta=pnum($('#cbVenta').value)||0;
+  const base=pnum($('#cbBase').value)||0;
+  const tras=pnum($('#cbTras').value)||0;
+  const imp=Math.round(base*CBTASA/100);
+  const fij=CBFIJOS.reduce((a,x)=>a+x[1],0);
+  const tot=(venta||base)+imp+fij+tras;
+  const filas=(venta?[['Valor de venta',venta]]:[])
+    .concat([['Base imponible',base],['Impuesto '+String(CBTASA).replace('.',',')+'%',imp]])
+    .concat(CBFIJOS).concat(tras?[['Traslado',tras]]:[]);
+  $('#cbDet').innerHTML=filas.map(([n,v])=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+      <span>${n}</span><span style="font-family:var(--mono)">${clp(v)}</span></div>`).join('')
+    +`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
+      <span style="font-weight:700">Total a pagar</span><span style="font-weight:700;font-size:16px;font-family:var(--mono)">${clp(tot)}</span></div>`;
+  window.__CBTOT=tot;
+}
+['#cbVenta','#cbBase','#cbTras'].forEach(sel=>$(sel).addEventListener('input',e=>{
+  const n=pnum(e.target.value); e.target.value=n===''?'':clp(n); pintaCB()}));
+$('#cbV').addEventListener('input',pintaCB);
+$('#cbEnv').addEventListener('click',async()=>{
+  const base=pnum($('#cbBase').value)||0;
+  if(!base){toast('Ingresa la base imponible');return}
+  const v=cbVeh(), venta=pnum($('#cbVenta').value)||0, tras=pnum($('#cbTras').value)||0;
+  const imp=Math.round(base*CBTASA/100);
+  const L=['AMK Vehículos Selectos','Cotización de liberación',''];
+  if(v) L.push(`Vehículo: ${v.ma} ${v.mo} ${v.an||''}`,`Chasis: ${v.ch}`,'');
+  if(venta) L.push(`Valor de venta: ${clp(venta)}`);
+  L.push(`Base imponible: ${clp(base)}`,`Impuesto ${String(CBTASA).replace('.',',')}%: ${clp(imp)}`);
+  CBFIJOS.forEach(([n,m])=>L.push(`${n}: ${clp(m)}`));
+  if(tras) L.push(`Traslado: ${clp(tras)}`);
+  L.push('',`TOTAL: ${clp(window.__CBTOT||0)}`,'',
+    'AMK Vehículos Selectos · Iquique');
+  if(ST.vend) L.push('',ST.vend+' · AMK Vehículos Selectos');
+  const txt=L.join('\n');
+  if(navigator.share){try{await navigator.share({text:txt,title:'Cotización AMK'});return}
+    catch(e){if(e&&e.name==='AbortError')return}}
+  cp(txt,'Cotización copiada');
+});
+
+/* ---------- IMÁGENES PARA PUBLICAR ---------- */
+const LOGO_LETRAS=`M 115 9 L 6 227 L 49 227 L 114 90 L 180 226 L 224 226 Z M 267 9 L 267 226 L 303 198 L 304 84 L 376 140 L 450 84 L 452 199 L 488 226 L 487 8 L 377 93 Z M 621 8 L 534 115 L 620 226 L 667 227 L 581 115 L 667 9 Z`;
+const LOGO_TEXTO=`M 488 291 L 488 293 L 489 294 L 503 294 L 503 290 L 489 290 Z M 414 291 L 414 293 L 415 294 L 428 294 L 429 293 L 429 291 L 428 290 L 415 290 Z M 63 291 L 63 293 L 64 294 L 77 294 L 77 293 L 78 292 L 77 291 L 77 290 L 64 290 Z M 636 280 L 633 284 L 634 291 L 638 294 L 652 294 L 655 299 L 651 302 L 635 301 L 633 305 L 656 304 L 659 296 L 655 291 L 637 288 L 639 283 L 656 283 L 656 279 Z M 596 280 L 591 287 L 591 296 L 593 301 L 598 305 L 615 304 L 619 299 L 618 283 L 612 279 Z M 599 283 L 602 282 L 610 282 L 615 286 L 616 288 L 616 297 L 612 301 L 610 302 L 600 302 L 595 297 L 595 288 Z M 554 279 L 555 283 L 565 284 L 565 305 L 568 305 L 568 286 L 570 283 L 579 283 L 580 280 Z M 521 280 L 519 283 L 520 303 L 523 305 L 542 305 L 542 302 L 539 301 L 526 302 L 522 299 L 522 286 L 525 283 L 541 283 L 542 279 Z M 483 279 L 482 302 L 486 305 L 505 305 L 505 302 L 487 301 L 485 299 L 485 284 L 504 283 L 505 279 Z M 445 279 L 445 304 L 469 305 L 469 302 L 467 301 L 454 302 L 449 300 L 449 279 Z M 407 280 L 408 302 L 411 305 L 430 305 L 431 303 L 428 301 L 413 301 L 411 299 L 411 284 L 430 283 L 431 280 Z M 371 280 L 368 284 L 369 291 L 373 294 L 387 294 L 390 299 L 386 302 L 371 301 L 368 304 L 391 304 L 394 300 L 393 294 L 388 290 L 374 290 L 372 285 L 374 283 L 391 283 L 392 279 Z M 312 280 L 309 284 L 310 291 L 314 294 L 328 294 L 331 299 L 326 302 L 311 301 L 309 305 L 332 304 L 335 296 L 331 291 L 313 288 L 315 283 L 331 283 L 332 279 Z M 272 280 L 268 284 L 267 288 L 268 300 L 274 305 L 291 304 L 295 299 L 295 285 L 293 282 L 288 279 Z M 275 283 L 277 282 L 286 282 L 291 286 L 291 298 L 286 302 L 277 302 L 272 299 L 271 297 L 271 288 Z M 232 279 L 232 304 L 255 305 L 256 302 L 240 301 L 239 302 L 236 300 L 236 280 Z M 191 279 L 192 299 L 200 305 L 216 305 L 217 280 L 213 279 L 213 299 L 211 301 L 200 301 L 194 294 L 194 279 Z M 156 280 L 154 282 L 154 302 L 158 305 L 177 305 L 177 302 L 161 302 L 157 299 L 157 285 L 159 283 L 177 283 L 177 279 Z M 135 279 L 135 305 L 138 305 L 139 304 L 139 280 L 138 279 Z M 94 279 L 94 305 L 98 304 L 99 294 L 115 294 L 116 304 L 120 305 L 120 279 L 116 280 L 115 290 L 99 290 L 98 280 Z M 57 279 L 57 302 L 61 305 L 80 305 L 80 302 L 64 302 L 60 300 L 60 284 L 79 283 L 80 279 Z M 16 279 L 27 303 L 31 305 L 43 282 L 43 279 L 39 280 L 30 297 L 27 295 L 20 279 Z`;
+const TPL={A:{fondo:'#183640',panel:'#51686E',barra:'abajo'},
+           B:{fondo:'#0B1C23',panel:'#2E4752',barra:'arriba'},
+           C:{fondo:'#223B46',panel:'#183640',barra:'lados'}};
+const MKV={plata:'#C8D2D4',plata2:'#B4BDBD',
+  dir:'Of. Buenaventura C-20, Barrio Industrial Zofri',redes:'AMK VEHICULOS'};
+let ivBlobs=[];
+function miTpl(){
+  const n=(ST.vend||'').toLowerCase();
+  if(n.includes('bry')||n.includes('bri')) return 'C';
+  if(n.includes('vic')||n.includes('víc')) return 'B';
+  return 'B';
+}
+function dibujaLogo(ctx,x,y,w,color,colorTxt,soloLetras){
+  const esc=w/673;
+  ctx.save(); ctx.translate(x,y); ctx.scale(esc,esc); ctx.translate(0,-2);
+  ctx.fillStyle=color; ctx.fill(new Path2D(LOGO_LETRAS));
+  if(!soloLetras){ctx.fillStyle=colorTxt||color; ctx.fill(new Path2D(LOGO_TEXTO),'evenodd')}
+  ctx.restore();
+}
+function ajusta(ctx,txt,max,base,peso){
+  let s=base;
+  do{ctx.font=peso+' '+s+'px Archivo, Arial, sans-serif'; s-=2}
+  while(ctx.measureText(txt).width>max && s>14);
+  return s+2;
+}
+function imgDe(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
+async function ivPortada(v,foto,dest,tpl){
+  const T=TPL[tpl], S=1080, c=document.createElement('canvas'); c.width=c.height=S;
+  const x=c.getContext('2d');
+  x.fillStyle=T.fondo; x.fillRect(0,0,S,S);
+  const arriba=T.barra==='arriba', hb=arriba?176:118, fb=arriba?118:176;
+  if(foto){const im=await imgDe(foto);
+    if(im){const dh=S-hb-fb, r=Math.max(S/im.width,dh/im.height);
+      x.drawImage(im,(S-im.width*r)/2, hb+(dh-im.height*r)/2, im.width*r, im.height*r)}}
+  x.fillStyle=T.fondo; x.fillRect(0,0,S,hb); x.fillRect(0,S-fb,S,fb);
+  const yLogo=arriba?S-fb+30:26, yTit=arriba?96:S-96, yTel=arriba?146:S-42;
+  dibujaLogo(x,34,yLogo,210,MKV.plata,MKV.plata,true);
+  x.fillStyle=MKV.plata; x.textAlign='left';
+  let fs=ajusta(x,'VEHICULOS SELECTOS - IQUIQUE',S-300,46,'800');
+  x.font='800 '+fs+'px Archivo, Arial, sans-serif';
+  x.fillText('VEHICULOS SELECTOS - IQUIQUE',268,yLogo+54);
+  if(dest){x.font='800 30px Archivo, Arial, sans-serif';
+    const w=x.measureText(dest).width+44;
+    x.fillStyle=T.panel; x.fillRect(S-w-30,S-fb-92,w,66);
+    x.fillStyle='#EAF0F1'; x.textAlign='center'; x.fillText(dest,S-w/2-30,S-fb-48)}
+  x.textAlign='center'; x.fillStyle=MKV.plata;
+  const t=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
+  fs=ajusta(x,t,S-90,64,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
+  x.fillText(t,S/2,yTit);
+  x.font='800 34px Archivo, Arial, sans-serif';
+  x.fillText((ST.vend||'AMK').toUpperCase()+'  ·  AMK VEHICULOS SELECTOS',S/2,yTel);
+  return c;
+}
+function ivFicha(v,titulo,feats,tpl){
+  const T=TPL[tpl], S=1080, c=document.createElement('canvas'); c.width=c.height=S;
+  const x=c.getContext('2d');
+  x.fillStyle=T.fondo; x.fillRect(0,0,S,S);
+  x.strokeStyle=MKV.plata2; x.lineWidth=3;
+  x.beginPath(); x.moveTo(60,44); x.lineTo(S-60,44); x.stroke();
+  dibujaLogo(x,(S-460)/2,92,460,MKV.plata,MKV.plata2);
+  const bx=110,by=352,bw=S-220,bh=336;
+  x.fillStyle=T.panel; x.beginPath(); x.roundRect(bx,by,bw,bh,18); x.fill();
+  x.textAlign='center'; x.fillStyle='#EAF0F1';
+  let fs=ajusta(x,titulo,bw-60,58,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
+  x.fillText(titulo,S/2,by+76);
+  x.textAlign='left';
+  feats.filter(Boolean).slice(0,5).forEach(function(f,i){
+    const yy=by+142+i*44;
+    x.fillStyle=MKV.plata; x.beginPath(); x.arc(bx+42,yy-9,7,0,7); x.fill();
+    x.fillStyle='#EAF0F1';
+    const s2=ajusta(x,f,bw-120,30,'700'); x.font='700 '+s2+'px Archivo, Arial, sans-serif';
+    x.fillText(f,bx+68,yy);
+  });
+  x.fillStyle=MKV.plata; x.textAlign='left';
+  x.font='800 36px Archivo, Arial, sans-serif';
+  x.fillText((ST.vend||'AMK').toUpperCase(),96,800);
+  x.font='800 32px Archivo, Arial, sans-serif';
+  x.fillText(MKV.redes,700,800);
+  x.strokeStyle=MKV.plata2; x.lineWidth=2;
+  x.beginPath(); x.moveTo(660,760); x.lineTo(660,830); x.stroke();
+  x.setLineDash([5,9]); x.beginPath(); x.moveTo(60,922); x.lineTo(S-60,922); x.stroke(); x.setLineDash([]);
+  x.textAlign='center'; x.font='400 34px "Instrument Sans", Arial, sans-serif';
+  x.fillText(MKV.dir,S/2,1000);
+  return c;
+}
+function ivVeh(){
+  const t=$('#ivV').value.trim(); if(!t) return null;
+  const m=t.match(/([A-Z0-9]{6,})\s*$/i);
+  if(m&&IDX[m[1].toUpperCase()]) return IDX[m[1].toUpperCase()];
+  const q=t.toLowerCase();
+  return V.find(v=>(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(q))||null;
+}
+$('#ivV').addEventListener('input',()=>{
+  const v=ivVeh(); if(!v)return;
+  $('#ivTitulo').value=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
+  const f=['PARA PRIMER DUEÑO, ZOFRI','MOTOR DIESEL'];
+  if(!v.trab&&v.tp) f.push('TECHO PANORAMICO');
+  if(v.pa) f.push(String(v.pa).padStart(2,'0')+' PASAJEROS');
+  if(v.tr) f.push('TRACCION '+v.tr);
+  if(v.ca&&v.ca!=='S/N') f.push(String(v.ca).toUpperCase());
+  [1,2,3,4,5].forEach(i=>{$('#ivF'+i).value=f[i-1]||''});
+  $('#ivDest').value=(!v.trab&&v.tp)?'T. PANORAMICO':'';
+  $('#ivTplT').textContent='Usarás la plantilla '+miTpl()+', distinta a la de los demás.';
+});
+$('#ivGen').addEventListener('click',async()=>{
+  const v=ivVeh(); if(!v){toast('Elige un vehículo');return}
+  const b=$('#ivGen'); b.disabled=true; b.textContent='Generando…';
+  try{
+    let foto='';
+    try{const r=await window.storage.get(PK(v.ch));
+      if(r&&r.value){const a=JSON.parse(r.value); foto=a[0]||''}}catch(_){}
+    const feats=[1,2,3,4,5].map(i=>$('#ivF'+i).value.trim()).filter(Boolean);
+    const tpl=miTpl();
+    const c1=await ivPortada(v,foto,$('#ivDest').value.trim(),tpl);
+    const c2=ivFicha(v,$('#ivTitulo').value.trim(),feats,tpl);
+    $('#ivPrev').innerHTML='<div class="ph" style="aspect-ratio:1"><img src="'+c1.toDataURL('image/jpeg',.9)+'" alt="Portada"></div>'
+      +'<div class="ph" style="aspect-ratio:1"><img src="'+c2.toDataURL('image/jpeg',.9)+'" alt="Ficha"></div>';
+    ivBlobs=await Promise.all([c1,c2].map((c,i)=>new Promise(res=>
+      c.toBlob(bl=>res(new File([bl], v.ch+'-'+(i?'ficha':'portada')+'.jpg',{type:'image/jpeg'})),'image/jpeg',.92))));
+    $('#ivActs').hidden=false; $('#ivMk').hidden=false;
+    toast(foto?'Generadas ✓':'Generadas · sin foto de portada');
+  }catch(e){toast('No se pudo generar')}
+  b.disabled=false; b.textContent='Generar';
+});
+$('#ivDl').addEventListener('click',()=>{
+  if(!ivBlobs.length){toast('Genera primero');return}
+  ivBlobs.forEach(f=>{const u=URL.createObjectURL(f);const a=document.createElement('a');
+    a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),4000)});
+  toast('Descargadas');
+});
+$('#ivShare').addEventListener('click',async()=>{
+  if(!ivBlobs.length){toast('Genera primero');return}
+  if(navigator.canShare&&navigator.canShare({files:ivBlobs})){
+    try{await navigator.share({files:ivBlobs,title:'AMK'});return}
+    catch(e){if(e&&e.name==='AbortError')return}}
+  $('#ivDl').click();
+});
+$('#ivMkBtn').addEventListener('click',async()=>{
+  const v=ivVeh(); if(!v){toast('Elige un vehículo');return}
+  await cp(genMP(v,0),'Texto copiado · pégalo en Marketplace');
+  window.open('https://www.facebook.com/marketplace/create/vehicle','_blank','noopener');
+});
+
+boot();
+</script></body></html>
