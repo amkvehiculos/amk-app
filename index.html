@@ -547,6 +547,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="fbLeer" style="width:100%">Comprobar lectura desde la nube</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="resBtn" style="width:100%">⇩ Restaurar datos faltantes desde un respaldo</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="fotosNube" style="width:100%">⇧ Subir todas las fotos de este dispositivo a la nube</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="webSyncBtn" style="width:100%">⇧ Actualizar la web pública ahora</button></div>
+      <div id="webEstado" class="mtr" style="margin-top:9px"></div>
+      <div id="nubeDocsEstado" class="mtr" style="margin-top:6px"></div>
+      <div id="fotosEstado" class="mtr" style="margin-top:9px"></div>
       <input type="file" id="resFile" accept=".json,application/json" style="display:none">
       <div id="resEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:6px">Compara un archivo de respaldo con lo que hay ahora y rellena solo los campos que estén vacíos. Nunca pisa un dato que ya tengas.</div>
@@ -1022,7 +1029,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov'];
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw'];
 
@@ -1073,7 +1080,7 @@ async function fbInit(){
       if(u){
         fbReady=true;
         fbMuestraLogin(false);
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); nubeRestauraDocs(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'#2E7D32');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -1230,6 +1237,153 @@ async function fbContarNube(){
     if(el) el.innerHTML='<span style="color:#B5533C">✗ '+(e.message||e.code||e)+'</span>';
   }
 }
+/* ---------- Remesas y embarques en la nube ----------
+   Se guardan como un documento único cada uno (son solo de Sistema). En vez de
+   tocar los diez lugares del código que los graban, se envuelve window.storage.set:
+   cuando la llave es una de esas dos, además de guardar local manda a la nube. */
+const NUBE_DOCS={'amk_remesas':{col:'remesas',doc:'todas'},'amk_embarques':{col:'embarques',doc:'todos'}};
+const NUBE_MAX=900000;
+(function(){
+  const _set=window.storage.set.bind(window.storage);
+  const timers={};
+  window.storage.set=async function(k,v){
+    const r=await _set(k,v);
+    if(NUBE_DOCS[k]){
+      clearTimeout(timers[k]);
+      timers[k]=setTimeout(()=>nubeGuarda(k,v),1500);
+    }
+    return r;
+  };
+})();
+async function nubeGuarda(k,valor){
+  if(!fbReady) return;
+  const d=NUBE_DOCS[k]; if(!d) return;
+  const txt=String(valor||'');
+  const el=document.getElementById('nubeDocsEstado');
+  if(txt.length>NUBE_MAX){
+    if(el) el.innerHTML='<span style="color:#B5533C">Los datos de '+d.col+' pesan demasiado para la nube ('+Math.round(txt.length/1024)+' KB). Avísale a Claude.</span>';
+    return;
+  }
+  try{
+    await fbDb.collection(d.col).doc(d.doc).set({json:txt, _ts:firebase.firestore.FieldValue.serverTimestamp()});
+    if(el) el.innerHTML='<span style="color:#2E7D32">✓ Copia de '+d.col+' guardada en la nube</span>';
+  }catch(e){
+    console.error('nubeGuarda',e);
+    if(el) el.innerHTML='<span style="color:#B5533C">✗ No se pudo guardar la copia de '+d.col+': '+(e.message||e.code||e)+'</span>';
+  }
+}
+/* Al conectar en un dispositivo que todavía no tiene estos datos, los baja de la nube.
+   Nunca pisa datos locales existentes: solo rellena si acá no hay nada. */
+async function nubeRestauraDocs(){
+  if(!fbReady) return;
+  const el=document.getElementById('nubeDocsEstado');
+  let traidos=[];
+  for(const k in NUBE_DOCS){
+    const d=NUBE_DOCS[k];
+    try{
+      const local=await window.storage.get(k);
+      if(local && local.value) continue;               /* ya hay datos acá */
+      const s=await fbDb.collection(d.col).doc(d.doc).get();
+      if(!s.exists) continue;
+      const txt=(s.data()||{}).json;
+      if(!txt) continue;
+      await window.storage.set(k,txt);
+      traidos.push(d.col);
+    }catch(e){ console.error('nubeRestauraDocs',e); }
+  }
+  if(traidos.length){
+    try{ await cargaRM(); }catch(_){}
+    try{ await cargaEmb(); }catch(_){}
+    if(el) el.innerHTML='<span style="color:#2E7D32">✓ Se bajaron de la nube: '+traidos.join(' y ')+'</span>';
+  }
+}
+const WEB_COL='catalogoPublico';
+const webUltimo={};
+/* Arma el documento público de un vehículo: sin costos, y con el precio SOLO si
+   está en oferta (misma regla de siempre: precios ocultos salvo ofertas). */
+function webDoc(v){
+  const t=st(v.ch);
+  return {
+    ch:v.ch, st:v.st||'', ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'',
+    cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp, km:v.km||null,
+    trab:!!v.trab, sv:!!v.sv,
+    oferta:!!t.of,
+    precio: t.of ? (t.pprice||v.vev||null) : null,
+    foto: (Array.isArray(v.fotos)&&v.fotos[0]) || ''
+  };
+}
+function webVaEnLaWeb(v){ const t=st(v.ch); return !!t.pub && !t.sold; }
+let webTimer=null;
+function webSyncPronto(){
+  if(!fbReady) return;
+  clearTimeout(webTimer);
+  webTimer=setTimeout(()=>webSync(false), 2000);
+}
+async function webSync(completo){
+  if(!fbReady) return {ok:0};
+  const el=document.getElementById('webEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  let puestos=0, sacados=0;
+  try{
+    let yaArriba=null;
+    if(completo){
+      pinta('Revisando qué hay publicado…');
+      const s=await fbDb.collection(WEB_COL).get();
+      yaArriba=new Set(); s.forEach(d=>yaArriba.add(d.id));
+    }
+    for(const v of V){
+      const debe=webVaEnLaWeb(v);
+      const doc=debe?webDoc(v):null;
+      const firma=debe?JSON.stringify(doc):'(fuera)';
+      const cambio = webUltimo[v.ch]!==firma;
+      if(debe){
+        if(cambio || (completo && !yaArriba.has(v.ch))){
+          await fbDb.collection(WEB_COL).doc(v.ch).set(doc);
+          puestos++;
+        }
+      }else{
+        const estaba = (yaArriba && yaArriba.has(v.ch)) || (webUltimo[v.ch] && webUltimo[v.ch]!=='(fuera)');
+        if(estaba){ await fbDb.collection(WEB_COL).doc(v.ch).delete(); sacados++; }
+      }
+      webUltimo[v.ch]=firma;
+    }
+    if(completo || puestos || sacados){
+      const total=V.filter(webVaEnLaWeb).length;
+      pinta('✓ Web al día · '+total+' vehículos publicados'+(puestos?(' · '+puestos+' actualizados'):'')+(sacados?(' · '+sacados+' retirados'):''),'#2E7D32');
+    }
+    return {ok:puestos, sacados:sacados};
+  }catch(e){
+    console.error('webSync',e);
+    pinta('✗ '+(e.message||e.code||e),'#B5533C');
+    return {error:e};
+  }
+}
+async function subirTodasLasFotos(){
+  const el=document.getElementById('fotosEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  if(!GHTOKEN||!GHOWNER||!GHREPO){ pinta('Falta configurar la bodega de GitHub más arriba.','#B5533C'); return; }
+  const b=document.getElementById('fotosNube'); b.disabled=true;
+  pinta('Revisando qué vehículos tienen fotos en este dispositivo…');
+  let conFotos=0, subidas=0, fallos=0;
+  try{
+    for(const v of V){
+      let local=[];
+      try{ const r=await window.storage.get(PK(v.ch)); if(r&&r.value) local=JSON.parse(r.value); }catch(_){}
+      if(!local.length) continue;
+      if(Array.isArray(v.fotos) && v.fotos.length>=local.length) continue;  /* ya subidas */
+      conFotos++;
+      pinta('Subiendo fotos de '+v.ma+' '+v.mo+' ('+conFotos+')…');
+      const r=await subirFotosNube(v.ch, local, true);
+      subidas+=(r.ok||0); fallos+=(r.fallos||0);
+    }
+    if(!conFotos) pinta('No hay fotos pendientes: o no tienes fotos guardadas acá, o ya están todas en la nube.','#2E7D32');
+    else pinta('✓ '+subidas+' foto(s) de '+conFotos+' vehículo(s) subidas'+(fallos?(' · '+fallos+' fallaron'):'')+'. Ya se ven desde cualquier dispositivo.','#2E7D32');
+  }catch(e){
+    console.error('subirTodasLasFotos',e);
+    pinta('✗ '+(e.message||e),'#B5533C');
+  }
+  b.disabled=false;
+}
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
   if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
@@ -1330,6 +1484,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(fbReady){ toast('La sesión ya está iniciada'); return; }
     fbMuestraLogin(true);
   });
+  const ws=document.getElementById('webSyncBtn');
+  if(ws) ws.addEventListener('click',async()=>{ ws.disabled=true; await webSync(true); ws.disabled=false; });
+  const fn=document.getElementById('fotosNube');
+  if(fn) fn.addEventListener('click',subirTodasLasFotos);
   const rb=document.getElementById('resBtn');
   if(rb) rb.addEventListener('click',()=>document.getElementById('resFile').click());
   const rf=document.getElementById('resFile');
@@ -1985,14 +2143,57 @@ const kb=n=>Math.round(n/1024)+' KB';
 function weight(){return phArr.reduce((a,b)=>a+b.length,0)*0.75}
 
 async function loadPhotos(c){
-  try{const r=await window.storage.get(PK(c)); return r&&r.value?JSON.parse(r.value):[]}catch(e){return []}
+  try{
+    const r=await window.storage.get(PK(c));
+    const local=(r&&r.value)?JSON.parse(r.value):[];
+    if(local.length) return local;
+    const v=IDX[c];
+    if(v && Array.isArray(v.fotos) && v.fotos.length) return v.fotos.slice();  /* llegan de la nube */
+    return [];
+  }catch(e){return []}
 }
 async function savePhotos(c,arr){
   try{
     if(arr.length) await window.storage.set(PK(c),JSON.stringify(arr));
     else await window.storage.delete(PK(c));
+    subirFotosNube(c,arr);
     return true;
   }catch(e){toast('No se pudieron guardar las fotos');return false}
+}
+const fotosSubiendo={};
+/* Sube las fotos del vehículo a la bodega de GitHub y guarda sus direcciones en el
+   vehículo (campo `fotos`), que sí viaja por Firestore. Así el resto de los
+   dispositivos las ve sin tener que copiar los archivos. */
+async function subirFotosNube(ch,arr,silencioso){
+  if(!GHTOKEN||!GHOWNER||!GHREPO) return {ok:0,error:'GitHub no configurado'};
+  if(fotosSubiendo[ch]) return {ok:0,error:'ya se están subiendo'};
+  const locales=(arr||[]).filter(f=>typeof f==='string' && f.indexOf('data:')===0);
+  const yaUrl=(arr||[]).filter(f=>typeof f==='string' && f.indexOf('http')===0);
+  if(!locales.length){
+    const v=IDX[ch];
+    if(v && yaUrl.length){ v.fotos=yaUrl; guardaCacheV(); }
+    return {ok:0};
+  }
+  fotosSubiendo[ch]=true;
+  if(!silencioso) toast('Subiendo '+locales.length+' foto(s) a la nube…');
+  const urls=yaUrl.slice();
+  let fallos=0;
+  try{
+    for(let i=0;i<locales.length;i++){
+      try{
+        const chica=(await shrinkDataURI(locales[i],WEBW,WEBQ))||locales[i];
+        const u=await subirFotoGH(chica, ch+'-'+i+'-'+Date.now()+'.jpg');
+        urls.push(u);
+      }catch(e){ console.error('subirFotosNube',e); fallos++; }
+    }
+    const v=IDX[ch];
+    if(v && urls.length){ v.fotos=urls; guardaCacheV(); draw(); }
+    if(!silencioso){
+      if(fallos) toast('Se subieron '+(urls.length-yaUrl.length)+' foto(s); '+fallos+' fallaron');
+      else toast('Fotos disponibles en todos tus dispositivos ✓');
+    }
+    return {ok:urls.length-yaUrl.length, fallos:fallos};
+  } finally { delete fotosSubiendo[ch]; }
 }
 
 function segShow(k){
@@ -2822,19 +3023,23 @@ async function publicarTodo(v,paso){
   if(!pubRed.ig&&!pubRed.fb) throw new Error('Elige al menos una red');
   if(esVideo&&pubFile.size>PUB_MAX) throw new Error('El video pesa '+(pubFile.size/1048576).toFixed(1)+' MB; el máximo que se puede subir son '+(PUB_MAX/1048576)+' MB');
   paso&&paso('Preparando el archivo…');
-  let dataURI='';
+  let dataURI='', urlYa='';
   if(esVideo){ dataURI=await fileADataURI(pubFile); }
   else{
-    let foto='';
-    try{ const r=await window.storage.get('amk_fotos_'+v.ch); if(r&&r.value){ const a=JSON.parse(r.value); foto=a[0]||''; } }catch(_){}
+    const arrFotos=await loadPhotos(v.ch);
+    const foto=arrFotos[0]||'';
     if(!foto) throw new Error('Este vehículo no tiene fotos cargadas; elige un video o sube fotos primero');
-    dataURI=(await shrinkDataURI(foto,1080,0.85))||foto;
+    if(foto.indexOf('http')===0){ urlYa=foto; }               /* ya está publicada en la bodega */
+    else dataURI=(await shrinkDataURI(foto,1080,0.85))||foto;
   }
   const oks=[], errores=[];
   if(pubRed.ig){
     try{
-      paso&&paso('Subiendo el archivo a la bodega…');
-      const url=await subirFotoGH(dataURI,v.ch+'-'+Date.now()+(esVideo?'.mp4':'.jpg'));
+      let url=urlYa;
+      if(!url){
+        paso&&paso('Subiendo el archivo a la bodega…');
+        url=await subirFotoGH(dataURI,v.ch+'-'+Date.now()+(esVideo?'.mp4':'.jpg'));
+      }
       paso&&paso('Creando la publicación en Instagram…');
       await igPublicar(url,genIG(v,gvar),esVideo,paso);
       oks.push('Instagram');
@@ -2843,7 +3048,11 @@ async function publicarTodo(v,paso){
   if(pubRed.fb){
     try{
       paso&&paso('Publicando en Facebook…');
-      await fbPublicar(esVideo?pubFile:dataURIaBlob(dataURI),genFB(v,gvar),esVideo);
+      let blobFB;
+      if(esVideo) blobFB=pubFile;
+      else if(dataURI) blobFB=dataURIaBlob(dataURI);
+      else blobFB=await (await fetch(urlYa)).blob();   /* la foto vive en la bodega */
+      await fbPublicar(blobFB,genFB(v,gvar),esVideo);
       oks.push('Facebook');
     }catch(e){ console.error('FB',e); errores.push('Facebook: '+e.message); }
   }
@@ -5222,7 +5431,7 @@ draw=(function(){
   return function(){
     _orig();
     if(!_fbBaselineDone){ _fbBaselineDone=true; fbCaptureBaseline(); }
-    else { fbSchedulePush(); guardaCacheV(); }
+    else { fbSchedulePush(); guardaCacheV(); webSyncPronto(); }
   };
 })();
 fbInit();
