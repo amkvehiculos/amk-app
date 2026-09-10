@@ -532,6 +532,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="ghSave">Guardar</button></div>
       <div id="ghEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos en ese repositorio (es lo que permite que Instagram los tome). Usa un token de tipo "fine-grained" con permiso de Contenido: lectura y escritura, solo sobre ese repositorio. Conviene un repositorio aparte (ej. amk-media), no el de la web.</div></div>
+    <div class="box"><h3>Historial · volver a como estaba</h3>
+      <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
+      <select id="histSel" style="width:100%;margin-bottom:8px"><option value="">(todavía no hay ningún momento guardado)</option></select>
+      <div class="acts">
+        <button class="btn b-pri" id="histVolver" style="width:100%" disabled>↺ Volver a este momento</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="histArch" style="width:100%">↺ Volver usando un archivo de respaldo</button></div>
+      <input type="file" id="histFile" accept=".json,application/json" style="display:none">
+      <div id="histEstado" class="mtr" style="margin-top:9px"></div>
+      <div class="mtr" style="margin-top:6px"><b>Reemplaza</b> todo por lo que traiga la foto o el respaldo. Los vehículos que sobran se quitan también de la nube y de la web. Siempre guarda una foto de cómo estaba antes, por si te arrepientes.</div>
+    </div>
     <div class="box"><h3>Sincronización en la nube</h3>
       <p>Estado de la conexión con Firestore y carga inicial de los datos de este dispositivo.</p>
       <div id="fbEstadoSync" class="mtr" style="margin-bottom:9px">Comprobando…</div>
@@ -549,6 +560,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="resBtn" style="width:100%">⇩ Restaurar datos faltantes desde un respaldo</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="fotosNube" style="width:100%">⇧ Subir todas las fotos de este dispositivo a la nube</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="webPubPatio" style="width:100%">★ Publicar en la web todos los que están en patio</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="webSyncBtn" style="width:100%">⇧ Actualizar la web pública ahora</button></div>
       <div id="webEstado" class="mtr" style="margin-top:9px"></div>
@@ -1031,7 +1044,12 @@ let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov'];
-const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw'];
+const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
+/* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
+   tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
+   NO se sincroniza n360 (cantidad de tomas 360°) porque las tomas mismas viven en cada aparato:
+   sincronizar el número mostraría "5 tomas" en un aparato que no tiene ninguna. */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs'];
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -1043,6 +1061,9 @@ function fbPrivData(v){
   const t=S[v.ch]||{};
   const o={}; FB_PRIV_FIELDS.forEach(k=>o[k]=v[k]!==undefined?v[k]:null);
   o.costs=t.costs||[];
+  /* Estos SOLO se mandan si existen acá. Como la escritura es con merge, así un
+     aparato que nunca los tuvo no le borra estos datos a otro que sí los tiene. */
+  FB_PRIV_S_FIELDS.forEach(k=>{ if(t[k]!==undefined) o[k]=t[k]; });
   return o;
 }
 function fbHash(o){ try{return JSON.stringify(o)}catch(e){return ''} }
@@ -1153,6 +1174,14 @@ async function fbPushChanges(){
 }
 
 function fbApplyRemote(ch, pub, priv){
+  /* Marcado como borrado en la nube: se quita de este aparato y no se vuelve a crear. */
+  if(pub && pub.borrado===true){
+    const j=V.findIndex(x=>x.ch===ch);
+    if(j>-1) V.splice(j,1);
+    delete IDX[ch]; delete S[ch]; delete fbLastPush[ch];
+    guardaCacheV(); fbActualizaAviso();
+    return;
+  }
   let v=IDX[ch];
   if(!v){ v={ch}; V.push(v); IDX[ch]=v; }
   if(pub) FB_PUB_FIELDS.forEach(k=>{ if(pub[k]!==undefined) v[k]=pub[k]; });
@@ -1160,6 +1189,7 @@ function fbApplyRemote(ch, pub, priv){
   const t=st(ch);
   if(pub) FB_S_FIELDS.forEach(k=>{ if(pub[k]!==undefined) t[k]=pub[k]; });
   if(priv && priv.costs) t.costs=priv.costs;
+  if(priv) FB_PRIV_S_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) t[k]=priv[k]; });
   fbLastPush[ch]=fbHash(fbPubData(v))+'|'+fbHash(fbPrivData(v));
   guardaCacheV();
   fbActualizaAviso();
@@ -1312,7 +1342,28 @@ function webDoc(v){
     foto: (Array.isArray(v.fotos)&&v.fotos[0]) || ''
   };
 }
-function webVaEnLaWeb(v){ const t=st(v.ch); return !!t.pub && !t.sold; }
+function webVaEnLaWeb(v){ if(v.borrado) return false; const t=st(v.ch); return !!t.pub && !t.sold; }
+
+/* Marca como publicados en la web todos los vehículos que están en patio (IQQ) y no vendidos */
+function webPatioCandidatos(){
+  return V.filter(v=>v.st==='IQQ' && !sold(v.ch) && !st(v.ch).pub);
+}
+async function webPublicaPatio(btn){
+  const faltan=webPatioCandidatos();
+  const yaEnPatio=V.filter(v=>v.st==='IQQ' && !sold(v.ch)).length;
+  if(!faltan.length){
+    toast(yaEnPatio? 'Todos los de patio ya están publicados ('+yaEnPatio+')' : 'No hay vehículos en patio');
+    return;
+  }
+  if(!confirm('Se van a marcar como publicados en la web '+faltan.length+' vehículo(s) que están en patio y no vendidos.\n\nDespués puedes desmarcar uno por uno los que no quieras mostrar.\n\n¿Continuar?')) return;
+  if(btn) btn.disabled=true;
+  try{
+    for(const v of faltan){ st(v.ch).pub=true; }
+    save(); draw();
+    toast('Marcados '+faltan.length+' vehículo(s) para la web');
+    await webSync(true);
+  }finally{ if(btn) btn.disabled=false; }
+}
 let webTimer=null;
 function webSyncPronto(){
   if(!fbReady) return;
@@ -1384,6 +1435,139 @@ async function subirTodasLasFotos(){
   }
   b.disabled=false;
 }
+/* ================= HISTORIAL · volver a como estaba =================
+   Guarda solas fotos completas de los datos (vehiculos + estado de venta) en
+   este dispositivo. Sirve para deshacer cualquier equivocacion, no solo la
+   ultima. Nada de esto viaja a la nube: es la red de seguridad local.        */
+const HIST='amk_hist', HIST_MAX=12, HIST_CADA=15*60*1000;
+let HIST_LISTA=[], histTimer=null, histUltimaFirma='';
+
+function histFirma(){ return V.length+'|'+JSON.stringify(V).length+'|'+JSON.stringify(S).length; }
+
+async function histCarga(){
+  try{ const r=await window.storage.get(HIST);
+       if(r&&r.value){ const a=JSON.parse(r.value); if(Array.isArray(a)) HIST_LISTA=a; } }
+  catch(e){ console.error('histCarga',e); }
+}
+async function histGuardaLista(){
+  try{ await window.storage.set(HIST, JSON.stringify(HIST_LISTA)); }
+  catch(e){ console.error('histGuardaLista',e); }
+}
+async function histTomar(motivo, forzar){
+  try{
+    if(!V.length) return false;                 // nunca guardar una foto vacia
+    const firma=histFirma();
+    /* forzar: antes de reemplazar datos se guarda igual, aunque la firma coincida.
+       La firma es una comparacion barata y podria dar un falso "no cambio nada". */
+    if(!forzar && firma===histUltimaFirma) return false;
+    histUltimaFirma=firma;
+    HIST_LISTA.unshift({ ts:Date.now(), motivo:motivo||'automatica',
+                         n:V.length, V:JSON.parse(JSON.stringify(V)),
+                         S:JSON.parse(JSON.stringify(S)) });
+    if(HIST_LISTA.length>HIST_MAX) HIST_LISTA.length=HIST_MAX;
+    await histGuardaLista();
+    histDibuja();
+    return true;
+  }catch(e){ console.error('histTomar',e); return false; }
+}
+function histArranca(){
+  clearInterval(histTimer);
+  histTimer=setInterval(()=>histTomar('automatica'), HIST_CADA);
+}
+function histCuando(ts){
+  const d=new Date(ts), hoy=new Date();
+  const mismo = d.toDateString()===hoy.toDateString();
+  const hh=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(mismo) return 'hoy '+hh;
+  const ayer=new Date(hoy.getTime()-86400000);
+  if(d.toDateString()===ayer.toDateString()) return 'ayer '+hh;
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+hh;
+}
+function histDibuja(){
+  const sel=document.getElementById('histSel'); if(!sel) return;
+  const antes=sel.value;
+  sel.innerHTML = HIST_LISTA.length
+    ? HIST_LISTA.map((h,i)=>'<option value="'+i+'">'+histCuando(h.ts)+' · '+h.n+' vehículos · '+h.motivo+'</option>').join('')
+    : '<option value="">(todavía no hay ningún momento guardado)</option>';
+  if(antes && sel.querySelector('option[value="'+antes+'"]')) sel.value=antes;
+  const b=document.getElementById('histVolver'); if(b) b.disabled=!HIST_LISTA.length;
+}
+
+/* Reemplaza TODO lo que hay ahora por lo que traiga la foto.
+   Los vehiculos que sobran se marcan como borrados en la nube (borrado:true),
+   para que ningun aparato los vuelva a bajar. No se borra el documento:
+   asi se puede revisar despues si hiciera falta.                            */
+async function histAplicar(nuevaV, nuevaS, etiqueta){
+  const el=document.getElementById('histEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  const antes=new Set(V.map(v=>v.ch));
+  const despues=new Set(nuevaV.map(v=>v.ch));
+  const sobran=[...antes].filter(ch=>!despues.has(ch));
+
+  await histTomar('antes de volver atrás', true);
+
+  V.length=0; nuevaV.forEach(v=>V.push(JSON.parse(JSON.stringify(v))));
+  for(const k in IDX) delete IDX[k];
+  V.forEach(v=>IDX[v.ch]=v);
+  for(const k in S) delete S[k];
+  for(const k in nuevaS) S[k]=JSON.parse(JSON.stringify(nuevaS[k]));
+
+  await save(); guardaCacheV(); draw();
+  histUltimaFirma=histFirma();
+
+  let enNube=0, fallos=0;
+  if(sobran.length && typeof fbReady!=='undefined' && fbReady && fbDb){
+    for(const ch of sobran){
+      try{ await fbDb.collection(FB_COL).doc(ch).set({borrado:true}, {merge:true}); enNube++; }
+      catch(e){ fallos++; console.error('histAplicar borrar', ch, e); }
+    }
+  }
+  if(typeof webSync==='function'){ try{ await webSync(true); }catch(e){ console.error('histAplicar web',e); } }
+
+  const partes=['✓ Volviste a '+etiqueta+': '+V.length+' vehículos'];
+  if(sobran.length) partes.push('se quitaron '+sobran.length
+      +(enNube?(' ('+enNube+' también en la nube)'):' (la nube no estaba conectada: quedaron allá)'));
+  if(fallos) partes.push(fallos+' no se pudieron quitar de la nube');
+  partes.push('Si te arrepentiste, el momento de antes quedó guardado arriba de todo');
+  pinta(partes.join(' · ')+'.','#2E7D32');
+  toast('Datos restaurados');
+}
+
+async function histVolver(){
+  const sel=document.getElementById('histSel');
+  const i=sel?+sel.value:-1;
+  const h=HIST_LISTA[i];
+  if(!h){ toast('Elige un momento primero'); return; }
+  if(!confirm('Vas a REEMPLAZAR todos tus datos actuales ('+V.length+' vehículos) '
+    +'por como estaban el '+histCuando(h.ts)+' ('+h.n+' vehículos).\n\n'
+    +'Lo que ingresaste después de ese momento se pierde.\n'
+    +'Antes de reemplazar se guarda una foto de cómo está ahora, por si te arrepientes.\n\n'
+    +'¿Seguro?')) return;
+  const b=document.getElementById('histVolver'); if(b) b.disabled=true;
+  try{ await histAplicar(h.V, h.S, histCuando(h.ts)); }
+  finally{ if(b) b.disabled=false; histDibuja(); }
+}
+
+/* Volver atras usando un archivo de respaldo JSON, en vez de una foto guardada.
+   Esto SI reemplaza (a diferencia del boton de "restaurar datos faltantes",
+   que solo rellena huecos y agrega).                                        */
+async function histDesdeArchivo(archivo){
+  const el=document.getElementById('histEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  try{
+    pinta('Leyendo el archivo…');
+    const paquete=JSON.parse(await archivo.text());
+    const lista=resExtrae(paquete);
+    if(!lista||!lista.length) throw new Error('el archivo no tiene una lista de vehículos que pueda leer');
+    const est=resExtraeEstado(paquete)||{};
+    if(!confirm('El respaldo trae '+lista.length+' vehículos.\n\n'
+      +'Se va a REEMPLAZAR todo lo que tienes ahora ('+V.length+' vehículos) por eso.\n'
+      +'Antes se guarda una foto de cómo está ahora, por si te arrepientes.\n\n'
+      +'¿Seguro?')) { pinta('Cancelado. No se tocó nada.'); return; }
+    await histAplicar(lista, est, 'el respaldo');
+  }catch(e){ console.error('histDesdeArchivo',e); pinta('✗ '+(e.message||e),'#B5533C'); }
+}
+
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
   if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
@@ -1400,6 +1584,13 @@ function resExtrae(paquete){
   return null;
 }
 function resVacio(x){ return x===undefined || x===null || x==='' || (Array.isArray(x)&&!x.length); }
+/* Saca del respaldo completo el estado de venta (vendido, publicado, precios) */
+function resExtraeEstado(paquete){
+  const d = paquete && paquete.datos; if(!d) return null;
+  const v = d[KEY]; if(!v) return null;
+  try{ const o=(typeof v==='string')?JSON.parse(v):v;
+       return (o && typeof o==='object' && !Array.isArray(o)) ? o : null; }catch(_){ return null; }
+}
 async function resRestaurar(archivo){
   const el=document.getElementById('resEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
@@ -1425,12 +1616,41 @@ async function resRestaurar(archivo){
       }
       if(cambio) tocados++;
     }
-    if(!campos){ pinta('No faltaba nada: todos los datos del respaldo ya están en la app.','#2E7D32'); return; }
+    /* Vehículos del respaldo que no existen acá: se pueden agregar, pero solo con permiso. */
+    let agregados=0, conEstado=0;
+    if(noEstan){
+      const faltan=lista.filter(o=>o&&o.ch&&!IDX[o.ch]);
+      const ok=confirm('El respaldo tiene '+faltan.length+' vehículo(s) que NO están en esta app.\n\n'
+        +'Aceptar = se agregan (no se toca ninguno de los que ya tienes).\n'
+        +'Cancelar = no se agrega ninguno, solo se rellenan datos que falten.\n\n'
+        +'¿Agregarlos?');
+      if(ok){
+        const est=resExtraeEstado(paquete);
+        for(const o of faltan){
+          const nuevo=JSON.parse(JSON.stringify(o));
+          V.push(nuevo); IDX[nuevo.ch]=nuevo; agregados++;
+          if(est && est[nuevo.ch] && !S[nuevo.ch]){ S[nuevo.ch]=est[nuevo.ch]; conEstado++; }
+        }
+        if(conEstado) save();
+      }
+    }
+
+    if(!campos && !agregados){
+      if(noEstan) pinta('No se agregó nada. El respaldo tiene '+noEstan+' vehículo(s) que no están en esta app'
+        +', y los que sí están ya tenían todos sus datos.','#5A6B70');
+      else pinta('No faltaba nada: todos los datos del respaldo ya están en la app.','#2E7D32');
+      return;
+    }
+
     guardaCacheV(); draw();
-    const resumen=Object.keys(detalle).map(k=>k+': '+detalle[k]).join(' · ');
-    pinta('✓ Restaurados '+campos+' datos en '+tocados+' vehículos ('+resumen+')'
-      +(noEstan?('. '+noEstan+' del respaldo ya no están en el stock actual'):'')
-      +'. Ahora aprieta "Subir todos mis datos a la nube" para que viajen.','#2E7D32');
+    const partes=[];
+    if(agregados) partes.push('Agregados '+agregados+' vehículos'+(conEstado?(' (con su estado de venta en '+conEstado+')'):''));
+    if(campos){
+      const resumen=Object.keys(detalle).map(k=>k+': '+detalle[k]).join(' · ');
+      partes.push('Restaurados '+campos+' datos en '+tocados+' vehículos ('+resumen+')');
+    }
+    if(noEstan && !agregados) partes.push(noEstan+' del respaldo no están en el stock actual');
+    pinta('✓ '+partes.join('. ')+'. Ahora aprieta "Subir todos mis datos a la nube" para que viajen.','#2E7D32');
     toast('Datos restaurados');
   }catch(e){
     console.error('resRestaurar',e);
@@ -1486,12 +1706,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   const ws=document.getElementById('webSyncBtn');
   if(ws) ws.addEventListener('click',async()=>{ ws.disabled=true; await webSync(true); ws.disabled=false; });
+  const wp=document.getElementById('webPubPatio');
+  if(wp) wp.addEventListener('click',()=>webPublicaPatio(wp));
   const fn=document.getElementById('fotosNube');
   if(fn) fn.addEventListener('click',subirTodasLasFotos);
   const rb=document.getElementById('resBtn');
   if(rb) rb.addEventListener('click',()=>document.getElementById('resFile').click());
   const rf=document.getElementById('resFile');
   if(rf) rf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) resRestaurar(f); e.target.value=''; });
+  const hv=document.getElementById('histVolver');
+  if(hv) hv.addEventListener('click',histVolver);
+  const ha=document.getElementById('histArch');
+  if(ha) ha.addEventListener('click',()=>document.getElementById('histFile').click());
+  const hf=document.getElementById('histFile');
+  if(hf) hf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) histDesdeArchivo(f); e.target.value=''; });
   const lc=document.getElementById('fbLeer');
   if(lc) lc.addEventListener('click',fbComprobarLectura);
   const r=document.getElementById('fbReintentar');
@@ -1529,6 +1757,7 @@ async function boot(){
   fbActualizaAviso();
   $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
+  await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(S))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
