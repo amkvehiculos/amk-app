@@ -180,6 +180,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 </head>
 <body>
 <div style="background:#B4321C;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.02em">COPIA DE PRUEBAS · datos separados · no es tu app real</div>
+<!-- Datalists compartidos: fuera de cualquier pestaña oculta, para que las sugerencias
+     de Marca/Modelo/Color/Tracción/Categoría/Carrocería funcionen aunque se muestren
+     desde Embarque u otro lugar distinto de Traspaso (donde antes vivían). -->
+<datalist id="dlNvMa"></datalist>
+<datalist id="dlNvMo"></datalist>
+<datalist id="dlNvCe"></datalist>
+<datalist id="dlNvTr"></datalist>
+<datalist id="dlNvCat"></datalist>
+<datalist id="dlNvCa"></datalist>
 
 <header><div class="wrap">
   <div class="hd"><svg viewBox="0 2 673 309" xmlns="http://www.w3.org/2000/svg" style="height:34px;width:auto;display:block" aria-label="AMK Vehículos Selectos"><path fill="#C8D2D4" d="M 115 9 L 6 227 L 49 227 L 114 90 L 180 226 L 224 226 Z M 267 9 L 267 226 L 303 198 L 304 84 L 376 140 L 450 84 L 452 199 L 488 226 L 487 8 L 377 93 Z M 621 8 L 534 115 L 620 226 L 667 227 L 581 115 L 667 9 Z"/><path fill="#9DACB2" fill-rule="evenodd" d="M 488 291 L 488 293 L 489 294 L 503 294 L 503 290 L 489 290 Z M 414 291 L 414 293 L 415 294 L 428 294 L 429 293 L 429 291 L 428 290 L 415 290 Z M 63 291 L 63 293 L 64 294 L 77 294 L 77 293 L 78 292 L 77 291 L 77 290 L 64 290 Z M 636 280 L 633 284 L 634 291 L 638 294 L 652 294 L 655 299 L 651 302 L 635 301 L 633 305 L 656 304 L 659 296 L 655 291 L 637 288 L 639 283 L 656 283 L 656 279 Z M 596 280 L 591 287 L 591 296 L 593 301 L 598 305 L 615 304 L 619 299 L 618 283 L 612 279 Z M 599 283 L 602 282 L 610 282 L 615 286 L 616 288 L 616 297 L 612 301 L 610 302 L 600 302 L 595 297 L 595 288 Z M 554 279 L 555 283 L 565 284 L 565 305 L 568 305 L 568 286 L 570 283 L 579 283 L 580 280 Z M 521 280 L 519 283 L 520 303 L 523 305 L 542 305 L 542 302 L 539 301 L 526 302 L 522 299 L 522 286 L 525 283 L 541 283 L 542 279 Z M 483 279 L 482 302 L 486 305 L 505 305 L 505 302 L 487 301 L 485 299 L 485 284 L 504 283 L 505 279 Z M 445 279 L 445 304 L 469 305 L 469 302 L 467 301 L 454 302 L 449 300 L 449 279 Z M 407 280 L 408 302 L 411 305 L 430 305 L 431 303 L 428 301 L 413 301 L 411 299 L 411 284 L 430 283 L 431 280 Z M 371 280 L 368 284 L 369 291 L 373 294 L 387 294 L 390 299 L 386 302 L 371 301 L 368 304 L 391 304 L 394 300 L 393 294 L 388 290 L 374 290 L 372 285 L 374 283 L 391 283 L 392 279 Z M 312 280 L 309 284 L 310 291 L 314 294 L 328 294 L 331 299 L 326 302 L 311 301 L 309 305 L 332 304 L 335 296 L 331 291 L 313 288 L 315 283 L 331 283 L 332 279 Z M 272 280 L 268 284 L 267 288 L 268 300 L 274 305 L 291 304 L 295 299 L 295 285 L 293 282 L 288 279 Z M 275 283 L 277 282 L 286 282 L 291 286 L 291 298 L 286 302 L 277 302 L 272 299 L 271 297 L 271 288 Z M 232 279 L 232 304 L 255 305 L 256 302 L 240 301 L 239 302 L 236 300 L 236 280 Z M 191 279 L 192 299 L 200 305 L 216 305 L 217 280 L 213 279 L 213 299 L 211 301 L 200 301 L 194 294 L 194 279 Z M 156 280 L 154 282 L 154 302 L 158 305 L 177 305 L 177 302 L 161 302 L 157 299 L 157 285 L 159 283 L 177 283 L 177 279 Z M 135 279 L 135 305 L 138 305 L 139 304 L 139 280 L 138 279 Z M 94 279 L 94 305 L 98 304 L 99 294 L 115 294 L 116 304 L 120 305 L 120 279 L 116 280 L 115 290 L 99 290 L 98 280 Z M 57 279 L 57 302 L 61 305 L 80 305 L 80 302 L 64 302 L 60 300 L 60 284 L 79 283 L 80 279 Z M 16 279 L 27 303 L 31 305 L 43 282 L 43 279 L 39 280 L 30 297 L 27 295 L 20 279 Z"/></svg></div>
@@ -215,6 +224,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="chip" data-f="vend" aria-selected="false">Vendidos</button>
       <button class="chip" data-f="todos" aria-selected="false">Todos</button>
     </div>
+    <div style="margin:8px 0 0"><label style="font-size:12.5px;color:var(--mute)">Orden
+      <select id="stOrden" style="margin-left:6px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)">
+        <option value="estado">Estado (como siempre)</option>
+        <option value="recientes">Más recientes primero</option>
+        <option value="antiguos">Más antiguos primero</option>
+      </select></label></div>
     <p class="cnt" id="cStock"></p>
     <div id="lStock"></div>
   </section>
@@ -389,10 +404,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="fld"><label for="emVNAn">Año</label><input id="emVNAn" inputmode="numeric" placeholder="2018"></div>
-            <div class="fld"><label for="emVNCe">Color</label><input id="emVNCe" list="dlNvCe" placeholder="Blanco"></div>
+            <div class="fld"><label for="emVNCe">Color</label><input id="emVNCe" list="dlNvCe" autocapitalize="characters" placeholder="Blanco"></div>
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="fld"><label for="emVNTr">Tracción</label><input id="emVNTr" list="dlNvTr" placeholder="4X2"></div>
+            <div class="fld"><label for="emVNTr">Tracción</label><input id="emVNTr" list="dlNvTr" autocapitalize="characters" value="4X2" placeholder="4X2"></div>
             <div class="fld"><label for="emVNPa">Pasajeros</label><input id="emVNPa" inputmode="numeric" placeholder="7"></div>
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -401,8 +416,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           </div>
           <div class="fld"><label for="emVNTrans">Transmisión (para Zofri, opcional)</label>
             <select id="emVNTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
-          <div class="fld" style="margin-bottom:10px"><label for="emVNProv">Proveedor</label><input id="emVNProv" placeholder="Ej: Sr. Chan"></div>
-          <button class="btn b-pri" id="emVNAdd" type="button" style="width:100%">Agregar vehículo</button>
+          <div class="fld" style="margin-bottom:10px"><label for="emVNProv">Proveedor</label><input id="emVNProv" autocapitalize="characters" placeholder="Ej: Sr. Chan"></div>
         </div>
         <div class="fld" style="margin-bottom:4px"><div class="mtr" style="margin:0 0 4px;min-height:30px">Compra en Corea (₩)</div>
           <input id="emVal" inputmode="numeric" placeholder="0" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
@@ -411,11 +425,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div class="mtr" style="margin:0 0 6px">Costos de taller en Corea (₩) <span style="opacity:.7">— por si mi mamá lo anotó en cuaderno y no en la app</span></div>
           <div id="emCCGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
         </div>
+        <button class="btn b-pri" id="emVNAdd" type="button" hidden style="width:100%;margin-bottom:12px">Agregar vehículo</button>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">
           <div><div class="mtr" style="margin:0 0 4px">Contenedor</div>
             <select id="emVcn" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></select></div>
-          <div><div class="mtr" style="margin:0 0 4px">% del contenedor <span style="opacity:.7;font-size:11px">(volumen)</span></div>
-            <input id="emPv" inputmode="decimal" placeholder="Ej: 30" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
+          <div><div class="mtr" style="margin:0 0 4px">% del contenedor <span style="opacity:.7;font-size:11px">(volumen)</span> · Código del contenedor</div>
+            <div style="display:flex;gap:6px">
+              <input id="emPv" inputmode="decimal" placeholder="Ej: 30" style="width:58px;flex:0 0 auto;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
+              <input id="emVccod" placeholder="Ej: MEDU7852402" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;background:var(--paper);color:var(--ink);text-transform:uppercase"></div></div>
         </div>
         <button class="btn b-pri" id="emVadd" style="width:100%">Agregar vehículo a BL</button>
         <div id="emLista2" style="margin-top:12px"></div>
@@ -432,6 +449,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="box"><h3>Costos estimados (este embarque)</h3>
         <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
         <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
+        <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
         <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0">
           <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
           <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
@@ -489,6 +507,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-09-2026 22:22 · PRUEBAS<!--/VER--></b></div>
     <div class="box"><h3>Impuesto Ley 18.211</h3>
       <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -535,6 +554,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="ghSave">Guardar</button></div>
       <div id="ghEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos en ese repositorio (es lo que permite que Instagram los tome). Usa un token de tipo "fine-grained" con permiso de Contenido: lectura y escritura, solo sobre ese repositorio. Conviene un repositorio aparte (ej. amk-media), no el de la web.</div></div>
+    <div class="box"><h3>Corregir FOB Zeta desde el Excel</h3>
+      <p>Al pasar los datos del Excel a la app, el FOB Zeta se guardó redondeado y perdió sus dos decimales. Este botón los devuelve exactos, leyendo <b>AMK_fobzeta_desde_excel.json</b>. Solo toca el FOB Zeta.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="fzBtn" style="width:100%">⚙ Corregir FOB Zeta</button></div>
+      <input type="file" id="fzFile" accept=".json,application/json" style="display:none">
+      <div id="fzEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
       <select id="histSel" style="width:100%;margin-bottom:8px"><option value="">(todavía no hay ningún momento guardado)</option></select>
@@ -655,24 +681,24 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="fld"><label for="nvCh">Chasis</label><input id="nvCh" autocapitalize="characters" placeholder="Ej: BA123290">
         <div class="mtr" id="nvChT"></div></div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvMa">Marca</label><input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="KIA"><datalist id="dlNvMa"></datalist></div>
-        <div class="fld"><label for="nvMo">Modelo</label><input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="SORENTO"><datalist id="dlNvMo"></datalist></div>
+        <div class="fld"><label for="nvMa">Marca</label><input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="KIA"></div>
+        <div class="fld"><label for="nvMo">Modelo</label><input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="SORENTO"></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvAn">Año</label><input id="nvAn" inputmode="numeric" placeholder="2018"></div>
-        <div class="fld"><label for="nvCe">Color</label><input id="nvCe" list="dlNvCe" placeholder="Blanco"><datalist id="dlNvCe"></datalist></div>
+        <div class="fld"><label for="nvCe">Color</label><input id="nvCe" list="dlNvCe" autocapitalize="characters" placeholder="Blanco"></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvTr">Tracción</label><input id="nvTr" list="dlNvTr" placeholder="4X2"><datalist id="dlNvTr"></datalist></div>
+        <div class="fld"><label for="nvTr">Tracción</label><input id="nvTr" list="dlNvTr" autocapitalize="characters" value="4X2" placeholder="4X2"></div>
         <div class="fld"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvCat">Categoría</label><input id="nvCat" list="dlNvCat" placeholder="SUV"><datalist id="dlNvCat"></datalist></div>
-        <div class="fld"><label for="nvCa">Carrocería</label><input id="nvCa" list="dlNvCa" placeholder="Solo si es de trabajo"><datalist id="dlNvCa"></datalist></div>
+        <div class="fld"><label for="nvCat">Categoría</label><input id="nvCat" list="dlNvCat" placeholder="SUV"></div>
+        <div class="fld"><label for="nvCa">Carrocería</label><input id="nvCa" list="dlNvCa" placeholder="Solo si es de trabajo"></div>
       </div>
       <div class="fld"><label for="nvTrans">Transmisión (para Zofri, opcional)</label>
         <select id="nvTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
-      <div class="fld"><label for="nvProv">Proveedor</label><input id="nvProv" placeholder="Ej: Sr. Chan"></div>
+      <div class="fld"><label for="nvProv">Proveedor</label><input id="nvProv" autocapitalize="characters" placeholder="Ej: Sr. Chan"></div>
       <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></div>
     <div class="box"><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
       <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
@@ -1186,9 +1212,13 @@ function fbApplyRemote(ch, pub, priv){
     return;
   }
   let v=IDX[ch];
+  const esNuevoAqui=!v;
   if(!v){ v={ch}; V.push(v); IDX[ch]=v; }
   if(pub) FB_PUB_FIELDS.forEach(k=>{ if(pub[k]!==undefined) v[k]=pub[k]; });
   if(priv) FB_PRIV_FIELDS.forEach(k=>{ if(priv[k]!==undefined) v[k]=priv[k]; });
+  // Si llega de la nube sin fecha (la app de origen no la trae), se usa el día en que
+  // este aparato lo vio por primera vez — así también se puede ordenar por fecha en Stock.
+  if(esNuevoAqui && !v.fe) v.fe=iso();
   const t=st(ch);
   if(pub) FB_S_FIELDS.forEach(k=>{ if(pub[k]!==undefined) t[k]=pub[k]; });
   if(priv && priv.costs) t.costs=priv.costs;
@@ -1401,6 +1431,19 @@ async function webSync(completo){
       }
       webUltimo[v.ch]=firma;
     }
+    /* Vehiculos que quedaron publicados en la web pero ya no existen en V
+       (por ejemplo, borrados desde el historial: "sobran" sale por completo
+       de V, asi que el for de arriba nunca lo vuelve a visitar). Se retiran
+       aca para que no se queden huerfanos en catalogoPublico. */
+    if(completo && yaArriba){
+      const chasisV=new Set(V.map(v=>v.ch));
+      for(const ch of yaArriba){
+        if(!chasisV.has(ch)){
+          try{ await fbDb.collection(WEB_COL).doc(ch).delete(); sacados++; delete webUltimo[ch]; }
+          catch(e){ console.error('webSync huerfano',ch,e); }
+        }
+      }
+    }
     if(completo || puestos || sacados){
       const total=V.filter(webVaEnLaWeb).length;
       pinta('✓ Web al día · '+total+' vehículos publicados'+(puestos?(' · '+puestos+' actualizados'):'')+(sacados?(' · '+sacados+' retirados'):''),'#2E7D32');
@@ -1571,6 +1614,44 @@ async function histDesdeArchivo(archivo){
   }catch(e){ console.error('histDesdeArchivo',e); pinta('✗ '+(e.message||e),'#B5533C'); }
 }
 
+/* Corrige el FOB Zeta desde un archivo {"fob":{chasis:valor}} sacado del Excel.
+   Existe porque al pasar los datos del Excel a la app en su momento el FOB Zeta
+   se guardo REDONDEADO y perdio sus dos decimales (ej: 602,76 quedo como 603).
+   Solo toca el FOB Zeta; no mira ningun otro dato. */
+async function fzCorrige(archivo){
+  const el=document.getElementById('fzEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  try{
+    pinta('Leyendo el archivo…');
+    const paq=JSON.parse(await archivo.text());
+    const tabla=(paq&&paq.fob)||paq;
+    if(!tabla || typeof tabla!=='object') throw new Error('el archivo no trae una tabla de FOB Zeta');
+    let iguales=0, cambian=0, noEstan=0;
+    const lista=[];
+    for(const ch in tabla){
+      const nuevo=Number(tabla[ch]);
+      if(!isFinite(nuevo)) continue;
+      const v=IDX[ch];
+      if(!v){ noEstan++; continue; }
+      const viejo=Number(v.fob);
+      if(isFinite(viejo) && Math.abs(viejo-nuevo)<0.005){ iguales++; continue; }
+      lista.push([ch, v.fob, nuevo]); cambian++;
+    }
+    if(!cambian){ pinta('Nada que corregir: los '+iguales+' FOB Zeta ya están exactos.','#2E7D32'); return; }
+    const muestra=lista.slice(0,5).map(x=>x[0]+': '+(x[1]===undefined||x[1]===''?'(vacío)':x[1])+' → '+x[2].toFixed(2)).join('\n');
+    if(!confirm('Se van a corregir '+cambian+' FOB Zeta con el valor exacto del Excel.\n\n'
+      +muestra+(lista.length>5?('\n…y '+(lista.length-5)+' más'):'')
+      +'\n\nNo se toca ningún otro dato.\n\n¿Corregir?')) { pinta('Cancelado. No se tocó nada.'); return; }
+    for(const [ch,,nuevo] of lista) IDX[ch].fob=nuevo;
+    guardaCacheV(); draw();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    pinta('✓ Corregidos '+cambian+' FOB Zeta'+(iguales?(' · '+iguales+' ya estaban bien'):'')
+      +(noEstan?(' · '+noEstan+' del archivo no están en el stock'):'')
+      +'. Se están subiendo a la nube solos.','#2E7D32');
+    toast('FOB Zeta corregido');
+  }catch(e){ console.error('fzCorrige',e); pinta('✗ '+(e.message||e),'#B5533C'); }
+}
+
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
   if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
@@ -1717,6 +1798,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(rb) rb.addEventListener('click',()=>document.getElementById('resFile').click());
   const rf=document.getElementById('resFile');
   if(rf) rf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) resRestaurar(f); e.target.value=''; });
+  const fz=document.getElementById('fzBtn');
+  if(fz) fz.addEventListener('click',()=>document.getElementById('fzFile').click());
+  const fzf=document.getElementById('fzFile');
+  if(fzf) fzf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) fzCorrige(f); e.target.value=''; });
   const hv=document.getElementById('histVolver');
   if(hv) hv.addEventListener('click',histVolver);
   const ha=document.getElementById('histArch');
@@ -1851,8 +1936,19 @@ function ordenEstado(v){
 }
 function drawStock(){
   const s=q.trim().toLowerCase();
-  const L=V.filter(v=>passS(v)&&(!s||(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(s)))
-    .sort((a,b)=>ordenEstado(a)-ordenEstado(b));
+  const orden=($('#stOrden')&&$('#stOrden').value)||'estado';
+  const L=V.filter(v=>passS(v)&&(!s||(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(s)));
+  if(orden==='recientes'||orden==='antiguos'){
+    // Empate en la misma fecha (varios agregados el mismo día) se desempata con el orden
+    // en que entraron a V — el más nuevo del grupo es el que se agregó último.
+    const pos=new Map(V.map((v,i)=>[v.ch,i]));
+    const dir=orden==='recientes'?-1:1;
+    L.sort((a,b)=>{
+      const cmp=(a.fe||'0000-00-00').localeCompare(b.fe||'0000-00-00');
+      if(cmp) return dir*cmp;
+      return dir*((pos.get(a.ch)||0)-(pos.get(b.ch)||0));
+    });
+  } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
   $('#lStock').innerHTML=L.length?L.map(cardS).join(''):'<div class="empty">Sin resultados.</div>';
 }
@@ -2326,6 +2422,7 @@ $('#spOk').addEventListener('click',()=>{const t=st(editing);
 ['#ssTC'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':String(n)}));
 ['#ssP','#scA','#spP'].forEach(s=>$(s).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
 $('#q').addEventListener('input',e=>{q=e.target.value;drawStock()});
+$('#stOrden').addEventListener('change',drawStock);
 $('#qv').addEventListener('input',e=>{qv=e.target.value;drawVit()});
 $$('#pStock .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
@@ -4635,9 +4732,9 @@ function pintaEmCC(){
   if(!v){ grid.innerHTML='<p style="color:var(--mute);font-size:12.5px;margin:0;grid-column:1/-1">Busca (o crea) un vehículo arriba primero.</p>'; return; }
   v.cc=v.cc||{};
   const cats=(typeof CCAT!=='undefined')?CCAT:[];
-  grid.innerHTML=cats.map(([k,n])=>`<div class="xrow" style="align-items:center">
-    <span style="font-size:12.5px">${n}</span>
-    <span><input data-emcc="${v.ch}|${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
+  grid.innerHTML=cats.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
+    <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
+    <span style="white-space:nowrap;flex:0 0 auto"><input data-emcc="${v.ch}|${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
   </div>`).join('');
 }
 $('#emV').addEventListener('input',()=>pintaEmCC());
@@ -4654,14 +4751,23 @@ document.addEventListener('change',async e=>{
   pintaEmb(); draw(); toast('Costo de taller guardado');
 });
 let emEstCat='PINTURA';
+// emEstDraft/emEstSaved viven por embarque (embId) para no mezclar el progreso de uno con otro.
+let emEstDraft={};   // {embId:{categoria:{chasis:'texto tal cual se tipeó'}}}
+let emEstSaved={};   // {embId:Set(categorías con al menos un "Guardar estimados" hecho)}
+function emEstDraftCat(){ const d=emEstDraft[embId]||(emEstDraft[embId]={}); return d[emEstCat]||(d[emEstCat]={}); }
+function emEstSavedSet(){ return emEstSaved[embId]||(emEstSaved[embId]=new Set()); }
 function pintaEmEst(){
   const catBox=$('#emEstCat'); if(!catBox) return;
-  catBox.innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}">${n}</button>`).join('');
+  const savedSet=emEstSavedSet();
+  catBox.innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${savedSet.has(k)?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${savedSet.has(k)?' ✓':''}</button>`).join('');
   const e=E(); const lista=$('#emEstLista'); if(!lista) return;
   if(!e||!e.veh.length){ lista.innerHTML='<p style="color:var(--mute);font-size:13px;margin:8px 0 0">Sin vehículos en este embarque.</p>'; return; }
+  const draft=emEstDraftCat();
   lista.innerHTML=e.veh.map(x=>{
     const v=IDX[x.ch]||{};
     const md=medianaHist(emEstCat,v.mo);
+    const dv=draft[x.ch]; // lo que se tipeó para esta categoría, aunque no se haya guardado todavía
+    const shown=dv!==undefined?dv:(md?Math.round(md).toLocaleString('es-CL'):'');
     return `<div class="xrow" style="align-items:center;padding:6px 0">
       <label style="display:flex;align-items:center;gap:8px;font-family:var(--body);font-size:13.5px">
         <input type="checkbox" data-emestchk="${x.ch}" checked>
@@ -4669,15 +4775,25 @@ function pintaEmEst(){
       </label>
       <span style="display:inline-flex;align-items:center;gap:6px">
         ${md?`<span style="font-size:11px;color:var(--mute)">≈${clp(md)}</span>`:''}
-        <input data-emestmonto="${x.ch}" inputmode="numeric" value="${md?Math.round(md).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)">
+        <input data-emestmonto="${x.ch}" inputmode="numeric" value="${shown}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)">
       </span>
     </div>`;
   }).join('');
 }
-$('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]');if(!b)return; emEstCat=b.dataset.ec; pintaEmEst();});
+$('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]');if(!b)return; emEstCat=b.dataset.ec; $('#emEstTodos').value=''; pintaEmEst();});
+// Cada monto tipeado queda guardado en el "borrador" de su categoría al tiro — así no se
+// pierde si cambias de categoría (Pintura → Mecánica) sin apretar "Guardar estimados".
+$('#emEstLista').addEventListener('input',e=>{
+  const inp=e.target.closest('[data-emestmonto]'); if(!inp) return;
+  emEstDraftCat()[inp.dataset.emestmonto]=inp.value;
+});
 $('#emEstTodosBtn').addEventListener('click',()=>{
   const n=pnum($('#emEstTodos').value)||0;
-  $$('#emEstLista [data-emestmonto]').forEach(inp=>{ inp.value=n?Math.round(n).toLocaleString('es-CL'):''; });
+  const draft=emEstDraftCat();
+  $$('#emEstLista [data-emestmonto]').forEach(inp=>{
+    const val=n?Math.round(n).toLocaleString('es-CL'):'';
+    inp.value=val; draft[inp.dataset.emestmonto]=val;
+  });
 });
 $('#emEstGuardar').addEventListener('click',async()=>{
   const e=E(); if(!e||!e.veh.length){toast('Sin vehículos en este embarque');return}
@@ -4692,6 +4808,7 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     n++;
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}
+  emEstSavedSet().add(emEstCat);
   await save(); pintaEmEst(); draw();
   const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat];
   toast(msgOk);
@@ -4994,6 +5111,10 @@ function pintaEmb(){
         <span style="font-family:var(--body);font-size:12.5px">Compra en Corea (₩)</span>
         <input data-emvvalset="${f._i}" inputmode="numeric" value="${f.valor?Math.round(f.valor).toLocaleString('es-CL'):''}" placeholder="0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
       </div>
+      <div class="xrow" style="align-items:center;margin-top:2px">
+        <span style="font-family:var(--body);font-size:12.5px">Costos taller Corea (₩)</span>
+        <b style="font-family:var(--mono);font-size:12.5px">${ccKRW(v)?('₩'+Math.round(ccKRW(v)).toLocaleString('es-CL')):'—'}</b>
+      </div>
       <div class="money"><div>En pesos<b>${clp(f.compraCLP)}</b></div>
         <div>${(f.pct*100).toFixed(1)}% del valor<b>${clp(f.porValor)}</b></div>
         <div>Por volumen en contenedor<b>${clp(f.porContVol)}</b></div>
@@ -5007,16 +5128,13 @@ function pintaEmb(){
         <div>CIF Zofri sugerido (US$)<b>${obs2(f.cifSugerido)}</b></div></div>
       <div class="xrow" style="align-items:center;margin-top:2px">
         <span style="font-family:var(--body);font-size:12.5px">CIF Zofri a declarar (US$)</span>
-        <span style="display:inline-flex;gap:6px;align-items:center">
-          <input data-emvcifset="${f._i}" inputmode="decimal" value="${f.cif?obs2(f.cif):''}" placeholder="${obs2(f.cifSugerido)}" style="width:88px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
-          <button class="b-und" style="padding:4px 7px;font-size:11px" data-emvcifuse="${f._i}">usar sugerido</button>
-        </span>
+        <input data-emvcifset="${f._i}" inputmode="decimal" value="${f.cif?obs2(f.cif):''}" placeholder="${obs2(f.cifSugerido)}" title="Vacío = se usa el sugerido" style="width:88px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
       </div>
       <details style="margin-top:8px">
-        <summary style="cursor:pointer;font-size:12px;color:var(--mute)">Costos de taller en Corea${ccKRW(v)?(' · '+clp(ccCLP(v))):' (sin cargar)'}</summary>
-        <div style="margin-top:6px;display:grid;gap:5px">${CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center">
-          <span style="font-size:12.5px">${n}</span>
-          <span><input data-cck2="${f.ch}|${k}" inputmode="numeric" value="${v.cc&&v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
+        <summary style="cursor:pointer;font-size:12px;color:var(--mute)">Detalle de costos de taller en Corea</summary>
+        <div style="margin-top:6px;display:grid;gap:5px">${CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
+          <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
+          <span style="white-space:nowrap;flex:0 0 auto"><input data-cck2="${f.ch}|${k}" inputmode="numeric" value="${v.cc&&v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
         </div>`).join('')}</div>
       </details>
       </div>`;
@@ -5136,11 +5254,14 @@ $('#emVadd').addEventListener('click',async()=>{
   const cn=pnum($('#emVcn').value)||1;
   const pv=pnum($('#emPv').value)||0;
   E().veh.push({ch:v.ch,valor:pnum($('#emVal').value)||0,cif:0,cn,pv});
-  $('#emV').value='';$('#emVal').value='';$('#emPv').value='';
+  const ccod=$('#emVccod').value.trim().toUpperCase();
+  if(ccod){ E().contCod=E().contCod||{}; E().contCod[cn]=ccod; }
+  $('#emV').value='';$('#emVal').value='';$('#emPv').value='';$('#emVccod').value='';
   await guardaEmb(); pintaEmb(); toast('Vehículo agregado al BL');
 });
 $('#emVNToggle').addEventListener('click',()=>{
   const box=$('#emVNBox'); box.hidden=!box.hidden;
+  $('#emVNAdd').hidden=box.hidden;
   $('#emVNToggle').textContent=box.hidden?'⚠ ¿No está en Stock todavía? Agregar vehículo nuevo':'Ocultar formulario de vehículo nuevo';
 });
 let emVNWarn=false;
@@ -5180,24 +5301,26 @@ $('#emVNAdd').addEventListener('click',async()=>{
   const trab=!!TR[ca]||mo.startsWith('PORTER')||mo.startsWith('BONGO');
   const vinEmVN=$('#emVNVin').value.trim().toUpperCase();
   const zofEmVN={}; if(vinEmVN.length===17) zofEmVN.vin=vinEmVN; const transEmVN=$('#emVNTrans').value; if(transEmVN) zofEmVN.trans=transEmVN;
-  const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#emVNCe').value.trim(),cat:$('#emVNCat').value.trim().toUpperCase(),
+  const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#emVNCe').value.trim().toUpperCase(),cat:$('#emVNCat').value.trim().toUpperCase(),
     tr:$('#emVNTr').value.trim().toUpperCase(),pa:pnum($('#emVNPa').value)||null,ca,tp:false,km:null,
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
-    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#emVNProv').value.trim(), cc:{}, nota:''};
+    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#emVNProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
   if(Object.keys(zofEmVN).length) nuevo.zof=zofEmVN;
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; emVNWarn=false;
   ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv'].forEach(i=>$('#'+i).value='');
+  $('#emVNTr').value='4X2';
   $('#emVNChT').textContent=''; emVNTransTocado=false; emVNTransSugerir();
   if(typeof listasNv==='function') listasNv();
   $('#dlEmV').innerHTML=V.map(x=>`<option value="${x.ma} ${x.mo} ${x.an||''} · ${x.ch}">`).join('');
   draw(); drawPick();
   $('#emV').value=ma+' '+mo+' '+(an||'')+' · '+ch;
   $('#emVNBox').hidden=true;
+  $('#emVNAdd').hidden=true;
   $('#emVNToggle').textContent='⚠ ¿No está en Stock todavía? Agregar vehículo nuevo';
   pintaEmCC();
-  toast(ma+' '+mo+' creado · toca "Agregar vehículo a BL" para sumarlo al embarque');
+  toast(ma+' '+mo+' creado · completa Compra/Costos y toca "Agregar vehículo a BL" para sumarlo al embarque');
 });
 let emBlPreview=null;
 $('#emBlBtn').addEventListener('click',()=>{
@@ -5238,15 +5361,15 @@ function pintaEmBlPreview(){
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fld"><label>Año</label><input data-eblf="${i}|an" inputmode="numeric" value="${x.an||''}"></div>
-          <div class="fld"><label>Color</label><input data-eblf="${i}|ce" list="dlNvCe" value="${esc(x.ce)}"></div>
+          <div class="fld"><label>Color</label><input data-eblf="${i}|ce" list="dlNvCe" autocapitalize="characters" value="${esc(x.ce)}"></div>
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="fld"><label>Tracción</label><input data-eblf="${i}|tr" list="dlNvTr" value="${esc(x.tr)}"></div>
+          <div class="fld"><label>Tracción</label><input data-eblf="${i}|tr" list="dlNvTr" autocapitalize="characters" value="${esc(x.tr)||'4X2'}"></div>
           <div class="fld"><label>Pasajeros</label><input data-eblf="${i}|pa" inputmode="numeric" value="${x.pa||''}"></div>
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="fld"><label>Categoría</label><input data-eblf="${i}|cat" list="dlNvCat" value="${esc(x.cat)}"></div>
-          <div class="fld"><label>Proveedor</label><input data-eblf="${i}|prov" value="${esc(x.prov)}"></div>
+          <div class="fld"><label>Categoría</label><input data-eblf="${i}|cat" list="dlNvCat" autocapitalize="characters" value="${esc(x.cat)}"></div>
+          <div class="fld"><label>Proveedor</label><input data-eblf="${i}|prov" autocapitalize="characters" value="${esc(x.prov)}"></div>
         </div>`:'';
       return `<div class="card plain" style="margin-bottom:10px">
         <div class="r1"><div class="tt" style="font-size:14.5px">${x.ch}</div>
@@ -5285,7 +5408,7 @@ document.addEventListener('click',async e=>{
         const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:x.mo||'',an:x.an||null,ce:x.ce||'',
           cat:x.cat||'',tr:x.tr||'',pa:x.pa||null,ca:x.ca||'S/N',tp:false,km:x.km||null,
           cif:null,fob:null,ct:null,vev:null,xc:{},trab:false,sv:false,krw:x.krw||null,
-          fe:x.fe||'',nota:x.nota||'',prov:x.prov||'',cc:x.cc||{}};
+          fe:x.fe||iso(),nota:x.nota||'',prov:x.prov||'',cc:x.cc||{}};
         nuevos.push(nv); have.add(ch);
       }
       const cn=pnum(x.cn)||1;
@@ -5311,11 +5434,6 @@ document.addEventListener('click',async e=>{
   if(cd){E().costos.splice(+cd.dataset.emcdel,1); await guardaEmb(); pintaEmb(); return}
   const vd=e.target.closest('[data-emvdel]');
   if(vd){E().veh.splice(+vd.dataset.emvdel,1); await guardaEmb(); pintaEmb(); return}
-  const cifuse=e.target.closest('[data-emvcifuse]');
-  if(cifuse){const i=+cifuse.dataset.emvcifuse; const ve=E()&&E().veh[i]; if(!ve)return;
-    const r=embCalc(); const f=r&&r.filas[i]; if(!f)return;
-    ve.cif=f.cifSugerido;
-    await guardaEmb(); pintaEmb(); toast('CIF sugerido aplicado'); return}
   const zofcp=e.target.closest('[data-zofcp]');
   if(zofcp){const ch=zofcp.dataset.zofcp; const v=IDX[ch]; if(!v)return;
     const texto=zofDescriptor(v).map(([k,val])=>`${k}: ${val}`).join('\n');
@@ -5348,10 +5466,10 @@ $('#emFobCp').addEventListener('click',async()=>{
 $('#emAplicar').addEventListener('click',async()=>{
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
-  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; if(f.cif) v.cifusd=f.cif; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
+  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.cifusd=f.cif||f.cifSugerido; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
   let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
   const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
-  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; if(f.cif) mapa[f.ch].cifusd=f.cif; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
+  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].cifusd=f.cif||f.cifSugerido; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
   try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
   draw(); toast(n+' vehículo'+(n===1?'':'s')+' con costo, CIF y FOB Zeta actualizado'+(n===1?'':'s'));
 });
@@ -5364,9 +5482,9 @@ const ccCLP=v=>Math.round(ccKRW(v)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
   v.cc=v.cc||{};
-  $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center">
-    <span style="font-family:var(--body);font-weight:600">${n}</span>
-    <span><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
+  $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
+    <span style="font-family:var(--body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
+    <span style="white-space:nowrap;flex:0 0 auto"><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
       placeholder="0" style="width:120px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;
       font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span></div>`).join('');
   const t=ccKRW(v);
@@ -5388,6 +5506,16 @@ document.addEventListener('change',async e=>{
 });
 
 /* ---------- ALTA MANUAL ---------- */
+// Mayúsculas en vivo: todos los campos de texto marcados autocapitalize="characters"
+// (marca, modelo, color, tracción, proveedor, chasis, etc.) se escriben en mayúscula
+// mientras se tipea, en vez de solo al guardar — así se ve igual en Mac y en celular.
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.tagName==='INPUT'&&el.getAttribute('autocapitalize')==='characters'){
+    const pos=el.selectionStart, up=el.value.toUpperCase();
+    if(up!==el.value){ el.value=up; try{el.setSelectionRange(pos,pos)}catch(_){} }
+  }
+});
 const RXCH=/^[A-Z]{2}\d{6}$/;
 function listasNv(){
   const u=(k)=>[...new Set(V.map(v=>v[k]).filter(Boolean))].sort();
@@ -5436,15 +5564,16 @@ $('#nvAdd').addEventListener('click',async()=>{
   const trab=!!TR[ca]||mo.startsWith('PORTER')||mo.startsWith('BONGO');
   const vinNv=$('#nvVin').value.trim().toUpperCase();
   const zofNv={}; if(vinNv.length===17) zofNv.vin=vinNv; const transNv=$('#nvTrans').value; if(transNv) zofNv.trans=transNv;
-  const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#nvCe').value.trim(),cat:$('#nvCat').value.trim().toUpperCase(),
+  const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#nvCe').value.trim().toUpperCase(),cat:$('#nvCat').value.trim().toUpperCase(),
     tr:$('#nvTr').value.trim().toUpperCase(),pa:pnum($('#nvPa').value)||null,ca,tp:false,km:null,
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
-    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#nvProv').value.trim(), cc:{}, nota:''};
+    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#nvProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
   if(Object.keys(zofNv).length) nuevo.zof=zofNv;
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; nvWarn=false;
   ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv'].forEach(i=>$('#'+i).value='');
+  $('#nvTr').value='4X2';
   $('#nvChT').textContent=''; nvTransTocado=false; nvTransSugerir();
   listasNv(); draw(); drawPick();
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
@@ -5501,7 +5630,7 @@ $('#rxBtn').addEventListener('click',async()=>{
       cat:e.cat||'',tr:e.tr||'',pa:e.pa||null,ca:e.ca||'S/N',tp:false,km:e.km||null,
       cif:null,fob:null,ct:null,vev:null,xc:{},
       trab:!!TR[e.ca]||String(e.mo||'').toUpperCase().startsWith('PORTER')||String(e.mo||'').toUpperCase().startsWith('BONGO'),
-      sv:!!(e.an&&e.an>=2018)&&!(!!TR[e.ca]||String(e.mo||'').toUpperCase().startsWith('PORTER')||String(e.mo||'').toUpperCase().startsWith('BONGO')),krw:e.krw||null,fe:e.fe||'',nota:e.nota||'',
+      sv:!!(e.an&&e.an>=2018)&&!(!!TR[e.ca]||String(e.mo||'').toUpperCase().startsWith('PORTER')||String(e.mo||'').toUpperCase().startsWith('BONGO')),krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',
       prov:e.prov||'',cc:e.cc||{}});
     have.add(e.ch);
   }
