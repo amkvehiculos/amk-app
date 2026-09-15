@@ -18,6 +18,8 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);l
 .wrap{max-width:720px;margin:0 auto;padding:0 15px}
 button,input,select,textarea{font-family:inherit}
 :focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes vEntra{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 14px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
 .hd{display:flex;align-items:center;gap:8px}
 .hd b{font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.02em}
@@ -60,10 +62,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
 .empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--seaL);border-top:1px solid var(--btn2b);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-.tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer}
+.tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer;position:relative}
 .tb i{display:block;font-family:var(--disp);font-size:17px;font-style:normal;margin-bottom:2px}
 .tb[aria-selected="true"],.tb[aria-selected="true"] i{color:var(--plata)}
-.panel{display:none}.panel.on{display:block}
+.tb[aria-selected="true"]::before{content:"";position:absolute;top:0;left:14px;right:14px;height:3px;background:var(--plata);border-radius:0 0 3px 3px}
+.panel{display:none}.panel.on{display:block;animation:vEntra .22s ease}
 .scrim{position:fixed;inset:0;background:rgba(4,18,25,.62);z-index:60;display:none}.scrim.on{display:block}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--card);border-top:1px solid var(--line);border-radius:19px 19px 0 0;
  padding:17px 17px calc(17px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;
@@ -89,8 +92,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .ph .ix{position:absolute;top:4px;left:4px;background:rgba(4,18,25,.85);color:#fff;font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:4px}
 .ph .ctl{position:absolute;bottom:0;left:0;right:0;display:flex;background:rgba(4,18,25,.82)}
 .ph .ctl button{flex:1;background:none;border:none;color:#fff;font-size:13px;padding:5px 0;cursor:pointer}
-.sendbar{margin-bottom:11px}
+.sendbar{margin-bottom:6px;display:flex;flex-direction:column;gap:8px}
 .sendbar button{width:100%;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:14.5px;cursor:pointer;background:var(--sea);color:#fff}
+.sendbar button.web{background:transparent;border:1.5px solid var(--sea);color:var(--ink)}
+.sendbar button.web[disabled]{opacity:.55;cursor:default}
+.webtip{font-size:12px;color:var(--mute);margin:0 0 11px;line-height:1.4}
 .gen{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:11px}
 .gen .gh{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:9px}
 .gen h4{font-family:var(--disp);font-weight:700;font-size:14.5px;margin:0}
@@ -153,10 +159,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Ajustes</h2><p class="sub">Mantén tu lista al día.</p>
-    <div class="box"><h3>Actualizar stock</h3>
-      <p>Pega acá el código que te envía la administración para actualizar los vehículos disponibles. Tus fotos no se borran.</p>
-      <div class="fld"><textarea id="upTxt" rows="4" placeholder="Pega el código aquí…"></textarea></div>
-      <button class="btn b-pri" id="upBtn" style="width:100%">Actualizar</button></div>
     <div class="box"><h3>Cotización de liberación</h3>
       <p>Para clientes con cupo de discapacidad.</p>
       <div class="fld"><label for="cbV">Vehículo (opcional)</label>
@@ -195,6 +197,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div class="fld"><label for="avN">Nota (opcional)</label><input id="avN" placeholder="Ej: para la micro"></div>
       <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto</button>
       <div id="avList" style="margin-top:12px"></div></div>
+    <div class="box"><h3>Ventas avisadas</h3>
+      <p>Lo que reportaste con "Avisar venta" en cada vehículo. Se marca cuando Andre ya lo revisó en Sistema.</p>
+      <div id="vtList"></div></div>
     <div class="box"><h3>Espacio usado</h3><p id="spTxt">—</p></div>
     <div class="box"><h3>Cómo funciona</h3>
       <p>Las fotos que subes se guardan solo en <b>tu</b> teléfono. Cada vendedor tiene sus propias fotos, para que los avisos no se vean repetidos en Marketplace.</p>
@@ -215,7 +220,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <h3 id="phT"></h3><div class="sb" id="phC"></div>
   <div class="updrop" id="phDrop">Toca para tomar fotos o elegir de la galería<div class="mtr" id="phMtr"></div></div>
   <input type="file" id="phFile" accept="image/*" multiple hidden>
-  <div class="sendbar" id="phSend" hidden><button id="phShare">➦ Enviar fotos</button></div>
+  <div class="sendbar" id="phSend" hidden>
+   <button id="phShare">➦ Enviar fotos</button>
+   <button class="web" id="phWeb" type="button">☁ Subir a la web</button>
+  </div>
+  <p class="webtip">Al subir a la web, tus fotos aparecen en la página pública solo si Andre no tiene fotos propias de este auto. Si él sube las suyas, las tuyas quedan afuera.</p>
   <div class="phg" id="phGrid"></div>
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
@@ -303,6 +312,28 @@ const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
 const FB_CAMPOS=['ch','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev'];
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
+/* ---------- Avisos a Andre (ventas y adelantos), en vivo ----------
+   Reemplaza el aviso que antes solo llegaba por WhatsApp: al avisar una venta o un
+   adelanto queda un documento en "avisosVend" (ademas del texto de WhatsApp, que se
+   sigue mandando igual). Cuando Andre lo revisa en Sistema, este listener actualiza el
+   "atendido" localmente para mostrar el visto bueno en Ajustes. */
+const AVISOSVEND_COL='avisosVend';
+let fbAvisosEscuchando=false;
+function fbAvisosVendListen(){
+  if(fbAvisosEscuchando||!fbReady) return;
+  fbAvisosEscuchando=true;
+  fbDb.collection(AVISOSVEND_COL).onSnapshot(snap=>{
+    let tocado=false;
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed') return;
+      const d=chg.doc.data()||{}; const ts=Number(chg.doc.id);
+      if(!d.atendido) return;
+      if(d.tipo==='venta'&&ST.ventas){ const it=ST.ventas.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
+      if(d.tipo==='adelanto'&&ST.adel){ const it=ST.adel.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
+    });
+    if(tocado){ save(); pintaAV(); pintaVT(); }
+  }, e=>console.error('fbAvisosVendListen',e));
+}
 
 function fbEstado(txt,color){
   const el=document.getElementById('syncEstado');
@@ -327,9 +358,10 @@ function fbGuardaCatalogo(){
   }, 1200);
 }
 function fbAplica(ch, d){
-  const vendido = !!d.sold;
   const i = V.findIndex(x=>x.ch===ch);
-  if(vendido){ if(i>=0) V.splice(i,1); return; }
+  /* Vendido, o marcado como borrado en la nube (borrado blando desde el historial
+     de Sistema): en ambos casos se quita del catalogo y no se vuelve a agregar. */
+  if(d.sold || d.borrado===true){ if(i>=0) V.splice(i,1); return; }
   let v = i>=0 ? V[i] : null;
   if(!v){ v={ch:ch}; V.push(v); }
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
@@ -359,7 +391,7 @@ async function fbInit(){
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbAvisosVendListen(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
       else { fbReady=false; fbEscuchando=false; fbEstado('Sin sesión iniciada','#B5533C'); fbMuestraLogin(true); }  /* siempre: sin sesión el stock queda viejo y el vendedor no se enteraría */
     });
   }catch(e){ console.error('fbInit',e); fbReady=false; fbEstado('✗ '+(e.message||e),'#B5533C'); }
@@ -402,7 +434,7 @@ async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
 const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=20,CAP=4.2e6;
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
-let IDX={}, ST={vend:'',f:{},adel:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
+let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
 let phCh=null, phArr=[], phSel=new Set();
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
@@ -419,7 +451,7 @@ async function boot(){
   reindex(); $('#boot').remove(); show(tab); fbInit();
   $('#who').textContent=ST.vend||'sin nombre';
   if(!ST.vend) openSheet('shWho');
-  draw(); drawPick(); espacio(); pintaAV(); $('#avD').value=iso();
+  draw(); drawPick(); espacio(); pintaAV(); pintaVT(); $('#avD').value=iso();
   $('#dlCbV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   pintaCB();
   $('#dlIvV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
@@ -475,6 +507,50 @@ function shrink(file,w,qq){return new Promise((res,rej)=>{const r=new FileReader
 const weight=()=>phArr.reduce((a,b)=>a+b.length,0)*.75;
 async function loadPhotos(c){try{const r=await window.storage.get(PK(c));return r&&r.value?JSON.parse(r.value):[]}catch(e){return[]}}
 async function savePhotos(c,a){try{a.length?await window.storage.set(PK(c),JSON.stringify(a)):await window.storage.delete(PK(c));return true}catch(e){toast('No se pudieron guardar');return false}}
+
+/* --- subir fotos a la web pública (colección fotosVend, con prioridad: Andre > Víctor > Bryan > Corea) --- */
+const WEBW=640, WEBQ=.58, WEBMAXN=6, WEBCAP=850000;
+function shrinkDataURI(d,w,q){return new Promise(res=>{const im=new Image();
+ im.onload=()=>{const sc=Math.min(1,w/Math.max(im.width||1,im.height||1));
+  const cv=document.createElement('canvas');cv.width=Math.round((im.width||w)*sc);cv.height=Math.round((im.height||w)*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',q))};
+ im.onerror=()=>res('');im.src=d})}
+function slugFuente(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim()}
+let subiendoWeb=false;
+async function subirFotosWeb(){
+ if(subiendoWeb) return;
+ if(!fbReady){toast('Sin conexión con la nube ahora mismo, prueba más tarde');return}
+ const fu=slugFuente(ST.vend);
+ if(!fu){toast('Primero escribe tu nombre');openSheet('shWho');return}
+ const ch=phCh, docId=ch+'__'+fu;
+ subiendoWeb=true;
+ const btn=$('#phWeb'); btn.disabled=true; const txtOrig=btn.textContent; btn.textContent='Subiendo…';
+ try{
+  if(!phArr.length){
+   try{await fbDb.collection('fotosVend').doc(docId).delete()}catch(_){}
+   toast('No hay fotos que subir');
+   return;
+  }
+  const urls=[]; let peso=0;
+  for(let i=0;i<Math.min(phArr.length,WEBMAXN);i++){
+   const chica=await shrinkDataURI(phArr[i],WEBW,WEBQ);
+   if(!chica) continue;
+   if(peso+chica.length>WEBCAP) break;
+   urls.push(chica); peso+=chica.length;
+  }
+  if(!urls.length){toast('No se pudo procesar ninguna foto');return}
+  await fbDb.collection('fotosVend').doc(docId).set({
+   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls,
+   ts:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');
+ }catch(e){
+  console.error('subirFotosWeb',e);
+  toast('No se pudo subir: '+(e.message||e.code||e)+' · avísale a Andre, puede faltar un permiso');
+ }finally{
+  subiendoWeb=false; btn.disabled=false; btn.textContent=txtOrig;
+ }
+}
 async function openPhotos(c){phCh=c;const v=IDX[c];
  $('#phT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#phC').textContent=v.ch;
  $('#phGrid').innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-size:13px">Cargando…</div>';
@@ -578,6 +654,7 @@ async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}
 
 /* --- eventos --- */
 $('#phShare').addEventListener('click',()=>shareVehicle(phCh,[...phSel]));
+$('#phWeb').addEventListener('click',subirFotosWeb);
 document.addEventListener('click',async e=>{
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
@@ -596,7 +673,15 @@ document.addEventListener('click',async e=>{
 });
 $('#soP').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
 $('#soOk').addEventListener('click',async()=>{const ch=$('#soOk').dataset.ch,v=IDX[ch];
- const txt=`Venta ${ST.vend?'('+ST.vend+')':''}\n${v.ma} ${v.mo} ${v.an||''}\nChasis: ${ch}\nPrecio: ${clp(pnum($('#soP').value))||'por confirmar'}\nFecha: ${new Date().toLocaleDateString('es-CL')}`;
+ const precio=pnum($('#soP').value)||0, ts=Date.now();
+ ST.ventas=ST.ventas||[]; ST.ventas.push({ts,ch,precio,atendido:false});
+ await save(); pintaVT();
+ if(fbReady){
+   try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({
+     tipo:'venta', ch, precio, vendedor:(ST.vend||'').trim(), ts, atendido:false
+   }); }catch(e){ console.error('avisoVenta',e); }
+ }
+ const txt=`Venta ${ST.vend?'('+ST.vend+')':''}\n${v.ma} ${v.mo} ${v.an||''}\nChasis: ${ch}\nPrecio: ${clp(precio)||'por confirmar'}\nFecha: ${new Date().toLocaleDateString('es-CL')}`;
  try{if(navigator.share){await navigator.share({text:txt,title:'Venta AMK'});closeAll();toast('Aviso enviado');return}}catch(e){if(e&&e.name==='AbortError')return}
  cp(txt,'Aviso copiado · pégalo en WhatsApp');closeAll()});
 $('#q').addEventListener('input',e=>{q=e.target.value;draw()});
@@ -609,12 +694,6 @@ $$('#pStock .chip').forEach(ch=>ch.addEventListener('click',()=>{
 $('#chWho').addEventListener('click',()=>{$('#whoIn').value=ST.vend||'';openSheet('shWho')});
 $('#whoOk').addEventListener('click',async()=>{ST.vend=$('#whoIn').value.trim();
  $('#who').textContent=ST.vend||'sin nombre';await save();closeAll();toast('Guardado')});
-$('#upBtn').addEventListener('click',async()=>{
- const t=$('#upTxt').value.trim(); if(!t){toast('Pega el código primero');return}
- let d; try{d=JSON.parse(t)}catch(e){toast('El código no es válido');return}
- if(!Array.isArray(d)||!d.length){toast('El código no trae vehículos');return}
- V=d; reindex(); try{await window.storage.set(CATK,JSON.stringify(d))}catch(e){}
- $('#upTxt').value=''; draw(); drawPick(); toast(d.length+' vehículos actualizados')});
 async function espacio(){let n=0,c=0;for(const k in ST.f){if(ST.f[k].nf){n+=ST.f[k].nf;c++}}
  $('#spTxt').textContent=n?`${n} fotos en ${c} vehículo${c===1?'':'s'}.`:'Todavía no subes fotos.'}
 function pintaAV(){
@@ -624,16 +703,35 @@ function pintaAV(){
   $('#avList').innerHTML=L.length
     ?'<div class="mtr" style="margin-bottom:7px">Este mes: '+clp(tot)+'</div>'
       +L.slice().reverse().slice(0,8).map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
-        <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span><span>${clp(x.m)}</span></div>`).join('')
+        <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span><span>${x.atendido?'✓ visto':clp(x.m)}</span></div>`).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos anotados.</p>';
+}
+function pintaVT(){
+  const el=$('#vtList'); if(!el) return;
+  const L=ST.ventas||[];
+  el.innerHTML=L.length
+    ?L.slice().reverse().slice(0,8).map(x=>{
+        const v=IDX[x.ch];
+        const nom=(v?`${v.ma} ${v.mo} ${v.an||''}`:x.ch).trim();
+        return `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+          <span>${nom}${x.precio?' · '+clp(x.precio):''}</span>
+          <span>${x.atendido?'✓ visto por Andre':'pendiente'}</span></div>`;
+      }).join('')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin ventas avisadas.</p>';
 }
 $('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
 $('#avOk').addEventListener('click',async()=>{
   const m=pnum($('#avM').value)||0;
   if(!m){toast('Ingresa el monto');return}
   const f=$('#avD').value||iso(), nota=$('#avN').value.trim();
-  ST.adel=ST.adel||[]; ST.adel.push({ts:Date.now(),m,f,nota});
+  const ts=Date.now();
+  ST.adel=ST.adel||[]; ST.adel.push({ts,m,f,nota,atendido:false});
   await save(); $('#avM').value='';$('#avN').value=''; pintaAV();
+  if(fbReady){
+    try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({
+      tipo:'adelanto', monto:m, fecha:f, nota, vendedor:(ST.vend||'').trim(), ts, atendido:false
+    }); }catch(e){ console.error('avisoAdelanto',e); }
+  }
   const txt=`Adelanto recibido\n\n${ST.vend||'Vendedor'}\n${clp(m)} el ${fd(f)}`+(nota?`\n${nota}`:'');
   try{ if(navigator.share){await navigator.share({text:txt,title:'Adelanto AMK'});return} }
   catch(e){ if(e&&e.name==='AbortError')return }

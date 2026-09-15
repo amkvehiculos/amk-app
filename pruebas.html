@@ -23,7 +23,11 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);l
 .wrap{max-width:720px;margin:0 auto;padding:0 15px}
 :focus-visible{outline:3px solid var(--sea);outline-offset:2px}
 button,input,select{font-family:inherit}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes vEntra{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+#secEst:not([hidden]),#secReal:not([hidden]),#secCorea:not([hidden]),
+#ngDinero:not([hidden]),#ngMes:not([hidden]),#ngEmbarque:not([hidden]),#ngAjustes:not([hidden]),#ngTraspaso:not([hidden])
+ {animation:vEntra .2s ease}
 
 header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 15px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
 .hd{display:flex;align-items:center;gap:8px}
@@ -37,19 +41,20 @@ header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff
  display:flex;padding-bottom:env(safe-area-inset-bottom)}
 .tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer}
 .tb i{display:block;font-family:var(--disp);font-size:17px;font-style:normal;margin-bottom:2px}
-.tb{color:var(--s300,#7B8B8E)}
+.tb{color:var(--s300,#7B8B8E);position:relative}
 .tb[aria-selected="true"]{color:var(--plata)}
 .tb[aria-selected="true"] i{color:var(--plata)}
+.tb[aria-selected="true"]::before{content:"";position:absolute;top:0;left:14px;right:14px;height:3px;
+ background:var(--plata);border-radius:0 0 3px 3px}
 
 main{padding:15px 0}
-.panel{display:none}.panel.on{display:block}
+.panel{display:none}.panel.on{display:block;animation:vEntra .22s ease}
 h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-spacing:-.02em}
 .sub{color:var(--mute);font-size:13.5px;margin:0 0 14px}
 .search{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 13px;font-size:16px;background:var(--card);color:var(--ink)}
 .chips{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
 .chip{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;
  font-size:13px;color:var(--ink2);cursor:pointer}
-.segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:none}
 .chip[aria-pressed="true"],.chip[aria-selected="true"]{background:var(--btn2);border-color:var(--btn2b);color:#EAF0F1}
 .cnt{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin:13px 0 9px}
 
@@ -148,8 +153,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .ph.sel .sk{display:flex}
 .sendbar{display:flex;gap:8px;margin-bottom:11px}
 .segs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
-.segs button{flex:1;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer}
-.segs button[aria-pressed="true"]{background:var(--card);color:var(--sea);box-shadow:0 1px 3px rgba(4,18,25,.5)}
+.segs button{flex:1;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
+.segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .note{background:var(--amberBg);border-left:3px solid var(--amber);color:var(--amber);
  padding:11px 13px;border-radius:0 9px 9px 0;font-size:13px}
 .v360{position:relative;background:var(--seaD);border-radius:12px;overflow:hidden;aspect-ratio:4/3;
@@ -199,6 +204,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="kpi"><b id="kCost">–</b><span>COSTOS HOY</span></div>
   </div>
 </div></header>
+<div id="bannerPend" hidden style="position:sticky;top:0;z-index:39;background:#B5533C;color:#fff;padding:11px 16px;
+  font-size:13.5px;font-weight:600;text-align:center;cursor:pointer;line-height:1.35"></div>
 
 <main class="wrap">
   <div id="boot" class="loading">Cargando…</div>
@@ -399,24 +406,30 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div class="fld"><label for="emVNCh">Chasis</label><input id="emVNCh" autocapitalize="characters" placeholder="Ej: BA123290">
             <div class="mtr" id="emVNChT"></div></div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="fld"><label for="emVNMa">Marca</label><input id="emVNMa" list="dlNvMa" autocapitalize="characters" placeholder="KIA"></div>
-            <div class="fld"><label for="emVNMo">Modelo</label><input id="emVNMo" list="dlNvMo" autocapitalize="characters" placeholder="SORENTO"></div>
+            <div class="fld"><label for="emVNMaSel">Marca</label><select id="emVNMaSel"></select>
+              <input id="emVNMa" list="dlNvMa" autocapitalize="characters" placeholder="Escribe la marca nueva" style="margin-top:6px" hidden></div>
+            <div class="fld"><label for="emVNMoSel">Modelo</label><select id="emVNMoSel"></select>
+              <input id="emVNMo" list="dlNvMo" autocapitalize="characters" placeholder="Escribe el modelo nuevo" style="margin-top:6px" hidden></div>
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="fld"><label for="emVNAn">Año</label><input id="emVNAn" inputmode="numeric" placeholder="2018"></div>
-            <div class="fld"><label for="emVNCe">Color</label><input id="emVNCe" list="dlNvCe" autocapitalize="characters" placeholder="Blanco"></div>
+            <div class="fld"><label for="emVNCeSel">Color</label><select id="emVNCeSel"></select>
+              <input id="emVNCe" list="dlNvCe" autocapitalize="characters" placeholder="Escribe el color nuevo" style="margin-top:6px" hidden></div>
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="fld"><label for="emVNTr">Tracción</label><input id="emVNTr" list="dlNvTr" autocapitalize="characters" value="4X2" placeholder="4X2"></div>
+            <div class="fld"><label for="emVNTr">Tracción</label><select id="emVNTr"><option value="4X2" selected>4X2</option><option value="4X4">4X4</option></select></div>
             <div class="fld"><label for="emVNPa">Pasajeros</label><input id="emVNPa" inputmode="numeric" placeholder="7"></div>
           </div>
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="fld"><label for="emVNCat">Categoría</label><input id="emVNCat" list="dlNvCat" placeholder="SUV"></div>
-            <div class="fld"><label for="emVNCa">Carrocería</label><input id="emVNCa" list="dlNvCa" placeholder="Solo si es de trabajo"></div>
+            <div class="fld"><label for="emVNCatSel">Categoría</label><select id="emVNCatSel"></select>
+              <input id="emVNCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
+            <div class="fld"><label for="emVNCaSel">Carrocería</label><select id="emVNCaSel"></select>
+              <input id="emVNCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
           </div>
           <div class="fld"><label for="emVNTrans">Transmisión (para Zofri, opcional)</label>
             <select id="emVNTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
-          <div class="fld" style="margin-bottom:10px"><label for="emVNProv">Proveedor</label><input id="emVNProv" autocapitalize="characters" placeholder="Ej: Sr. Chan"></div>
+          <div class="fld" style="margin-bottom:10px"><label for="emVNProvSel">Proveedor</label><select id="emVNProvSel"></select>
+            <input id="emVNProv" autocapitalize="characters" placeholder="Escribe el proveedor nuevo" style="margin-top:6px" hidden></div>
         </div>
         <div class="fld" style="margin-bottom:4px"><div class="mtr" style="margin:0 0 4px;min-height:30px">Compra en Corea (₩)</div>
           <input id="emVal" inputmode="numeric" placeholder="0" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
@@ -428,11 +441,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emVNAdd" type="button" hidden style="width:100%;margin-bottom:12px">Agregar vehículo</button>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">
           <div><div class="mtr" style="margin:0 0 4px">Contenedor</div>
-            <select id="emVcn" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></select></div>
-          <div><div class="mtr" style="margin:0 0 4px">% del contenedor <span style="opacity:.7;font-size:11px">(volumen)</span> · Código del contenedor</div>
-            <div style="display:flex;gap:6px">
-              <input id="emPv" inputmode="decimal" placeholder="Ej: 30" style="width:58px;flex:0 0 auto;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
-              <input id="emVccod" placeholder="Ej: MEDU7852402" style="flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;background:var(--paper);color:var(--ink);text-transform:uppercase"></div></div>
+            <select id="emVcn" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></select>
+            <input id="emVccod" placeholder="Código del contenedor (ej: MEDU7852402)" style="width:100%;margin-top:6px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;background:var(--paper);color:var(--ink);text-transform:uppercase"></div>
+          <div><div class="mtr" style="margin:0 0 4px">% del contenedor <span style="opacity:.7;font-size:11px">(volumen)</span></div>
+            <input id="emPv" inputmode="decimal" placeholder="Ej: 30" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
         </div>
         <button class="btn b-pri" id="emVadd" style="width:100%">Agregar vehículo a BL</button>
         <div id="emLista2" style="margin-top:12px"></div>
@@ -507,7 +519,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-09-2026 22:22 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-09-2026 13:36 · PRUEBAS<!--/VER--></b></div>
     <div class="box"><h3>Impuesto Ley 18.211</h3>
       <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -615,21 +627,62 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
     </div>
     <div id="ngDinero">
+    <div class="box" id="boxPendCambiar"><h3>Pendiente de cambiar (ventas en pesos)</h3>
+      <p>Ventas en pesos que aún no has cambiado a dólares. Se agregan solas al marcar un vehículo vendido; marca "Ya cambiado" cuando corresponda. Las ventas de antes de esta actualización no aparecen acá (no hay forma de saber si ya se cambiaron o no).</p>
+      <div class="money" style="margin:0 0 11px"><div>Total pendiente<b id="pcTotal">$0</b></div>
+        <div>Ventas<b id="pcCant">0</b></div></div>
+      <div id="pcList"></div></div>
+    <div class="box" id="boxFlujo"><h3>Panorama de flujo de caja</h3>
+      <p>Un resumen con tus propios números: cuánto tenés pendiente de cambiar, cuánto sabés que se viene en pesos y en dólares, y cuánto conviene dejar de colchón. No predice el mercado — solo ordena lo que ya sabés.</p>
+      <div class="money" style="margin:0 0 4px">
+        <div>Pendiente de cambiar (pesos)<b id="fcPend">$0</b></div>
+        <div>Compromisos en pesos (próximos)<b id="fcCompPesos">$0</b></div>
+        <div>Disponible estimado para cambiar<b id="fcDisp">$0</b></div>
+      </div>
+      <div id="fcCompPesosDet" style="margin:0 0 11px;font-size:12px;color:var(--mute)"></div>
+      <div class="money" style="margin:0 0 4px">
+        <div>Flete pendiente de remesar (USD)<b id="fcFleteUSD">US$0</b></div>
+        <div>Compra de vehículos pendiente (₩)<b id="fcWonPend">₩0</b></div>
+        <div>Equivalente en dólares<b id="fcWonUSD">US$0</b></div>
+      </div>
+      <div id="fcFleteDet" style="margin:0 0 11px;font-size:12px;color:var(--mute)"></div>
+      <p style="color:var(--mute);font-size:11.5px;margin:0 0 11px">La compra de vehículos se resta usando el won ya confirmado por tu mamá cuando existe, o el estimado que anotaste al registrar esa remesa si aún no se confirma. El equivalente en dólares usa el won estimado de "Tipo de cambio" — solo como referencia, la deuda real está en wones.</p>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="mtr" style="margin:0 0 4px">Fondo de emergencia (pesos)</div>
+          <input id="fcEmergCLP" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <div><div class="mtr" style="margin:0 0 4px">Fondo de emergencia (USD)</div>
+          <input id="fcEmergUSD" inputmode="decimal" placeholder="0,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+      </div>
+      <button class="btn b-pri" id="fcGuardar" style="width:100%">Guardar fondo de emergencia</button></div>
     <div class="box"><h3>Tipo de cambio</h3>
       <p>Se usa por defecto en las ventas en dólares y para calcular la compra de divisas.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div><div class="mtr" style="margin:0 0 4px">Dólar de referencia</div>
-          <input id="tcMedio" inputmode="numeric" placeholder="925" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+          <input id="tcMedio" inputmode="numeric" placeholder="925" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+          <div class="mtr" id="tcMedioNota" style="margin:5px 0 0;color:var(--mute);font-size:11px"></div></div>
         <div><div class="mtr" style="margin:0 0 4px">Recargo estimado</div>
-          <input id="tcSpread" inputmode="decimal" placeholder="8,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+          <input id="tcSpread" inputmode="decimal" placeholder="8,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+          <div class="mtr" style="margin:5px 0 0;color:var(--mute);font-size:11px">Se suma al dólar de referencia: se usa como tipo de cambio precargado al marcar una venta y para estimar compras de divisas.</div></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="mtr" style="margin:0 0 4px">Diferencial won (remesas)</div>
+          <input id="tcKrwSpread" inputmode="decimal" placeholder="15,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+          <div class="mtr" id="tcKrwNota" style="margin:5px 0 0;color:var(--mute);font-size:11px"></div></div>
+        <div><div class="mtr" style="margin:0 0 4px">Won estimado (spot − diferencial)</div>
+          <div id="tcKrwEst" style="border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-weight:600;font-size:16px;background:var(--seaL);color:var(--seaD)">—</div></div>
       </div>
       <div style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Dólar observado del Banco Central (el que pide Zofri)</div>
-        <input id="tcObs" inputmode="decimal" placeholder="925,25" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <input id="tcObs" inputmode="decimal" placeholder="925,25" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+        <div class="mtr" style="margin:5px 0 0;color:var(--mute);font-size:11.5px">Se actualiza solo, una vez al día, al abrir la app (fuente: mindicador.cl / Banco Central). Si no hay internet o falla, se queda con el último valor — usa "Buscar dólar de hoy" o escríbelo a mano.</div></div>
       <div class="money" style="margin:0 0 11px"><div>Referencia de compra<b id="tcCompra">—</b></div>
         <div>Actualizado<b id="tcFecha" style="font-size:12.5px">—</b></div></div>
       <div class="acts"><button class="btn b-sec" id="tcGet">Buscar dólar de hoy</button>
         <button class="btn b-pri" id="tcSave" style="flex:0 0 auto">Guardar</button></div>
       <div class="mtr" id="tcFuente" style="margin-top:8px"></div></div>
+    <div class="box"><h3>Contexto del mercado (noticias)</h3>
+      <p>Busca noticias recientes sobre el dólar/peso chileno, el won coreano y fletes/disponibilidad de contenedores en la ruta Corea-Chile, usando tu clave de Anthropic. Es un resumen de lo que está pasando, no una predicción de hacia dónde van esos valores — eso no se puede saber con certeza, ni la app ni nadie más.</p>
+      <button class="btn b-sec" id="mktNews" style="width:100%">Buscar noticias de mercado</button>
+      <div id="mktNewsOut" style="margin-top:12px"></div></div>
     <div class="box"><h3>Compras de divisas</h3>
       <p>Registra lo que realmente compraste en el portal FX. El tipo de cambio se calcula solo.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -646,8 +699,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <button class="btn b-pri" id="fxAdd" style="width:100%">Registrar compra</button>
       <div id="fxList" style="margin-top:12px"></div></div>
-    <div class="box"><h3>Remesas a Corea</h3>
-      <p>Registra el envío. Cuando tu mamá confirme cuántos wones llegaron, anótalo y verás la diferencia.</p>
+    <div class="box" id="boxRemesas"><h3>Remesas a Corea</h3>
+      <p>Registra el envío. Cuando tu mamá anote los wones en su app, aparece solo acá abajo para que elijas a qué envío corresponde.</p>
+      <div id="rmPendCorea"></div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div><div class="mtr" style="margin:0 0 4px">Dólares enviados</div>
           <input id="rmUSD" inputmode="decimal" placeholder="0,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
@@ -662,7 +716,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div><div class="mtr" style="margin:0 0 4px">KRW por USD estimado</div>
-          <input id="rmEst" inputmode="decimal" placeholder="1350" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+          <input id="rmEst" inputmode="decimal" placeholder="1350" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+          <div class="mtr" style="margin:5px 0 0;color:var(--mute);font-size:11px">Se sugiere solo (Google Sheets); lo real lo confirma tu mamá cuando llega.</div></div>
         <div><div class="mtr" style="margin:0 0 4px">Costo total del envío</div>
           <div id="rmTot" style="border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-weight:600;font-size:16px;background:var(--seaL);color:var(--seaD)">—</div></div>
       </div>
@@ -681,24 +736,30 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="fld"><label for="nvCh">Chasis</label><input id="nvCh" autocapitalize="characters" placeholder="Ej: BA123290">
         <div class="mtr" id="nvChT"></div></div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvMa">Marca</label><input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="KIA"></div>
-        <div class="fld"><label for="nvMo">Modelo</label><input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="SORENTO"></div>
+        <div class="fld"><label for="nvMaSel">Marca</label><select id="nvMaSel"></select>
+          <input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="Escribe la marca nueva" style="margin-top:6px" hidden></div>
+        <div class="fld"><label for="nvMoSel">Modelo</label><select id="nvMoSel"></select>
+          <input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="Escribe el modelo nuevo" style="margin-top:6px" hidden></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvAn">Año</label><input id="nvAn" inputmode="numeric" placeholder="2018"></div>
-        <div class="fld"><label for="nvCe">Color</label><input id="nvCe" list="dlNvCe" autocapitalize="characters" placeholder="Blanco"></div>
+        <div class="fld"><label for="nvCeSel">Color</label><select id="nvCeSel"></select>
+          <input id="nvCe" list="dlNvCe" autocapitalize="characters" placeholder="Escribe el color nuevo" style="margin-top:6px" hidden></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvTr">Tracción</label><input id="nvTr" list="dlNvTr" autocapitalize="characters" value="4X2" placeholder="4X2"></div>
+        <div class="fld"><label for="nvTr">Tracción</label><select id="nvTr"><option value="4X2" selected>4X2</option><option value="4X4">4X4</option></select></div>
         <div class="fld"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvCat">Categoría</label><input id="nvCat" list="dlNvCat" placeholder="SUV"></div>
-        <div class="fld"><label for="nvCa">Carrocería</label><input id="nvCa" list="dlNvCa" placeholder="Solo si es de trabajo"></div>
+        <div class="fld"><label for="nvCatSel">Categoría</label><select id="nvCatSel"></select>
+          <input id="nvCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
+        <div class="fld"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
+          <input id="nvCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
       </div>
       <div class="fld"><label for="nvTrans">Transmisión (para Zofri, opcional)</label>
         <select id="nvTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
-      <div class="fld"><label for="nvProv">Proveedor</label><input id="nvProv" autocapitalize="characters" placeholder="Ej: Sr. Chan"></div>
+      <div class="fld"><label for="nvProvSel">Proveedor</label><select id="nvProvSel"></select>
+        <input id="nvProv" autocapitalize="characters" placeholder="Escribe el proveedor nuevo" style="margin-top:6px" hidden></div>
       <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></div>
     <div class="box"><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
       <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
@@ -868,8 +929,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="segs" id="phSegs">
     <button data-seg="fotos" aria-pressed="true">Fotos</button>
     <button data-seg="v360" aria-pressed="false">Vista 360°</button>
+    <button data-seg="video" aria-pressed="false">Video</button>
   </div>
   <div id="secFotos">
+  <div class="mtr" id="phFuenteTip" hidden style="margin-bottom:9px"></div>
   <div class="updrop" id="phDrop">Toca para tomar fotos o elegir de la galería<div class="mtr" id="phMtr"></div></div>
   <input type="file" id="phFile" accept="image/*" multiple hidden>
   <div class="sendbar" id="phSend" hidden>
@@ -893,6 +956,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <input type="file" id="t3FCam" accept="image/*" capture="environment" hidden>
   <input type="file" id="t3FGal" accept="image/*" multiple hidden>
   <div class="mtr" id="t3M"></div>
+  </div>
+  <div id="secVideo" hidden>
+  <div class="fld"><label for="phVideo">Link del video</label>
+    <input id="phVideo" placeholder="https://..." inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+  <div class="mtr" id="phVideoMtr" style="margin-top:9px">Pega el link del video ya editado (YouTube, Vimeo, Instagram, o un archivo de video directo). Se muestra en la ficha del vehículo en la web, debajo del carrusel de fotos. Si lo dejas vacío, no aparece nada ahí.</div>
   </div>
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
@@ -1071,13 +1139,16 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov'];
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
-   NO se sincroniza n360 (cantidad de tomas 360°) porque las tomas mismas viven en cada aparato:
-   sincronizar el número mostraría "5 tomas" en un aparato que no tiene ninguna. */
+   NO se sincroniza n360 (cantidad de tomas 360°, un contador nada más) porque las tomas mismas
+   viven en cada aparato: sincronizar el número mostraría "5 tomas" en un aparato que no tiene
+   ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
+   son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
+   normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
 const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs'];
 
 function fbPubData(v){
@@ -1130,7 +1201,7 @@ async function fbInit(){
       if(u){
         fbReady=true;
         fbMuestraLogin(false);
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); nubeRestauraDocs(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbAvisosVendListen(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'#2E7D32');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -1257,7 +1328,89 @@ function fbStartListening(){
   }, e=>console.error('fbListen', e));
 }
 
+/* --- fotos que suben Vendedores/Corea desde sus propios teléfonos (colección fotosVend), para
+   usarlas en la web SOLO cuando este vehículo no tiene fotos propias subidas acá.
+   Prioridad al armar catalogoPublico: Andre (v.fotos) > Víctor > Bryan > Corea (mamá).
+   Corea queda siempre al final: sirve sobre todo mientras el auto viene en camino y todavía
+   nadie en Iquique le sacó fotos propias. */
+const FB_FOTOS_COL='pruebas_fotosVend';
+const fotosVendCache={};  /* {chasis: {fuente: {nombre, fotos:[...]}}} */
+const FUENTE_VEND_ORDEN_BASE=['victor','bryan'];
+function fbFotosVendListen(){
+  if(!fbReady) return;
+  fbDb.collection(FB_FOTOS_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed'){
+        const [ch0,fu0]=(chg.doc.id||'').split('__');
+        if(ch0 && fotosVendCache[ch0]) delete fotosVendCache[ch0][fu0];
+        return;
+      }
+      const d=chg.doc.data()||{};
+      const ch=d.ch; if(!ch || !d.fuente) return;
+      if(!fotosVendCache[ch]) fotosVendCache[ch]={};
+      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[]};
+    });
+    webSyncPronto();
+    fbDibujaPronto();
+  }, e=>console.error('fbFotosVendListen', e));
+}
+/* Ordena las claves de un cache {fuente:{nombre,fotos}} según la prioridad Víctor > Bryan >
+   (cualquier otro vendedor futuro, alfabético) > Corea — reutilizable para fotos normales y
+   para la vista 360°, cada una con su propio cache. */
+function ordenarFuentes(cache){
+  if(!cache) return [];
+  const claves=Object.keys(cache).filter(k=>cache[k] && cache[k].fotos && cache[k].fotos.length);
+  const conNombre=FUENTE_VEND_ORDEN_BASE.filter(k=>claves.includes(k));
+  const otras=claves.filter(k=>!FUENTE_VEND_ORDEN_BASE.includes(k) && k!=='corea').sort();
+  const corea=claves.includes('corea')?['corea']:[];
+  return conNombre.concat(otras, corea);
+}
+function fuentesOrdenadas(ch){ return ordenarFuentes(fotosVendCache[ch]); }
+/* Fotos que realmente se muestran en la web para este vehículo: las propias de Andre si
+   existen; si no, las del primer vendedor (o Corea) que tenga, en orden de prioridad. */
+function fotosEfectivas(v){
+  if(Array.isArray(v.fotos) && v.fotos.length) return {fotos:v.fotos, fuente:'sistema', nombre:''};
+  const orden=fuentesOrdenadas(v.ch);
+  for(const f of orden){
+    const c=fotosVendCache[v.ch][f];
+    if(c && c.fotos.length) return {fotos:c.fotos, fuente:f, nombre:c.nombre||f};
+  }
+  return {fotos:[], fuente:null, nombre:''};
+}
 
+/* --- vista 360° como respaldo, misma arquitectura y misma prioridad que las fotos normales
+   (Andre > Víctor > Bryan > Corea). Hoy solo Sistema puede capturar 360°, así que en la práctica
+   `f360Vend` va a quedar vacía — pero queda lista para el día en que Vendedores/Corea también
+   puedan subir la suya, sin tener que tocar esta parte. */
+const F360_VEND_COL='pruebas_f360Vend';
+const f360VendCache={};  /* {chasis: {fuente: {nombre, fotos:[...]}}} */
+function fbF360VendListen(){
+  if(!fbReady) return;
+  fbDb.collection(F360_VEND_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed'){
+        const [ch0,fu0]=(chg.doc.id||'').split('__');
+        if(ch0 && f360VendCache[ch0]) delete f360VendCache[ch0][fu0];
+        return;
+      }
+      const d=chg.doc.data()||{};
+      const ch=d.ch; if(!ch || !d.fuente) return;
+      if(!f360VendCache[ch]) f360VendCache[ch]={};
+      f360VendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[]};
+    });
+    webSyncPronto();
+  }, e=>console.error('fbF360VendListen', e));
+}
+function fotosEfectivas360(v){
+  if(Array.isArray(v.f360) && v.f360.length) return {fotos:v.f360, fuente:'sistema', nombre:''};
+  const cache=f360VendCache[v.ch];
+  const orden=ordenarFuentes(cache);
+  for(const f of orden){
+    const c=cache[f];
+    if(c && c.fotos.length) return {fotos:c.fotos, fuente:f, nombre:c.nombre||f};
+  }
+  return {fotos:[], fuente:null, nombre:''};
+}
 
 async function fbSubirTodo(){
   const el=document.getElementById('fbMigEstado');
@@ -1366,13 +1519,18 @@ const webUltimo={};
    está en oferta (misma regla de siempre: precios ocultos salvo ofertas). */
 function webDoc(v){
   const t=st(v.ch);
+  const fe=fotosEfectivas(v);
+  const fe3=fotosEfectivas360(v);
   return {
     ch:v.ch, st:v.st||'', ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'',
     cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp, km:v.km||null,
     trab:!!v.trab, sv:!!v.sv,
     oferta:!!t.of,
     precio: t.of ? (t.pprice||v.vev||null) : null,
-    foto: (Array.isArray(v.fotos)&&v.fotos[0]) || ''
+    foto: fe.fotos[0] || '',
+    fotos: fe.fotos.slice(0,20),  /* propias si hay; si no, las de Víctor/Bryan/Corea (ver fotosEfectivas) */
+    f360: fe3.fotos.slice(0,24),  /* vista 360° completa, misma prioridad (ver fotosEfectivas360) */
+    video: v.video || ''  /* link del video editado (YouTube, Vimeo, Instagram o archivo directo), opcional */
   };
 }
 function webVaEnLaWeb(v){ if(v.borrado) return false; const t=st(v.ch); return !!t.pub && !t.sold; }
@@ -1843,7 +2001,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
@@ -1856,7 +2014,7 @@ function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p)
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 
 function openSheet(id){$('#scrim').classList.add('on');$('#'+id).classList.add('on')}
-function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));editing=null;if(typeof stopSpin==='function')stopSpin()}
+function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));editing=null;avisoVentaActivo=null;avisoAdelantoActivo=null;if(typeof stopSpin==='function')stopSpin()}
 $('#scrim').addEventListener('click',closeAll);
 $$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
 
@@ -2130,14 +2288,11 @@ function draw(){
   for(const c in S) for(const x of (S[c].costs||[])) if(x.date===t) hoy+=x.amt;
   $('#kPatio').textContent=pat;$('#kVend').textContent=ven;$('#kPub').textContent=pub;
   $('#kCost').textContent=hoy?clp(hoy).replace('$',''):'0';
-  drawStock();drawResumen();drawVit();drawTaller();
+  drawStock();drawResumen();drawVit();drawTaller();pintaPendCambiar();pintaFlujo();
 }
 
 /* ---------- INTERACCIONES ---------- */
-document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx]');
-  if(!b)return;
-  if(b.dataset.sell)  {const v=IDX[b.dataset.sell];editing=v.ch;
+function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     $('#ssT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#ssC').textContent=v.ch;
     $('#ssP').value='';$('#ssD').value=iso();
     $('#ssS').innerHTML=v.vev?`Estimado ${clp(v.vev)}<button data-sug="${v.vev}">Usar</button>`:'';
@@ -2192,10 +2347,14 @@ document.addEventListener('click',e=>{
     ssQ=st(v.ch).vendedor||'yo';
     pintaQuien();
     setMoneda(st(v.ch).moneda||'CLP');
-    $('#ssTC').value=st(v.ch).tc||TC.medio||'';
+    $('#ssTC').value=st(v.ch).tc||(TC.medio?Math.round((+TC.medio)+(+TC.spread||0)):'')||'';
     cargaComunas(); chkRut();
     vseg('venta'); loadCarnet(v.ch);
     openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx]');
+  if(!b)return;
+  if(b.dataset.sell) abrirVentaSheet(b.dataset.sell);
   if(b.dataset.cost)  openCost(b.dataset.cost);
   if(b.dataset.und)   {const c=b.dataset.und;S[c].sold=false;S[c].price='';S[c].date='';save();draw();toast('Volvió a patio')}
   if(b.dataset.pub)   {const v=IDX[b.dataset.pub],t=st(v.ch);editing=v.ch;
@@ -2352,8 +2511,10 @@ document.addEventListener('click',async e=>{
     await save();draw();drawCostList();toast('Costo eliminado');return}
 });
 $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
+  const avTsVenta=avisoVentaActivo;
   t.sold=true;t.price=pnum($('#ssP').value);t.date=$('#ssD').value||iso();t.pub=false;
   t.moneda=moneda; t.tc=moneda==='USD'?(pnum($('#ssTC').value)||0):0;
+  t.cambiado=false;
   if(moneda==='USD'&&!t.tc){toast('Falta el tipo de cambio');return}
   t.cliente=leerCliente(); recuerdaComuna(t.cliente.c);
   t.vendedor=ssQ; t.comision=(ssQ==='bryan')?COMB:0;
@@ -2362,6 +2523,7 @@ $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   await save();
   if(prune){const n=await pruneOne(c); if(n) toast('Vendido ✓ · se conservaron '+KEEP+' fotos'); else toast('Marcado como vendido ✓')}
   else toast('Marcado como vendido ✓');
+  if(avTsVenta) marcarAvisoAtendido(avTsVenta);
   draw();closeAll();});
 
 const DIAS_PODA=30;
@@ -2528,6 +2690,7 @@ async function subirFotosNube(ch,arr,silencioso){
 function segShow(k){
   $('#secFotos').hidden = k!=='fotos';
   $('#sec360').hidden  = k!=='v360';
+  $('#secVideo').hidden = k!=='video';
   $$('#phSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.seg===k?'true':'false'));
   if(k!=='v360') stopSpin();
 }
@@ -2540,13 +2703,32 @@ async function openPhotos(c){
   $('#phGrid').innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-size:13px">Cargando…</div>';
   openSheet('shPhoto');
   phSel=new Set();
+  $('#phVideo').value=v.video||'';
   segShow('fotos');
   phArr=await loadPhotos(c);
   drawPhotos();
   await load360(c);
 }
+$('#phVideo').addEventListener('change',()=>{
+  const v=IDX[phCh]; if(!v) return;
+  const val=$('#phVideo').value.trim();
+  if(v.video===val) return;
+  v.video=val; guardaCacheV(); draw();
+});
+const FUENTE_ETIQUETA={victor:'Víctor',bryan:'Bryan',corea:'Corea (mamá)'};
+function pintaFuenteTip(){
+  const el=$('#phFuenteTip'); if(!el) return;
+  if(phArr.length){ el.hidden=true; return; }
+  const orden=fuentesOrdenadas(phCh);
+  const f=orden[0];
+  if(!f){ el.hidden=true; return; }
+  const nom=FUENTE_ETIQUETA[f]||(fotosVendCache[phCh][f]&&fotosVendCache[phCh][f].nombre)||f;
+  el.hidden=false;
+  el.textContent='☁ No subiste fotos propias: ahora mismo la web está mostrando las de '+nom+'.';
+}
 function drawPhotos(){
   $('#phSend').hidden=!phArr.length;
+  pintaFuenteTip();
   $('#phShare').textContent = phSel.size ? `➦ Enviar ${phSel.size} foto${phSel.size===1?'':'s'}` : '➦ Enviar fotos';
   $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph ${phSel.has(i)?'sel':''}" data-sel="${i}">
     <img src="${d}" alt="Foto ${i+1}">
@@ -2815,9 +2997,11 @@ $('#adM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.val
 $('#adOk').addEventListener('click',async()=>{
   const m=pnum($('#adM').value)||0;
   if(!m){toast('Ingresa el monto');return}
+  const avTsAdel=avisoAdelantoActivo;
   AD.push({ts:Date.now(),q:adQ,m,f:$('#adD').value||iso(),nota:$('#adN').value.trim()});
   try{await window.storage.set('amk_adelantos',JSON.stringify(AD))}catch(e){toast('No se pudo guardar');return}
   pintaFJ(); closeAll();
+  if(avTsAdel) marcarAvisoAtendido(avTsAdel);
   const saldo=(FJ[adQ]||0)-adelMes(adQ);
   toast('Adelanto anotado'+(FJ[adQ]?' · quedan '+clp(saldo):''));
 });
@@ -2832,10 +3016,87 @@ document.addEventListener('click',async e=>{
 const pdec=v=>{const x=String(v||'').replace(/[^0-9.,]/g,'').replace(',','.');
   const n=parseFloat(x); return isNaN(n)?'':n};
 const obs2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
-let TC={medio:925,spread:8,obs:925.25,fecha:'',fuente:''};
+let TC={medio:925,spread:8,obs:925.25,fecha:'',fuente:'',krwSpread:15};
 async function cargaTC(){
   try{const r=await window.storage.get('amk_tc'); if(r&&r.value) TC=Object.assign(TC,JSON.parse(r.value))}catch(e){}
   pintaTC();
+  fetchDolarAuto();
+  fetchTCMedioAuto();
+}
+/* Actualiza solo el dólar observado una vez al día, al abrir la app, usando mindicador.cl
+   (fuente pública gratuita que replica el dato del Banco Central; sin clave, sin costo).
+   Si ya está al día, o si falla (sin internet, servicio caído, etc.), no hace nada ni
+   interrumpe: se queda con el valor guardado y el botón "Buscar dólar de hoy" y el campo
+   siguen disponibles para hacerlo a mano. */
+async function fetchDolarAuto(){
+  if(TC.fecha===iso()) return;
+  try{
+    const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),8000);
+    const r=await fetch('https://mindicador.cl/api/dolar',{signal:ac.signal});
+    clearTimeout(t);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const last=j&&j.serie&&j.serie[0];
+    if(!last||!last.valor) throw new Error('sin dato en la respuesta');
+    TC.obs=Number(last.valor);
+    TC.fecha=iso();
+    TC.fuente='Dólar observado · mindicador.cl (Banco Central) · actualizado solo';
+    await window.storage.set('amk_tc',JSON.stringify(TC));
+    pintaTC();
+    toast('Dólar observado actualizado solo: '+obs2(TC.obs));
+  }catch(e){ console.error('fetchDolarAuto',e); }
+}
+/* Dólar de mercado (referencial) y won estimado, desde una hoja de Google Sheets publicada
+   como CSV (GOOGLEFINANCE). A diferencia del dólar observado, este SÍ se vuelve a pedir
+   cada vez que abres la app (es un tipo de cambio spot, se mueve durante el día), sin
+   interrumpir si falla. Si falla, avisa una sola vez por día (para no repetir el aviso
+   cada vez que entras) y se queda con el último valor guardado; el botón "Buscar dólar
+   de hoy" sigue disponible como respaldo manual. */
+const TC_SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vR6KYisNmn4q5GC9F9cnaIhwsFRgTKURzM2Z62dKvyZdYYwMP8Dc7WlkM4Y_hU3dKiX3CzM-vli6S3C/pub?output=csv';
+function parseCSVRow(line){
+  const out=[]; let cur='', inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(inQ){ if(c==='"'){ if(line[i+1]==='"'){cur+='"';i++;} else inQ=false; } else cur+=c; }
+    else { if(c==='"') inQ=true; else if(c===','){ out.push(cur); cur=''; } else cur+=c; }
+  }
+  out.push(cur);
+  return out;
+}
+async function fetchTCMedioAuto(){
+  try{
+    const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),8000);
+    const r=await fetch(TC_SHEET_CSV,{signal:ac.signal,cache:'no-store'});
+    clearTimeout(t);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const txt=await r.text();
+    const filas=txt.trim().split('\n').map(parseCSVRow);
+    const valor=etq=>{
+      const f=filas.find(x=>String(x[0]||'').trim().toUpperCase()===etq);
+      if(!f) return 0;
+      return Number(String(f[1]||'').replace(/"/g,'').trim().replace(',','.'))||0;
+    };
+    const clp=valor('USD/CLP'), krw=valor('USD/KRW');
+    if(!clp && !krw) throw new Error('sin datos reconocibles en la hoja');
+    const prevMedio=TC.medio, prevKrw=TC.krw;
+    if(clp) TC.medio=Math.round(clp);
+    if(krw) TC.krw=krw;
+    TC.medioFecha=iso();
+    TC.medioTS=Date.now();
+    TC.medioFuente='Google Sheets (GOOGLEFINANCE) · actualizado solo';
+    await window.storage.set('amk_tc',JSON.stringify(TC));
+    pintaTC();
+    if(TC.medio!==prevMedio || TC.krw!==prevKrw){
+      toast('Dólar de mercado actualizado: '+obs2(TC.medio)+(krw?' · won estimado ≈'+Math.round(TC.krw-(+((TC.krwSpread||TC.krwSpread===0)?TC.krwSpread:15))):''));
+    }
+  }catch(e){
+    console.error('fetchTCMedioAuto',e);
+    if(TC.medioAvisoFallo!==iso()){
+      TC.medioAvisoFallo=iso();
+      try{await window.storage.set('amk_tc',JSON.stringify(TC))}catch(_){}
+      toast('No se pudo actualizar el dólar de mercado automáticamente — revísalo o ingrésalo a mano en Negocio → Datos');
+    }
+  }
 }
 function pintaTC(){
   const a=$('#tcMedio'), b=$('#tcSpread'), o=$('#tcObs');
@@ -2844,11 +3105,22 @@ function pintaTC(){
   const c=$('#tcCompra'); if(c) c.textContent=TC.medio?obs2((+TC.medio)+(+TC.spread||0)):'—';
   const f=$('#tcFecha'); if(f) f.textContent=TC.fecha?fd(TC.fecha):'nunca';
   const s=$('#tcFuente'); if(s) s.textContent=TC.fuente||'';
+  const mn=$('#tcMedioNota');
+  if(mn) mn.textContent = TC.medioTS
+    ? 'Actualizado hoy '+fd(TC.medioFecha)+' a las '+new Date(TC.medioTS).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})+' (Google Sheets · GOOGLEFINANCE) · se vuelve a pedir cada vez que abres la app.'
+    : 'Se actualiza automáticamente cada vez que abres la app (Google Sheets · GOOGLEFINANCE). Si falla, puedes escribirlo a mano o usar "Buscar dólar de hoy".';
+  const ksVal=(TC.krwSpread||TC.krwSpread===0)?TC.krwSpread:15;
+  const ks=$('#tcKrwSpread'); if(ks) ks.value=obs2(ksVal);
+  const ke=$('#tcKrwEst'); if(ke) ke.textContent=TC.krw?obs2(TC.krw-(+ksVal||0)):'—';
+  const kn=$('#tcKrwNota'); if(kn) kn.textContent=TC.krw?('Spot '+obs2(TC.krw)+' (Google Sheets) menos el diferencial.'):'Aún sin dato de spot won/dólar.';
+  const re=$('#rmEst'); if(re && !re.value && TC.krw) re.value=Math.round(TC.krw-(+ksVal||0));
 }
 async function guardaTC(){
   TC.medio=pnum($('#tcMedio').value)||0;
   TC.spread=pdec($('#tcSpread').value)||0;
   TC.obs=pdec($('#tcObs').value)||0;
+  const ksIn=pdec($('#tcKrwSpread').value);
+  TC.krwSpread=(ksIn===''?15:ksIn);
   try{await window.storage.set('amk_tc',JSON.stringify(TC))}catch(e){toast('No se pudo guardar')}
   pintaTC();
 }
@@ -2876,6 +3148,98 @@ function pintaFX(){
     +FX.slice().reverse().slice(0,8).map(x=>`<div class="xrow"><span>${fd(x.f)} · ${obs2(x.u)} USD</span>
       <span>${obs2(x.t)}<button class="b-und" style="margin-left:8px;padding:4px 8px" data-fxdel="${x.ts}">✕</button></span></div>`).join('');
 }
+function pintaPendCambiar(){
+  const el=$('#pcList'); if(!el) return;
+  const pend=V.filter(v=>{const t=st(v.ch); return t.sold && t.moneda!=='USD' && t.cambiado===false;});
+  const tot=pend.reduce((a,v)=>a+(st(v.ch).price||0),0);
+  const tEl=$('#pcTotal'); if(tEl) tEl.textContent=clp(tot);
+  const cEl=$('#pcCant'); if(cEl) cEl.textContent=String(pend.length);
+  if(!pend.length){ el.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin ventas pendientes de cambiar.</p>'; return; }
+  el.innerHTML=pend.slice().sort((a,b)=>(st(a.ch).date||'').localeCompare(st(b.ch).date||'')).map(v=>{
+    const t=st(v.ch);
+    return `<div class="xrow"><span>${v.ma||''} ${v.mo||''} · ${v.ch} · ${fd(t.date)}</span>
+      <span>${clp(t.price||0)}<button class="b-und" style="margin-left:8px;padding:4px 8px" data-pcok="${v.ch}">✓ Ya cambiado</button></span></div>`;
+  }).join('');
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pcok]'); if(!b)return;
+  const t=st(b.dataset.pcok); t.cambiado=true;
+  await save(); pintaPendCambiar(); toast('Marcado como cambiado');
+});
+let FLOWCFG={emergCLP:0,emergUSD:0};
+async function cargaFlowCfg(){
+  try{const r=await window.storage.get('amk_flowcfg'); if(r&&r.value) FLOWCFG=Object.assign(FLOWCFG,JSON.parse(r.value));}catch(e){console.error('cargaFlowCfg',e)}
+  pintaFlujo();
+}
+function reacondPendienteTotal(){
+  return V.filter(v=>!sold(v.ch)).reduce((a,v)=>a+tasks(v.ch).filter(x=>!x.hecho).reduce((s,x)=>s+(x.est||0),0),0);
+}
+function fleteTotalUSD(e){
+  const c=(e.costos||[]).find(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor');
+  return c?(c.monto||0)*(e.cont||1):0;
+}
+function fleteRemesadoUSD(embId){
+  return RM.filter(r=>r.tipo==='flete'&&r.embId===embId).reduce((a,r)=>a+(r.u||0),0);
+}
+function fletesComprometidos(){
+  return Object.values(EMB).map(e=>({e,pend:Math.max(0,fleteTotalUSD(e)-fleteRemesadoUSD(e.id))})).filter(x=>x.pend>0.005);
+}
+function wonRemesadoPorVeh(ch){
+  // Mismo criterio que comisionBancoVeh: se asume que un vehículo aparece en a lo más
+  // una remesa de tipo "vehiculos", y su monto se reparte en partes iguales entre los
+  // vehículos que esa remesa lista. Usa el won YA CONFIRMADO (r.krw) cuando existe;
+  // si aún no se confirma, usa el estimado que se anotó al registrar esa remesa (r.est).
+  const r=RM.find(x=>x.tipo!=='flete' && (x.veh||[]).includes(ch));
+  if(!r) return 0;
+  const nVeh=(r.veh||[]).length||1;
+  const wonTotal=r.krw?r.krw:(r.u||0)*(r.est||0);
+  return wonTotal/nVeh;
+}
+function wonComprometidoEmb(e){
+  const total=(e.veh||[]).reduce((a,v)=>a+(v.valor||0),0);
+  const remesado=(e.veh||[]).reduce((a,v)=>a+wonRemesadoPorVeh(v.ch),0);
+  return Math.max(0,total-remesado);
+}
+function vehiculosComprometidos(){
+  return Object.values(EMB).map(e=>({e,pend:wonComprometidoEmb(e)})).filter(x=>x.pend>1);
+}
+function pintaFlujo(){
+  const pendCLP=V.filter(v=>{const t=st(v.ch); return t.sold && t.moneda!=='USD' && t.cambiado===false;}).reduce((a,v)=>a+(st(v.ch).price||0),0);
+  const costosFijos=Object.values(FJ).reduce((a,b)=>a+(b||0),0);
+  const reacond=reacondPendienteTotal();
+  const compPesos=costosFijos+reacond;
+  const disp=Math.max(0,pendCLP-compPesos-(FLOWCFG.emergCLP||0));
+  const pEl=$('#fcPend'); if(pEl) pEl.textContent=clp(pendCLP);
+  const cEl=$('#fcCompPesos'); if(cEl) cEl.textContent=clp(compPesos);
+  const dEl=$('#fcDisp'); if(dEl) dEl.textContent=clp(disp);
+  const detEl=$('#fcCompPesosDet'); if(detEl) detEl.textContent='Costos fijos del mes: '+clp(costosFijos)+' · Reacondicionamiento pendiente: '+clp(reacond);
+  const fletes=fletesComprometidos();
+  const totFlete=fletes.reduce((a,x)=>a+x.pend,0);
+  const fEl=$('#fcFleteUSD'); if(fEl) fEl.textContent='US$'+obs2(totFlete);
+  const vehs=vehiculosComprometidos();
+  const totWon=vehs.reduce((a,x)=>a+x.pend,0);
+  const wonUSD=(typeof TC!=='undefined'&&TC.krw)?totWon/TC.krw:0;
+  const wEl=$('#fcWonPend'); if(wEl) wEl.textContent='₩'+Math.round(totWon).toLocaleString('es-CL');
+  const wuEl=$('#fcWonUSD'); if(wuEl) wuEl.textContent=(typeof TC!=='undefined'&&TC.krw)?'US$'+obs2(wonUSD):'— (sin won estimado todavía)';
+  const embIds=new Set([...fletes.map(x=>x.e.id), ...vehs.map(x=>x.e.id)]);
+  const detLines=[...embIds].map(id=>{
+    const f=fletes.find(x=>x.e.id===id), v=vehs.find(x=>x.e.id===id);
+    const e=(f&&f.e)||(v&&v.e);
+    const partes=[];
+    if(f) partes.push('flete US$'+obs2(f.pend));
+    if(v) partes.push('vehículos ₩'+Math.round(v.pend).toLocaleString('es-CL')+((typeof TC!=='undefined'&&TC.krw)?' (≈US$'+obs2(v.pend/TC.krw)+')':''));
+    return (e.nom||e.id)+': '+partes.join(' · ');
+  });
+  const fdEl=$('#fcFleteDet'); if(fdEl) fdEl.textContent=detLines.length?detLines.join(' · '):'Sin compromisos pendientes por embarque.';
+  const ceEl=$('#fcEmergCLP'); if(ceEl && document.activeElement!==ceEl) ceEl.value=FLOWCFG.emergCLP?clp(FLOWCFG.emergCLP):'';
+  const ueEl=$('#fcEmergUSD'); if(ueEl && document.activeElement!==ueEl) ueEl.value=(FLOWCFG.emergUSD||FLOWCFG.emergUSD===0)?obs2(FLOWCFG.emergUSD):'';
+}
+$('#fcGuardar').addEventListener('click',async()=>{
+  FLOWCFG.emergCLP=pnum($('#fcEmergCLP').value)||0;
+  FLOWCFG.emergUSD=pdec($('#fcEmergUSD').value)||0;
+  try{await window.storage.set('amk_flowcfg',JSON.stringify(FLOWCFG))}catch(e){toast('No se pudo guardar');return}
+  pintaFlujo(); toast('Fondo de emergencia guardado');
+});
 $('#fxAdd').addEventListener('click',async()=>{
   const c=pnum($('#fxCLP').value)||0, u=pdec($('#fxUSD').value)||0;
   if(!c||!u){toast('Ingresa pesos y dólares');return}
@@ -2938,6 +3302,152 @@ function fxOpcionesHTML(x){
 async function cargaRM(){
   try{const r=await window.storage.get('amk_remesas'); if(r&&r.value) RM=JSON.parse(r.value)}catch(e){}
   pintaRM();
+}
+/* ---------- Wones recibidos en Corea, en vivo (reemplaza el código para pegar) ----------
+   Tu mamá anota "Llegó una remesa" en su app; cada una sube sola como su propio documento
+   (uno por remesa, así no se pisan entre sí si las dos apps escriben casi al mismo tiempo).
+   Acá se escuchan en vivo y se muestran las que todavía no están vinculadas a ningún envío
+   de esta lista, para que elijas con un toque a cuál corresponden — vos decidís siempre,
+   nunca se adivina solo. En cuanto se vincula, se le avisa de vuelta a la app de Corea. */
+const RECOREA_COL='pruebas_remesasCorea';
+let RECOREA=[];
+async function cargaRecorea(){
+  try{const r=await window.storage.get('amk_recorea_cache'); if(r&&r.value) RECOREA=JSON.parse(r.value)}catch(e){}
+  pintaRecorea(); pintaPendientes();
+}
+function fbRecoreaListen(){
+  if(!fbReady) return;
+  fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      const ts=chg.doc.id;
+      RECOREA=RECOREA.filter(x=>String(x.ts)!==ts);
+      if(chg.type!=='removed'){
+        const d=chg.doc.data()||{};
+        RECOREA.push({ts:Number(ts)||ts, k:d.k||0, com:d.com||0, f:d.f||'', fll:d.fll||d.f||'', vinculada:!!d.vinculada, rmTs:d.rmTs||null});
+      }
+    });
+    try{window.storage.set('amk_recorea_cache', JSON.stringify(RECOREA))}catch(_){}
+    pintaRecorea(); pintaPendientes();
+  }, e=>console.error('fbRecoreaListen', e));
+}
+function pintaRecorea(){
+  const el=$('#rmPendCorea'); if(!el) return;
+  const pend=RECOREA.filter(x=>!x.vinculada);
+  const libres=RM.filter(x=>!x.krw);
+  if(!pend.length){ el.innerHTML=''; return; }
+  el.innerHTML='<div class="mtr" style="margin:0 0 6px;color:var(--red)">Wones recibidos en Corea, todavía sin vincular</div>'
+    + pend.slice().reverse().map(x=>`<div class="card plain" style="padding:11px;margin-bottom:8px;border-color:var(--red)">
+        <div class="r1"><div><div class="tt" style="font-size:15px">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
+          <div class="ch">Llegó el ${fd(x.fll||x.f)}${x.com?' · comisión '+Math.round(x.com).toLocaleString('es-CL')+' ₩':''}</div></div></div>
+        <div class="fld" style="margin-top:8px"><div class="mtr" style="margin:0 0 4px">¿A qué envío corresponde?</div>
+          <select data-recvinc="${x.ts}" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;background:var(--paper);color:var(--ink)">
+            <option value="">— elige un envío —</option>
+            ${libres.map(r=>`<option value="${r.ts}">${obs2(r.u)} USD enviados el ${fd(r.f)}</option>`).join('')}
+          </select></div>
+      </div>`).join('');
+}
+async function vincularRecorea(reTs, rmTs){
+  const re=RECOREA.find(x=>String(x.ts)===String(reTs));
+  const rm=RM.find(x=>String(x.ts)===String(rmTs));
+  if(!re||!rm){ toast('No se encontró el envío'); return; }
+  rm.krw=re.k; if(re.com) rm.comKrw=re.com;
+  re.vinculada=true; re.rmTs=rm.ts;
+  try{await window.storage.set('amk_remesas', JSON.stringify(RM))}catch(_){}
+  try{await window.storage.set('amk_recorea_cache', JSON.stringify(RECOREA))}catch(_){}
+  if(fbReady){
+    try{ await fbDb.collection(RECOREA_COL).doc(String(re.ts)).set({vinculada:true, rmTs:rm.ts}, {merge:true}); }
+    catch(e){ console.error('vincularRecorea', e); }
+  }
+  pintaRM(); pintaRecorea(); pintaPendientes();
+  toast('Vinculado · cambio real '+obs2(re.k/rm.u)+' KRW por USD');
+}
+document.addEventListener('change', e=>{
+  const s=e.target.closest('[data-recvinc]'); if(!s) return;
+  const rmTs=s.value; if(!rmTs) return;
+  vincularRecorea(s.dataset.recvinc, rmTs);
+});
+/* ---------- Avisos de Víctor y Bryan (ventas y adelantos), en vivo (reemplaza el aviso
+   que hoy solo llega por WhatsApp). Cuando alguno usa "Avisar venta" o "Avisar adelanto"
+   en su app, queda un documento acá. Aparecen en el aviso grande de arriba: al hacer clic
+   se abre la ficha correspondiente (Marcar vendido / Anotar adelanto) con los datos ya
+   precargados — vos decidís siempre, nunca se aplica solo. Al guardar, se le avisa de
+   vuelta a la app de Víctor/Bryan para que sepan que ya lo viste. ---------- */
+const AVISOSVEND_COL='pruebas_avisosVend';
+let AVISOSVEND=[];
+let avisoVentaActivo=null, avisoAdelantoActivo=null;
+async function cargaAvisosVend(){
+  try{const r=await window.storage.get('amk_avisosvend_cache'); if(r&&r.value) AVISOSVEND=JSON.parse(r.value)}catch(e){}
+  pintaPendientes();
+}
+function fbAvisosVendListen(){
+  if(!fbReady) return;
+  fbDb.collection(AVISOSVEND_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      const ts=chg.doc.id;
+      AVISOSVEND=AVISOSVEND.filter(x=>String(x.ts)!==ts);
+      if(chg.type!=='removed'){
+        const d=chg.doc.data()||{};
+        AVISOSVEND.push({ts:Number(ts)||ts, tipo:d.tipo||'', ch:d.ch||'', precio:d.precio||0,
+          monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido});
+      }
+    });
+    try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
+    pintaPendientes();
+  }, e=>console.error('fbAvisosVendListen', e));
+}
+async function marcarAvisoAtendido(ts){
+  if(!ts) return;
+  const av=AVISOSVEND.find(x=>String(x.ts)===String(ts));
+  if(av) av.atendido=true;
+  try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
+  pintaPendientes();
+  if(fbReady){
+    try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({atendido:true}, {merge:true}); }
+    catch(e){ console.error('marcarAvisoAtendido', e); }
+  }
+}
+function vendedorKey(nombre){
+  const n=String(nombre||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+  if(n==='victor') return 'victor';
+  if(n==='bryan') return 'bryan';
+  return null;
+}
+function abrirAvisoVenta(av){
+  const v=IDX[av.ch];
+  if(!v){ toast('El vehículo de ese aviso ya no está en el stock'); return; }
+  abrirVentaSheet(av.ch);
+  if(av.precio) $('#ssP').value=clp(av.precio);
+  const k=vendedorKey(av.vendedor); if(k){ ssQ=k; pintaQuien(); }
+  avisoVentaActivo=av.ts;
+}
+function abrirAvisoAdelanto(av){
+  adQ=vendedorKey(av.vendedor)||personas()[0];
+  $('#adQuien').innerHTML=personas().map(k=>`<button class="cg" data-adq="${k}" aria-pressed="${k===adQ}">${nomPersona(k)}</button>`).join('');
+  $('#adM').value = av.monto?clp(av.monto):'';
+  $('#adD').value = av.fecha||iso();
+  $('#adN').value = av.nota||'';
+  openSheet('shAdel'); setTimeout(()=>$('#adM').focus(),240);
+  avisoAdelantoActivo=av.ts;
+}
+/* ---------- Aviso grande arriba: cosas por confirmar entre Sistema, Corea y Vendedores.
+   Pensado para sumar más casos más adelante sin rehacer nada de esto. ---------- */
+function pendientesGlobales(){
+  const p=[];
+  const nRec=RECOREA.filter(x=>!x.vinculada).length;
+  if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  const pendVenta=AVISOSVEND.filter(x=>x.tipo==='venta'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
+  if(pendVenta.length) p.push({texto:pendVenta.length+' venta'+(pendVenta.length===1?'':'s')+' avisada'+(pendVenta.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoVenta(pendVenta[0])});
+  const pendAdel=AVISOSVEND.filter(x=>x.tipo==='adelanto'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
+  if(pendAdel.length) p.push({texto:pendAdel.length+' adelanto'+(pendAdel.length===1?'':'s')+' avisado'+(pendAdel.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoAdelanto(pendAdel[0])});
+  return p;
+}
+function pintaPendientes(){
+  const el=$('#bannerPend'); if(!el) return;
+  const p=pendientesGlobales();
+  if(!p.length){ el.hidden=true; el.onclick=null; return; }
+  el.hidden=false;
+  el.textContent='⚠ '+p.map(x=>x.texto).join(' · ');
+  el.onclick=()=>p[0].ir();
 }
 function calcRM(){
   const u=pdec($('#rmUSD').value)||0, c=pdec($('#rmCom').value)||0, iv=pdec($('#rmIva').value)||0;
@@ -3140,9 +3650,11 @@ document.addEventListener('change',async e=>{
   if(srfinfo){const ch=srfinfo.dataset.srfinfo; const t=st(ch); t.srfInfoAdic=srfinfo.value.trim(); await save(); pintaSRF(); return}
 });
 $('#tcSave').addEventListener('click',async()=>{await guardaTC();toast('Tipo de cambio guardado')});
-['#tcMedio','#tcSpread'].forEach(sel=>$(sel).addEventListener('input',()=>{
+['#tcMedio','#tcSpread','#tcKrwSpread'].forEach(sel=>$(sel).addEventListener('input',()=>{
   const m=pdec($('#tcMedio').value)||0, sp=pdec($('#tcSpread').value)||0;
   $('#tcCompra').textContent=m?obs2(m+sp):'—';
+  const ksIn=pdec($('#tcKrwSpread').value), ksVal=(ksIn===''?15:ksIn);
+  const ke=$('#tcKrwEst'); if(ke) ke.textContent=TC.krw?obs2(TC.krw-(+ksVal||0)):'—';
 }));
 let IGTOKEN='', IGUSER='';
 async function cargaIG(){
@@ -3447,6 +3959,41 @@ $('#tcGet').addEventListener('click',async()=>{
       await guardaTC(); toast('Dólar actualizado · revísalo');
     } else toast('No se pudo obtener el valor');
   }catch(e){ console.error('tcGet',e); toast('No se pudo buscar. Escríbelo a mano.'); }
+  b.disabled=false; b.textContent=o;
+});
+
+let MKTNEWS=null;
+async function cargaMktNews(){
+  try{const r=await window.storage.get('amk_mkt_news'); if(r&&r.value) MKTNEWS=JSON.parse(r.value);}catch(e){console.error('cargaMktNews',e)}
+  pintaMktNews();
+}
+function pintaMktNews(){
+  const el=$('#mktNewsOut'); if(!el) return;
+  if(!MKTNEWS||!MKTNEWS.texto){ el.innerHTML='<p style="color:var(--mute);font-size:13px;margin:0">Sin buscar todavía.</p>'; return; }
+  el.innerHTML='<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.5">'+xesc(MKTNEWS.texto)+'</div>'
+    +'<p style="color:var(--mute);font-size:11px;margin:8px 0 0">Buscado el '+new Date(MKTNEWS.fecha).toLocaleString('es-CL')+' · esto es un resumen de noticias, no una predicción.</p>';
+}
+$('#mktNews').addEventListener('click',async()=>{
+  const headers=aiHeaders();
+  if(!headers){ toast('Configura tu clave API en Ajustes, o busca las noticias tú mismo.'); return; }
+  const b=$('#mktNews'); const o=b.textContent; b.disabled=true; b.textContent='Buscando…';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers,
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1500,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        messages:[{role:'user',content:'Busca noticias recientes (de los últimos días) sobre estos tres temas, relevantes para un importador de autos usados de Corea a Chile: (1) tipo de cambio dólar/peso chileno y factores que lo mueven (ej. precio del cobre); (2) el won coreano frente al dólar; (3) fletes marítimos y disponibilidad de contenedores en rutas desde Asia/Corea hacia Chile o Sudamérica. Responde en español, en un resumen breve (máximo tres párrafos cortos, uno por tema), solo con hechos y noticias recientes, SIN hacer predicciones ni recomendar cuándo comprar, vender o remesar. Si no encuentras nada relevante y reciente para algún tema, dilo explícitamente en vez de inventar algo.'}]})
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const txt=(data.content||[]).map(i=>i.type==='text'?i.text:'').join('').trim();
+    if(txt){
+      MKTNEWS={texto:txt, fecha:new Date().toISOString()};
+      await window.storage.set('amk_mkt_news',JSON.stringify(MKTNEWS));
+      pintaMktNews();
+      toast('Noticias actualizadas');
+    } else toast('No se encontró nada. Intenta de nuevo más tarde.');
+  }catch(e){ console.error('mktNews',e); toast('No se pudo buscar. Intenta más tarde.'); }
   b.disabled=false; b.textContent=o;
 });
 
@@ -3788,6 +4335,7 @@ document.addEventListener('click',async e=>{
 /* ---------- 360 ---------- */
 const T3K=c=>'amk_360_'+c;
 const T3W=900, T3Q=.5, T3CAP=4.4e6;
+const T3WEBW=480, T3WEBQ=.5;  /* tamaño más chico con que se sube la vista 360° a GitHub para la web */
 let t3ch=null, t3=[], t3n=16, t3i=0, t3timer=null;
 
 function angLabel(i,n){
@@ -3826,7 +4374,44 @@ async function save360(){
     if(t3.length) await window.storage.set(T3K(t3ch),JSON.stringify({n:t3n,f:t3}));
     else await window.storage.delete(T3K(t3ch));
   }catch(e){toast('No se pudo guardar el 360');return false}
-  st(t3ch).n360=t3.length>=t3n?t3n:0; await save(); draw(); return true;
+  st(t3ch).n360=t3.length>=t3n?t3n:0; await save(); draw();
+  if(t3.length>=t3n) subir360Nube(t3ch,t3,t3n);
+  else limpiar360Nube(t3ch);
+  return true;
+}
+const f360Subiendo={};
+/* Sube la vista 360° YA COMPLETA a la bodega de GitHub (igual que las fotos normales) y guarda
+   las direcciones en `v.f360`, que viaja por Firestore hacia la web. Solo se llama cuando están
+   las t3n tomas — nunca sube un 360° a medias, para no mostrar uno roto/incompleto en la web. */
+async function subir360Nube(ch,arr,n,silencioso){
+  if(!GHTOKEN||!GHOWNER||!GHREPO) return {ok:0,error:'GitHub no configurado'};
+  if(f360Subiendo[ch]) return {ok:0,error:'ya se está subiendo'};
+  const locales=(arr||[]).filter(f=>typeof f==='string' && f.indexOf('data:')===0);
+  if(locales.length!==n) return {ok:0};  /* algo no cuadra (no debería pasar) */
+  f360Subiendo[ch]=true;
+  if(!silencioso) toast('Subiendo vista 360° a la nube…');
+  const urls=[]; let fallos=0;
+  try{
+    for(let i=0;i<locales.length;i++){
+      try{
+        const chica=(await shrinkDataURI(locales[i],T3WEBW,T3WEBQ))||locales[i];
+        const u=await subirFotoGH(chica, ch+'-360-'+String(i).padStart(2,'0')+'-'+Date.now()+'.jpg');
+        urls.push(u);
+      }catch(e){ console.error('subir360Nube',e); fallos++; }
+    }
+    if(urls.length===locales.length){
+      const v=IDX[ch];
+      if(v){ v.f360=urls; guardaCacheV(); draw(); }
+      if(!silencioso) toast('Vista 360° disponible en la web ✓');
+    }else if(!silencioso){
+      toast('Vista 360°: '+fallos+' toma(s) no se pudieron subir, se reintentará');
+    }
+    return {ok:urls.length===locales.length?urls.length:0, fallos};
+  } finally { delete f360Subiendo[ch]; }
+}
+async function limpiar360Nube(ch){
+  const v=IDX[ch];
+  if(v && Array.isArray(v.f360) && v.f360.length){ v.f360=[]; guardaCacheV(); draw(); }
 }
 $('#t3Cam').addEventListener('click',()=>$('#t3FCam').click());
 $('#t3Gal').addEventListener('click',()=>$('#t3FGal').click());
@@ -5312,6 +5897,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv'].forEach(i=>$('#'+i).value='');
   $('#emVNTr').value='4X2';
   $('#emVNChT').textContent=''; emVNTransTocado=false; emVNTransSugerir();
+  if(typeof selOtroReset==='function') selOtroReset();
   if(typeof listasNv==='function') listasNv();
   $('#dlEmV').innerHTML=V.map(x=>`<option value="${x.ma} ${x.mo} ${x.an||''} · ${x.ch}">`).join('');
   draw(); drawPick();
@@ -5364,7 +5950,7 @@ function pintaEmBlPreview(){
           <div class="fld"><label>Color</label><input data-eblf="${i}|ce" list="dlNvCe" autocapitalize="characters" value="${esc(x.ce)}"></div>
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="fld"><label>Tracción</label><input data-eblf="${i}|tr" list="dlNvTr" autocapitalize="characters" value="${esc(x.tr)||'4X2'}"></div>
+          <div class="fld"><label>Tracción</label><select data-eblf="${i}|tr"><option value="4X2"${(x.tr||'4X2')==='4X2'?' selected':''}>4X2</option><option value="4X4"${x.tr==='4X4'?' selected':''}>4X4</option></select></div>
           <div class="fld"><label>Pasajeros</label><input data-eblf="${i}|pa" inputmode="numeric" value="${x.pa||''}"></div>
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5517,15 +6103,104 @@ document.addEventListener('input',e=>{
   }
 });
 const RXCH=/^[A-Z]{2}\d{6}$/;
+/* ---------- Selects con sugerencias + "Otro" ----------
+   El <datalist> (lista desplegable de sugerencias sobre un <input>) es poco confiable
+   en pantalla táctil: a veces no aparece, hay que tocar varias veces, en iPhone casi no
+   funciona. Se reemplaza por un <select> normal (igual de fácil que "Automática/Mecánica",
+   que sí funcionaba siempre) con los valores ya usados + "Otro (escribir)…". El <input> de
+   toda la vida sigue existiendo (mismo id, así que el resto del código no cambia) pero
+   queda oculto salvo que se elija "Otro" — ahí es donde de verdad se tipea un valor nuevo. */
+// Marca → Modelo: mismo listado que traía el Excel original (hoja "0. LISTAS"), para que
+// Modelo salga filtrado por la Marca elegida (ej. KIA → Sportage, Sorento, Carnival…) en vez
+// de mostrar TODOS los modelos de todas las marcas mezclados. Si se agrega una marca nueva
+// (por "Otro"), Modelo cae de vuelta a la lista completa de modelos ya usados.
+const MARCA_MODELO={
+  'KIA':['SORENTO','SPORTAGE','CARNIVAL','BONGO','MORNING','K5'],
+  'HYUNDAI':['TUCSON','SANTA FE','STAREX','PORTER','PALISADE','KONA','I30','I40','AVANTE','VELOSTER'],
+  'SSANGYONG':['KORANDO SPORTS','KORANDO','ACTYON SPORTS','ACTYON'],
+  'JEEP':['RENEGADE','CHEROKEE','WRANGLER SAHARA','WRANGLER RUBICON'],
+  'MERC.BENZ':['C220','E220'],
+  'BMW':['320D','520D','MINI COOPER','X1','X6'],
+  'JAGUAR':['XE'],
+  'CHEVROLET':['CAPTIVA','TRAX','SPARK'],
+  'AUDI':['A3','A4','A6','TT','Q3','Q5'],
+  'MAZDA':['DEMIO','CX5','CX3','AXELA','ATENZA'],
+  'HONDA':['FIT','CRZ'],
+  'NISSAN':['NOTE','DUALIS','X-TRAIL'],
+  'TOYOTA':['VITZ'],
+  'SUBARU':['IMPREZA','IMPREZA WRX','IMPREZA STI','XV','LEGACY'],
+};
+const MARCA_ORDEN=Object.keys(MARCA_MODELO);
+function marcasValores(){
+  const conocidas=new Set(MARCA_ORDEN);
+  const extra=selOtroValores('ma').filter(x=>!conocidas.has(x));
+  return [...MARCA_ORDEN,...extra];
+}
+function modelosDe(marca){
+  if(!marca||!MARCA_MODELO[marca]) return selOtroValores('mo'); // marca vacía o "de afuera" de la lista: se cae al histórico completo
+  const fijos=MARCA_MODELO[marca].slice(), vistos=new Set(fijos);
+  V.forEach(v=>{ if(v.ma===marca&&v.mo){ const up=String(v.mo).trim().toUpperCase(); if(up&&!vistos.has(up)){ vistos.add(up); fijos.push(up); } } });
+  return fijos;
+}
+const SELOTRO=[
+  ['nvMaSel','nvMa',()=>marcasValores()],['nvMoSel','nvMo',()=>modelosDe($('#nvMa').value)],['nvCeSel','nvCe',()=>selOtroValores('ce')],
+  ['nvCatSel','nvCat',()=>selOtroValores('cat')],['nvCaSel','nvCa',()=>selOtroValores('ca')],['nvProvSel','nvProv',()=>selOtroValores('prov')],
+  ['emVNMaSel','emVNMa',()=>marcasValores()],['emVNMoSel','emVNMo',()=>modelosDe($('#emVNMa').value)],['emVNCeSel','emVNCe',()=>selOtroValores('ce')],
+  ['emVNCatSel','emVNCat',()=>selOtroValores('cat')],['emVNCaSel','emVNCa',()=>selOtroValores('ca')],['emVNProvSel','emVNProv',()=>selOtroValores('prov')],
+];
+function selOtroValores(campo){
+  if(campo==='ca') return ['BARANDA BAJA','FREEZER','GAVIOTA','CAJÓN SIMPLE','POWER GATE'];
+  // Mayúscula + Map (no Set) para no repetir "azul" y "AZUL" como si fueran dos colores distintos.
+  const m=new Map();
+  V.forEach(v=>{ const raw=v[campo]; if(!raw) return; const up=String(raw).trim().toUpperCase(); if(up) m.set(up,up); });
+  return [...m.keys()].sort();
+}
+function selOtroPinta(){
+  SELOTRO.forEach(([selId,inputId,valoresFn])=>{
+    const sel=$('#'+selId), inp=$('#'+inputId); if(!sel||!inp) return;
+    // Si ya estaba en modo "Otro" escribiendo (aunque todavía no haya tipeado nada), no hay
+    // que volver a esconder el campo de texto solo porque está vacío — si no, apenas se elige
+    // "Otro" y se repintan los selects, el campo se vuelve a ocultar antes de poder escribir.
+    const yaEnOtro=sel.value==='__otro__'&&!inp.hidden;
+    const valores=valoresFn(), actual=inp.value;
+    sel.innerHTML='<option value="">Elegir…</option>'
+      +valores.map(x=>`<option value="${x}">${x}</option>`).join('')
+      +'<option value="__otro__">Otro (escribir)…</option>';
+    if(yaEnOtro){ sel.value='__otro__'; inp.hidden=false; }
+    else if(actual && valores.includes(actual)){ sel.value=actual; inp.hidden=true; }
+    else if(actual){ sel.value='__otro__'; inp.hidden=false; }
+    else { sel.value=''; inp.hidden=true; }
+  });
+}
+// Se llama después de limpiar el formulario (auto guardado con éxito): sin esto, un campo
+// que había quedado en modo "Otro" seguiría mostrando el cuadro de texto vacío en vez de
+// volver al select en blanco.
+function selOtroReset(){
+  SELOTRO.forEach(([selId,inputId])=>{
+    const sel=$('#'+selId), inp=$('#'+inputId); if(!sel||!inp) return;
+    sel.value=''; inp.hidden=true;
+  });
+}
+SELOTRO.forEach(([selId,inputId])=>{
+  const sel=$('#'+selId), inp=$('#'+inputId); if(!sel||!inp) return;
+  sel.addEventListener('change',()=>{
+    if(sel.value==='__otro__'){ inp.hidden=false; inp.value=''; inp.focus(); }
+    else { inp.hidden=true; inp.value=sel.value; inp.dispatchEvent(new Event('input')); }
+    // Si cambió la Marca, el Modelo que estaba elegido ya no corresponde — se limpia para
+    // que la lista de Modelo se recalcule filtrada por la marca nueva.
+    if(inputId==='nvMa') $('#nvMo').value='';
+    else if(inputId==='emVNMa') $('#emVNMo').value='';
+    selOtroPinta();
+  });
+});
 function listasNv(){
-  const u=(k)=>[...new Set(V.map(v=>v[k]).filter(Boolean))].sort();
-  $('#dlNvMa').innerHTML=u('ma').map(x=>`<option value="${x}">`).join('');
-  $('#dlNvMo').innerHTML=u('mo').map(x=>`<option value="${x}">`).join('');
-  $('#dlNvCe').innerHTML=u('ce').map(x=>`<option value="${x}">`).join('');
-  $('#dlNvTr').innerHTML=u('tr').map(x=>`<option value="${x}">`).join('');
-  $('#dlNvCat').innerHTML=u('cat').map(x=>`<option value="${x}">`).join('');
-  $('#dlNvCa').innerHTML=['BARANDA BAJA','FREEZER','GAVIOTA','CAJÓN SIMPLE','POWER GATE']
-    .map(x=>`<option value="${x}">`).join('');
+  $('#dlNvMa').innerHTML=marcasValores().map(x=>`<option value="${x}">`).join('');
+  $('#dlNvMo').innerHTML=selOtroValores('mo').map(x=>`<option value="${x}">`).join('');
+  $('#dlNvCe').innerHTML=selOtroValores('ce').map(x=>`<option value="${x}">`).join('');
+  $('#dlNvTr').innerHTML=['4X2','4X4'].map(x=>`<option value="${x}">`).join('');
+  $('#dlNvCat').innerHTML=selOtroValores('cat').map(x=>`<option value="${x}">`).join('');
+  $('#dlNvCa').innerHTML=selOtroValores('ca').map(x=>`<option value="${x}">`).join('');
+  selOtroPinta();
 }
 let nvWarn=false;
 let nvTransTocado=false;
@@ -5575,6 +6250,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv'].forEach(i=>$('#'+i).value='');
   $('#nvTr').value='4X2';
   $('#nvChT').textContent=''; nvTransTocado=false; nvTransSugerir();
+  if(typeof selOtroReset==='function') selOtroReset();
   listasNv(); draw(); drawPick();
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   toast(ma+' '+mo+' agregado');
