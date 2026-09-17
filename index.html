@@ -365,6 +365,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="b-und" style="flex:0 0 auto" id="adAdd">＋ Anotar</button></div>
       <div id="adList"></div>
     </div>
+    <div class="box" id="boxSueldos" style="margin-top:13px">
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Sueldos por quincena (Víctor y Bryan)</h3>
+        <div id="sqSegs" style="flex:0 0 auto;display:flex;gap:6px">
+          <button data-sq="prev" aria-pressed="false" class="b-und" style="padding:5px 9px">Anterior</button>
+          <button data-sq="cur" aria-pressed="true" class="b-und" style="padding:5px 9px">Actual</button>
+        </div>
+      </div>
+      <div class="mtr" id="sqLabel" style="margin:0 0 9px"></div>
+      <div id="sqList"></div>
+      <div class="xrow" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:9px">
+        <span style="font-family:var(--body);font-weight:600">Descuento por vehículo de Víctor<br>
+          <span style="font-weight:400;color:var(--mute);font-size:12px">Normal $350.000 en la quincena mostrada arriba. Cámbialo si autorizaste otro monto o ninguno.</span></span>
+        <span><input id="sqVeh" inputmode="numeric" placeholder="$350.000"
+          style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
+    </div>
     <div class="box" id="boxCom" style="margin-top:13px">
       <h3>Ventas por comuna</h3>
       <div id="byCom"></div>
@@ -518,7 +533,22 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-09-2026 13:36<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-09-2026 14:15<!--/VER--></b></div>
+    <div class="box" id="boxModeracion"><h3>Categorías nuevas por revisar</h3>
+      <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
+      <div id="modList"></div></div>
+    <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
+      <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). No tiene costo asociado ni afecta el reacondicionamiento.</p>
+      <div id="insumosList"></div></div>
+    <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
+      <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
+      <div class="fld"><label for="dcMarca">Marca</label><input id="dcMarca" placeholder="Ej: Hyundai"></div>
+      <div class="fld"><label for="dcModelo">Modelo</label><input id="dcModelo" placeholder="Ej: Santa Fe"></div>
+      <div class="fld"><label for="dcAnioD">Año desde</label><input id="dcAnioD" inputmode="numeric" placeholder="Ej: 2014"></div>
+      <div class="fld"><label for="dcAnioH">Año hasta (opcional)</label><input id="dcAnioH" inputmode="numeric" placeholder="Ej: 2015"></div>
+      <div class="fld"><label for="dcCarac">Características (opcional)</label><input id="dcCarac" placeholder="Ej: techo panorámico, 7 asientos"></div>
+      <button class="btn b-pri" id="dcOk" style="width:100%">Anotar demanda</button>
+      <div id="demandaList" style="margin-top:12px"></div></div>
     <div class="box"><h3>Impuesto Ley 18.211</h3>
       <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1139,7 +1169,7 @@ const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360'];  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov'];
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub'];
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -1200,7 +1230,7 @@ async function fbInit(){
       if(u){
         fbReady=true;
         fbMuestraLogin(false);
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbAvisosVendListen(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbDemandaListen(); fbSyncSueldos(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'#2E7D32');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2000,7 +2030,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
@@ -2520,6 +2550,7 @@ $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   if(TC.obs) t.dolarObs=Number(TC.obs);
   const prune=!$('#ssPrWrap').hidden && $('#ssPrune').getAttribute('aria-pressed')==='true';
   await save();
+  if(typeof fbSyncSueldosPronto==='function') fbSyncSueldosPronto();
   if(prune){const n=await pruneOne(c); if(n) toast('Vendido ✓ · se conservaron '+KEEP+' fotos'); else toast('Marcado como vendido ✓')}
   else toast('Marcado como vendido ✓');
   if(avTsVenta) marcarAvisoAtendido(avTsVenta);
@@ -2884,21 +2915,27 @@ const VENDEDORES=[['yo','Yo'],['victor','Víctor'],['bryan','Bryan']];
 let COMB=10000, ssQ='yo';
 let FJ={}, AD=[], adQ='victor';
 const nomPersona=k=>({victor:'Víctor',bryan:'Bryan'}[k]||k);
+const SUELDOSVEND_COL='sueldosVend', VEH_DEF=350000, COMIDA_VICTOR=40000;
+let QV={}, sqSel='cur';
 function personas(){
   const ps=Object.keys(FJ).filter(k=>k==='victor'||k==='bryan');
   return ps.length?ps:['victor','bryan'];
 }
 async function cargaFJ(){
   try{const r=await window.storage.get('amk_fijos'); if(r&&r.value) FJ=JSON.parse(r.value)}catch(e){}
-  if(!Object.keys(FJ).length) FJ=Object.fromEntries(FJDEF.map(([k])=>[k,0]));
+  if(!Object.keys(FJ).length) FJ=Object.fromEntries(FJDEF.map(([k])=>[k, k==='victor'?1800000:(k==='bryan'?500000:0)]));
   try{const r=await window.storage.get('amk_adelantos'); if(r&&r.value) AD=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
+  try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_fijos_krw');
     if(r&&r.value){const o=JSON.parse(r.value); FJK=o.items||{}; tcKRW=o.tc||0.685}}catch(e){}
   if(!Object.keys(FJK).length) FJK=Object.fromEntries(KRDEF.map(([k,,v])=>[k,v]));
   const ck=$('#fjKrw'); if(ck) ck.value=String(tcKRW).replace('.',',');
   const cb=$('#fjComB'); if(cb) cb.value=COMB?clp(COMB):'';
   pintaFJ();
+}
+async function guardaQV(){
+  try{await window.storage.set('amk_qveh',JSON.stringify(QV))}catch(e){}
 }
 function nombreFJ(k){
   const d=FJDEF.find(x=>x[0]===k)||KRDEF.find(x=>x[0]===k);
@@ -2918,6 +2955,103 @@ function comisMes(k,mes){
   for(const c in S){const t=S[c];
     if(t.sold&&t.vendedor===k&&(t.date||'').slice(0,7)===m) n++}
   return n;
+}
+function quincenaId(fecha){
+  const f=(fecha||iso()).slice(0,10);
+  const ym=f.slice(0,7), d=+f.slice(8,10)||1;
+  return ym+(d<=15?'-Q1':'-Q2');
+}
+function quincenaActual(){return quincenaId(iso())}
+function enQuincena(fecha,q){return quincenaId(fecha)===q}
+function quincenaAnterior(q){
+  const ym=q.slice(0,7), qq=q.slice(-1);
+  if(qq==='2') return ym+'-Q1';
+  const y=+ym.slice(0,4), m=+ym.slice(5,7);
+  const pm=m===1?12:m-1, py=m===1?y-1:y;
+  return py+'-'+String(pm).padStart(2,'0')+'-Q2';
+}
+const MESES_ES=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function etiquetaQuincena(q){
+  const ym=q.slice(0,7), qq=q.slice(-1);
+  const m=+ym.slice(5,7), y=ym.slice(0,4);
+  return (qq==='1'?'1–15 ':'16–fin ')+MESES_ES[m]+' '+y;
+}
+function adelQ(k,q){
+  return AD.filter(x=>x.q===k&&enQuincena(x.f,q)).reduce((a,x)=>a+x.m,0);
+}
+function comisQ(k,q){
+  let n=0;
+  for(const c in S){const t=S[c];
+    if(t.sold&&t.vendedor===k&&enQuincena(t.date,q)) n++}
+  return n;
+}
+function vehQ(q){ return (q in QV)?QV[q]:VEH_DEF; }
+function baseQ(k){ return Math.round((FJ[k]||0)/2); }
+function netoQuincena(k,q){
+  let n=baseQ(k);
+  if(k==='victor'){ n-=COMIDA_VICTOR; n-=vehQ(q); }
+  if(k==='bryan'){ n+=comisQ('bryan',q)*COMB; }
+  n-=adelQ(k,q);
+  return n;
+}
+function sqQuincena(){ return sqSel==='cur'?quincenaActual():quincenaAnterior(quincenaActual()); }
+function pintaSueldos(){
+  const el=$('#sqList'); if(!el) return;
+  const q=sqQuincena();
+  const lbl=$('#sqLabel'); if(lbl) lbl.textContent=etiquetaQuincena(q);
+  const ps=personas();
+  el.innerHTML=ps.map(k=>{
+    const base=baseQ(k);
+    const comida=(k==='victor')?COMIDA_VICTOR:0;
+    const veh=(k==='victor')?vehQ(q):0;
+    const nv=(k==='bryan')?comisQ('bryan',q):0;
+    const com=nv*COMB;
+    const ad=adelQ(k,q);
+    const neto=netoQuincena(k,q);
+    const det=[];
+    if(comida) det.push('− '+clp(comida)+' comida');
+    if(veh) det.push('− '+clp(veh)+' vehículo');
+    if(com) det.push('+ '+clp(com)+' por '+nv+' venta'+(nv===1?'':'s'));
+    if(ad) det.push('− '+clp(ad)+' adelantos');
+    return `<div class="xrow" style="align-items:flex-start"><span style="font-family:var(--body);font-weight:600">${nomPersona(k)}
+      <br><span style="font-weight:400;color:var(--mute);font-size:12px">Base ${clp(base)}${det.length?' · '+det.join(' · '):''}</span></span>
+      <span style="font-weight:700">${clp(neto)}</span></div>`;
+  }).join('');
+  const vEl=$('#sqVeh'); if(vEl && document.activeElement!==vEl) vEl.value=clp(vehQ(q));
+}
+let sueldosSyncTimer=null;
+function fbSyncSueldosPronto(){
+  pintaSueldos();
+  if(typeof pintaFlujo==='function') pintaFlujo();
+  clearTimeout(sueldosSyncTimer);
+  sueldosSyncTimer=setTimeout(fbSyncSueldos,900);
+}
+function datosSueldoPersona(k){
+  const qa=quincenaActual(), qs=[quincenaAnterior(qa), qa];
+  return {
+    persona:k,
+    salarioBase:FJ[k]||0,
+    comisionPorVenta:(k==='bryan')?COMB:0,
+    quincenas: qs.map(q=>({
+      q, etiqueta:etiquetaQuincena(q),
+      base:baseQ(k),
+      comida:(k==='victor')?COMIDA_VICTOR:0,
+      vehiculo:(k==='victor')?vehQ(q):0,
+      ventas:(k==='bryan')?comisQ('bryan',q):0,
+      comision:(k==='bryan')?comisQ('bryan',q)*COMB:0,
+      adelantos:adelQ(k,q),
+      neto:netoQuincena(k,q)
+    })),
+    actualizado:Date.now()
+  };
+}
+async function fbSyncSueldos(){
+  if(typeof fbReady==='undefined'||!fbReady) return;
+  try{
+    for(const k of ['victor','bryan']){
+      await fbDb.collection(SUELDOSVEND_COL).doc(k).set(datosSueldoPersona(k));
+    }
+  }catch(e){ console.error('fbSyncSueldos', e); }
 }
 function pintaFJ(){
   const ks=Object.keys(FJ);
@@ -2953,7 +3087,24 @@ function pintaFJ(){
       <span style="font-family:var(--body)">${nomPersona(x.q)} · ${fd(x.f)}${x.nota?'<br><span style="color:var(--mute);font-size:12px">'+x.nota.replace(/</g,'&lt;')+'</span>':''}</span>
       <span>${clp(x.m)}<button class="b-und" style="margin-left:8px;padding:4px 8px" data-addel="${x.ts}">✕</button></span></div>`).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos este mes.</p>';
+  pintaSueldos();
 }
+$('#sqSegs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-sq]'); if(!b) return;
+  sqSel=b.dataset.sq;
+  $$('#sqSegs [data-sq]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.sq===sqSel?'true':'false'));
+  pintaSueldos();
+});
+$('#sqVeh').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
+$('#sqVeh').addEventListener('change',async()=>{
+  const q=sqQuincena();
+  const raw=$('#sqVeh').value.trim();
+  const n=pnum(raw);
+  if(raw===''||n===VEH_DEF) delete QV[q]; else QV[q]=(n||0);
+  await guardaQV();
+  fbSyncSueldosPronto();
+  toast('Descuento de vehículo actualizado');
+});
 $('#fjEdit').addEventListener('click',()=>{
   $('#fjCampos').innerHTML=Object.keys(FJ).map(k=>`<div class="fld">
     <label for="fj_${k}">${nombreFJ(k)}</label>
@@ -2983,6 +3134,7 @@ $('#fjOk').addEventListener('click',async()=>{
   if(nu){const k=nu.toLowerCase().replace(/[^a-z0-9]+/g,'_'); if(k&&!(k in FJ)) FJ[k]=0}
   try{await window.storage.set('amk_fijos',JSON.stringify(FJ))}catch(e){toast('No se pudo guardar');return}
   pintaFJ(); closeAll(); toast('Costos fijos guardados');
+  fbSyncSueldosPronto();
 });
 $('#adAdd').addEventListener('click',()=>{
   adQ=personas()[0];
@@ -3000,6 +3152,7 @@ $('#adOk').addEventListener('click',async()=>{
   AD.push({ts:Date.now(),q:adQ,m,f:$('#adD').value||iso(),nota:$('#adN').value.trim()});
   try{await window.storage.set('amk_adelantos',JSON.stringify(AD))}catch(e){toast('No se pudo guardar');return}
   pintaFJ(); closeAll();
+  fbSyncSueldosPronto();
   if(avTsAdel) marcarAvisoAtendido(avTsAdel);
   const saldo=(FJ[adQ]||0)-adelMes(adQ);
   toast('Adelanto anotado'+(FJ[adQ]?' · quedan '+clp(saldo):''));
@@ -3009,6 +3162,7 @@ document.addEventListener('click',async e=>{
   AD=AD.filter(x=>String(x.ts)!==b.dataset.addel);
   try{await window.storage.set('amk_adelantos',JSON.stringify(AD))}catch(_){}
   pintaFJ();
+  fbSyncSueldosPronto();
 });
 
 /* ---------- TIPO DE CAMBIO ---------- */
@@ -3204,14 +3358,17 @@ function vehiculosComprometidos(){
 }
 function pintaFlujo(){
   const pendCLP=V.filter(v=>{const t=st(v.ch); return t.sold && t.moneda!=='USD' && t.cambiado===false;}).reduce((a,v)=>a+(st(v.ch).price||0),0);
-  const costosFijos=Object.values(FJ).reduce((a,b)=>a+(b||0),0);
+  const qFlujo=quincenaActual();
+  const otrosFijos=Object.keys(FJ).filter(k=>k!=='victor'&&k!=='bryan').reduce((a,k)=>a+(FJ[k]||0),0);
+  const sueldosQ=Math.max(0,netoQuincena('victor',qFlujo))+Math.max(0,netoQuincena('bryan',qFlujo));
+  const costosFijos=otrosFijos+sueldosQ;
   const reacond=reacondPendienteTotal();
   const compPesos=costosFijos+reacond;
   const disp=Math.max(0,pendCLP-compPesos-(FLOWCFG.emergCLP||0));
   const pEl=$('#fcPend'); if(pEl) pEl.textContent=clp(pendCLP);
   const cEl=$('#fcCompPesos'); if(cEl) cEl.textContent=clp(compPesos);
   const dEl=$('#fcDisp'); if(dEl) dEl.textContent=clp(disp);
-  const detEl=$('#fcCompPesosDet'); if(detEl) detEl.textContent='Costos fijos del mes: '+clp(costosFijos)+' · Reacondicionamiento pendiente: '+clp(reacond);
+  const detEl=$('#fcCompPesosDet'); if(detEl) detEl.textContent='Otros costos fijos: '+clp(otrosFijos)+' · Sueldos esta quincena ('+etiquetaQuincena(qFlujo)+'): '+clp(sueldosQ)+' · Reacondicionamiento pendiente: '+clp(reacond);
   const fletes=fletesComprometidos();
   const totFlete=fletes.reduce((a,x)=>a+x.pend,0);
   const fEl=$('#fcFleteUSD'); if(fEl) fEl.textContent='US$'+obs2(totFlete);
@@ -3387,11 +3544,13 @@ function fbAvisosVendListen(){
       if(chg.type!=='removed'){
         const d=chg.doc.data()||{};
         AVISOSVEND.push({ts:Number(ts)||ts, tipo:d.tipo||'', ch:d.ch||'', precio:d.precio||0,
-          monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido});
+          monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido,
+          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo});
+        if(d.tipo==='pendiente') procesaPendienteVend({ts:Number(ts)||ts, ch:d.ch||'', nota:d.nota||'', cat:d.cat||'', vendedor:d.vendedor||''});
       }
     });
     try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
-    pintaPendientes();
+    pintaPendientes(); pintaInsumos();
   }, e=>console.error('fbAvisosVendListen', e));
 }
 async function marcarAvisoAtendido(ts){
@@ -3411,6 +3570,190 @@ function vendedorKey(nombre){
   if(n==='bryan') return 'bryan';
   return null;
 }
+
+/* ---------- Pendientes por vehículo e insumos generales reportados por vendedores ---------- */
+const CONFIGPEND_COL='configPend';
+const PEND_PRESETS_DEF=[
+ ['huele','Huele fuerte / posible regeneración (requiere escáner)','MECANICO'],
+ ['aceite','Aceite bajo o sucio','FLUIDOS'],
+ ['agua_rad','Agua del radiador baja','FLUIDOS'],
+ ['agua_lp','Falta agua limpiaparabrisas','FLUIDOS'],
+ ['cortahumo','Aditivo corta humo','FLUIDOS'],
+ ['parabrisas','Parabrisas trisado o resquebrajado','PARB'],
+ ['bateria','Batería no enciende bien','BATERIA'],
+ ['neumatico','Neumático desinflado o gastado','NEUMAT'],
+ ['luz','Luz o ampolleta quemada','ELECT']
+];
+const INSUMO_PRESETS_DEF=[
+ ['combustible','Combustible (bidón)'],
+ ['desengrasante','Desengrasante'],
+ ['renovador','Renovador de gomas'],
+ ['silicona','Silicona']
+];
+let PEND_PRESETS=PEND_PRESETS_DEF.slice(), INSUMO_PRESETS=INSUMO_PRESETS_DEF.slice(), PEND_CANDIDATOS=[];
+let PROC_PEND=[];
+async function cargaPendVendLocal(){
+  try{const r=await window.storage.get('amk_proc_pend'); if(r&&r.value) PROC_PEND=JSON.parse(r.value)}catch(e){}
+  try{const r=await window.storage.get('amk_configpend_cache');
+    if(r&&r.value){const x=JSON.parse(r.value);
+      PEND_PRESETS=(x.presets&&x.presets.length)?x.presets:PEND_PRESETS_DEF.slice();
+      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?x.insumos:INSUMO_PRESETS_DEF.slice();
+      PEND_CANDIDATOS=x.candidatos||[];
+    }
+  }catch(e){}
+  pintaInsumos(); pintaModeracion();
+}
+function fbConfigPendListen(){
+  if(!fbReady) return;
+  fbDb.collection(CONFIGPEND_COL).doc('main').onSnapshot(d=>{
+    if(d.exists){
+      const x=d.data()||{};
+      PEND_PRESETS=(x.presets&&x.presets.length)?x.presets:PEND_PRESETS_DEF.slice();
+      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?x.insumos:INSUMO_PRESETS_DEF.slice();
+      PEND_CANDIDATOS=x.candidatos||[];
+      try{window.storage.set('amk_configpend_cache', JSON.stringify({presets:PEND_PRESETS, insumos:INSUMO_PRESETS, candidatos:PEND_CANDIDATOS}))}catch(_){}
+    }else{
+      fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:PEND_PRESETS_DEF, insumos:INSUMO_PRESETS_DEF, candidatos:[]}).catch(e=>console.error('seedConfigPend',e));
+    }
+    pintaModeracion(); pintaPendientes();
+  }, e=>console.error('fbConfigPendListen', e));
+}
+function syncPendPub(ch){
+  const t=st(ch);
+  t.pendPub=(t.tasks||[]).filter(x=>!x.hecho).map(x=>({ts:x.ts,cat:x.cat,nota:x.nota}));
+}
+function procesaPendienteVend(av){
+  if(PROC_PEND.includes(av.ts)) return;
+  const v=IDX[av.ch];
+  if(!v){ PROC_PEND.push(av.ts); try{window.storage.set('amk_proc_pend',JSON.stringify(PROC_PEND))}catch(_){} return; }
+  tasks(av.ch).push({ts:Date.now(),cat:av.cat||'OTRO',nota:av.nota||'',est:0,hecho:false,origen:'vendedor',reportadoPor:av.vendedor||''});
+  syncPendPub(av.ch);
+  PROC_PEND.push(av.ts);
+  try{window.storage.set('amk_proc_pend',JSON.stringify(PROC_PEND))}catch(_){}
+  save();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(tkCh===av.ch) drawTaskSheet();
+  draw();
+}
+function abrirAvisoPendiente(av){
+  const v=IDX[av.ch];
+  if(!v){ marcarAvisoAtendido(av.ts); toast('Ese vehículo ya no está en el stock'); return; }
+  show('pStock');
+  openCost(av.ch,null,null,'est');
+  marcarAvisoAtendido(av.ts);
+}
+function pintaInsumos(){
+  const el=$('#insumosList'); if(!el) return;
+  const L=AVISOSVEND.filter(x=>x.tipo==='insumo').sort((a,b)=>b.ts-a.ts);
+  el.innerHTML=L.length?L.map(x=>`<div class="xrow">
+      <span style="font-family:var(--body)">${(x.item||x.nota||'—').replace(/</g,'&lt;')}
+        <br><span style="color:var(--mute);font-size:12px">${x.vendedor?nomPersona(vendedorKey(x.vendedor)||x.vendedor):'—'} · ${fd(new Date(x.ts).toISOString().slice(0,10))}</span></span>
+      <span>${x.atendido?'<span style="color:var(--green)">✓ comprado</span>':`<button class="btn b-sec" data-insok="${x.ts}">Ya compré</button>`}</span></div>`).join('')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin insumos avisados.</p>';
+}
+function pintaModeracion(){
+  const el=$('#modList'); if(!el) return;
+  el.innerHTML=PEND_CANDIDATOS.length?PEND_CANDIDATOS.map((c,i)=>`<div class="card plain" style="padding:11px;margin-bottom:8px">
+      <div class="tt" style="font-size:14px">"${String(c.label||'').replace(/</g,'&lt;')}"</div>
+      <div class="ch">${c.tipo==='insumo'?'Insumo general':'Pendiente de vehículo'} · anotado por ${c.vendedor?nomPersona(vendedorKey(c.vendedor)||c.vendedor):'—'}</div>
+      ${c.tipo==='pendiente'?`<div class="fld" style="margin-top:8px"><label>Categoría</label>
+        <select data-modcat="${i}">${TCAT.map(([k,n])=>`<option value="${k}" ${k===(c.cat||'OTRO')?'selected':''}>${n}</option>`).join('')}</select></div>`:''}
+      <div class="acts" style="margin-top:9px">
+        <button class="btn b-pri" data-modok="${i}">Aprobar como botón fijo</button>
+        <button class="b-und" data-modno="${i}">Descartar</button></div></div>`).join('')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin categorías nuevas por revisar.</p>';
+}
+async function guardaConfigPend(){
+  try{await fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:PEND_PRESETS, insumos:INSUMO_PRESETS, candidatos:PEND_CANDIDATOS}, {merge:true});}
+  catch(e){console.error('guardaConfigPend',e); toast('No se pudo guardar en la nube');}
+}
+document.addEventListener('click',async e=>{
+  const insok=e.target.closest('[data-insok]');
+  if(insok){ marcarAvisoAtendido(insok.dataset.insok); return; }
+  const modok=e.target.closest('[data-modok]');
+  if(modok){
+    const i=+modok.dataset.modok, cand=PEND_CANDIDATOS[i]; if(!cand) return;
+    if(cand.tipo==='insumo'){ INSUMO_PRESETS=INSUMO_PRESETS.concat([[cand.key,cand.label]]); }
+    else{ const sel=document.querySelector(`[data-modcat="${i}"]`); const cat=sel?sel.value:(cand.cat||'OTRO');
+      PEND_PRESETS=PEND_PRESETS.concat([[cand.key,cand.label,cat]]); }
+    PEND_CANDIDATOS=PEND_CANDIDATOS.filter((_,ix)=>ix!==i);
+    await guardaConfigPend(); pintaModeracion(); toast('Agregado como botón fijo');
+    return;
+  }
+  const modno=e.target.closest('[data-modno]');
+  if(modno){ const i=+modno.dataset.modno; PEND_CANDIDATOS=PEND_CANDIDATOS.filter((_,ix)=>ix!==i);
+    await guardaConfigPend(); pintaModeracion(); return; }
+});
+
+/* ---------- Demanda de clientes: lo que piden y no tenemos (compartido con Vendedores y Corea) ----------
+   Un documento por reporte en Firestore (no se pisan entre si). Solo referencia para
+   comprar a futuro: no tiene costo ni requiere aprobacion, por eso no entra al banner
+   rojo de arriba (pendientesGlobales) como las cosas urgentes. */
+const DEMANDA_COL='demandaClientes';
+let DEMANDA=[], fbDemandaEscuchando=false;
+/* Cuenta cuantas veces se ha preguntado por una marca/modelo en TODO el historial (atendidas
+   incluidas), normalizando espacios/mayusculas/acentos, para que Andre vea que tan pedido esta. */
+function normDemanda(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+function contarDemanda(marca,modelo){
+  const km=normDemanda(marca), ko=normDemanda(modelo);
+  if(!km && !ko) return 0;
+  return DEMANDA.filter(x=>normDemanda(x.marca)===km && normDemanda(x.modelo)===ko).length;
+}
+async function cargaDemandaLocal(){
+  try{const r=await window.storage.get('amk_demanda_cache'); if(r&&r.value){const a=JSON.parse(r.value); if(Array.isArray(a)) DEMANDA=a;}}catch(e){}
+  pintaDemanda();
+}
+function fbDemandaListen(){
+  if(fbDemandaEscuchando||!fbReady) return;
+  fbDemandaEscuchando=true;
+  fbDb.collection(DEMANDA_COL).onSnapshot(snap=>{
+    const arr=[];
+    snap.forEach(d=>arr.push(Object.assign({ts:Number(d.id)}, d.data())));
+    DEMANDA=arr.sort((a,b)=>b.ts-a.ts);
+    try{window.storage.set('amk_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
+    pintaDemanda();
+  }, e=>console.error('fbDemandaListen',e));
+}
+function pintaDemanda(){
+  const el=$('#demandaList'); if(!el) return;
+  const activas=DEMANDA.filter(d=>!d.atendido);
+  el.innerHTML=activas.length?activas.map(d=>{
+    const anio=d.anioDesde?(d.anioHasta&&d.anioHasta!==d.anioDesde?`${d.anioDesde}-${d.anioHasta}`:String(d.anioDesde)):'';
+    const veces=contarDemanda(d.marca,d.modelo);
+    return `<div class="card plain" style="padding:11px;margin-bottom:8px">
+      <div class="tt" style="font-size:14px">${(d.marca||'').replace(/</g,'&lt;')} ${(d.modelo||'').replace(/</g,'&lt;')} ${anio}</div>
+      ${d.caracteristicas?`<div class="ch">${String(d.caracteristicas).replace(/</g,'&lt;')}</div>`:''}
+      <div class="ch">Anotado por ${d.vendedor?nomPersona(vendedorKey(d.vendedor)||d.vendedor):'—'} · ${fd(new Date(d.ts).toISOString().slice(0,10))}</div>
+      ${veces>1?`<div class="ch" style="color:var(--azul)">Preguntado ${veces} veces en total</div>`:''}
+      <div class="acts" style="margin-top:9px"><button class="b-und" data-demok="${d.ts}">✓ Ya la cubrí / descartar</button></div></div>`;
+  }).join('') : '<p style="color:var(--mute);font-size:13.5px;margin:0">Nadie ha anotado demanda de clientes todavía.</p>';
+}
+document.addEventListener('click',async e=>{
+  const dk=e.target.closest('[data-demok]');
+  if(dk){
+    const ts=+dk.dataset.demok;
+    try{ if(fbReady) await fbDb.collection(DEMANDA_COL).doc(String(ts)).set({atendido:true},{merge:true}); }
+    catch(err){ console.error('marcaDemandaAtendida',err); }
+    const it=DEMANDA.find(x=>x.ts===ts); if(it) it.atendido=true;
+    try{window.storage.set('amk_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
+    pintaDemanda();
+  }
+});
+$('#dcOk').addEventListener('click', async()=>{
+  const marca=$('#dcMarca').value.trim(), modelo=$('#dcModelo').value.trim();
+  if(!marca&&!modelo){toast('Escribe al menos la marca o el modelo');return}
+  if(!fbReady){toast('No hay conexión con la nube todavía');return}
+  const anioDesde=pnum($('#dcAnioD').value)||null, anioHastaRaw=pnum($('#dcAnioH').value);
+  const anioHasta=anioHastaRaw||anioDesde;
+  const caracteristicas=$('#dcCarac').value.trim();
+  const ts=Date.now();
+  try{
+    await fbDb.collection(DEMANDA_COL).doc(String(ts)).set({ marca, modelo, anioDesde, anioHasta, caracteristicas, vendedor:'Andre', ts });
+    toast('Anotado');
+    $('#dcMarca').value=''; $('#dcModelo').value=''; $('#dcAnioD').value=''; $('#dcAnioH').value=''; $('#dcCarac').value='';
+  }catch(e){ console.error('anotaDemandaSistema',e); toast('No se pudo guardar, revisa tu conexión'); }
+});
+
 function abrirAvisoVenta(av){
   const v=IDX[av.ch];
   if(!v){ toast('El vehículo de ese aviso ya no está en el stock'); return; }
@@ -3438,6 +3781,11 @@ function pendientesGlobales(){
   if(pendVenta.length) p.push({texto:pendVenta.length+' venta'+(pendVenta.length===1?'':'s')+' avisada'+(pendVenta.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoVenta(pendVenta[0])});
   const pendAdel=AVISOSVEND.filter(x=>x.tipo==='adelanto'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendAdel.length) p.push({texto:pendAdel.length+' adelanto'+(pendAdel.length===1?'':'s')+' avisado'+(pendAdel.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoAdelanto(pendAdel[0])});
+  const pendVeh=AVISOSVEND.filter(x=>x.tipo==='pendiente'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
+  if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
+  const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
+  if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
   return p;
 }
 function pintaPendientes(){
@@ -4183,7 +4531,7 @@ $('#ssNota').addEventListener('click',async()=>{
 /* ---------- TALLER ---------- */
 const TCAT=[['PINTURA','Pintura'],['MECANICO','Mecánica'],['CHASIS','Chasis / planchas'],['SUSP','Suspensión'],['ELECT','Eléctrico'],
  ['NEUMAT','Neumáticos'],['PARB','Parabrisas'],['ASIENTOS','Asientos'],['BATERIA','Batería'],
- ['REPNUE','Repuestos'],['LAVADO','Lavado'],['OTRO','Otro']];
+ ['REPNUE','Repuestos'],['LAVADO','Lavado'],['FLUIDOS','Niveles y fluidos'],['OTRO','Otro']];
 const TN=Object.fromEntries(TCAT);
 const COSTMAP={SUSP:'MECANICO',OTRO:'OBLIG'};
 let tkCh=null, tkCat='PINTURA', tlView='grupo';
@@ -4217,7 +4565,8 @@ function drawTaskSheet(){
   const L=tasks(tkCh);
   $('#tkList').innerHTML=L.length?L.map(x=>`<div class="card plain" style="padding:11px;${x.hecho?'background:var(--greenBg);border-color:#2F5A48':''}">
     <div class="r1"><div><div class="tt" style="font-size:15px">${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute)">≈${clp(x.est)}</span>`:''}</div>
-    ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}</div>
+    ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}
+    ${x.reportadoPor?`<div class="ch" style="color:var(--mute)">Reportado por ${nomPersona(vendedorKey(x.reportadoPor)||x.reportadoPor)}</div>`:''}</div>
     <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':'Pendiente'}</span></div>
     <div class="acts"><button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>
     <button class="btn b-pri" data-tcost="${x.ts}">＄ Registrar costo</button>
@@ -4266,7 +4615,9 @@ function drawTaller(){
       <span style="font-family:var(--body);font-size:13.5px">${v.ma} ${v.mo} ${v.an||''}
         <span style="color:var(--mute);font-family:var(--mono);font-size:11px">· ${x.ch}</span>
         ${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</span>
-      <button class="b-und" style="flex:0 0 auto;padding:6px 10px" data-tdone2="${x.ch}|${x.ts}">${x.hecho?'Reabrir':'Listo'}</button></div>`};
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
+        <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':'Pendiente'}</span>
+        <button class="b-und" style="padding:6px 10px" data-tdone2="${x.ch}|${x.ts}">${x.hecho?'↺ Reabrir':'✓ Marcar listo'}</button></span></div>`};
 
   if(tlView==='grupo'){
     const g={}; for(const x of pen)(g[x.cat]=g[x.cat]||[]).push(x);
@@ -4283,9 +4634,11 @@ function drawTaller(){
     box.innerHTML=ks.length?ks.map(c=>{const v=IDX[c];
       return `<div style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px"><h3 style="font-family:var(--disp);font-size:15px;margin:0 0 6px">${v.ma} ${v.mo} ${v.an||''}
         <span style="color:var(--mute);font-family:var(--mono);font-size:12px">${c}</span></h3>
-        ${g[c].map(x=>`<div class="xrow" style="padding:6px 0">
+        ${g[c].map(x=>`<div class="xrow" style="padding:6px 0;align-items:flex-start">
           <span style="font-family:var(--body);font-size:13.5px">${TN[x.cat]||x.cat}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span>
-          <button class="b-und" style="flex:0 0 auto;padding:6px 10px" data-tdone2="${c}|${x.ts}">Listo</button></div>`).join('')}
+          <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
+            <span class="tag t-or">Pendiente</span>
+            <button class="b-und" style="padding:6px 10px" data-tdone2="${c}|${x.ts}">✓ Marcar listo</button></span></div>`).join('')}
       </div>`}).join('')
      :'<div class="empty">No hay trabajos pendientes.</div>';
   }else{

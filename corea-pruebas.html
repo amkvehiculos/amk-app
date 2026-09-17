@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AMK · Compras Corea (PRUEBAS)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#7B8B8E;--paper:#152B35;--card:#183640;--line:#3D5D6B;
+ --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
+ --amber:#E8B04B;--amberBg:#332914;--red:#E8736A;--redBg:#331F1D;
+ --azul:#6AA9E0;--azulBg:#132B3C;--plata:#C8D2D4;--btn2:#3D5D6B;--btn2b:#618292;
+ --fVerde:#3FAE72;--fAzul:#5E97C7;--fAmbar:#CE9C45;--fPlata:#8C9DA3;
+ --disp:'Archivo',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.45;padding-bottom:84px;font-size:16px}
+.wrap{max-width:720px;margin:0 auto;padding:0 15px}
+button,input,select,textarea{font-family:inherit}
+:focus-visible{outline:3px solid var(--sea);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes vEntra{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 14px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:8px}
+.hd b{font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.hd em{font-style:normal;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.65}
+.hk{margin-top:9px;font-size:12.5px;opacity:.85;font-family:var(--mono)}
+main{padding:15px 0}
+h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-spacing:-.02em}
+.sub{color:var(--mute);font-size:13.5px;margin:0 0 14px}
+.big{width:100%;border:none;border-radius:12px;padding:16px;font-weight:800;font-size:17px;cursor:pointer;background:var(--sea);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:10px;
+ transition:border-color .2s ease,transform .12s ease,box-shadow .2s ease}
+.card:active{transform:scale(.985)}
+@media(hover:hover){.card:hover{border-color:var(--btn2b);box-shadow:0 10px 22px -14px rgba(4,18,25,.55)}}
+.card.sent{background:var(--greenBg);border-color:#2F5A48}
+.r1{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}
+.tt{font-family:var(--disp);font-weight:800;font-size:16px;text-transform:uppercase;color:#EAF0F1}.tt .y{color:var(--mute)}
+.ch{font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.05em;margin-top:2px}
+.cover{width:52px;height:39px;border-radius:7px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto}
+.tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.t-ok{background:var(--green);color:#fff}.t-pend{background:var(--amberBg);color:#B47A06}
+.t-nochas{background:var(--redBg);color:#9B2A28}
+.specs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.sp{font-size:11.5px;font-weight:500;background:var(--seaL);border:1px solid var(--line);color:var(--ink2);padding:3px 7px;border-radius:6px}
+.nota{margin-top:9px;font-size:13px;color:var(--ink2);background:var(--seaL);border-left:3px solid var(--line);padding:8px 10px;border-radius:0 7px 7px 0}
+.acts{display:flex;gap:8px;margin-top:11px}
+.btn{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14px;cursor:pointer}
+.b-pri{background:var(--plata);color:#0B1C23}
+.b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
+.empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
+.cnt{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin:14px 0 9px}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--seaL);border-top:1px solid var(--btn2b);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer;position:relative}
+.tb i{display:block;font-family:var(--disp);font-size:17px;font-style:normal;margin-bottom:2px}
+.tb[aria-selected="true"],.tb[aria-selected="true"] i{color:var(--plata)}
+.tb[aria-selected="true"]::before{content:"";position:absolute;top:0;left:14px;right:14px;height:3px;background:var(--plata);border-radius:0 0 3px 3px}
+.panel{display:none}.panel.on{display:block;animation:vEntra .22s ease}
+.scrim{position:fixed;inset:0;background:rgba(4,18,25,.62);z-index:60;display:none}.scrim.on{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--card);border-top:1px solid var(--line);border-radius:19px 19px 0 0;
+ padding:17px 17px calc(17px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;
+ transform:translateY(101%);transition:transform .2s ease;max-height:93vh;overflow-y:auto}
+.sheet.on{transform:translateY(0)}
+.sheet h3{font-family:var(--disp);font-weight:700;font-size:18px;margin:0 0 2px}
+.sheet .sb{color:var(--mute);font-size:12.5px;margin-bottom:14px}
+.fld{margin-bottom:13px}
+.fld label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:16px;background:var(--card);color:var(--ink)}
+.fld .err{color:var(--red);font-size:12.5px;margin-top:5px;display:none}
+.fld.bad input{border-color:var(--red);background:var(--redBg)}
+.fld.bad .err{display:block}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{display:flex;gap:6px;flex-wrap:wrap}
+.opt button{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
+.opt button[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:#fff}
+.sact{display:flex;gap:9px;margin-top:8px}
+.sact button{flex:1;border:none;border-radius:11px;padding:14px;font-weight:800;font-size:16px;cursor:pointer}
+.cx{background:var(--seaL);color:var(--ink)}.ok{background:var(--sea);color:#fff}
+.sact button.web{background:transparent;border:1.5px solid var(--sea);color:var(--ink)}
+.sact button.web[disabled]{opacity:.55;cursor:default}
+.webtip{font-size:12px;color:var(--mute);margin:-3px 0 11px;line-height:1.4}
+.updrop{border:1.5px dashed var(--line);border-radius:11px;padding:18px;text-align:center;color:var(--mute);font-size:13.5px;cursor:pointer;background:var(--seaL);margin-bottom:11px}
+.mtr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
+.phg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .ix{position:absolute;top:4px;left:4px;background:rgba(4,18,25,.85);color:#fff;font-family:var(--mono);font-size:9.5px;padding:2px 5px;border-radius:4px}
+.ph .ctl{position:absolute;bottom:0;left:0;right:0;display:flex;background:rgba(4,18,25,.82)}
+.ph .ctl button{flex:1;background:none;border:none;color:#fff;font-size:13px;padding:5px 0;cursor:pointer}
+.box{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:11px}
+.box h3{font-family:var(--disp);font-weight:700;font-size:16px;margin:0 0 4px}
+.box p{margin:0 0 11px;font-size:13.5px;color:var(--ink2)}
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;
+ padding:12px 17px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.22s;z-index:90;pointer-events:none;max-width:88%;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style></head><body>
+<div style="background:#B4321C;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.02em">COPIA DE PRUEBAS · datos separados · no es tu app real</div>
+
+<header><div class="wrap">
+  <div class="hd"><svg viewBox="0 2 673 309" xmlns="http://www.w3.org/2000/svg" style="height:34px;width:auto;display:block" aria-label="AMK Vehículos Selectos"><path fill="#C8D2D4" d="M 115 9 L 6 227 L 49 227 L 114 90 L 180 226 L 224 226 Z M 267 9 L 267 226 L 303 198 L 304 84 L 376 140 L 450 84 L 452 199 L 488 226 L 487 8 L 377 93 Z M 621 8 L 534 115 L 620 226 L 667 227 L 581 115 L 667 9 Z"/><path fill="#9DACB2" fill-rule="evenodd" d="M 488 291 L 488 293 L 489 294 L 503 294 L 503 290 L 489 290 Z M 414 291 L 414 293 L 415 294 L 428 294 L 429 293 L 429 291 L 428 290 L 415 290 Z M 63 291 L 63 293 L 64 294 L 77 294 L 77 293 L 78 292 L 77 291 L 77 290 L 64 290 Z M 636 280 L 633 284 L 634 291 L 638 294 L 652 294 L 655 299 L 651 302 L 635 301 L 633 305 L 656 304 L 659 296 L 655 291 L 637 288 L 639 283 L 656 283 L 656 279 Z M 596 280 L 591 287 L 591 296 L 593 301 L 598 305 L 615 304 L 619 299 L 618 283 L 612 279 Z M 599 283 L 602 282 L 610 282 L 615 286 L 616 288 L 616 297 L 612 301 L 610 302 L 600 302 L 595 297 L 595 288 Z M 554 279 L 555 283 L 565 284 L 565 305 L 568 305 L 568 286 L 570 283 L 579 283 L 580 280 Z M 521 280 L 519 283 L 520 303 L 523 305 L 542 305 L 542 302 L 539 301 L 526 302 L 522 299 L 522 286 L 525 283 L 541 283 L 542 279 Z M 483 279 L 482 302 L 486 305 L 505 305 L 505 302 L 487 301 L 485 299 L 485 284 L 504 283 L 505 279 Z M 445 279 L 445 304 L 469 305 L 469 302 L 467 301 L 454 302 L 449 300 L 449 279 Z M 407 280 L 408 302 L 411 305 L 430 305 L 431 303 L 428 301 L 413 301 L 411 299 L 411 284 L 430 283 L 431 280 Z M 371 280 L 368 284 L 369 291 L 373 294 L 387 294 L 390 299 L 386 302 L 371 301 L 368 304 L 391 304 L 394 300 L 393 294 L 388 290 L 374 290 L 372 285 L 374 283 L 391 283 L 392 279 Z M 312 280 L 309 284 L 310 291 L 314 294 L 328 294 L 331 299 L 326 302 L 311 301 L 309 305 L 332 304 L 335 296 L 331 291 L 313 288 L 315 283 L 331 283 L 332 279 Z M 272 280 L 268 284 L 267 288 L 268 300 L 274 305 L 291 304 L 295 299 L 295 285 L 293 282 L 288 279 Z M 275 283 L 277 282 L 286 282 L 291 286 L 291 298 L 286 302 L 277 302 L 272 299 L 271 297 L 271 288 Z M 232 279 L 232 304 L 255 305 L 256 302 L 240 301 L 239 302 L 236 300 L 236 280 Z M 191 279 L 192 299 L 200 305 L 216 305 L 217 280 L 213 279 L 213 299 L 211 301 L 200 301 L 194 294 L 194 279 Z M 156 280 L 154 282 L 154 302 L 158 305 L 177 305 L 177 302 L 161 302 L 157 299 L 157 285 L 159 283 L 177 283 L 177 279 Z M 135 279 L 135 305 L 138 305 L 139 304 L 139 280 L 138 279 Z M 94 279 L 94 305 L 98 304 L 99 294 L 115 294 L 116 304 L 120 305 L 120 279 L 116 280 L 115 290 L 99 290 L 98 280 Z M 57 279 L 57 302 L 61 305 L 80 305 L 80 302 L 64 302 L 60 300 L 60 284 L 79 283 L 80 279 Z M 16 279 L 27 303 L 31 305 L 43 282 L 43 279 L 39 280 L 30 297 L 27 295 L 20 279 Z"/></svg><em style="margin-left:2px">Compras · Corea</em></div>
+  <div class="hk" id="hk">—</div>
+</div></header>
+
+<main class="wrap">
+  <div id="boot" style="padding:50px 0;text-align:center;color:var(--mute)">Cargando…</div>
+  <div id="loginBox" style="display:none;position:fixed;inset:0;z-index:200;background:#fff;align-items:center;justify-content:center;padding:20px">
+    <div style="width:100%;max-width:360px">
+      <h2 style="margin:0 0 6px">AMK · Compras Corea</h2>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--mute)">Inicia sesión para que los vehículos que cargues lleguen solos a Chile.</p>
+      <input id="logUser" autocomplete="username" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:10px">
+      <input id="logPass" type="password" autocomplete="current-password" placeholder="Contraseña" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:12px">
+      <button class="btn b-pri" id="logEntrar" style="width:100%">Entrar</button>
+      <button class="btn b-sec" id="logSaltar" style="width:100%;margin-top:8px">Seguir sin conexión</button>
+      <div id="logEstado" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+  <div id="syncEstado" style="font-size:12px;padding:6px 0"></div>
+
+  <section class="panel" id="pLista">
+    <h2>Vehículos comprados</h2><p class="sub">Carga cada vehículo apenas lo compres.</p>
+    <div class="box" id="boxDemanda"><h3>Demanda de clientes en Iquique</h3>
+      <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
+      <div id="demandaList"></div></div>
+    <button class="big" id="addV">＋ Agregar vehículo</button>
+    <p class="cnt" id="cnt"></p>
+    <div id="list"></div>
+  </section>
+
+  <section class="panel" id="pRemesa">
+    <h2>Remesas recibidas</h2><p class="sub">Cuando llegue el dinero, anótalo y avisa a Iquique.</p>
+    <button class="big" id="reNueva">＋ Llegó una remesa</button>
+    <p class="cnt" id="reCnt"></p>
+    <div id="reList"></div>
+    <div class="box" id="boxAvisar" hidden><h3>Avisar a Iquique</h3>
+      <p>Manda el detalle de lo que llegó.</p>
+      <button class="btn b-pri" id="reSend" style="width:100%">Avisar a Iquique</button></div>
+  </section>
+
+  <section class="panel" id="pEnviar">
+    <h2>Enviar a Iquique</h2><p class="sub">Manda las fichas y las fotos por separado.</p>
+    <div class="box"><h3>1 · Fichas de los vehículos</h3>
+      <p id="envTxt">—</p>
+      <button class="btn b-pri" id="envFichas" style="width:100%">Enviar fichas pendientes</button></div>
+    <div class="box"><h3>2 · Fotos</h3>
+      <p>Las fotos van aparte porque pesan. Entra a cada vehículo y usa el botón de enviar fotos.</p></div>
+    <div class="box"><h3>Marcar como enviados</h3>
+      <p>Cuando confirmes que llegaron, márcalos para no repetir.</p>
+      <button class="btn b-sec" id="envMark" style="width:100%">Marcar pendientes como enviados</button></div>
+  </section>
+
+  <section class="panel" id="pHist">
+    <h2>Histórico de compras</h2><p class="sub">Precios ya pagados, para tener una referencia al comprar de nuevo.</p>
+    <div class="fld"><label for="histProv">Proveedor</label><select id="histProv"></select></div>
+    <div id="histList"></div>
+  </section>
+</main>
+
+<nav class="tabbar" role="tablist">
+  <button class="tb" role="tab" data-p="pLista" aria-selected="true"><i>▦</i>Vehículos</button>
+  <button class="tb" role="tab" data-p="pRemesa" aria-selected="false"><i>₩</i>Remesas</button>
+  <button class="tb" role="tab" data-p="pEnviar" aria-selected="false"><i>➦</i>Enviar</button>
+  <button class="tb" role="tab" data-p="pHist" aria-selected="false"><i>▤</i>Histórico</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+
+<div class="sheet" id="shForm">
+  <h3 id="fmT">Nuevo vehículo</h3><div class="sb">Los campos con * son necesarios</div>
+  <div class="fld" id="wCh"><label for="fCh">Chasis</label>
+    <input id="fCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: BA123290">
+    <div class="err" id="eCh"></div>
+    <button class="cg" id="fSinCh" aria-pressed="false" style="width:100%;margin-top:8px;padding:11px">
+      Todavía no tengo el chasis</button></div>
+  <div class="fld"><label>Marca *</label><div class="opt" id="fMa"></div>
+    <input id="fMaNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe la marca nueva" hidden style="margin-top:8px"></div>
+  <div class="fld"><label for="fMo">Modelo *</label><input id="fMo" list="dlMo" autocomplete="off" placeholder="Ej: SORENTO">
+    <datalist id="dlMo"></datalist></div>
+  <div class="two">
+    <div class="fld"><label for="fAn">Año *</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
+    <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" placeholder="80000"></div>
+  </div>
+  <div class="fld"><label>Categoría</label><div class="opt" id="fCat"></div></div>
+  <div class="fld"><label>Color exterior</label><div class="opt" id="fCe"></div></div>
+  <div class="two">
+    <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
+    <div class="fld"><label for="fPa">Pasajeros</label><input id="fPa" inputmode="numeric" placeholder="5"></div>
+  </div>
+  <div class="fld"><label>¿Es vehículo de trabajo?</label>
+    <div class="opt"><button id="fTrabNo" aria-pressed="true">No, es un auto</button>
+      <button id="fTrabSi" aria-pressed="false">Sí, es de trabajo</button></div></div>
+  <div class="fld" id="wCa" hidden><label>Tipo de carrocería</label><div class="opt" id="fCa"></div></div>
+  <div class="fld"><label for="fPr">Proveedor</label>
+    <input id="fPr" list="dlPr" autocomplete="off" placeholder="Ej: Sr. Chan">
+    <datalist id="dlPr"></datalist></div>
+  <div class="two">
+    <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" placeholder="₩0"></div>
+    <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
+  </div>
+  <div class="fld"><label>Gastos en Corea (KRW)</label>
+    <div class="two" style="gap:8px">
+      <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Asiento</div><input id="cASI" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Cromado</div><input id="cCRO" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Pisadera</div><input id="cPIS" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Parabrisas</div><input id="cPAR" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Otro</div><input id="cOTR" inputmode="numeric" placeholder="₩0"></div>
+    </div>
+    <div class="mtr" id="cTot" style="margin-top:7px"></div></div>
+  <div class="fld"><label for="fNo">Estado observado</label>
+    <textarea id="fNo" rows="3" placeholder="Ej: rayón leve puerta trasera derecha, neumáticos 70%, batería nueva"></textarea></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="fmOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shPhoto">
+  <h3 id="phT"></h3><div class="sb" id="phC"></div>
+  <div class="updrop" id="phDrop">Toca para tomar fotos<div class="mtr" id="phMtr"></div></div>
+  <input type="file" id="phFile" accept="image/*" multiple hidden>
+  <div class="sact" style="margin-bottom:11px"><button class="ok" id="phShare">➦ Enviar fotos a Iquique</button></div>
+  <div class="sact" style="margin-bottom:6px"><button class="web" id="phWeb" type="button">☁ Subir a la web</button></div>
+  <p class="webtip">Aparecen en la página pública mientras nadie en Iquique tenga fotos propias de este auto (útil para los que recién vienen en camino).</p>
+  <div class="phg" id="phGrid"></div>
+  <div class="sact"><button class="cx" data-close>Cerrar</button></div>
+</div>
+
+<div class="sheet" id="shLleg">
+  <h3>Llegó una remesa</h3><div class="sb" id="llC">Anota lo que llegó al banco</div>
+  <div class="fld"><label for="llK">Wones que llegaron</label><input id="llK" inputmode="numeric" placeholder="0"></div>
+  <div class="fld"><label for="llCom">Comisión que descontaron (opcional)</label><input id="llCom" inputmode="numeric" placeholder="En wones"></div>
+  <div class="fld"><label for="llD">Fecha en que llegó</label><input id="llD" type="date"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="llOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shAsig">
+  <h3>Asignar chasis</h3><div class="sb" id="asC"></div>
+  <div class="fld" id="wAs"><label for="asCh">Chasis real</label>
+    <input id="asCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: CK322436">
+    <div class="err" id="eAs"></div></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="asOk">Guardar</button></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script>
+
+/* ---------- Almacenamiento local (IndexedDB) ----------
+   Reemplaza el window.storage que solo existia en el entorno de artifacts de Claude.ai.
+   Misma interfaz que se usa en todo el archivo: get(key) -> {value}|undefined, set(key,value), delete(key). */
+window.storage = (function(){
+  const DB='amk_kv_PRUEBAS', STORE='kv', VER=1;
+  let dbp=null;
+  function open(){
+    if(dbp) return dbp;
+    dbp = new Promise((res,rej)=>{
+      const req = indexedDB.open(DB, VER);
+      req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains(STORE)) req.result.createObjectStore(STORE); };
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+    return dbp;
+  }
+  async function get(key){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const rq = db.transaction(STORE,'readonly').objectStore(STORE).get(key);
+        rq.onsuccess = () => res(rq.result===undefined ? undefined : {value: rq.result});
+        rq.onerror = () => rej(rq.error);
+      });
+    }catch(e){ console.error('storage.get', key, e); return undefined; }
+  }
+  async function set(key, value){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).put(value, key);
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => rej(tx.error);
+      });
+    }catch(e){ console.error('storage.set', key, e); throw e; }
+  }
+  async function del(key){
+    try{
+      const db = await open();
+      return await new Promise((res,rej)=>{
+        const tx = db.transaction(STORE,'readwrite');
+        tx.objectStore(STORE).delete(key);
+        tx.oncomplete = () => res(true);
+        tx.onerror = () => rej(tx.error);
+      });
+    }catch(e){ console.error('storage.delete', key, e); throw e; }
+  }
+  return {get, set, delete: del};
+})();
+
+const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["Blanco","Negro","Gris","Plateado","Azul","Rojo","Beige","Verde","Naranja","Amarillo","Dorado","Burdeo","Marrón"],"tracc":["4X2","4X4"],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
+const KEY='amkc_vehiculos', PK=c=>'amkc_fotos_'+c;
+const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=12,CAP=4.2e6;
+const RX=/^[A-Z]{2}\d{6}$/;
+let sinCh=false, warnOnce=false;
+const CC=[['BAT','Batería'],['ASI','Asiento'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
+let L=[], RE=[], PROV=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:''};
+let phCh=null, phArr=[];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
+const krw=n=>n?'₩'+Number(n).toLocaleString('es-CL'):'';
+const clp=n=>n?'$'+Number(n).toLocaleString('es-CL'):'';
+const kb=n=>Math.round(n/1024)+' KB';
+const iso=()=>new Date().toISOString().slice(0,10);
+const fd=s=>s?s.split('-').reverse().join('/'):'';
+function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join('')}
+function sumCC(){let t=0;for(const[k]of CC)t+=pnum($('#c'+k).value)||0;
+ $('#cTot').textContent=t?('Total en Corea: '+krw(t)):''; return t}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)}
+function horaKR(){try{return new Intl.DateTimeFormat('es-CL',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'}).format(new Date())}catch(e){return''}}
+
+async function boot(){
+  try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
+  try{const r=await window.storage.get('amkc_prov');if(r&&r.value)PROV=JSON.parse(r.value)}catch(e){console.error('boot PROV',e); PROV=[]}
+  try{const r=await window.storage.get('amkc_extra');if(r&&r.value)EXTRA=Object.assign(EXTRA,JSON.parse(r.value))}catch(e){console.error('boot EXTRA',e)}
+  try{const r=await window.storage.get('amkc_remesas');if(r&&r.value)RE=JSON.parse(r.value)}catch(e){console.error('boot RE',e)}
+  dlProv(); await cargaDemandaLocal();
+  $('#boot').remove();show(tab);opts();draw();pintaRE();
+  $('#hk').textContent='Corea '+horaKR()+' · '+L.length+' cargados';
+}
+async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(e){console.error('save',e); toast('No se pudo guardar')} fbEnviaPronto();}
+
+/* ---------- Sincronización con la nube ----------
+   Corea escribe en la colección real "vehiculos": los datos generales del vehículo
+   van al documento principal; la compra en wones (krw) y los costos de taller (cc)
+   van al subdocumento privado/costos. Si las reglas de Firestore todavía no le dan
+   permiso a esta cuenta sobre ese subdocumento, se avisa en pantalla en vez de
+   fallar en silencio. */
+const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
+const FB_USER='corea@amk-vehiculos.app';
+const FB_COL='pruebas_vehiculos';
+const RECOREA_COL='pruebas_remesasCorea';
+const FOTOSVEND_COL='pruebas_fotosVend';
+let fbRecoreaEscuchando=false;
+let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
+const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
+let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
+const fbUltimo={};
+
+function fbEstado(txt,color){
+  const el=document.getElementById('syncEstado');
+  if(el) el.innerHTML='<span style="color:'+(color||'#5A6B70')+'">'+txt+'</span>';
+}
+function fbMuestraLogin(m){
+  const el=document.getElementById('loginBox');
+  if(!el) return;
+  el.style.display = m ? 'flex' : 'none';
+  if(m){ const u=document.getElementById('logUser'); if(u && !u.value) u.value=FB_USER; }
+}
+function fbFirma(v){ try{ return JSON.stringify(v); }catch(e){ return ''; } }
+let fbTimer=null;
+function fbEnviaPronto(){
+  if(!fbReady) return;
+  clearTimeout(fbTimer);
+  fbTimer=setTimeout(fbEnvia, 1200);
+}
+async function fbEnvia(){
+  if(!fbReady) return;
+  const pend=L.filter(v=>v.ch && !v.soloReferencia && fbUltimo[v.ch]!==fbFirma(v));
+  if(!pend.length) return;
+  fbEstado('Enviando '+pend.length+' vehículo(s) a Chile…');
+  let ok=0, errCostos=0, otroErr='';
+  for(const v of pend){
+    const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
+    gen._ts=firebase.firestore.FieldValue.serverTimestamp();
+    try{
+      await fbDb.collection(FB_COL).doc(v.ch).set(gen,{merge:true});
+      try{
+        const costos={};
+        if(v.krw!==undefined) costos.krw=v.krw;
+        if(v.cc!==undefined) costos.cc=v.cc;
+        if(Object.keys(costos).length){
+          costos._ts=firebase.firestore.FieldValue.serverTimestamp();
+          await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('costos').set(costos,{merge:true});
+        }
+      }catch(e){ errCostos++; }
+      fbUltimo[v.ch]=fbFirma(v);
+      ok++;
+    }catch(e){ console.error('fbEnvia',e); otroErr=(e.message||e.code||e); }
+  }
+  if(otroErr){ fbEstado('✗ No se pudieron enviar algunos vehículos: '+otroErr,'#B5533C'); return; }
+  if(errCostos){
+    fbEstado('✓ '+ok+' vehículo(s) enviados, pero la compra en wones y los gastos de taller NO se pudieron guardar (falta permiso en las reglas de Firestore). Avísale a Andre.','#B5533C');
+    fbAvisoCostos=true;
+  }else{
+    fbEstado('✓ '+ok+' vehículo(s) enviados a Chile','#2E7D32');
+  }
+}
+/* ---------- Remesas recibidas, en vivo hacia/desde Sistema ----------
+   Antes esto se avisaba por WhatsApp con un código para pegar en Sistema (de cuando
+   todavía no existía la nube). Ahora cada remesa que anotás acá se sube sola, como su
+   propio documento (uno por remesa, para no pisar lo que suba Iquique al mismo tiempo
+   que vos anotas otra), y cuando Iquique la vincule a un envío, esta app se entera sola
+   y la marca como "Vinculada en Iquique". El botón de avisar por WhatsApp se deja como
+   respaldo para cuando no hay internet. */
+async function fbSyncRemesa(x){
+  if(!fbReady) return;
+  try{
+    await fbDb.collection(RECOREA_COL).doc(String(x.ts)).set({
+      k:x.k||0, com:x.com||0, f:x.f||'', fll:x.fll||x.f||'',
+      _ts:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+  }catch(e){ console.error('fbSyncRemesa',e); }
+}
+async function fbDeleteRemesa(ts){
+  if(!fbReady) return;
+  try{ await fbDb.collection(RECOREA_COL).doc(String(ts)).delete(); }
+  catch(e){ console.error('fbDeleteRemesa',e); }
+}
+function fbRecoreaListen(){
+  if(!fbReady) return;
+  fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
+    let cambio=false;
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed') return;
+      const d=chg.doc.data()||{};
+      const x=RE.find(y=>String(y.ts)===chg.doc.id);
+      if(x && d.vinculada && !x.vinculada){ x.vinculada=true; cambio=true; }
+    });
+    if(cambio){
+      try{window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
+      pintaRE();
+    }
+  }, e=>console.error('fbRecoreaListen',e));
+}
+/* ---------- Vehiculos de Iquique (Sistema), en vivo hacia esta app ----------
+   Sistema escribe la ficha general y, cuando puede, los costos privados
+   (compra en wones, gastos de taller, costo total real en Chile). Esta app
+   escucha esa coleccion para que el Historico de compras tambien refleje lo
+   que Andre carga o corrige alla, no solo lo que carga la mama aca. Si un
+   vehiculo llega desde Sistema y no existe en este telefono, se guarda como
+   "solo referencia": cuenta para el Historico pero no aparece en la lista de
+   Vehiculos ni se reenvia a la nube (para no pisar los datos de Sistema). */
+function fbVehiculosListen(){
+  if(fbVehiculosEscuchando||!fbReady) return;
+  fbVehiculosEscuchando=true;
+  fbDb.collection(FB_COL).onSnapshot(async snap=>{
+    let cambio=false;
+    for(const chg of snap.docChanges()){
+      if(chg.type==='removed') continue;
+      const ch=chg.doc.id;
+      const d=chg.doc.data()||{};
+      let priv=null;
+      try{
+        const ps=await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('costos').get();
+        if(ps.exists) priv=ps.data();
+      }catch(e){
+        if(!fbAvisoLecturaCostos){ fbAvisoLecturaCostos=true; console.error('fbVehiculosListen (costos)',e); }
+      }
+      let v=L.find(x=>x.ch===ch);
+      if(!v){
+        v={ch, ma:d.ma||'', mo:d.mo||'', an:d.an||null, km:d.km||null, cat:d.cat||'', ce:d.ce||'',
+           tr:d.tr||'', pa:d.pa||null, ca:d.ca||'S/N', fe:d.fe||'', nota:d.nota||'', prov:d.prov||'',
+           krw:0, cc:{}, sent:true, soloReferencia:true};
+        L.push(v); cambio=true;
+      }else if(v.soloReferencia){
+        ['ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'].forEach(k=>{
+          if(d[k]!==undefined && d[k]!==null && d[k]!==v[k]){ v[k]=d[k]; cambio=true; }
+        });
+      }
+      if(priv){
+        if(priv.krw && priv.krw!==v.krw){ v.krw=priv.krw; cambio=true; }
+        if(priv.cc && Object.keys(priv.cc).length){ v.cc=Object.assign({}, v.cc, priv.cc); cambio=true; }
+        if(priv.ct!==undefined && priv.ct && priv.ct!==v.ct){ v.ct=priv.ct; cambio=true; }
+      }
+    }
+    if(cambio){
+      try{await window.storage.set(KEY,JSON.stringify(L))}catch(_){}
+      draw();
+    }
+  }, e=>console.error('fbVehiculosListen',e));
+}
+/* ---------- Demanda de clientes: solo lectura (compartido con Vendedores y Sistema) ----------
+   Corea nunca escribe aca, solo la muestra como referencia para comprar de a pocos. */
+const DEMANDA_COL='pruebas_demandaClientes';
+let DEMANDA=[], fbDemandaEscuchando=false;
+/* Cuenta cuantas veces se ha preguntado por una marca/modelo en TODO el historial (atendidas
+   incluidas), normalizando espacios/mayusculas/acentos. */
+function normDemanda(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+function contarDemanda(marca,modelo){
+  const km=normDemanda(marca), ko=normDemanda(modelo);
+  if(!km && !ko) return 0;
+  return DEMANDA.filter(x=>normDemanda(x.marca)===km && normDemanda(x.modelo)===ko).length;
+}
+async function cargaDemandaLocal(){
+  try{const r=await window.storage.get('amkc_demanda_cache'); if(r&&r.value){const a=JSON.parse(r.value); if(Array.isArray(a)) DEMANDA=a;}}catch(e){}
+  pintaDemanda();
+}
+function fbDemandaListen(){
+  if(fbDemandaEscuchando||!fbReady) return;
+  fbDemandaEscuchando=true;
+  fbDb.collection(DEMANDA_COL).onSnapshot(snap=>{
+    const arr=[];
+    snap.forEach(d=>arr.push(Object.assign({ts:Number(d.id)}, d.data())));
+    DEMANDA=arr.sort((a,b)=>b.ts-a.ts);
+    try{window.storage.set('amkc_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
+    pintaDemanda();
+  }, e=>console.error('fbDemandaListen',e));
+}
+function pintaDemanda(){
+  const el=document.getElementById('demandaList'); if(!el) return;
+  const activas=DEMANDA.filter(d=>!d.atendido);
+  el.innerHTML=activas.length?activas.map(d=>{
+    const anio=d.anioDesde?(d.anioHasta&&d.anioHasta!==d.anioDesde?`${d.anioDesde}-${d.anioHasta}`:String(d.anioDesde)):'';
+    const veces=contarDemanda(d.marca,d.modelo);
+    return `<div class="xrow"><span style="font-family:var(--body)">
+      <b>${(d.marca||'').replace(/</g,'&lt;')} ${(d.modelo||'').replace(/</g,'&lt;')}</b> ${anio}
+      ${d.caracteristicas?`<br><span style="color:var(--ink2)">${String(d.caracteristicas).replace(/</g,'&lt;')}</span>`:''}
+      ${veces>1?`<br><span style="color:var(--azul);font-size:12px">Preguntado ${veces} veces en total</span>`:''}
+      <br><span style="color:var(--mute);font-size:12px">${d.vendedor||'—'} · ${fd(new Date(d.ts).toISOString().slice(0,10))}</span></span></div>`;
+  }).join('') : '<p style="color:var(--mute);font-size:13.5px;margin:0">Nadie ha anotado demanda todavía.</p>';
+}
+async function fbInit(){
+  try{
+    if(typeof firebase==='undefined') throw new Error('sin internet');
+    firebase.initializeApp(FB_CONFIG);
+    fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    fbAuth.onAuthStateChanged(u=>{
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); }
+      else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
+    });
+  }catch(e){ console.error('fbInit',e); fbEstado('Sin conexión: los vehículos quedan solo en este teléfono','#B5533C'); }
+}
+async function fbEntrar(){
+  const el=document.getElementById('logEstado');
+  const u=(document.getElementById('logUser').value||'').trim();
+  const p=document.getElementById('logPass').value||'';
+  if(!u||!p){ el.innerHTML='<span style="color:#B5533C">Escribe la cuenta y la contraseña.</span>'; return; }
+  if(!fbAuth){ el.innerHTML='<span style="color:#B5533C">Sin conexión a internet.</span>'; return; }
+  el.textContent='Entrando…';
+  try{
+    await fbAuth.signInWithEmailAndPassword(u,p);
+    document.getElementById('logPass').value='';
+    el.innerHTML='<span style="color:#2E7D32">✓ Sesión iniciada</span>';
+  }catch(e){
+    const cod=(e.code||'');
+    const msg = cod.includes('wrong-password')||cod.includes('invalid-credential') ? 'Contraseña incorrecta.'
+              : cod.includes('network') ? 'Sin conexión a internet.'
+              : (e.message||cod);
+    el.innerHTML='<span style="color:#B5533C">✗ '+msg+'</span>';
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('logEntrar');
+  if(b) b.addEventListener('click',fbEntrar);
+  const s=document.getElementById('logSaltar');
+  if(s) s.addEventListener('click',()=>fbMuestraLogin(false));
+  const p=document.getElementById('logPass');
+  if(p) p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbEntrar(); });
+});
+function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
+$$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on')}
+function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'))}
+$('#scrim').addEventListener('click',closeAll);
+$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
+
+function chips(id,arr,key){
+  $(id).innerHTML=arr.map(v=>`<button data-k="${key}" data-v="${v}" aria-pressed="${sel[key]===v}">${v}</button>`).join('');
+}
+function marcas(){return [...new Set([...OPT.marcas,...EXTRA.marcas])].sort()}
+function modelos(ma){return [...new Set([...(OPT.modelos[ma]||[]),...((EXTRA.modelos||{})[ma]||[])])].sort()}
+function opts(){
+  const el=document.getElementById('fMa');
+  el.innerHTML=marcas().map(v=>`<button data-k="ma" data-v="${v}" aria-pressed="${sel.ma===v}">${v}</button>`).join('')
+    +`<button id="fMaAdd" aria-pressed="false">＋ Otra marca</button>`;
+  chips('#fCat',OPT.cats,'cat');chips('#fCe',OPT.colores,'ce');
+  chips('#fTr',OPT.tracc,'tr');chips('#fCa',OPT.carr,'ca');
+}
+async function guardaExtra(){try{await window.storage.set('amkc_extra',JSON.stringify(EXTRA))}catch(_){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;
+  const k=b.dataset.k,v=b.dataset.v; sel[k]=(sel[k]===v)?'':v; opts();
+  if(k==='ma'){$('#fMaNew').hidden=true;$('#dlMo').innerHTML=modelos(sel.ma).map(m=>`<option value="${m}">`).join('')}
+});
+
+function limpia(){
+  sel={ma:'',cat:'',ce:'',tr:'',ca:'S/N'};edit=null;sinCh=false;warnOnce=false;
+  $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
+  ['fCh','fMo','fAn','fKm','fPa','fKrw','fNo','fPr'].forEach(i=>$('#'+i).value='');
+  CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
+  $('#fFe').value=iso();$('#wCh').classList.remove('bad');$('#dlMo').innerHTML='';
+  $('#fMaNew').value='';$('#fMaNew').hidden=true;setTrab(false);opts();
+}
+CC.forEach(([k])=>{const el=document.getElementById('c'+k); if(el) el.addEventListener('input',sumCC)});
+document.addEventListener('click',e=>{
+  if(e.target.id==='fMaAdd'){const i=$('#fMaNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
+});
+$('#fTrabNo').addEventListener('click',()=>setTrab(false));
+$('#fTrabSi').addEventListener('click',()=>setTrab(true));
+function setTrab(v){
+  esTrab=v;
+  $('#fTrabNo').setAttribute('aria-pressed',v?'false':'true');
+  $('#fTrabSi').setAttribute('aria-pressed',v?'true':'false');
+  $('#wCa').hidden=!v;
+  if(!v) sel.ca='';
+}
+$('#fSinCh').addEventListener('click',()=>{
+  sinCh=!sinCh;
+  $('#fSinCh').setAttribute('aria-pressed',sinCh?'true':'false');
+  $('#fCh').disabled=sinCh; $('#fCh').style.opacity=sinCh?.45:1;
+  if(sinCh){$('#fCh').value='';$('#wCh').classList.remove('bad')}
+});
+$('#addV').addEventListener('click',()=>{limpia();$('#fmT').textContent='Nuevo vehículo';openSheet('shForm');setTimeout(()=>$('#fCh').focus(),240)});
+
+$('#fmOk').addEventListener('click',async()=>{
+  let ch=$('#fCh').value.trim().toUpperCase();
+  const w=$('#wCh'),er=$('#eCh');
+  if(sinCh){
+    let k=1; while(L.some(x=>x.ch==='PEND-'+String(k).padStart(3,'0'))) k++;
+    ch=edit&&edit.startsWith('PEND-')?edit:'PEND-'+String(k).padStart(3,'0');
+  }else{
+    if(!ch){w.classList.add('bad');er.textContent='Escribe el chasis o marca “Todavía no tengo el chasis”.';return}
+    const dupIQ=OPT.chasis.includes(ch), dupLoc=L.some(x=>x.ch===ch&&x.ch!==edit);
+    if(dupIQ||dupLoc){w.classList.add('bad');er.textContent=dupIQ?'Ese chasis ya está en el sistema de Iquique.':'Ya cargaste ese chasis acá.';return}
+    if(!RX.test(ch)&&!warnOnce){
+      w.classList.add('bad');warnOnce=true;
+      er.textContent='Ese chasis no tiene el formato habitual (2 letras + 6 números). Revísalo. Si está correcto, toca Guardar otra vez.';
+      return;
+    }
+  }
+  w.classList.remove('bad');
+  const maNew=$('#fMaNew').value.trim().toUpperCase();
+  if(maNew&&!$('#fMaNew').hidden){
+    if(!EXTRA.marcas.includes(maNew)&&!OPT.marcas.includes(maNew)){EXTRA.marcas.push(maNew);await guardaExtra()}
+    sel.ma=maNew;
+  }
+  if(!sel.ma){toast('Elige la marca');return}
+  const mo=$('#fMo').value.trim().toUpperCase(); if(!mo){toast('Falta el modelo');return}
+  if(!modelos(sel.ma).includes(mo)){
+    EXTRA.modelos=EXTRA.modelos||{};
+    EXTRA.modelos[sel.ma]=[...(EXTRA.modelos[sel.ma]||[]),mo];
+    await guardaExtra();
+  }
+  const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){toast('Revisa el año');return}
+  const cc={}; for(const[k]of CC){const n=pnum($('#c'+k).value); if(n) cc[k]=n}
+  const prov=$('#fPr').value.trim();
+  if(prov&&!PROV.includes(prov)){PROV.push(prov);PROV.sort();
+    try{await window.storage.set('amkc_prov',JSON.stringify(PROV))}catch(_){}
+    dlProv();}
+  const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
+    tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
+    krw:pnum($('#fKrw').value)||null,fe:$('#fFe').value||iso(),prov,cc,
+    nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
+  if(edit){const i=L.findIndex(x=>x.ch===edit); const old=L[i]; Object.assign(o,{nf:old.nf,cov:old.cov,sent:false}); L[i]=o}
+  else L.unshift(o);
+  await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
+});
+
+function draw(){
+  const LV=L.filter(v=>!v.soloReferencia);
+  const sc=LV.filter(v=>v.ch.startsWith('PEND-')).length;
+  $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+LV.filter(v=>!v.sent).length+' por enviar'+(sc?' · '+sc+' sin chasis':''):'';
+  $('#list').innerHTML=LV.length?LV.map(v=>{
+    const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
+    const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
+    const sp=[v.cat,v.tr,(v.pa?v.pa+' pas.':''),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
+      .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
+    const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
+    return `<div class="card ${v.sent?'sent':''}">
+     <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
+      <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></div>
+      <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+      ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
+      <span class="tag ${v.sent?'t-ok':'t-pend'}">${v.sent?'Enviado':'Por enviar'}</span></div></div>
+     <div class="specs">${sp}</div>
+     ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
+     ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
+     <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Fotos ${v.nf||''}</button>
+      ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}" style="flex:0 0 auto">＃</button>`:''}
+      <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
+      <button class="btn b-sec" data-del="${v.ch}" style="flex:0 0 auto">✕</button></div></div>`}).join('')
+   :'<div class="empty">Todavía no cargas vehículos.<br>Toca “Agregar vehículo” para empezar.</div>';
+  const pend=LV.filter(v=>!v.sent).length;
+  $('#envTxt').textContent=pend?`${pend} ficha${pend===1?'':'s'} sin enviar.`:'No hay fichas pendientes.';
+  pintaHist();
+}
+
+function normTxt(s){return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+let histProv='';
+function agrupaHist(){
+  const src=histProv?L.filter(v=>(v.prov||'')===histProv):L;
+  const g={};
+  src.forEach(v=>{
+    if(!v.krw) return;
+    const key=normTxt(v.ma)+'|'+normTxt(v.mo)+'|'+(v.an||'');
+    if(!g[key]) g[key]={ma:v.ma,mo:v.mo,an:v.an,precios:[],ultFe:'',ultProv:'',ultPrecio:0,ccTot:[],ccTallies:{},cts:[]};
+    g[key].precios.push(v.krw);
+    if(!g[key].ultFe||(v.fe||'')>g[key].ultFe){g[key].ultFe=v.fe||'';g[key].ultProv=v.prov||'';g[key].ultPrecio=v.krw}
+    if(v.cc){
+      const t=Object.values(v.cc).reduce((a,b)=>a+(b||0),0);
+      if(t) g[key].ccTot.push(t);
+      CC.forEach(([k])=>{ if(v.cc[k]) g[key].ccTallies[k]=(g[key].ccTallies[k]||0)+1; });
+    }
+    if(v.ct) g[key].cts.push(v.ct);
+  });
+  return Object.values(g).sort((a,b)=>(a.ma+' '+a.mo+' '+a.an).localeCompare(b.ma+' '+b.mo+' '+b.an,'es'));
+}
+function pintaHist(){
+  const sel=$('#histProv');
+  if(sel) sel.innerHTML='<option value="">Todos los proveedores</option>'+PROV.map(p=>`<option value="${p}"${p===histProv?' selected':''}>${p}</option>`).join('');
+  const grupos=agrupaHist();
+  const el=$('#histList'); if(!el) return;
+  el.innerHTML=grupos.length?grupos.map(g=>{
+    const n=g.precios.length;
+    const prom=Math.round(g.precios.reduce((a,b)=>a+b,0)/n);
+    const min=Math.min(...g.precios), max=Math.max(...g.precios);
+    const promCC=g.ccTot.length?Math.round(g.ccTot.reduce((a,b)=>a+b,0)/g.ccTot.length):0;
+    const tallyTxt=CC.filter(([k])=>g.ccTallies[k]).map(([k,nn])=>nn+' ('+g.ccTallies[k]+'x)').join(' · ');
+    const promCt=g.cts.length?Math.round(g.cts.reduce((a,b)=>a+b,0)/g.cts.length):0;
+    const minCt=g.cts.length?Math.min(...g.cts):0, maxCt=g.cts.length?Math.max(...g.cts):0;
+    return `<div class="card">
+      <div class="tt">${g.ma} ${g.mo} <span class="y">${g.an}</span></div>
+      <div class="specs"><span class="sp">${n} compra${n===1?'':'s'}</span><span class="sp">Promedio ${krw(prom)}</span>${n>1?`<span class="sp">Rango ${krw(min)}–${krw(max)}</span>`:''}</div>
+      <div class="nota">Última compra en Corea: ${krw(g.ultPrecio)}${g.ultProv?' · '+g.ultProv.replace(/</g,'&lt;'):''}${g.ultFe?' · '+fd(g.ultFe):''}</div>
+      ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}
+      ${promCt?`<div class="nota" style="border-left-color:#2E7D32">Costo total real en Chile: promedio ${clp(promCt)}${g.cts.length>1?' · rango '+clp(minCt)+'–'+clp(maxCt):''}</div>`:''}</div>`;
+  }).join(''):'<div class="empty">Todavía no hay compras con precio cargado'+(histProv?' de este proveedor':'')+'.</div>';
+}
+$('#histProv').addEventListener('change',e=>{histProv=e.target.value;pintaHist()});
+
+/* fotos */
+function shrink(f,w,qq){return new Promise((res,rej)=>{const r=new FileReader();
+ r.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.min(1,w/Math.max(im.width,im.height));
+ const cv=document.createElement('canvas');cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+ cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',qq))};
+ im.onerror=()=>rej(0);im.src=r.result};r.onerror=()=>rej(0);r.readAsDataURL(f)})}
+const weight=()=>phArr.reduce((a,b)=>a+b.length,0)*.75;
+async function loadP(c){try{const r=await window.storage.get(PK(c));return r&&r.value?JSON.parse(r.value):[]}catch(e){return[]}}
+async function saveP(c,a){try{a.length?await window.storage.set(PK(c),JSON.stringify(a)):await window.storage.delete(PK(c));return true}catch(e){toast('No se pudieron guardar');return false}}
+
+/* --- subir fotos a la web pública (colección fotosVend, fuente fija 'corea': fallback para autos recién viniendo) --- */
+const WEBW=640, WEBQ=.58, WEBMAXN=6, WEBCAP=850000;
+function shrinkDataURI(d,w,q){return new Promise(res=>{const im=new Image();
+ im.onload=()=>{const sc=Math.min(1,w/Math.max(im.width||1,im.height||1));
+  const cv=document.createElement('canvas');cv.width=Math.round((im.width||w)*sc);cv.height=Math.round((im.height||w)*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',q))};
+ im.onerror=()=>res('');im.src=d})}
+let subiendoWeb=false;
+async function subirFotosWeb(){
+ if(subiendoWeb) return;
+ if(!fbReady){toast('Sin conexión con la nube ahora mismo, prueba más tarde');return}
+ const ch=phCh, docId=ch+'__corea';
+ subiendoWeb=true;
+ const btn=$('#phWeb'); btn.disabled=true; const txtOrig=btn.textContent; btn.textContent='Subiendo…';
+ try{
+  if(!phArr.length){
+   try{await fbDb.collection(FOTOSVEND_COL).doc(docId).delete()}catch(_){}
+   toast('No hay fotos que subir');
+   return;
+  }
+  const urls=[]; let peso=0;
+  for(let i=0;i<Math.min(phArr.length,WEBMAXN);i++){
+   const chica=await shrinkDataURI(phArr[i],WEBW,WEBQ);
+   if(!chica) continue;
+   if(peso+chica.length>WEBCAP) break;
+   urls.push(chica); peso+=chica.length;
+  }
+  if(!urls.length){toast('No se pudo procesar ninguna foto');return}
+  await fbDb.collection(FOTOSVEND_COL).doc(docId).set({
+   ch, fuente:'corea', nombre:'Corea', fotos:urls,
+   ts:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');
+ }catch(e){
+  console.error('subirFotosWeb',e);
+  toast('No se pudo subir: '+(e.message||e.code||e)+' · avísale a Andre, puede faltar un permiso');
+ }finally{
+  subiendoWeb=false; btn.disabled=false; btn.textContent=txtOrig;
+ }
+}
+async function openPhotos(c){phCh=c;const v=L.find(x=>x.ch===c);
+ $('#phT').textContent=v.ma+' '+v.mo+' '+v.an;$('#phC').textContent=v.ch;
+ $('#phGrid').innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-size:13px">Cargando…</div>';
+ openSheet('shPhoto');phArr=await loadP(c);drawP()}
+function drawP(){
+ $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph"><img src="${d}" alt="Foto ${i+1}">
+  <span class="ix">${i===0?'PORTADA':i+1}</span><div class="ctl">
+  <button data-mv="${i}|-1" ${i===0?'disabled style="opacity:.35"':''}>◀</button>
+  <button data-mv="${i}|1" ${i===phArr.length-1?'disabled style="opacity:.35"':''}>▶</button>
+  <button data-rm="${i}">✕</button></div></div>`).join('')
+  :'<div style="grid-column:1/-1;color:var(--mute);font-size:13px;text-align:center;padding:14px 0">Sin fotos.</div>';
+ $('#phMtr').textContent=phArr.length?`${phArr.length} de ${MAXN} · ${kb(weight())}`:''}
+$('#phDrop').addEventListener('click',()=>$('#phFile').click());
+$('#phFile').addEventListener('change',async e=>{const fs=[...e.target.files];e.target.value='';
+ if(!fs.length)return;const room=MAXN-phArr.length;if(room<=0){toast('Máximo '+MAXN+' fotos');return}
+ toast('Procesando…');let full=false,n=0;
+ for(const f of fs.slice(0,room)){try{const d=await shrink(f,MAXW,Q);
+  if(weight()+d.length*.75>CAP){full=true;break}phArr.push(d);n++}catch(_){}}
+ await persist();if(full)toast('Espacio lleno. Se guardaron '+n+'.')});
+async function persist(){
+ if(!await saveP(phCh,phArr))return;
+ const v=L.find(x=>x.ch===phCh);v.nf=phArr.length;
+ if(phArr.length){try{const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=phArr[0]});
+  const sc=Math.min(1,COVW/Math.max(im.width||1,im.height||1));const cv=document.createElement('canvas');
+  cv.width=Math.round((im.width||COVW)*sc);cv.height=Math.round((im.height||COVW)*sc);
+  cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);v.cov=cv.toDataURL('image/jpeg',COVQ)}catch(_){v.cov=''}}
+ else v.cov='';
+ await save();drawP();draw()}
+
+async function toFiles(a,ch){const o=[];for(let i=0;i<a.length;i++){try{const b=await(await fetch(a[i])).blob();
+ o.push(new File([b],`${ch}-${String(i+1).padStart(2,'0')}.jpg`,{type:'image/jpeg'}))}catch(_){}}return o}
+$('#phShare').addEventListener('click',async()=>{
+ if(!phArr.length){toast('No hay fotos');return}
+ const v=L.find(x=>x.ch===phCh);
+ const files=await toFiles(phArr,phCh);
+ const txt=`${v.ma} ${v.mo} ${v.an} · Chasis ${v.ch}`;
+ if(navigator.canShare&&navigator.canShare({files})){
+  try{await navigator.share({files,text:txt,title:txt});toast('Fotos enviadas');return}
+  catch(e){if(e&&e.name==='AbortError')return}}
+ let n=0;for(const f of files){const u=URL.createObjectURL(f);const a=document.createElement('a');
+  a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),4000);n++}
+ toast('Descargadas '+n+' fotos')});
+$('#phWeb').addEventListener('click',subirFotosWeb);
+
+document.addEventListener('click',async e=>{
+ const p=e.target.closest('[data-photo]'),ed=e.target.closest('[data-edit]'),
+  dl=e.target.closest('[data-del]'),m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]');
+ if(p){openPhotos(p.dataset.photo);return}
+ if(m){const[i,d]=m.dataset.mv.split('|').map(Number),j=i+d;if(j<0||j>=phArr.length)return;
+  [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
+ if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
+ if(ed){const v=L.find(x=>x.ch===ed.dataset.edit);edit=v.ch;
+  sel={ma:v.ma,cat:v.cat,ce:v.ce,tr:v.tr,ca:v.ca};
+  setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
+  $('#fMaNew').value='';$('#fMaNew').hidden=true;
+  $('#dlMo').innerHTML=modelos(v.ma).map(x=>`<option value="${x}">`).join('');
+  $('#fCh').value=v.ch;$('#fMo').value=v.mo;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
+  $('#fPa').value=v.pa||'';$('#fKrw').value=v.krw||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
+  $('#fPr').value=v.prov||''; CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
+  $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
+ if(dl){const c=dl.dataset.del;
+  if(!confirm('¿Eliminar este vehículo y sus fotos?'))return;
+  L=L.filter(x=>x.ch!==c);try{await window.storage.delete(PK(c))}catch(_){}
+  await save();draw();toast('Eliminado');return}
+});
+
+async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}
+ catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();
+ try{document.execCommand('copy');toast(m)}catch(_){toast('No se pudo copiar')}a.remove()}}
+$('#envFichas').addEventListener('click',async()=>{
+ const p=L.filter(v=>!v.sent);
+ if(!p.length){toast('No hay fichas pendientes');return}
+ const data=p.map(({ch,ma,mo,an,km,cat,ce,tr,pa,ca,krw,fe,nota,prov,cc})=>({ch,ma,mo,an,km,cat,ce,tr,pa,ca,krw,fe,nota,prov,cc}));
+ const txt='AMK-COREA '+JSON.stringify(data);
+ if(navigator.share){try{await navigator.share({text:txt,title:'Fichas AMK Corea'});toast('Enviado');return}
+  catch(e){if(e&&e.name==='AbortError')return}}
+ cp(txt,p.length+' fichas copiadas · pégalas en WhatsApp')});
+$('#envMark').addEventListener('click',async()=>{
+ const n=L.filter(v=>!v.sent).length; if(!n){toast('Nada pendiente');return}
+ L.forEach(v=>v.sent=true);await save();draw();toast(n+' marcados como enviados')});
+
+const dec2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
+function pintaRE(){
+  const porInf=RE.filter(x=>!x.sent).length;
+  $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':''):'';
+  const box=$('#boxAvisar'); if(box) box.hidden=!porInf;
+  $('#reList').innerHTML=RE.length?RE.slice().reverse().map(x=>`<div class="card ${x.sent?'sent':''}">
+    <div class="r1"><div><div class="tt">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
+      <div class="ch">Llegó el ${fd(x.fll||x.f)}</div></div>
+      <span class="tag ${x.sent?'t-ok':'t-pend'}">${x.sent?'Avisada':'Por avisar'}</span></div>
+    ${x.com?`<div class="specs"><span class="sp">Comisión ${Math.round(x.com).toLocaleString('es-CL')} ₩</span></div>`:''}
+    ${x.vinculada?`<div class="specs"><span class="sp" style="color:#2E7D32">✓ Vinculada en Iquique</span></div>`:''}
+    <div class="acts"><button class="btn b-sec" data-rell="${x.ts}">Corregir</button>
+      <button class="btn b-sec" data-redel="${x.ts}" style="flex:0 0 auto">✕</button></div></div>`).join('')
+   :'<div class="empty">Sin remesas registradas.<br>Cuando llegue una, toca el botón de arriba.</div>';
+}
+$('#reNueva').addEventListener('click',()=>{
+  llId=null; $('#llC').textContent='Anota lo que llegó al banco';
+  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso();
+  openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240);
+});
+$('#llOk').addEventListener('click',async()=>{
+  const k=pnum($('#llK').value)||0;
+  if(!k){toast('Ingresa los wones');return}
+  const com=pnum($('#llCom').value)||0, f=$('#llD').value||iso();
+  let x;
+  if(llId){x=RE.find(y=>String(y.ts)===llId); if(x){x.k=k;x.com=com;x.fll=f;x.sent=false}}
+  else {x={ts:Date.now(),k,com,f,fll:f,sent:false}; RE.push(x);}
+  try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
+  fbSyncRemesa(x);
+  pintaRE(); closeAll();
+  toast(fbReady?'Registrada · se avisa sola a Iquique':'Registrada · sin internet, avísale por WhatsApp');
+});
+let llId=null;
+document.addEventListener('click',async e=>{
+  const l=e.target.closest('[data-rell]');
+  if(l){llId=l.dataset.rell; const x=RE.find(y=>String(y.ts)===llId);
+    $('#llC').textContent=x?('Registrada el '+fd(x.fll||x.f)):'';
+    $('#llK').value=x?(x.k||''):'';$('#llCom').value=x?(x.com||''):'';$('#llD').value=x?(x.fll||x.f):iso();
+    openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240); return}
+  const d=e.target.closest('[data-redel]'); if(!d)return;
+  const delTs=d.dataset.redel;
+  RE=RE.filter(x=>String(x.ts)!==delTs);
+  try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
+  fbDeleteRemesa(delTs);
+  pintaRE();
+});
+$('#reSend').addEventListener('click',async()=>{
+  const p=RE.filter(x=>x.k&&!x.sent);
+  if(!p.length){toast('No hay remesas por informar');return}
+  const txt='Remesas recibidas en Corea\n\n'+p.map(x=>
+    `${fd(x.fll||x.f)} — llegaron ${Math.round(x.k).toLocaleString('es-CL')} ₩`
+    +(x.com?` (comisión ${Math.round(x.com).toLocaleString('es-CL')} ₩)`:'')).join('\n');
+  try{ if(navigator.share){await navigator.share({text:txt,title:'Remesas AMK'});}
+       else { await navigator.clipboard.writeText(txt); toast('Copiado'); } }
+  catch(e){ if(e&&e.name==='AbortError')return; try{await navigator.clipboard.writeText(txt);toast('Copiado')}catch(_){} }
+  RE.forEach(x=>x.sent=true);
+  try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
+  pintaRE();
+});
+fbInit();
+boot();
+</script></body></html>
