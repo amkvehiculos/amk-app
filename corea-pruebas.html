@@ -49,6 +49,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .b-pri{background:var(--plata);color:#0B1C23}
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
 .empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
+.search{width:100%;border:1px solid var(--line);border-radius:11px;padding:12px 13px;font-size:16px;background:var(--card);color:var(--ink);margin-bottom:11px}
 .cnt{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin:14px 0 9px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--seaL);border-top:1px solid var(--btn2b);display:flex;padding-bottom:env(safe-area-inset-bottom)}
 .tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:11px;font-weight:600;color:var(--mute);cursor:pointer;position:relative}
@@ -81,6 +82,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .webtip{font-size:12px;color:var(--mute);margin:-3px 0 11px;line-height:1.4}
 .updrop{border:1.5px dashed var(--line);border-radius:11px;padding:18px;text-align:center;color:var(--mute);font-size:13.5px;cursor:pointer;background:var(--seaL);margin-bottom:11px}
 .mtr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
+.v360{position:relative;background:var(--seaL);border-radius:12px;overflow:hidden;aspect-ratio:4/3;margin-bottom:12px;touch-action:pan-y}
+.v360 img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.v360 .hint{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(4,18,25,.8);color:#fff;font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:20px}
+.v360 .none{color:var(--mute);font-size:13.5px;text-align:center;padding:36px 20px}
+.prog{display:flex;gap:3px;margin-bottom:10px;flex-wrap:wrap}
+.prog i{flex:1;min-width:6px;height:6px;border-radius:3px;background:var(--line)}
+.prog i.on{background:var(--sea)}
+.prog i.next{background:var(--amber)}
+.g360{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.g360 button{border-radius:10px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.g360 button.pri{background:var(--sea);color:#fff;border-color:var(--sea)}
+.g360 button.wide{grid-column:1/-1}
+.nsel{display:flex;gap:7px;margin-bottom:11px}
+.nsel button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
+.nsel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#0B1C23}
 .phg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
 .ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
@@ -122,6 +138,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
       <div id="demandaList"></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
+    <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
     <p class="cnt" id="cnt"></p>
     <div id="list"></div>
   </section>
@@ -219,6 +236,25 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="sact" style="margin-bottom:6px"><button class="web" id="phWeb" type="button">☁ Subir a la web</button></div>
   <p class="webtip">Aparecen en la página pública mientras nadie en Iquique tenga fotos propias de este auto (útil para los que recién vienen en camino).</p>
   <div class="phg" id="phGrid"></div>
+  <div class="sact"><button class="cx" data-close>Cerrar</button></div>
+</div>
+
+<div class="sheet" id="shMy360">
+  <h3 id="m3T"></h3><div class="sb" id="m3C"></div>
+  <div class="v360" id="m3View"><div class="none" id="m3None">Aún no hay tomas 360°.<br>Elige cuántas y empieza a capturar.</div>
+    <img id="m3Img" alt="" hidden><div class="hint" id="m3Hint" hidden></div></div>
+  <div class="prog" id="m3Prog"></div>
+  <div class="nsel" id="m3N"></div>
+  <div class="g360">
+    <button class="pri wide" id="m3Cam">📷 <span id="m3CamTxt">Tomar toma 1</span></button>
+    <button id="m3Gal">Elegir de galería</button>
+    <button id="m3Undo">Repetir última</button>
+    <button id="m3Play">▶ Girar solo</button>
+    <button class="wide" id="m3Del">Borrar todo</button>
+  </div>
+  <input type="file" id="m3FCam" accept="image/*" capture="environment" hidden>
+  <input type="file" id="m3FGal" accept="image/*" multiple hidden>
+  <p class="webtip" id="m3Msg">Se sube sola en cuanto completes la vuelta. Es la vista 360° de respaldo: si Andre o algún vendedor ya subieron la suya, la tuya queda de respaldo.</p>
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
 
@@ -339,6 +375,7 @@ const FB_USER='corea@amk-vehiculos.app';
 const FB_COL='pruebas_vehiculos';
 const RECOREA_COL='pruebas_remesasCorea';
 const FOTOSVEND_COL='pruebas_fotosVend';
+const F360_VEND_COL='pruebas_f360Vend';
 let fbRecoreaEscuchando=false;
 let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
 const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
@@ -560,7 +597,7 @@ function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p)
  $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on')}
-function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'))}
+function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));if(typeof stopSpinMy360C==='function')stopSpinMy360C()}
 $('#scrim').addEventListener('click',closeAll);
 $$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
 
@@ -609,6 +646,7 @@ $('#fSinCh').addEventListener('click',()=>{
   $('#fCh').disabled=sinCh; $('#fCh').style.opacity=sinCh?.45:1;
   if(sinCh){$('#fCh').value='';$('#wCh').classList.remove('bad')}
 });
+$('#q').addEventListener('input',e=>{q=e.target.value;draw()});
 $('#addV').addEventListener('click',()=>{limpia();$('#fmT').textContent='Nuevo vehículo';openSheet('shForm');setTimeout(()=>$('#fCh').focus(),240)});
 
 $('#fmOk').addEventListener('click',async()=>{
@@ -655,8 +693,16 @@ $('#fmOk').addEventListener('click',async()=>{
   await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
 });
 
+let q='';
 function draw(){
-  const LV=L.filter(v=>!v.soloReferencia);
+  const s=q.trim().toLowerCase();
+  const toks=s?s.split(/\s+/):[];
+  const LV=L.filter(v=>{
+    if(v.soloReferencia)return false;
+    if(!toks.length)return true;
+    const hay=(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase();
+    return toks.every(tk=>hay.includes(tk));
+  });
   const sc=LV.filter(v=>v.ch.startsWith('PEND-')).length;
   $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+LV.filter(v=>!v.sent).length+' por enviar'+(sc?' · '+sc+' sin chasis':''):'';
   $('#list').innerHTML=LV.length?LV.map(v=>{
@@ -676,6 +722,7 @@ function draw(){
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
      ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
      <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Fotos ${v.nf||''}</button>
+      <button class="btn b-sec" data-mi360="${v.ch}" style="flex:0 0 auto">📷 360°${v.n360?' ✓':''}</button>
       ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}" style="flex:0 0 auto">＃</button>`:''}
       <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
       <button class="btn b-sec" data-del="${v.ch}" style="flex:0 0 auto">✕</button></div></div>`}).join('')
@@ -822,10 +869,145 @@ $('#phShare').addEventListener('click',async()=>{
  toast('Descargadas '+n+' fotos')});
 $('#phWeb').addEventListener('click',subirFotosWeb);
 
+
+/* --- mi 360° (Corea): misma arquitectura y prioridad que las fotos normales
+   (Andre > Víctor > Bryan > Corea) -- ver fotosEfectivas360/ordenarFuentes en Sistema,
+   que ya trata 'corea' como la fuente de menor prioridad. */
+const T3VK=c=>'amkc_360_'+c;
+const T3W=900, T3Q=.5, T3CAP=4.4e6;
+const T3VWEBW=260, T3VWEBQ=.45;  /* chico para caber en un documento de Firestore con hasta 24 tomas */
+let t3vCh=null, t3v=[], t3vN=16, t3vI=0, t3vTimer=null, subiendoMy360C=false;
+
+async function loadMy360C(c){
+ t3vCh=c; stopSpinMy360C();
+ t3v=[]; try{const r=await window.storage.get(T3VK(c)); if(r&&r.value){const o=JSON.parse(r.value); t3v=o.f||[]; t3vN=o.n||16}}catch(e){}
+ t3vI=0;
+ const v=L.find(x=>x.ch===c); $('#m3T').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#m3C').textContent=v.ch;
+ openSheet('shMy360'); drawMy360C();
+}
+function drawMy360C(){
+ $('#m3N').innerHTML=[12,16,24].map(n=>`<button data-m3n="${n}" aria-pressed="${n===t3vN}" ${t3v.length?'disabled style="opacity:.4"':''}>${n} tomas</button>`).join('');
+ const done=t3v.length, full=done>=t3vN;
+ $('#m3Prog').innerHTML=Array.from({length:t3vN},(_,i)=>`<i class="${i<done?'on':(i===done?'next':'')}"></i>`).join('');
+ if(done){
+  $('#m3None').hidden=true; $('#m3Img').hidden=false; $('#m3Hint').hidden=false;
+  if(t3vI>=done) t3vI=0;
+  $('#m3Img').src=t3v[t3vI];
+  $('#m3Hint').textContent=full?`Arrastra para girar · ${t3vI+1}/${done}`:`${done} de ${t3vN} tomas`;
+ }else{
+  $('#m3None').hidden=false; $('#m3Img').hidden=true; $('#m3Hint').hidden=true;
+ }
+ $('#m3CamTxt').textContent=full?'Completo':'Tomar toma '+(done+1);
+ $('#m3Cam').disabled=full; $('#m3Cam').style.opacity=full?.45:1;
+ $('#m3Msg').textContent = full
+  ? (subiendoMy360C ? 'Subiendo a la nube…' : '✓ Completo · ya la ve Andre')
+  : 'Se sube sola en cuanto completes la vuelta. Es la vista 360° de respaldo: si Andre o algún vendedor ya subieron la suya, la tuya queda de respaldo.';
+}
+async function saveMy360C(){
+ try{ if(t3v.length) await window.storage.set(T3VK(t3vCh),JSON.stringify({n:t3vN,f:t3v})); else await window.storage.delete(T3VK(t3vCh)); }
+ catch(e){ toast('No se pudo guardar el 360'); return; }
+ const v=L.find(x=>x.ch===t3vCh); if(v) v.n360=t3v.length>=t3vN?t3vN:0;
+ await save(); drawMy360C(); draw();
+ if(t3v.length>=t3vN) subirMy360NubeC(t3vCh,t3v,t3vN);
+ else limpiarMy360NubeC(t3vCh);
+}
+async function subirMy360NubeC(ch,arr,n){
+ if(!fbReady){toast('Sin conexión con la nube ahora mismo, se subirá cuando vuelvas a tener señal');return}
+ if(subiendoMy360C) return;
+ subiendoMy360C=true; drawMy360C();
+ try{
+  const urls=[];
+  for(let i=0;i<n;i++){
+   const chica=(await shrinkDataURI(arr[i],T3VWEBW,T3VWEBQ))||arr[i];
+   urls.push(chica);
+  }
+  await fbDb.collection(F360_VEND_COL).doc(ch+'__corea').set({
+   ch, fuente:'corea', nombre:'Corea', fotos:urls,
+   ts:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  toast('Vista 360° subida ✓');
+ }catch(e){
+  console.error('subirMy360NubeC',e);
+  toast('No se pudo subir la vista 360°: '+(e.message||e.code||e));
+ }finally{
+  subiendoMy360C=false; drawMy360C();
+ }
+}
+async function limpiarMy360NubeC(ch){
+ if(!fbReady) return;
+ try{ await fbDb.collection(F360_VEND_COL).doc(ch+'__corea').delete(); }catch(_){}
+}
+function stopSpinMy360C(){if(t3vTimer){clearInterval(t3vTimer);t3vTimer=null; const b=$('#m3Play'); if(b)b.textContent='▶ Girar solo'}}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-m3n]'); if(!b||t3v.length)return;
+ t3vN=+b.dataset.m3n; drawMy360C();
+});
+$('#m3Cam').addEventListener('click',()=>$('#m3FCam').click());
+$('#m3Gal').addEventListener('click',()=>$('#m3FGal').click());
+$('#m3FCam').addEventListener('change',async e=>{
+ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+ try{
+  const d=await shrink(f,T3W,T3Q);
+  if(t3v.reduce((a,b)=>a+b.length,0)*.75+d.length*.75>T3CAP){toast('Espacio lleno');return}
+  t3v.push(d); t3vI=t3v.length-1; await saveMy360C();
+  if(t3v.length<t3vN) toast('Toma '+t3v.length+' de '+t3vN+' · muévete un poco y sigue');
+  else toast('360° completo, subiendo…');
+ }catch(_){toast('No se pudo leer la foto')}
+});
+$('#m3FGal').addEventListener('change',async e=>{
+ const fs=[...e.target.files]; e.target.value=''; if(!fs.length) return;
+ const room=t3vN-t3v.length; if(room<=0){toast('Ya está completo');return}
+ toast('Procesando '+Math.min(fs.length,room)+' tomas…');
+ for(const f of fs.slice(0,room)){
+  try{
+   const d=await shrink(f,T3W,T3Q);
+   if(t3v.reduce((a,b)=>a+b.length,0)*.75+d.length*.75>T3CAP){toast('Espacio lleno');break}
+   t3v.push(d);
+  }catch(_){}
+ }
+ t3vI=0; await saveMy360C();
+});
+$('#m3Undo').addEventListener('click',async()=>{
+ if(!t3v.length){toast('No hay tomas');return}
+ t3v.pop(); t3vI=Math.max(0,t3v.length-1); await saveMy360C(); toast('Última toma eliminada');
+});
+$('#m3Del').addEventListener('click',async()=>{
+ if(!t3v.length)return;
+ if(!confirm('¿Borrar todas tus tomas 360° de este vehículo?'))return;
+ t3v=[]; t3vI=0; stopSpinMy360C(); await saveMy360C(); toast('360° eliminado');
+});
+(function(){
+ const el=$('#m3View'); let x0=null, i0=0;
+ const down=e=>{if(t3v.length<2)return; stopSpinMy360C(); x0=(e.touches?e.touches[0].clientX:e.clientX); i0=t3vI};
+ const move=e=>{
+  if(x0===null)return;
+  const x=(e.touches?e.touches[0].clientX:e.clientX);
+  const step=Math.max(14,el.clientWidth/t3v.length);
+  let k=(i0 - Math.round((x-x0)/step)) % t3v.length;
+  if(k<0)k+=t3v.length;
+  if(k!==t3vI){t3vI=k; $('#m3Img').src=t3v[t3vI];
+   $('#m3Hint').textContent=`Arrastra para girar · ${t3vI+1}/${t3v.length}`}
+  if(e.cancelable)e.preventDefault();
+ };
+ const up=()=>{x0=null};
+ el.addEventListener('mousedown',down); el.addEventListener('touchstart',down,{passive:true});
+ window.addEventListener('mousemove',move); el.addEventListener('touchmove',move,{passive:false});
+ window.addEventListener('mouseup',up); el.addEventListener('touchend',up);
+})();
+$('#m3Play').addEventListener('click',()=>{
+ if(t3vTimer){stopSpinMy360C();return}
+ if(t3v.length<2){toast('Faltan tomas');return}
+ $('#m3Play').textContent='⏸ Detener';
+ t3vTimer=setInterval(()=>{t3vI=(t3vI+1)%t3v.length; $('#m3Img').src=t3v[t3vI];
+  $('#m3Hint').textContent=`Girando · ${t3vI+1}/${t3v.length}`},110);
+});
+
 document.addEventListener('click',async e=>{
  const p=e.target.closest('[data-photo]'),ed=e.target.closest('[data-edit]'),
-  dl=e.target.closest('[data-del]'),m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]');
+  dl=e.target.closest('[data-del]'),m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),
+  m3b=e.target.closest('[data-mi360]');
  if(p){openPhotos(p.dataset.photo);return}
+ if(m3b){loadMy360C(m3b.dataset.mi360);return}
  if(m){const[i,d]=m.dataset.mv.split('|').map(Number),j=i+d;if(j<0||j>=phArr.length)return;
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
