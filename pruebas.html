@@ -534,7 +534,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-09-2026 14:15 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-09-2026 16:58 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Categorías nuevas por revisar</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div></div>
@@ -543,11 +543,35 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="insumosList"></div></div>
     <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
       <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
-      <div class="fld"><label for="dcMarca">Marca</label><input id="dcMarca" placeholder="Ej: Hyundai"></div>
-      <div class="fld"><label for="dcModelo">Modelo</label><input id="dcModelo" placeholder="Ej: Santa Fe"></div>
+      <div class="fld"><label for="dcMarca">Marca</label>
+        <input id="dcMarca" list="dlDcMarca" autocomplete="off" placeholder="Ej: Hyundai (o escribe una nueva)">
+        <datalist id="dlDcMarca"></datalist></div>
+      <div class="fld"><label for="dcModelo">Modelo</label>
+        <input id="dcModelo" list="dlDcModelo" autocomplete="off" placeholder="Ej: Santa Fe (o escribe uno nuevo)">
+        <datalist id="dlDcModelo"></datalist></div>
       <div class="fld"><label for="dcAnioD">Año desde</label><input id="dcAnioD" inputmode="numeric" placeholder="Ej: 2014"></div>
       <div class="fld"><label for="dcAnioH">Año hasta (opcional)</label><input id="dcAnioH" inputmode="numeric" placeholder="Ej: 2015"></div>
-      <div class="fld"><label for="dcCarac">Características (opcional)</label><input id="dcCarac" placeholder="Ej: techo panorámico, 7 asientos"></div>
+      <div class="fld"><label>Motor</label>
+        <div class="chips" id="dcMotor" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="DIESEL">Diésel</button>
+          <button type="button" class="chip" data-val="BENCINA">Bencina</button>
+        </div></div>
+      <div class="fld"><label>Pasajeros</label>
+        <div class="chips" id="dcPas" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="05 PASAJEROS">5</button>
+          <button type="button" class="chip" data-val="07 PASAJEROS">7</button>
+        </div></div>
+      <div class="fld"><label>Tracción</label>
+        <div class="chips" id="dcTrac" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="TRACCION 4X2">4X2</button>
+          <button type="button" class="chip" data-val="TRACCION 4X4">4X4</button>
+        </div></div>
+      <div class="fld"><label>Otras características (opcional)</label>
+        <div class="chips" id="dcCaracChips" style="text-transform:uppercase"></div>
+        <input id="dcCarac" placeholder="Otra característica (opcional)" style="margin-top:8px"></div>
       <button class="btn b-pri" id="dcOk" style="width:100%">Anotar demanda</button>
       <div id="demandaList" style="margin-top:12px"></div></div>
     <div class="box"><h3>Impuesto Ley 18.211</h3>
@@ -941,6 +965,36 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="sact" style="margin-top:11px"><button class="cx" data-close>Cerrar</button></div>
 </div>
 
+<div class="sheet" id="shEditVeh">
+  <h3 id="evT"></h3><div class="sb" id="evC"></div>
+  <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evMaSel">Marca</label><select id="evMaSel"></select>
+      <input id="evMa" list="dlNvMa" autocapitalize="characters" placeholder="Escribe la marca" style="margin-top:6px" hidden></div>
+    <div class="fld"><label for="evMoSel">Modelo</label><select id="evMoSel"></select>
+      <input id="evMo" list="dlNvMo" autocapitalize="characters" placeholder="Escribe el modelo" style="margin-top:6px" hidden></div>
+  </div>
+  <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evAn">Año</label><input id="evAn" inputmode="numeric" placeholder="2018"></div>
+    <div class="fld"><label for="evCeSel">Color</label><select id="evCeSel"></select>
+      <input id="evCe" list="dlNvCe" autocapitalize="characters" placeholder="Escribe el color" style="margin-top:6px" hidden></div>
+  </div>
+  <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evTr">Tracción</label><select id="evTr"><option value="4X2">4X2</option><option value="4X4">4X4</option></select></div>
+    <div class="fld"><label for="evPa">Pasajeros</label><input id="evPa" inputmode="numeric" placeholder="7"></div>
+  </div>
+  <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evCatSel">Categoría</label><select id="evCatSel"></select>
+      <input id="evCat" placeholder="Escribe la categoría" style="margin-top:6px" hidden></div>
+    <div class="fld"><label for="evCaSel">Carrocería</label><select id="evCaSel"></select>
+      <input id="evCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
+  </div>
+  <div class="fld"><label>Otros</label><div class="catg" style="grid-template-columns:1fr 1fr">
+    <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button>
+    <button class="cg" type="button" id="evSv" aria-pressed="false">Sello verde</button></div></div>
+  <div class="mtr" style="margin-top:4px">Corrige los datos del vehículo (no toca estado, ventas ni costos). Se sincroniza solo con la nube.</div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="evOk">Guardar</button></div>
+</div>
+
 <div class="sheet" id="shPub">
   <h3 id="spT"></h3><div class="sb" id="spC"></div>
   <div class="fld"><label>Estado en la web</label><div class="catg" style="grid-template-columns:repeat(2,1fr)">
@@ -1015,13 +1069,35 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <div class="sheet" id="shImg">
   <h3 id="imT">Imágenes para Marketplace</h3><div class="sb" id="imC"></div>
   <div class="fld"><label for="imTitulo">Título</label><input id="imTitulo" placeholder="KIA SORENTO 2010"></div>
-  <div class="fld"><label>Características (hasta 5)</label>
-    <input id="imF1" placeholder="PARA PRIMER DUEÑO, ZOFRI" style="margin-bottom:7px">
-    <input id="imF2" placeholder="MOTOR DIESEL, 2.200cc" style="margin-bottom:7px">
-    <input id="imF3" placeholder="TECHO PANORAMICO" style="margin-bottom:7px">
-    <input id="imF4" placeholder="07 PASAJEROS" style="margin-bottom:7px">
-    <input id="imF5" placeholder="PANT. BLUET. C/ CAM. RETROC."></div>
-  <div class="fld"><label for="imDest">Destacado de la portada</label><input id="imDest" placeholder="T.PANORAM. | R. BLUET."></div>
+  <div class="fld"><label>Motor</label>
+    <div class="chips" id="imMotor" style="text-transform:uppercase">
+      <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+      <button type="button" class="chip" data-val="DIESEL">Diésel</button>
+      <button type="button" class="chip" data-val="BENCINA">Bencina</button>
+    </div></div>
+  <div class="fld"><label>Cilindrada</label>
+    <div class="chips" id="imCil" style="text-transform:uppercase">
+      <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+      <button type="button" class="chip" data-val="1.6">1.6</button>
+      <button type="button" class="chip" data-val="1.7">1.7</button>
+      <button type="button" class="chip" data-val="2.0">2.0</button>
+      <button type="button" class="chip" data-val="2.2">2.2</button>
+      <button type="button" class="chip" data-val="2.5">2.5</button>
+      <button type="button" class="chip" data-val="3.0">3.0</button>
+    </div></div>
+  <div class="fld"><label>Pasajeros</label>
+    <div class="chips" id="imPas" style="text-transform:uppercase"></div></div>
+  <div class="fld"><label>Tracción</label>
+    <div class="chips" id="imTrac" style="text-transform:uppercase">
+      <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+      <button type="button" class="chip" data-val="TRACCION 4X2">4X2</button>
+      <button type="button" class="chip" data-val="TRACCION 4X4">4X4</button>
+    </div></div>
+  <div class="fld"><label>Otras características <span style="color:var(--mute);font-weight:400;font-size:12px">(máx. 6 en total, con lo anterior)</span></label>
+    <div class="chips" id="imCarac" style="text-transform:uppercase"></div>
+    <input id="imOtro" placeholder="Otra característica (opcional)" style="margin-top:8px"></div>
+  <div class="fld"><label>Destacado <span style="color:var(--mute);font-weight:400;font-size:12px">(máx. 2, entre lo marcado arriba)</span></label>
+    <div class="chips" id="imDestPick" style="text-transform:uppercase"></div></div>
   <div class="fld"><label>Plantilla</label><div class="catg" style="grid-template-columns:repeat(3,1fr)" id="imTpl">
     <button class="cg" data-tpl="A" aria-pressed="true">A · Andre</button>
     <button class="cg" data-tpl="B" aria-pressed="false">B · Víctor</button>
@@ -1332,7 +1408,7 @@ function fbApplyRemote(ch, pub, priv){
 let fbDrawTimer=null;
 function fbDibujaPronto(){
   clearTimeout(fbDrawTimer);
-  fbDrawTimer=setTimeout(()=>{ try{ draw(); }catch(e){ console.error('draw',e); } }, 200);
+  fbDrawTimer=setTimeout(()=>{ try{ draw(); pintaDlMarcasModelos(); }catch(e){ console.error('draw',e); } }, 200);
 }
 function fbStartListening(){
   if(!fbReady) return;
@@ -2031,7 +2107,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
@@ -2112,6 +2188,7 @@ function cardS(v){
      : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`}
      <button class="btn b-sec" data-photo="${v.ch}" style="flex:0 0 auto">▣ ${nf||''}</button>
      ${nf?`<button class="btn b-sec" data-share="${v.ch}" style="flex:0 0 auto">➦</button>`:''}
+     <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
    </div></div></div>`;
 }
 
@@ -2382,9 +2459,10 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     vseg('venta'); loadCarnet(v.ch);
     openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx]');
+  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx],[data-edit]');
   if(!b)return;
   if(b.dataset.sell) abrirVentaSheet(b.dataset.sell);
+  if(b.dataset.edit) abrirEditVeh(b.dataset.edit);
   if(b.dataset.cost)  openCost(b.dataset.cost);
   if(b.dataset.und)   {const c=b.dataset.und;S[c].sold=false;S[c].price='';S[c].date='';save();draw();toast('Volvió a patio')}
   if(b.dataset.pub)   {const v=IDX[b.dataset.pub],t=st(v.ch);editing=v.ch;
@@ -3695,6 +3773,38 @@ let DEMANDA=[], fbDemandaEscuchando=false;
 /* Cuenta cuantas veces se ha preguntado por una marca/modelo en TODO el historial (atendidas
    incluidas), normalizando espacios/mayusculas/acentos, para que Andre vea que tan pedido esta. */
 function normDemanda(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
+const DC_CARAC_OPTS=['TECHO PANORAMICO','MECANICO'];
+let dcCaracSel=new Set(), dcMotorSel='', dcPasSel='', dcTracSel='';
+function dcEligeUnico(contId,getCur,setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val;
+    const nuevo=(getCur()===val)?'':val;
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+  });
+}
+dcEligeUnico('#dcMotor', ()=>dcMotorSel, v=>{dcMotorSel=v});
+dcEligeUnico('#dcPas', ()=>dcPasSel, v=>{dcPasSel=v});
+dcEligeUnico('#dcTrac', ()=>dcTracSel, v=>{dcTracSel=v});
+function pintaDcCaracChips(){
+  const el=$('#dcCaracChips'); if(!el) return;
+  el.innerHTML=DC_CARAC_OPTS.map(o=>
+    `<button type="button" class="chip" data-dc="${o}" aria-selected="${dcCaracSel.has(o)}">${o}</button>`
+  ).join('');
+}
+function pintaDlMarcasModelos(){
+  const dlM=$('#dlDcMarca'), dlMo=$('#dlDcModelo'); if(!dlM||!dlMo) return;
+  const marcas=new Set();
+  V.forEach(v=>{if(v.ma) marcas.add(v.ma)});
+  DEMANDA.forEach(d=>{if(d.marca) marcas.add(d.marca)});
+  dlM.innerHTML=[...marcas].sort().map(m=>`<option value="${m.replace(/"/g,'&quot;')}">`).join('');
+  const marcaAct=normDemanda($('#dcMarca')?$('#dcMarca').value:'');
+  const modelos=new Set();
+  V.forEach(v=>{if(v.mo&&(!marcaAct||normDemanda(v.ma)===marcaAct)) modelos.add(v.mo)});
+  DEMANDA.forEach(d=>{if(d.modelo&&(!marcaAct||normDemanda(d.marca)===marcaAct)) modelos.add(d.modelo)});
+  dlMo.innerHTML=[...modelos].sort().map(m=>`<option value="${m.replace(/"/g,'&quot;')}">`).join('');
+}
 function contarDemanda(marca,modelo){
   const km=normDemanda(marca), ko=normDemanda(modelo);
   if(!km && !ko) return 0;
@@ -3703,6 +3813,7 @@ function contarDemanda(marca,modelo){
 async function cargaDemandaLocal(){
   try{const r=await window.storage.get('amk_demanda_cache'); if(r&&r.value){const a=JSON.parse(r.value); if(Array.isArray(a)) DEMANDA=a;}}catch(e){}
   pintaDemanda();
+  pintaDlMarcasModelos();
 }
 function fbDemandaListen(){
   if(fbDemandaEscuchando||!fbReady) return;
@@ -3713,6 +3824,7 @@ function fbDemandaListen(){
     DEMANDA=arr.sort((a,b)=>b.ts-a.ts);
     try{window.storage.set('amk_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
     pintaDemanda();
+    pintaDlMarcasModelos();
   }, e=>console.error('fbDemandaListen',e));
 }
 function pintaDemanda(){
@@ -3740,18 +3852,31 @@ document.addEventListener('click',async e=>{
     pintaDemanda();
   }
 });
+$('#dcMarca').addEventListener('input', pintaDlMarcasModelos);
+$('#dcCaracChips').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dc]'); if(!b) return;
+  const o=b.dataset.dc;
+  if(dcCaracSel.has(o)) dcCaracSel.delete(o); else dcCaracSel.add(o);
+  b.setAttribute('aria-selected', dcCaracSel.has(o)?'true':'false');
+});
 $('#dcOk').addEventListener('click', async()=>{
   const marca=$('#dcMarca').value.trim(), modelo=$('#dcModelo').value.trim();
   if(!marca&&!modelo){toast('Escribe al menos la marca o el modelo');return}
   if(!fbReady){toast('No hay conexión con la nube todavía');return}
   const anioDesde=pnum($('#dcAnioD').value)||null, anioHastaRaw=pnum($('#dcAnioH').value);
   const anioHasta=anioHastaRaw||anioDesde;
-  const caracteristicas=$('#dcCarac').value.trim();
+  const extra=$('#dcCarac').value.trim();
+  const motorTxt=dcMotorSel?('MOTOR '+dcMotorSel):'';
+  const caracteristicas=[motorTxt, dcPasSel, dcTracSel, ...dcCaracSel, extra].filter(Boolean).join(', ');
   const ts=Date.now();
   try{
     await fbDb.collection(DEMANDA_COL).doc(String(ts)).set({ marca, modelo, anioDesde, anioHasta, caracteristicas, vendedor:'Andre', ts });
     toast('Anotado');
     $('#dcMarca').value=''; $('#dcModelo').value=''; $('#dcAnioD').value=''; $('#dcAnioH').value=''; $('#dcCarac').value='';
+    dcCaracSel=new Set(); pintaDcCaracChips();
+    dcMotorSel=''; dcPasSel=''; dcTracSel='';
+    $$('#dcMotor .chip,#dcPas .chip,#dcTrac .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    pintaDlMarcasModelos();
   }catch(e){ console.error('anotaDemandaSistema',e); toast('No se pudo guardar, revisa tu conexión'); }
 });
 
@@ -5496,17 +5621,17 @@ function genFicha(v,titulo,feats,tpl){
   x.strokeStyle=MK.plata2; x.lineWidth=3;
   x.beginPath(); x.moveTo(60,44); x.lineTo(S-60,44); x.stroke();
   dibujaLogo(x,(S-460)/2,92,460,MK.plata,MK.plata2);
-  const bx=110,by=352,bw=S-220,bh=336;
+  const bx=110,by=352,bw=S-220,bh=372;
   x.fillStyle=T.panel; x.beginPath(); x.roundRect(bx,by,bw,bh,18); x.fill();
   x.textAlign='center'; x.fillStyle='#EAF0F1';
   let fs=ajusta(x,titulo,bw-60,58,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
   x.fillText(titulo,S/2,by+76);
   x.textAlign='left';
-  feats.filter(Boolean).slice(0,5).forEach(function(f,i){
-    const yy=by+142+i*44;
+  feats.filter(Boolean).slice(0,6).forEach(function(f,i){
+    const yy=by+128+i*40;
     x.fillStyle=MK.plata; x.beginPath(); x.arc(bx+42,yy-9,7,0,7); x.fill();
     x.fillStyle='#EAF0F1';
-    const s2=ajusta(x,f,bw-120,30,'700'); x.font='700 '+s2+'px Archivo, Arial, sans-serif';
+    const s2=ajusta(x,f,bw-120,28,'700'); x.font='700 '+s2+'px Archivo, Arial, sans-serif';
     x.fillText(f,bx+68,yy);
   });
   x.fillStyle=MK.plata; x.textAlign='left';
@@ -5522,21 +5647,120 @@ function genFicha(v,titulo,feats,tpl){
   x.fillText(MK.dir,S/2,1000);
   return c;
 }
-function autoFeats(v){
-  const f=['PARA PRIMER DUEÑO, ZOFRI','MOTOR DIESEL'];
-  if(v.tp) f.push('TECHO PANORAMICO');
-  if(v.pa) f.push(String(v.pa).padStart(2,'0')+' PASAJEROS');
-  if(v.tr) f.push('TRACCION '+v.tr);
-  if(v.ca&&v.ca!=='S/N') f.push(String(v.ca).toUpperCase());
-  return f.slice(0,5);
+let imMotorSel='', imCilSel='', imPasSel='', imTracSel='', imCaracSel=new Set(), imDestSel=[];
+function imMotorTexto(){
+  const partes=[]; if(imMotorSel) partes.push(imMotorSel); if(imCilSel) partes.push(imCilSel);
+  return partes.length ? ('MOTOR '+partes.join(' ')) : '';
 }
+function imTracPasTexto(){
+  const partes=[]; if(imTracSel) partes.push(imTracSel.replace('TRACCION ','')); if(imPasSel) partes.push(imPasSel);
+  return partes.join(' / ');
+}
+function imFeatsBase(){ return [imMotorTexto(), imTracPasTexto(), ...imCaracSel].filter(Boolean); }
+function imFeatsDestacables(){ return [imMotorTexto(), imTracSel, imPasSel, ...imCaracSel].filter(Boolean); }
+function imDefsCarac(v){
+  const defs=[{label:'PARA PRIMER DUEÑO, ZOFRI', on:true}];
+  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp)});
+  if(v&&v.ca&&v.ca!=='S/N') defs.push({label:(CARN[v.ca]||v.ca).toString().toUpperCase(), on:true});
+  ['PANT. BLUETOOTH + CAM. RETROCESO','RADIO ANDROID + CAM. RETROCESO','AROS DE ALEACION DEPORTIVOS','DOBLE TUBO DE ESCAPE']
+    .forEach(l=>defs.push({label:l, on:false}));
+  return defs;
+}
+function pintaImCarac(v){
+  const defs=imDefsCarac(v);
+  imCaracSel=new Set(defs.filter(d=>d.on).map(d=>d.label));
+  $('#imCarac').innerHTML=defs.map(d=>
+    `<button type="button" class="chip" data-car="${d.label.replace(/"/g,'&quot;')}" aria-selected="${imCaracSel.has(d.label)}">${d.label}</button>`
+  ).join('');
+}
+function imPasOpts(v){
+  const base=[5,7];
+  if(v&&v.pa&&!base.includes(Number(v.pa))) base.push(Number(v.pa));
+  return base.sort((a,b)=>a-b);
+}
+function pintaImPas(v){
+  $('#imPas').innerHTML='<button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>'
+    + imPasOpts(v).map(n=>`<button type="button" class="chip" data-val="${String(n).padStart(2,'0')} PASAJEROS">${n}</button>`).join('');
+}
+function pintaImDestOpciones(){
+  const feats=imFeatsDestacables();
+  imDestSel=imDestSel.filter(f=>feats.includes(f));
+  const el=$('#imDestPick'); if(!el) return;
+  if(!feats.length){ el.innerHTML='<span style="color:var(--mute);font-size:12.5px">Marca alguna característica arriba para poder destacarla.</span>'; return; }
+  el.innerHTML=feats.map(f=>{
+    const on=imDestSel.includes(f);
+    return `<button type="button" class="chip" data-destf="${f.replace(/"/g,'&quot;')}" aria-selected="${on}">${on?'★ ':''}${f}</button>`;
+  }).join('');
+}
+function imClickMotorCil(contId, getCur, setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val;
+    const nuevo=(getCur()===val)?'':val;
+    const creariaCupoNuevo = !imMotorSel && !imCilSel && nuevo;
+    if(creariaCupoNuevo && imFeatsBase().length>=6){
+      toast('Máximo 6 características en la imagen, saca alguna primero'); return;
+    }
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+    pintaImDestOpciones();
+  });
+}
+function imClickTracPas(contId, getCur, setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val;
+    const nuevo=(getCur()===val)?'':val;
+    const creariaCupoNuevo = !imTracSel && !imPasSel && nuevo;
+    if(creariaCupoNuevo && imFeatsBase().length>=6){
+      toast('Máximo 6 características en la imagen, saca alguna primero'); return;
+    }
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+    pintaImDestOpciones();
+  });
+}
+imClickMotorCil('#imMotor', ()=>imMotorSel, v=>{imMotorSel=v});
+imClickMotorCil('#imCil', ()=>imCilSel, v=>{imCilSel=v});
+imClickTracPas('#imPas', ()=>imPasSel, v=>{imPasSel=v});
+imClickTracPas('#imTrac', ()=>imTracSel, v=>{imTracSel=v});
+$('#imCarac').addEventListener('click',e=>{
+  const b=e.target.closest('[data-car]'); if(!b) return;
+  const lab=b.dataset.car;
+  if(imCaracSel.has(lab)){ imCaracSel.delete(lab); }
+  else{
+    if(imFeatsBase().length>=6){ toast('Máximo 6 características en la imagen'); return; }
+    imCaracSel.add(lab);
+  }
+  b.setAttribute('aria-selected', imCaracSel.has(lab)?'true':'false');
+  pintaImDestOpciones();
+});
+$('#imDestPick').addEventListener('click',e=>{
+  const b=e.target.closest('[data-destf]'); if(!b) return;
+  const f=b.dataset.destf;
+  if(imDestSel.includes(f)){ imDestSel=imDestSel.filter(x=>x!==f); }
+  else{
+    if(imDestSel.length>=2){ toast('Máximo 2 destacados'); return; }
+    imDestSel.push(f);
+  }
+  pintaImDestOpciones();
+});
 $('#genImg').addEventListener('click',function(){
   if(!gv){toast('Elige un vehículo');return}
   $('#imC').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'')+' · '+gv.ch;
   $('#imTitulo').value=(gv.ma+' '+gv.mo+' '+(gv.an||'')).toUpperCase();
-  const f=autoFeats(gv);
-  [1,2,3,4,5].forEach(i=>{$('#imF'+i).value=f[i-1]||''});
-  $('#imDest').value=gv.tp?'T. PANORAMICO':'';
+  imMotorSel=''; imCilSel='';
+  $$('#imMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+  $$('#imCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+  pintaImPas(gv);
+  imPasSel=gv.pa?(String(gv.pa).padStart(2,'0')+' PASAJEROS'):'';
+  $$('#imPas .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===imPasSel?'true':'false'));
+  imTracSel=(gv.tr==='4X2'||gv.tr==='4X4')?('TRACCION '+gv.tr):'';
+  $$('#imTrac .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===imTracSel?'true':'false'));
+  pintaImCarac(gv);
+  imDestSel=(!gv.trab&&gv.tp)?['TECHO PANORAMICO']:[];
+  pintaImDestOpciones();
+  $('#imOtro').value='';
   $('#imPrev').innerHTML=''; $('#imActs').hidden=true; $('#imMk').hidden=true; imBlobs=[];
   openSheet('shImg');
 });
@@ -5555,8 +5779,10 @@ $('#imGen').addEventListener('click',async function(){
     let foto='';
     try{const r=await window.storage.get('amk_fotos_'+gv.ch);
       if(r&&r.value){const a=JSON.parse(r.value); foto=a[0]||''}}catch(_){}
-    const feats=[1,2,3,4,5].map(i=>$('#imF'+i).value.trim()).filter(Boolean);
-    const c1=await genPortada(gv,foto,$('#imDest').value.trim(),tplSel);
+    const otro=$('#imOtro').value.trim();
+    const feats=[...imFeatsBase(), otro].filter(Boolean).slice(0,6);
+    const dest=imDestSel.join(' · ');
+    const c1=await genPortada(gv,foto,dest,tplSel);
     const c2=genFicha(gv,$('#imTitulo').value.trim(),feats,tplSel);
     $('#imPrev').innerHTML='<div class="ph" style="aspect-ratio:1"><img src="'+c1.toDataURL('image/jpeg',.9)+'" alt="Portada"></div>'
       +'<div class="ph" style="aspect-ratio:1"><img src="'+c2.toDataURL('image/jpeg',.9)+'" alt="Ficha"></div>';
@@ -6500,6 +6726,8 @@ const SELOTRO=[
   ['nvCatSel','nvCat',()=>selOtroValores('cat')],['nvCaSel','nvCa',()=>selOtroValores('ca')],['nvProvSel','nvProv',()=>selOtroValores('prov')],
   ['emVNMaSel','emVNMa',()=>marcasValores()],['emVNMoSel','emVNMo',()=>modelosDe($('#emVNMa').value)],['emVNCeSel','emVNCe',()=>selOtroValores('ce')],
   ['emVNCatSel','emVNCat',()=>selOtroValores('cat')],['emVNCaSel','emVNCa',()=>selOtroValores('ca')],['emVNProvSel','emVNProv',()=>selOtroValores('prov')],
+  ['evMaSel','evMa',()=>marcasValores()],['evMoSel','evMo',()=>modelosDe($('#evMa').value)],['evCeSel','evCe',()=>selOtroValores('ce')],
+  ['evCatSel','evCat',()=>selOtroValores('cat')],['evCaSel','evCa',()=>selOtroValores('ca')],
 ];
 function selOtroValores(campo){
   if(campo==='ca') return ['BARANDA BAJA','FREEZER','GAVIOTA','CAJÓN SIMPLE','POWER GATE'];
@@ -6607,6 +6835,52 @@ $('#nvAdd').addEventListener('click',async()=>{
   listasNv(); draw(); drawPick();
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   toast(ma+' '+mo+' agregado');
+});
+
+/* ---------- EDITAR VEHICULO (corregir datos ya cargados) ----------
+   Hoy no hay forma de arreglar marca/modelo/tracción/pasajeros/techo panorámico/etc.
+   de un vehículo despues de creado -- si se ingreso mal, queda mal para siempre. Esta
+   ficha permite corregirlo. A proposito NO toca chasis (es la llave del vehiculo),
+   estado ORIGEN/patio (ya tiene "Volver a patio"/"Vendí este") ni "vehiculo de trabajo"
+   (cambia supuestos de calculo en otras partes de la app, como el sello verde). */
+function abrirEditVeh(ch){
+  const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
+  editing=ch;
+  $('#evT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
+  $('#evC').textContent=v.ch;
+  $('#evMa').value=v.ma||''; $('#evMo').value=v.mo||'';
+  $('#evAn').value=v.an||'';
+  $('#evCe').value=v.ce||'';
+  $('#evTr').value=(v.tr==='4X4')?'4X4':'4X2';
+  $('#evPa').value=v.pa||'';
+  $('#evCat').value=v.cat||'';
+  $('#evCa').value=(v.ca&&v.ca!=='S/N')?v.ca:'';
+  $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
+  $('#evSv').setAttribute('aria-pressed', v.sv?'true':'false');
+  if(typeof listasNv==='function') listasNv();
+  selOtroPinta();
+  openSheet('shEditVeh');
+}
+$('#evTp').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
+$('#evSv').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
+$('#evOk').addEventListener('click',()=>{
+  const ch=editing, v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
+  const ma=$('#evMa').value.trim().toUpperCase(), mo=$('#evMo').value.trim().toUpperCase();
+  if(!ma||!mo){toast('Falta marca o modelo');return}
+  v.ma=ma; v.mo=mo;
+  v.an=pnum($('#evAn').value)||null;
+  v.ce=$('#evCe').value.trim().toUpperCase();
+  v.tr=$('#evTr').value.trim().toUpperCase();
+  v.pa=pnum($('#evPa').value)||null;
+  v.cat=$('#evCat').value.trim().toUpperCase();
+  v.ca=$('#evCa').value.trim().toUpperCase()||'S/N';
+  v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
+  v.sv=$('#evSv').getAttribute('aria-pressed')==='true';
+  guardaCacheV(); draw();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  closeAll();
+  toast('Vehículo actualizado');
 });
 
 /* ---------- EXPORTS ---------- */

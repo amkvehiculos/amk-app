@@ -105,7 +105,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .box{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:11px}
 .box h3{font-family:var(--disp);font-weight:700;font-size:16px;margin:0 0 4px}
 .box p{margin:0 0 11px;font-size:13.5px;color:var(--ink2)}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--seaD);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35);
  padding:12px 17px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.22s;z-index:90;pointer-events:none;max-width:88%;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .pk{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:9px;cursor:pointer}
@@ -158,7 +158,56 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   </section>
 
   <section class="panel" id="pAjustes">
-    <h2>Ajustes</h2><p class="sub">Mantén tu lista al día.</p>
+    <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
+    <div class="chips" id="ajSegs" role="tablist">
+      <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
+      <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
+      <button class="chip" data-aj="cuenta" aria-selected="false">Mi cuenta</button>
+      <button class="chip" data-aj="ayuda" aria-selected="false">Ayuda</button>
+    </div>
+    <div id="ajVender">
+    <div class="box"><h3>Imágenes para publicar</h3>
+      <p>Elige el vehículo (opcional), marca las características y genera las dos imágenes.</p>
+      <div class="fld"><label for="ivV">Vehículo <span style="color:var(--mute);font-weight:400;font-size:12px">(opcional)</span></label>
+        <input id="ivV" list="dlIvV" autocomplete="off" placeholder="Escribe marca, modelo o chasis (o déjalo vacío)">
+        <datalist id="dlIvV"></datalist></div>
+      <div class="fld"><label for="ivTitulo">Título</label><input id="ivTitulo" placeholder="KIA SORENTO 2010"></div>
+      <div class="fld"><label>Motor</label>
+        <div class="chips" id="ivMotor" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="DIESEL" aria-selected="false">Diésel</button>
+          <button type="button" class="chip" data-val="BENCINA" aria-selected="false">Bencina</button>
+        </div></div>
+      <div class="fld"><label>Cilindrada</label>
+        <div class="chips" id="ivCil" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="1.6">1.6</button>
+          <button type="button" class="chip" data-val="1.7">1.7</button>
+          <button type="button" class="chip" data-val="2.0">2.0</button>
+          <button type="button" class="chip" data-val="2.2">2.2</button>
+          <button type="button" class="chip" data-val="2.5">2.5</button>
+          <button type="button" class="chip" data-val="3.0">3.0</button>
+        </div></div>
+      <div class="fld"><label>Pasajeros</label>
+        <div class="chips" id="ivPas" style="text-transform:uppercase"></div></div>
+      <div class="fld"><label>Tracción</label>
+        <div class="chips" id="ivTrac" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="TRACCION 4X2" aria-selected="false">4X2</button>
+          <button type="button" class="chip" data-val="TRACCION 4X4" aria-selected="false">4X4</button>
+        </div></div>
+      <div class="fld"><label>Otras características <span style="color:var(--mute);font-weight:400;font-size:12px">(máx. 6 en total, con lo anterior)</span></label>
+        <div class="chips" id="ivCarac" style="text-transform:uppercase"></div>
+        <input id="ivOtro" placeholder="Otra característica (opcional)" style="margin-top:8px"></div>
+      <div class="fld"><label>Destacado <span style="color:var(--mute);font-weight:400;font-size:12px">(máx. 2, entre lo marcado arriba)</span></label>
+        <div class="chips" id="ivDestPick" style="text-transform:uppercase"></div></div>
+      <button class="btn b-pri" id="ivGen" style="width:100%">Generar</button>
+      <div id="ivPrev" class="phg" style="grid-template-columns:1fr 1fr;margin-top:12px"></div>
+      <div class="acts" id="ivActs" hidden><button class="btn b-sec" id="ivDl">⇩ Descargar</button>
+        <button class="btn b-pri" id="ivShare">➦ Enviar</button></div>
+      <div class="acts" id="ivMk" hidden style="margin-top:9px">
+        <button class="btn b-sec" id="ivMkBtn" style="flex:1">Publicar en Marketplace</button></div>
+      <div class="mtr" id="ivTplT" style="margin-top:8px"></div></div>
     <div class="box"><h3>Cotización de liberación</h3>
       <p>Para clientes con cupo de discapacidad.</p>
       <div class="fld"><label for="cbV">Vehículo (opcional)</label>
@@ -170,38 +219,49 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
       <div id="cbDet"></div>
       <button class="btn b-pri" id="cbEnv" style="width:100%;margin-top:11px">➦ Enviar cotización</button></div>
-    <div class="box"><h3>Imágenes para publicar</h3>
-      <p>Elige el vehículo, genera las dos imágenes y publícalas.</p>
-      <div class="fld"><label for="ivV">Vehículo</label>
-        <input id="ivV" list="dlIvV" autocomplete="off" placeholder="Escribe marca, modelo o chasis">
-        <datalist id="dlIvV"></datalist></div>
-      <div class="fld"><label for="ivTitulo">Título</label><input id="ivTitulo" placeholder="KIA SORENTO 2010"></div>
-      <div class="fld"><label>Características</label>
-        <input id="ivF1" placeholder="PARA PRIMER DUEÑO, ZOFRI" style="margin-bottom:7px">
-        <input id="ivF2" placeholder="MOTOR DIESEL" style="margin-bottom:7px">
-        <input id="ivF3" placeholder="TECHO PANORAMICO" style="margin-bottom:7px">
-        <input id="ivF4" placeholder="07 PASAJEROS" style="margin-bottom:7px">
-        <input id="ivF5" placeholder="PANT. BLUET. C/ CAM. RETROC."></div>
-      <div class="fld"><label for="ivDest">Destacado</label><input id="ivDest" placeholder="T. PANORAMICO"></div>
-      <button class="btn b-pri" id="ivGen" style="width:100%">Generar</button>
-      <div id="ivPrev" class="phg" style="grid-template-columns:1fr 1fr;margin-top:12px"></div>
-      <div class="acts" id="ivActs" hidden><button class="btn b-sec" id="ivDl">⇩ Descargar</button>
-        <button class="btn b-pri" id="ivShare">➦ Enviar</button></div>
-      <div class="acts" id="ivMk" hidden style="margin-top:9px">
-        <button class="btn b-sec" id="ivMkBtn" style="flex:1">Publicar en Marketplace</button></div>
-      <div class="mtr" id="ivTplT" style="margin-top:8px"></div></div>
+    </div>
+    <div id="ajReportar" hidden>
     <div class="box"><h3>Insumos del taller</h3>
       <p>Avisa cuando se esté acabando algo de uso general (combustible, desengrasante, renovador de gomas, silicona, etc). No es por vehículo.</p>
       <button class="btn b-pri" data-insumo="1" style="width:100%">Insumo bajo</button></div>
     <div class="box"><h3>Demanda de clientes</h3>
       <p>Cuando un cliente busca algo que no tenemos, anótalo aquí para tenerlo en cuenta al comprar. Se comparte con Andre y con Corea, y lo ves aquí abajo también.</p>
-      <div class="fld"><label for="dcMarca">Marca</label><input id="dcMarca" placeholder="Ej: Hyundai"></div>
-      <div class="fld"><label for="dcModelo">Modelo</label><input id="dcModelo" placeholder="Ej: Santa Fe"></div>
+      <div class="fld"><label for="dcMarca">Marca</label>
+        <input id="dcMarca" list="dlDcMarca" autocomplete="off" placeholder="Ej: Hyundai (o escribe una nueva)">
+        <datalist id="dlDcMarca"></datalist></div>
+      <div class="fld"><label for="dcModelo">Modelo</label>
+        <input id="dcModelo" list="dlDcModelo" autocomplete="off" placeholder="Ej: Santa Fe (o escribe uno nuevo)">
+        <datalist id="dlDcModelo"></datalist></div>
       <div class="fld"><label for="dcAnioD">Año desde</label><input id="dcAnioD" inputmode="numeric" placeholder="Ej: 2014"></div>
       <div class="fld"><label for="dcAnioH">Año hasta (opcional)</label><input id="dcAnioH" inputmode="numeric" placeholder="Ej: 2015"></div>
-      <div class="fld"><label for="dcCarac">Características (opcional)</label><input id="dcCarac" placeholder="Ej: techo panorámico, 7 asientos"></div>
+      <div class="fld"><label>Motor</label>
+        <div class="chips" id="dcMotor" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="DIESEL">Diésel</button>
+          <button type="button" class="chip" data-val="BENCINA">Bencina</button>
+        </div></div>
+      <div class="fld"><label>Pasajeros</label>
+        <div class="chips" id="dcPas" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="05 PASAJEROS">5</button>
+          <button type="button" class="chip" data-val="07 PASAJEROS">7</button>
+        </div></div>
+      <div class="fld"><label>Tracción</label>
+        <div class="chips" id="dcTrac" style="text-transform:uppercase">
+          <button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>
+          <button type="button" class="chip" data-val="TRACCION 4X2">4X2</button>
+          <button type="button" class="chip" data-val="TRACCION 4X4">4X4</button>
+        </div></div>
+      <div class="fld"><label>Otras características (opcional)</label>
+        <div class="chips" id="dcCaracChips" style="text-transform:uppercase"></div>
+        <input id="dcCarac" placeholder="Otra característica (opcional)" style="margin-top:8px"></div>
       <button class="btn b-pri" id="dcOk" style="width:100%">Anotar demanda</button>
       <div id="dcList" style="margin-top:12px"></div></div>
+    </div>
+    <div id="ajCuenta" hidden>
+    <div class="box"><h3>Mi sueldo</h3>
+      <p>Esta quincena y la anterior, con los descuentos y comisiones ya aplicados. Se actualiza solo, cuando Andre hace cambios en Sistema.</p>
+      <div id="miSueldoList"></div></div>
     <div class="box"><h3>Adelantos</h3>
       <p>Deja constancia de lo que recibiste. Se envía al administrador.</p>
       <div class="fld"><label for="avM">Monto recibido</label><input id="avM" inputmode="numeric" placeholder="$0"></div>
@@ -212,18 +272,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="box"><h3>Ventas avisadas</h3>
       <p>Lo que reportaste con "Avisar venta" en cada vehículo. Se marca cuando Andre ya lo revisó en Sistema.</p>
       <div id="vtList"></div></div>
+    </div>
+    <div id="ajAyuda" hidden>
     <div class="box"><h3>Espacio usado</h3><p id="spTxt">—</p></div>
     <div class="box"><h3>Cómo funciona</h3>
       <p>Las fotos que subes se guardan solo en <b>tu</b> teléfono. Cada vendedor tiene sus propias fotos, para que los avisos no se vean repetidos en Marketplace.</p>
       <p>Los precios los define la administración. Si un vehículo no muestra precio, consúltalo antes de cotizar.</p>
       <p style="margin:0"><b>Precio mínimo:</b> es lo más bajo que puedes ofrecer sin consultar. No lo compartas con el cliente como si fuera el precio de lista.</p></div>
+    </div>
   </section>
 </main>
 
 <nav class="tabbar" role="tablist">
   <button class="tb" role="tab" data-p="pStock" aria-selected="true"><i>▦</i>Vehículos</button>
   <button class="tb" role="tab" data-p="pConten" aria-selected="false"><i>✎</i>Textos</button>
-  <button class="tb" role="tab" data-p="pAjustes" aria-selected="false"><i>⚙</i>Ajustes</button>
+  <button class="tb" role="tab" data-p="pAjustes" aria-selected="false"><i>⚙</i>Herramientas</button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
@@ -347,6 +410,37 @@ const FB_COL='vehiculos';
 const FB_CAMPOS=['ch','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev'];
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
+const SUELDOSVEND_COL='sueldosVend';
+let SUELDO=null, fbSueldosUnsub=null;
+function persKey(){ return ST.vend==='Bryan' ? 'bryan' : 'victor'; }
+function fbSueldosListen(){
+  if(fbSueldosUnsub){ try{fbSueldosUnsub()}catch(_){} fbSueldosUnsub=null; }
+  const k=persKey();
+  fbSueldosUnsub=fbDb.collection(SUELDOSVEND_COL).doc(k).onSnapshot(d=>{
+    SUELDO=d.exists?d.data():null;
+    pintaSueldo();
+  }, e=>console.error('fbSueldosListen', e));
+}
+function pintaSueldo(){
+  const el=$('#miSueldoList'); if(!el) return;
+  if(!SUELDO || !Array.isArray(SUELDO.quincenas) || !SUELDO.quincenas.length){
+    el.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Todavía no hay datos de sueldo cargados.</p>';
+    return;
+  }
+  const qs=SUELDO.quincenas.slice().reverse();
+  el.innerHTML=qs.map((x,i)=>{
+    const det=[];
+    if(x.comida) det.push('− '+clp(x.comida)+' comida');
+    if(x.vehiculo) det.push('− '+clp(x.vehiculo)+' vehículo');
+    if(x.comision) det.push('+ '+clp(x.comision)+' por '+x.ventas+' venta'+(x.ventas===1?'':'s'));
+    if(x.adelantos) det.push('− '+clp(x.adelantos)+' adelantos');
+    return `<div style="padding:7px 0;${i===0?'border-bottom:1px dashed var(--line)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-family:var(--body);font-weight:600">${i===0?'Esta quincena':'Quincena anterior'}</span>
+        <span style="font-weight:700">${clp(x.neto)}</span></div>
+      <div style="color:var(--mute);font-size:12px">${x.etiqueta||''}${det.length?' · '+det.join(' · '):''}</div></div>`;
+  }).join('');
+}
 /* ---------- Avisos a Andre (ventas y adelantos), en vivo ----------
    Reemplaza el aviso que antes solo llegaba por WhatsApp: al avisar una venta o un
    adelanto queda un documento en "avisosVend" (ademas del texto de WhatsApp, que se
@@ -492,6 +586,37 @@ document.addEventListener('click',e=>{
    y Corea solo la leen. No tiene costo ni categorias que moderar, es solo referencia. */
 const DEMANDA_COL='demandaClientes';
 let DEMANDA=[], fbDemandaEscuchando=false;
+const DC_CARAC_OPTS=['TECHO PANORAMICO','MECANICO'];
+let dcCaracSel=new Set(), dcMotorSel='', dcPasSel='', dcTracSel='';
+function dcEligeUnico(contId, getCur, setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val, nuevo=(getCur()===val)?'':val;
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+  });
+}
+dcEligeUnico('#dcMotor', ()=>dcMotorSel, v=>{dcMotorSel=v});
+dcEligeUnico('#dcPas', ()=>dcPasSel, v=>{dcPasSel=v});
+dcEligeUnico('#dcTrac', ()=>dcTracSel, v=>{dcTracSel=v});
+function pintaDcCaracChips(){
+  const el=$('#dcCaracChips'); if(!el) return;
+  el.innerHTML=DC_CARAC_OPTS.map(o=>
+    `<button type="button" class="chip" data-dc="${o}" aria-selected="${dcCaracSel.has(o)}">${o}</button>`
+  ).join('');
+}
+function pintaDlMarcasModelos(){
+  const dlM=$('#dlDcMarca'), dlMo=$('#dlDcModelo'); if(!dlM||!dlMo) return;
+  const marcas=new Set();
+  V.forEach(v=>{if(v.ma) marcas.add(v.ma)});
+  DEMANDA.forEach(d=>{if(d.marca) marcas.add(d.marca)});
+  dlM.innerHTML=[...marcas].sort().map(m=>`<option value="${m.replace(/"/g,'&quot;')}">`).join('');
+  const marcaAct=normDemanda($('#dcMarca')?$('#dcMarca').value:'');
+  const modelos=new Set();
+  V.forEach(v=>{if(v.mo&&(!marcaAct||normDemanda(v.ma)===marcaAct)) modelos.add(v.mo)});
+  DEMANDA.forEach(d=>{if(d.modelo&&(!marcaAct||normDemanda(d.marca)===marcaAct)) modelos.add(d.modelo)});
+  dlMo.innerHTML=[...modelos].sort().map(m=>`<option value="${m.replace(/"/g,'&quot;')}">`).join('');
+}
 /* Cuenta cuantas veces se ha preguntado por una marca/modelo en TODO el historial (atendidas
    incluidas), normalizando espacios/mayusculas/acentos. */
 function normDemanda(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase(); }
@@ -509,6 +634,7 @@ function fbDemandaListen(){
     DEMANDA=arr.sort((a,b)=>b.ts-a.ts);
     try{window.storage.set('amkv_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
     pintaDemanda();
+    pintaDlMarcasModelos();
   }, e=>console.error('fbDemandaListen',e));
 }
 function pintaDemanda(){
@@ -523,12 +649,27 @@ function pintaDemanda(){
       <br><span style="color:var(--mute);font-size:12px">${d.vendedor?d.vendedor:'—'} · ${fd(new Date(d.ts).toISOString().slice(0,10))}</span></span></div>`;
   }).join('') : '<p style="color:var(--mute);font-size:13.5px;margin:0">Nadie ha anotado demanda todavía.</p>';
 }
+$('#ajSegs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-aj]'); if(!b) return;
+  $$('#ajSegs .chip').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+  const grupos={vender:'ajVender',reportar:'ajReportar',cuenta:'ajCuenta',ayuda:'ajAyuda'};
+  Object.keys(grupos).forEach(k=>{const el=document.getElementById(grupos[k]); if(el) el.hidden=(k!==b.dataset.aj)});
+});
+$('#dcMarca').addEventListener('input', pintaDlMarcasModelos);
+$('#dcCaracChips').addEventListener('click',e=>{
+  const b=e.target.closest('[data-dc]'); if(!b) return;
+  const o=b.dataset.dc;
+  if(dcCaracSel.has(o)) dcCaracSel.delete(o); else dcCaracSel.add(o);
+  b.setAttribute('aria-selected', dcCaracSel.has(o)?'true':'false');
+});
 $('#dcOk').addEventListener('click',async()=>{
   const marca=$('#dcMarca').value.trim(), modelo=$('#dcModelo').value.trim();
   if(!marca&&!modelo){toast('Escribe al menos la marca o el modelo');return}
   const anioDesde=pnum($('#dcAnioD').value)||null, anioHastaRaw=pnum($('#dcAnioH').value);
   const anioHasta=anioHastaRaw||anioDesde;
-  const caracteristicas=$('#dcCarac').value.trim();
+  const extra=$('#dcCarac').value.trim();
+  const motorTxt=dcMotorSel?('MOTOR '+dcMotorSel):'';
+  const caracteristicas=[motorTxt, dcPasSel, dcTracSel, ...dcCaracSel, extra].filter(Boolean).join(', ');
   const ts=Date.now();
   if(fbReady){
     try{
@@ -537,6 +678,10 @@ $('#dcOk').addEventListener('click',async()=>{
       });
       toast('Anotado · se comparte con Andre y con Corea');
       $('#dcMarca').value=''; $('#dcModelo').value=''; $('#dcAnioD').value=''; $('#dcAnioH').value=''; $('#dcCarac').value='';
+      dcCaracSel=new Set(); pintaDcCaracChips();
+      dcMotorSel=''; dcPasSel=''; dcTracSel='';
+      $$('#dcMotor .chip,#dcPas .chip,#dcTrac .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+      pintaDlMarcasModelos();
     }catch(e){ console.error('anotaDemanda',e); toast('No se pudo enviar, revisa tu conexión'); }
   }else{ toast('Sin conexión, intenta más tarde'); }
 });
@@ -554,7 +699,7 @@ function fbMuestraLogin(mostrar){
 let fbDrawTimer=null;
 function fbDibujaPronto(){
   clearTimeout(fbDrawTimer);
-  fbDrawTimer=setTimeout(()=>{ try{ reindex(); draw(); }catch(e){ console.error('draw',e); } }, 200);
+  fbDrawTimer=setTimeout(()=>{ try{ reindex(); draw(); drawPick(); pintaDatalists(); pintaDlMarcasModelos(); }catch(e){ console.error('draw',e); } }, 200);
 }
 let fbCacheTimer=null;
 function fbGuardaCatalogo(){
@@ -598,7 +743,7 @@ async function fbInit(){
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbAvisosVendListen(); fbConfigPendListen(); fbDemandaListen(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbAvisosVendListen(); fbConfigPendListen(); fbDemandaListen(); fbSueldosListen(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
       else { fbReady=false; fbEscuchando=false; fbEstado('Sin sesión iniciada','#B5533C'); fbMuestraLogin(true); }  /* siempre: sin sesión el stock queda viejo y el vendedor no se enteraría */
     });
   }catch(e){ console.error('fbInit',e); fbReady=false; fbEstado('✗ '+(e.message||e),'#B5533C'); }
@@ -661,10 +806,19 @@ async function boot(){
   $('#who').textContent=ST.vend||'sin nombre';
   if(!PINES[ST.vend]) openSheet('shWho');
   draw(); drawPick(); espacio(); pintaAV(); pintaVT(); pintaDemanda(); $('#avD').value=iso();
-  $('#dlCbV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+  pintaDatalists();
   pintaCB();
-  $('#dlIvV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+  pintaDcCaracChips();
+  pintaDlMarcasModelos();
+  pintaIvPas(null);
+  pintaIvCarac(null);
+  pintaIvDestOpciones();
   $('#ivTplT').textContent='Usarás la plantilla '+miTpl()+', distinta a la de los demás.';
+}
+function pintaDatalists(){
+  const opts=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+  $('#dlCbV').innerHTML=opts;
+  $('#dlIvV').innerHTML=opts;
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(ST))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
 
@@ -908,6 +1062,7 @@ $('#whoOk').addEventListener('click',async()=>{
   if(PINES[nombre]!==pin){toast('PIN incorrecto');return}
   ST.vend=nombre;
   $('#who').textContent=ST.vend||'sin nombre';await save();closeAll();toast('Guardado');pintaAV();
+  if(fbReady) fbSueldosListen();
 });
 async function espacio(){let n=0,c=0;for(const k in ST.f){if(ST.f[k].nf){n+=ST.f[k].nf;c++}}
  $('#spTxt').textContent=n?`${n} fotos en ${c} vehículo${c===1?'':'s'}.`:'Todavía no subes fotos.'}
@@ -1009,7 +1164,104 @@ const TPL={A:{fondo:'#183640',panel:'#51686E',barra:'abajo'},
            C:{fondo:'#223B46',panel:'#183640',barra:'lados'}};
 const MKV={plata:'#C8D2D4',plata2:'#B4BDBD',
   dir:'Of. Buenaventura C-20, Barrio Industrial Zofri',redes:'AMK VEHICULOS'};
-let ivBlobs=[];
+let ivBlobs=[], ivMotorSel='', ivCilSel='', ivPasSel='', ivTracSel='', ivCaracSel=new Set(), ivDestSel=[], ivVehActual=null;
+function ivMotorTexto(){
+  const partes=[]; if(ivMotorSel) partes.push(ivMotorSel); if(ivCilSel) partes.push(ivCilSel);
+  return partes.length ? ('MOTOR '+partes.join(' ')) : '';
+}
+function ivTracPasTexto(){
+  const partes=[]; if(ivTracSel) partes.push(ivTracSel.replace('TRACCION ','')); if(ivPasSel) partes.push(ivPasSel);
+  return partes.join(' / ');
+}
+function ivFeatsBase(){ return [ivMotorTexto(), ivTracPasTexto(), ...ivCaracSel].filter(Boolean); }
+function ivFeatsDestacables(){ return [ivMotorTexto(), ivTracSel, ivPasSel, ...ivCaracSel].filter(Boolean); }
+function ivDefsCarac(v){
+  const defs=[{label:'PARA PRIMER DUEÑO, ZOFRI', on:true}];
+  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp)});
+  if(v&&v.ca&&v.ca!=='S/N') defs.push({label:(CARN[v.ca]||v.ca).toString().toUpperCase(), on:true});
+  ['PANT. BLUETOOTH + CAM. RETROCESO','RADIO ANDROID + CAM. RETROCESO','AROS DE ALEACION DEPORTIVOS','DOBLE TUBO DE ESCAPE']
+    .forEach(l=>defs.push({label:l, on:false}));
+  return defs;
+}
+function pintaIvCarac(v){
+  const defs=ivDefsCarac(v);
+  ivCaracSel=new Set(defs.filter(d=>d.on).map(d=>d.label));
+  $('#ivCarac').innerHTML=defs.map(d=>
+    `<button type="button" class="chip" data-car="${d.label.replace(/"/g,'&quot;')}" aria-selected="${ivCaracSel.has(d.label)}">${d.label}</button>`
+  ).join('');
+}
+function ivPasOpts(v){
+  const base=[5,7];
+  if(v&&v.pa&&!base.includes(Number(v.pa))) base.push(Number(v.pa));
+  return base.sort((a,b)=>a-b);
+}
+function pintaIvPas(v){
+  $('#ivPas').innerHTML='<button type="button" class="chip" data-val="" aria-selected="true">Sin especificar</button>'
+    + ivPasOpts(v).map(n=>`<button type="button" class="chip" data-val="${String(n).padStart(2,'0')} PASAJEROS">${n}</button>`).join('');
+}
+function pintaIvDestOpciones(){
+  const feats=ivFeatsDestacables();
+  ivDestSel=ivDestSel.filter(f=>feats.includes(f));
+  const el=$('#ivDestPick'); if(!el) return;
+  if(!feats.length){ el.innerHTML='<span style="color:var(--mute);font-size:12.5px">Marca alguna característica arriba para poder destacarla.</span>'; return; }
+  el.innerHTML=feats.map(f=>{
+    const on=ivDestSel.includes(f);
+    return `<button type="button" class="chip" data-destf="${f.replace(/"/g,'&quot;')}" aria-selected="${on}">${on?'★ ':''}${f}</button>`;
+  }).join('');
+}
+function ivClickMotorCil(contId, getCur, setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val;
+    const nuevo=(getCur()===val)?'':val;
+    const creariaCupoNuevo = !ivMotorSel && !ivCilSel && nuevo;
+    if(creariaCupoNuevo && ivFeatsBase().length>=6){
+      toast('Máximo 6 características en la imagen, saca alguna primero'); return;
+    }
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+    pintaIvDestOpciones();
+  });
+}
+function ivClickTracPas(contId, getCur, setCur){
+  $(contId).addEventListener('click', e=>{
+    const b=e.target.closest('[data-val]'); if(!b) return;
+    const val=b.dataset.val;
+    const nuevo=(getCur()===val)?'':val;
+    const creariaCupoNuevo = !ivTracSel && !ivPasSel && nuevo;
+    if(creariaCupoNuevo && ivFeatsBase().length>=6){
+      toast('Máximo 6 características en la imagen, saca alguna primero'); return;
+    }
+    setCur(nuevo);
+    $$(contId+' .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===nuevo?'true':'false'));
+    pintaIvDestOpciones();
+  });
+}
+ivClickMotorCil('#ivMotor', ()=>ivMotorSel, v=>{ivMotorSel=v});
+ivClickMotorCil('#ivCil', ()=>ivCilSel, v=>{ivCilSel=v});
+ivClickTracPas('#ivPas', ()=>ivPasSel, v=>{ivPasSel=v});
+ivClickTracPas('#ivTrac', ()=>ivTracSel, v=>{ivTracSel=v});
+$('#ivCarac').addEventListener('click',e=>{
+  const b=e.target.closest('[data-car]'); if(!b) return;
+  const lab=b.dataset.car;
+  if(ivCaracSel.has(lab)){ ivCaracSel.delete(lab); }
+  else{
+    if(ivFeatsBase().length>=6){ toast('Máximo 6 características en la imagen'); return; }
+    ivCaracSel.add(lab);
+  }
+  b.setAttribute('aria-selected', ivCaracSel.has(lab)?'true':'false');
+  pintaIvDestOpciones();
+});
+$('#ivDestPick').addEventListener('click',e=>{
+  const b=e.target.closest('[data-destf]'); if(!b) return;
+  const f=b.dataset.destf;
+  if(ivDestSel.includes(f)){ ivDestSel=ivDestSel.filter(x=>x!==f); }
+  else{
+    if(ivDestSel.length>=2){ toast('Máximo 2 destacados'); return; }
+    ivDestSel.push(f);
+  }
+  pintaIvDestOpciones();
+});
 function miTpl(){
   const n=(ST.vend||'').toLowerCase();
   if(n.includes('bry')||n.includes('bri')) return 'C';
@@ -1030,7 +1282,7 @@ function ajusta(ctx,txt,max,base,peso){
   return s+2;
 }
 function imgDe(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
-async function ivPortada(v,foto,dest,tpl){
+async function ivPortada(titulo,foto,dest,tpl){
   const T=TPL[tpl], S=1080, c=document.createElement('canvas'); c.width=c.height=S;
   const x=c.getContext('2d');
   x.fillStyle=T.fondo; x.fillRect(0,0,S,S);
@@ -1050,31 +1302,31 @@ async function ivPortada(v,foto,dest,tpl){
     x.fillStyle=T.panel; x.fillRect(S-w-30,S-fb-92,w,66);
     x.fillStyle='#EAF0F1'; x.textAlign='center'; x.fillText(dest,S-w/2-30,S-fb-48)}
   x.textAlign='center'; x.fillStyle=MKV.plata;
-  const t=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
+  const t=(titulo||'').toUpperCase();
   fs=ajusta(x,t,S-90,64,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
   x.fillText(t,S/2,yTit);
   x.font='800 34px Archivo, Arial, sans-serif';
   x.fillText((ST.vend||'AMK').toUpperCase()+'  ·  AMK VEHICULOS SELECTOS',S/2,yTel);
   return c;
 }
-function ivFicha(v,titulo,feats,tpl){
+function ivFicha(titulo,feats,tpl){
   const T=TPL[tpl], S=1080, c=document.createElement('canvas'); c.width=c.height=S;
   const x=c.getContext('2d');
   x.fillStyle=T.fondo; x.fillRect(0,0,S,S);
   x.strokeStyle=MKV.plata2; x.lineWidth=3;
   x.beginPath(); x.moveTo(60,44); x.lineTo(S-60,44); x.stroke();
   dibujaLogo(x,(S-460)/2,92,460,MKV.plata,MKV.plata2);
-  const bx=110,by=352,bw=S-220,bh=336;
+  const bx=110,by=352,bw=S-220,bh=372;
   x.fillStyle=T.panel; x.beginPath(); x.roundRect(bx,by,bw,bh,18); x.fill();
   x.textAlign='center'; x.fillStyle='#EAF0F1';
   let fs=ajusta(x,titulo,bw-60,58,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
   x.fillText(titulo,S/2,by+76);
   x.textAlign='left';
-  feats.filter(Boolean).slice(0,5).forEach(function(f,i){
-    const yy=by+142+i*44;
+  feats.filter(Boolean).slice(0,6).forEach(function(f,i){
+    const yy=by+128+i*40;
     x.fillStyle=MKV.plata; x.beginPath(); x.arc(bx+42,yy-9,7,0,7); x.fill();
     x.fillStyle='#EAF0F1';
-    const s2=ajusta(x,f,bw-120,30,'700'); x.font='700 '+s2+'px Archivo, Arial, sans-serif';
+    const s2=ajusta(x,f,bw-120,28,'700'); x.font='700 '+s2+'px Archivo, Arial, sans-serif';
     x.fillText(f,bx+68,yy);
   });
   x.fillStyle=MKV.plata; x.textAlign='left';
@@ -1097,33 +1349,55 @@ function ivVeh(){
   return V.find(v=>(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(q))||null;
 }
 $('#ivV').addEventListener('input',()=>{
-  const v=ivVeh(); if(!v)return;
-  $('#ivTitulo').value=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
-  const f=['PARA PRIMER DUEÑO, ZOFRI','MOTOR DIESEL'];
-  if(!v.trab&&v.tp) f.push('TECHO PANORAMICO');
-  if(v.pa) f.push(String(v.pa).padStart(2,'0')+' PASAJEROS');
-  if(v.tr) f.push('TRACCION '+v.tr);
-  if(v.ca&&v.ca!=='S/N') f.push(String(v.ca).toUpperCase());
-  [1,2,3,4,5].forEach(i=>{$('#ivF'+i).value=f[i-1]||''});
-  $('#ivDest').value=(!v.trab&&v.tp)?'T. PANORAMICO':'';
-  $('#ivTplT').textContent='Usarás la plantilla '+miTpl()+', distinta a la de los demás.';
+  const v=ivVeh();
+  if(v){
+    ivVehActual=v;
+    $('#ivTitulo').value=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
+    ivMotorSel=''; ivCilSel='';
+    $$('#ivMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    $$('#ivCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    pintaIvPas(v);
+    ivPasSel=v.pa?(String(v.pa).padStart(2,'0')+' PASAJEROS'):'';
+    $$('#ivPas .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===ivPasSel?'true':'false'));
+    ivTracSel=(v.tr==='4X2'||v.tr==='4X4')?('TRACCION '+v.tr):'';
+    $$('#ivTrac .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===ivTracSel?'true':'false'));
+    pintaIvCarac(v);
+    ivDestSel=(!v.trab&&v.tp)?['TECHO PANORAMICO']:[];
+    pintaIvDestOpciones();
+    $('#ivTplT').textContent='Usarás la plantilla '+miTpl()+', distinta a la de los demás.';
+  }else if(ivVehActual){
+    ivVehActual=null;
+    ivMotorSel=''; ivCilSel=''; ivPasSel=''; ivTracSel=''; ivDestSel=[];
+    $$('#ivMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    $$('#ivCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    pintaIvPas(null);
+    $$('#ivTrac .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    pintaIvCarac(null);
+    pintaIvDestOpciones();
+  }
 });
 $('#ivGen').addEventListener('click',async()=>{
-  const v=ivVeh(); if(!v){toast('Elige un vehículo');return}
+  const v=ivVeh();
+  const tituloEsc=$('#ivTitulo').value.trim();
+  if(!v && !tituloEsc){toast('Escribe un título o elige un vehículo');return}
   const b=$('#ivGen'); b.disabled=true; b.textContent='Generando…';
   try{
     let foto='';
-    try{const r=await window.storage.get(PK(v.ch));
-      if(r&&r.value){const a=JSON.parse(r.value); foto=a[0]||''}}catch(_){}
-    const feats=[1,2,3,4,5].map(i=>$('#ivF'+i).value.trim()).filter(Boolean);
+    if(v){ try{const r=await window.storage.get(PK(v.ch));
+      if(r&&r.value){const a=JSON.parse(r.value); foto=a[0]||''}}catch(_){} }
+    const otro=$('#ivOtro').value.trim();
+    const feats=[...ivFeatsBase(), otro].filter(Boolean).slice(0,6);
+    const dest=ivDestSel.join(' · ');
+    const tituloFinal=tituloEsc||(v?(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase():'');
     const tpl=miTpl();
-    const c1=await ivPortada(v,foto,$('#ivDest').value.trim(),tpl);
-    const c2=ivFicha(v,$('#ivTitulo').value.trim(),feats,tpl);
+    const c1=await ivPortada(tituloFinal,foto,dest,tpl);
+    const c2=ivFicha(tituloFinal,feats,tpl);
     $('#ivPrev').innerHTML='<div class="ph" style="aspect-ratio:1"><img src="'+c1.toDataURL('image/jpeg',.9)+'" alt="Portada"></div>'
       +'<div class="ph" style="aspect-ratio:1"><img src="'+c2.toDataURL('image/jpeg',.9)+'" alt="Ficha"></div>';
+    const base=v?v.ch:((tituloFinal.replace(/[^A-Z0-9]+/gi,'_')||'IMAGEN').toUpperCase());
     ivBlobs=await Promise.all([c1,c2].map((c,i)=>new Promise(res=>
-      c.toBlob(bl=>res(new File([bl], v.ch+'-'+(i?'ficha':'portada')+'.jpg',{type:'image/jpeg'})),'image/jpeg',.92))));
-    $('#ivActs').hidden=false; $('#ivMk').hidden=false;
+      c.toBlob(bl=>res(new File([bl], base+'-'+(i?'ficha':'portada')+'.jpg',{type:'image/jpeg'})),'image/jpeg',.92))));
+    $('#ivActs').hidden=false; $('#ivMk').hidden=!v;
     toast(foto?'Generadas ✓':'Generadas · sin foto de portada');
   }catch(e){toast('No se pudo generar')}
   b.disabled=false; b.textContent='Generar';
