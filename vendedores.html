@@ -983,7 +983,9 @@ function alturaFluida(el, cambiar){
   const h0=el.getBoundingClientRect().height;
   el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
   cambiar();
+  el.style.height='auto';  /* suelta el alto fijo: si no, al achicar el contenido scrollHeight sigue midiendo el alto viejo y no se anima */
   const h1=el.scrollHeight;
+  el.style.height=h0+'px';  /* vuelve a fijar el alto viejo (mismo instante, no se alcanza a ver) para animar desde ahí */
   void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
   el.style.transition='height .22s ease';
   el.style.height=h1+'px';
