@@ -58,6 +58,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .ventabox{margin-top:10px;background:var(--greenBg);border:1px solid #245C43;border-radius:9px;
  padding:9px 12px;font-size:13px;color:var(--green);display:flex;justify-content:space-between;align-items:center}
 .ventabox b{font-family:var(--mono);font-size:15px}
+.videobox{margin-top:10px;background:var(--azulBg);border:1px solid #1B3B52;border-radius:9px;
+ padding:9px 12px;font-size:13px;color:var(--azul);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.videobox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.videobox button{flex:0 0 auto;background:var(--azul);color:#0B1C23;border:none;border-radius:7px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
 .minbox b{font-family:var(--mono);font-size:15px}
 .acts{display:flex;gap:8px;margin-top:11px}
 .btn{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14px;cursor:pointer}
@@ -114,7 +118,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .g360 button.wide{grid-column:1/-1}
 .nsel{display:flex;gap:7px;margin-bottom:11px}
 .nsel button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
-.nsel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.nsel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#0B1C23}
 .gen{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:11px}
 .gen .gh{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:9px}
 .gen h4{font-family:var(--disp);font-weight:700;font-size:14.5px;margin:0}
@@ -455,11 +459,77 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema) */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='sueldosVend';
+const FB_FOTOS_COL='fotosVend';
 const F360_VEND_COL='f360Vend';
+/* --- copia local de quién más ya subió fotos/360° de cada vehículo, solo para saber si al
+   publicar las mías hay que avisarle a André que hay que revisar (ver hayOtrasFotos/hayOtras360
+   y subirFotosWeb/subirMi360Nube). No se usa para mostrar nada acá, cada vendedor solo ve y
+   edita las suyas. */
+const fotosVendCache={}, f360VendCache={};
+function fbFotosVendListen(){
+  if(!fbReady) return;
+  fbDb.collection(FB_FOTOS_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed'){
+        const [ch0,fu0]=(chg.doc.id||'').split('__');
+        if(ch0 && fotosVendCache[ch0]) delete fotosVendCache[ch0][fu0];
+        return;
+      }
+      const d=chg.doc.data()||{};
+      const ch=d.ch; if(!ch || !d.fuente) return;
+      if(!fotosVendCache[ch]) fotosVendCache[ch]={};
+      fotosVendCache[ch][d.fuente]={fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
+    });
+  }, e=>console.error('fbFotosVendListen', e));
+}
+function fbF360VendListen(){
+  if(!fbReady) return;
+  fbDb.collection(F360_VEND_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed'){
+        const [ch0,fu0]=(chg.doc.id||'').split('__');
+        if(ch0 && f360VendCache[ch0]) delete f360VendCache[ch0][fu0];
+        return;
+      }
+      const d=chg.doc.data()||{};
+      const ch=d.ch; if(!ch || !d.fuente) return;
+      if(!f360VendCache[ch]) f360VendCache[ch]={};
+      f360VendCache[ch][d.fuente]={fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
+    });
+  }, e=>console.error('fbF360VendListen', e));
+}
+/* ¿Ya hay fotos/360° de OTRA fuente (Andre, u otro vendedor/Corea) para este vehículo? Si sí,
+   lo que suba ahora `miFuente` queda pendiente de revisión de André en vez de mostrarse solo. */
+function hayOtrasFotos(ch,miFuente){
+  const v=IDX[ch];
+  if(v && Array.isArray(v.fotos) && v.fotos.length) return true;
+  const c=fotosVendCache[ch]||{};
+  for(const k in c){ if(k!==miFuente && c[k] && c[k].fotos && c[k].fotos.length) return true; }
+  return false;
+}
+function hayOtras360(ch,miFuente){
+  const v=IDX[ch];
+  if(v && Array.isArray(v.f360) && v.f360.length) return true;
+  const c=f360VendCache[ch]||{};
+  for(const k in c){ if(k!==miFuente && c[k] && c[k].fotos && c[k].fotos.length) return true; }
+  return false;
+}
+/* Avisa a André (mismo mecanismo que reportar un pendiente o un insumo bajo) que hay fotos
+   nuevas de este vehículo esperando su revisión. Usa un id fijo por vehículo+tipo (no un
+   timestamp) para que subidas repetidas mientras sigue pendiente actualicen el mismo aviso
+   en vez de acumular uno por cada intento. */
+async function avisaFotoPendiente(ch,cat){
+  if(!fbReady) return;
+  try{
+    await fbDb.collection(AVISOSVEND_COL).doc('fotoPend_'+ch+'_'+cat).set({
+      tipo:'fotoPend', ch, cat, vendedor:(ST.vend||'').trim(), ts:Date.now(), atendido:false
+    });
+  }catch(e){ console.error('avisaFotoPendiente', e); }
+}
 let SUELDO=null, fbSueldosUnsub=null;
 function persKey(){ return ST.vend==='Bryan' ? 'bryan' : 'victor'; }
 function fbSueldosListen(){
@@ -729,9 +799,11 @@ function pintaDemanda(){
 }
 $('#ajSegs').addEventListener('click',e=>{
   const b=e.target.closest('[data-aj]'); if(!b) return;
-  $$('#ajSegs .chip').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
-  const grupos={vender:'ajVender',reportar:'ajReportar',cuenta:'ajCuenta',ayuda:'ajAyuda'};
-  Object.keys(grupos).forEach(k=>{const el=document.getElementById(grupos[k]); if(el) el.hidden=(k!==b.dataset.aj)});
+  alturaFluida(MAIN,()=>{
+   $$('#ajSegs .chip').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
+   const grupos={vender:'ajVender',reportar:'ajReportar',cuenta:'ajCuenta',ayuda:'ajAyuda'};
+   Object.keys(grupos).forEach(k=>{const el=document.getElementById(grupos[k]); if(el) el.hidden=(k!==b.dataset.aj)});
+  });
 });
 $('#dcMarca').addEventListener('input', pintaDlMarcasModelos);
 $('#dcCaracChips').addEventListener('click',e=>{
@@ -822,7 +894,7 @@ async function fbInit(){
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSueldosListen(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEscucha(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSueldosListen(); fbFotosVendListen(); fbF360VendListen(); fbEstado('✓ Conectado · actualizando stock…','#2E7D32'); }
       else { fbReady=false; fbEscuchando=false; fbEstado('Sin sesión iniciada','#B5533C'); fbMuestraLogin(true); }  /* siempre: sin sesión el stock queda viejo y el vendedor no se enteraría */
     });
   }catch(e){ console.error('fbInit',e); fbReady=false; fbEstado('✗ '+(e.message||e),'#B5533C'); }
@@ -901,8 +973,29 @@ function pintaDatalists(){
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(ST))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
 
-function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
- $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
+
+/* Anima de forma fluida un cambio de alto dentro de `el` (evita el "salto brusco"
+   al cambiar de pestaña o de sección). `cambiar` hace el cambio real de contenido
+   (mostrar/ocultar hijos). */
+function alturaFluida(el, cambiar){
+  if(!el){ cambiar(); return; }
+  if(el._afFin){ el.removeEventListener('transitionend', el._afFin); el._afFin=null; }
+  const h0=el.getBoundingClientRect().height;
+  el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
+  cambiar();
+  const h1=el.scrollHeight;
+  void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
+  el.style.transition='height .22s ease';
+  el.style.height=h1+'px';
+  const fin=()=>{ el.style.transition=''; el.style.height=''; el.style.overflow=''; el.removeEventListener('transitionend',fin); el._afFin=null; };
+  el._afFin=fin;
+  el.addEventListener('transitionend',fin);
+}
+const MAIN=$('main');
+function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
+ $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
+})}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 function openSheet(id){$('#scrim').classList.add('on');$('#'+id).classList.add('on')}
 function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));if(typeof stopSpin3==='function')stopSpin3();if(typeof stopSpinMy360==='function')stopSpinMy360()}
@@ -969,7 +1062,7 @@ async function subirFotosWeb(){
  const btn=$('#phWeb'); btn.disabled=true; const txtOrig=btn.textContent; btn.textContent='Subiendo…';
  try{
   if(!phArr.length){
-   try{await fbDb.collection('fotosVend').doc(docId).delete()}catch(_){}
+   try{await fbDb.collection(FB_FOTOS_COL).doc(docId).delete()}catch(_){}
    toast('No hay fotos que subir');
    return;
   }
@@ -981,11 +1074,17 @@ async function subirFotosWeb(){
    urls.push(chica); peso+=chica.length;
   }
   if(!urls.length){toast('No se pudo procesar ninguna foto');return}
-  await fbDb.collection('fotosVend').doc(docId).set({
-   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls,
+  const pend=hayOtrasFotos(ch,fu);
+  await fbDb.collection(FB_FOTOS_COL).doc(docId).set({
+   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls, pendiente:pend,
    ts:firebase.firestore.FieldValue.serverTimestamp()
   });
-  toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');
+  if(pend){
+   await avisaFotoPendiente(ch,'fotos');
+   toast('Subido, pero queda pendiente de revisión de André: ya hay fotos de otra fuente');
+  }else{
+   toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');
+  }
  }catch(e){
   console.error('subirFotosWeb',e);
   toast('No se pudo subir: '+(e.message||e.code||e)+' · avísale a Andre, puede faltar un permiso');
@@ -1081,6 +1180,7 @@ function draw(){
     <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${cp}"></span>${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
+   ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
    ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}</b></div>`:''}
    ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
@@ -1168,11 +1268,17 @@ async function subirMi360Nube(ch,arr,n){
    const chica=(await shrinkDataURI(arr[i],T3VWEBW,T3VWEBQ))||arr[i];
    urls.push(chica);
   }
+  const pend=hayOtras360(ch,fu);
   await fbDb.collection(F360_VEND_COL).doc(ch+'__'+fu).set({
-   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls,
+   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls, pendiente:pend,
    ts:firebase.firestore.FieldValue.serverTimestamp()
   });
-  toast('Vista 360° subida ✓');
+  if(pend){
+   await avisaFotoPendiente(ch,'f360');
+   toast('Vista 360° subida, pendiente de revisión de André (ya hay otra vista 360°)');
+  }else{
+   toast('Vista 360° subida ✓');
+  }
  }catch(e){
   console.error('subirMi360Nube',e);
   toast('No se pudo subir la vista 360°: '+(e.message||e.code||e));
@@ -1293,7 +1399,7 @@ document.addEventListener('click',async e=>{
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
   c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]'),
-  v3b=e.target.closest('[data-v360]'), m3b=e.target.closest('[data-mi360]');
+  v3b=e.target.closest('[data-v360]'), m3b=e.target.closest('[data-mi360]'), cv=e.target.closest('[data-cpvid]');
  if(sh){shareVehicle(sh.dataset.share,null);return}
  if(lk){shareLink(lk.dataset.link);return}
  if(so){const v=IDX[so.dataset.sold];$('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
@@ -1302,6 +1408,7 @@ document.addEventListener('click',async e=>{
  if(p){openPhotos(p.dataset.photo);return}
  if(v3b){openView360(v3b.dataset.v360);return}
  if(m3b){loadMy360(m3b.dataset.mi360);return}
+ if(cv){cp(IDX[cv.dataset.cpvid].video,'Link de video copiado ✓');return}
  if(m){const[i,d]=m.dataset.mv.split('|').map(Number),j=i+d;if(j<0||j>=phArr.length)return;
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){phArr.splice(+r.dataset.rm,1);await persist();return}

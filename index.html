@@ -80,7 +80,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .tt .y{color:var(--mute)}
 .ch{font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.05em;margin-top:4px;line-height:1.7}
 .tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;white-space:nowrap}
-.t-sold{background:var(--green);color:#fff}.t-or{background:var(--seaL);color:var(--ink2)}
+.t-sold{background:var(--greenBg);color:var(--green)}.t-or{background:var(--seaL);color:var(--ink2)}
 .t-pub{background:var(--seaL);color:var(--ink)}.t-of{background:var(--amberBg);color:var(--amber)}
 .money{display:flex;gap:14px;margin-top:7px;flex-wrap:wrap;font-size:11.5px;color:var(--mute)}
 .money b{color:var(--ink);font-family:var(--mono);font-weight:600;font-size:12.5px}
@@ -173,7 +173,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .g360 button.wide{grid-column:1/-1}
 .nsel{display:flex;gap:7px;margin-bottom:11px}
 .nsel button{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
-.nsel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.nsel button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#0B1C23}
 .sendbar button{flex:1;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:14.5px;cursor:pointer}
 .dc{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px}
 .dc.wide{grid-column:1/-1}
@@ -452,6 +452,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div class="mtr" style="margin:0 0 6px">Costos de taller en Corea (₩) <span style="opacity:.7">— por si mi mamá lo anotó en cuaderno y no en la app</span></div>
           <div id="emCCGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
         </div>
+        <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div><div class="mtr" style="margin:0 0 4px">Precio de venta (opcional)</div>
+            <input id="emVNVenta" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
+          <div><div class="mtr" style="margin:0 0 4px">Valor mínimo (opcional)</div>
+            <input id="emVNMin" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"></div>
+        </div>
         <button class="btn b-pri" id="emVNAdd" type="button" hidden style="width:100%;margin-bottom:12px">Agregar vehículo</button>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">
           <div><div class="mtr" style="margin:0 0 4px">Contenedor</div>
@@ -533,7 +539,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-09-2026 20:27<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->18-09-2026 15:33<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -639,6 +645,25 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="fzBtn" style="width:100%">⚙ Corregir FOB Zeta</button></div>
       <input type="file" id="fzFile" accept=".json,application/json" style="display:none">
       <div id="fzEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Restaurar costo (CIF) desde el Excel</h3>
+      <p>Si algún vehículo quedó con el costo total en $0 sin que le hayas tocado nada, este botón lo repone leyendo <b>AMK_costos_desde_excel.json</b> (los mismos datos de tu Excel original). Solo completa el costo donde está vacío — nunca reemplaza uno que ya tengas cargado.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="ccxBtn" style="width:100%">⚙ Restaurar costo desde el Excel</button></div>
+      <input type="file" id="ccxFile" accept=".json,application/json" style="display:none">
+      <div id="ccxEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Pasar "Estimado" a Valor mínimo</h3>
+      <p>Copia, una sola vez, el "Estimado" del Excel a "Valor mínimo" en cada vehículo que todavía no tenga uno cargado. No borra el Estimado ni toca el precio de venta.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="migEstBtn" style="width:100%">⚙ Pasar Estimado a Valor mínimo</button></div>
+      <div id="migEstEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Rellenar precio de venta de prueba</h3>
+      <p><b>Solo para pruebas.</b> Pone el precio de venta en "valor mínimo + $300.000" en los vehículos que todavía no tienen uno cargado, para dejar de ver los datos vacíos mientras pruebas la app. No son precios reales — se sincronizan con Vendedores igual que cualquier otro precio, así que corrígelos (o bórralos) antes de usar la app de verdad con clientes.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="rellPventaBtn" style="width:100%">⚙ Rellenar precio de venta de prueba (+$300.000)</button></div>
+      <div id="rellPventaEstado" class="mtr" style="margin-top:9px"></div>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -829,6 +854,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <select id="nvTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
       <div class="fld"><label for="nvProvSel">Proveedor</label><select id="nvProvSel"></select>
         <input id="nvProv" autocapitalize="characters" placeholder="Escribe el proveedor nuevo" style="margin-top:6px" hidden></div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvVenta">Precio de venta (opcional)</label><input id="nvVenta" inputmode="numeric" placeholder="$0"></div>
+        <div class="fld"><label for="nvMin">Valor mínimo (opcional)</label><input id="nvMin" inputmode="numeric" placeholder="$0"></div>
+      </div>
       <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></div>
     <div class="box"><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
       <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
@@ -839,7 +868,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="eWeb" style="width:100%">Copiar para la web</button></div>
     <div class="box"><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
       <button class="btn b-sec" id="eVend" style="width:100%">Copiar para el equipo</button></div>
-    <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de la venta, la app deja automáticamente 3 fotos por vehículo. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.</p>
+    <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de la venta, la app deja automáticamente 3 fotos por vehículo -- las tuyas, las de Víctor/Bryan/Corea y las vistas 360° de todos. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.</p>
       <button class="btn b-sec" id="eFree" style="width:100%">Podar ahora</button></div>
     <div class="box"><h3>Respaldo</h3><p>Copia de seguridad de todo lo registrado en esta app.</p>
       <button class="btn b-sec" id="eBak" style="width:100%">Copiar respaldo (texto)</button>
@@ -1035,6 +1064,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
   <div id="secFotos">
   <div class="mtr" id="phFuenteTip" hidden style="margin-bottom:9px"></div>
+  <div id="phFuenteSel" hidden style="margin-bottom:9px"></div>
   <div class="updrop" id="phDrop">Toca para tomar fotos o elegir de la galería<div class="mtr" id="phMtr"></div></div>
   <input type="file" id="phFile" accept="image/*" multiple hidden>
   <div class="sendbar" id="phSend" hidden>
@@ -1043,6 +1073,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="phg" id="phGrid"></div>
   </div>
   <div id="sec360" hidden>
+  <div id="t3FuenteSel" hidden style="margin-bottom:9px"></div>
   <div class="v360" id="t3View"><div class="none" id="t3None">Aún no hay tomas 360°.<br>Elige cuántas y empieza a capturar.</div>
     <img id="t3Img" alt="" hidden><div class="hint" id="t3Hint" hidden></div></div>
   <div class="prog" id="t3Prog"></div>
@@ -1237,7 +1268,7 @@ const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es
 const iso=()=>new Date().toISOString().slice(0,10);
 const fd=s=>s?s.split('-').reverse().join('/'):'';
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
-const st=c=>S[c]||(S[c]={sold:false,price:'',date:'',pub:false,of:false,pprice:'',costs:[],nf:0,cov:''});
+const st=c=>S[c]||(S[c]={sold:false,price:'',date:'',pub:false,of:false,pprice:'',costs:[],nf:0,cov:'',fuentePref:'',fuentePref360:''});
 const sold=c=>!!(S[c]&&S[c].sold);
 const xls=v=>Object.values(v.xc||{}).reduce((a,b)=>a+(b||0),0);      // costos ya en Excel
 const abo=x=>x.abonos?x.abonos.reduce((a,b)=>a+(b.m||0),0):(x.amt||0);
@@ -1264,7 +1295,7 @@ const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación') */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -1472,31 +1503,50 @@ function fbFotosVendListen(){
       const d=chg.doc.data()||{};
       const ch=d.ch; if(!ch || !d.fuente) return;
       if(!fotosVendCache[ch]) fotosVendCache[ch]={};
-      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[]};
+      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
     });
     webSyncPronto();
     fbDibujaPronto();
+    if(typeof podaAuto==='function') podaAuto();  /* por si llega recien la cache de un vehiculo vendido hace rato */
+    if(typeof pintaPendientes==='function') pintaPendientes();
   }, e=>console.error('fbFotosVendListen', e));
 }
-/* Ordena las claves de un cache {fuente:{nombre,fotos}} según la prioridad Víctor > Bryan >
-   (cualquier otro vendedor futuro, alfabético) > Corea — reutilizable para fotos normales y
-   para la vista 360°, cada una con su propio cache. */
+/* Ordena las claves de un cache {fuente:{nombre,fotos,pendiente}} según la prioridad Víctor >
+   Bryan > (cualquier otro vendedor futuro, alfabético) > Corea — reutilizable para fotos
+   normales y para la vista 360°, cada una con su propio cache. Una fuente "pendiente" (recién
+   subida cuando ya había fotos de otra parte) queda afuera de este orden automático: no se
+   muestra sola en la web hasta que André la revise y la apruebe (ver elegirFuente/candidatosFotos) --
+   pero igual aparece listada, marcada como pendiente, para que él pueda elegirla a mano. */
 function ordenarFuentes(cache){
   if(!cache) return [];
-  const claves=Object.keys(cache).filter(k=>cache[k] && cache[k].fotos && cache[k].fotos.length);
+  const claves=Object.keys(cache).filter(k=>cache[k] && cache[k].fotos && cache[k].fotos.length && !cache[k].pendiente);
   const conNombre=FUENTE_VEND_ORDEN_BASE.filter(k=>claves.includes(k));
   const otras=claves.filter(k=>!FUENTE_VEND_ORDEN_BASE.includes(k) && k!=='corea').sort();
   const corea=claves.includes('corea')?['corea']:[];
   return conNombre.concat(otras, corea);
 }
 function fuentesOrdenadas(ch){ return ordenarFuentes(fotosVendCache[ch]); }
-/* Fotos que realmente se muestran en la web para este vehículo: las propias de Andre si
-   existen; si no, las del primer vendedor (o Corea) que tenga, en orden de prioridad. */
+/* Fotos que realmente se muestran en la web para este vehículo. Si André eligió una fuente a
+   mano (t.fuentePref, ver elegirFuente()) y esa fuente todavía tiene fotos, esa manda por
+   sobre todo lo demás -- incluso por sobre las propias de André, porque él puede decidir que
+   las de Bryan quedaron mejores. Sin elección manual, se usa el orden automático de siempre:
+   las propias de André si existen; si no, las del primer vendedor (o Corea) que tenga, en
+   orden de prioridad (excluyendo las que estén pendientes de revisión). */
 function fotosEfectivas(v){
+  const t=st(v.ch);
+  const cache=fotosVendCache[v.ch]||{};
+  if(t.fuentePref){
+    if(t.fuentePref==='sistema'){
+      if(Array.isArray(v.fotos) && v.fotos.length) return {fotos:v.fotos, fuente:'sistema', nombre:''};
+    }else{
+      const c=cache[t.fuentePref];
+      if(c && c.fotos.length) return {fotos:c.fotos, fuente:t.fuentePref, nombre:c.nombre||t.fuentePref};
+    }
+  }
   if(Array.isArray(v.fotos) && v.fotos.length) return {fotos:v.fotos, fuente:'sistema', nombre:''};
   const orden=fuentesOrdenadas(v.ch);
   for(const f of orden){
-    const c=fotosVendCache[v.ch][f];
+    const c=cache[f];
     if(c && c.fotos.length) return {fotos:c.fotos, fuente:f, nombre:c.nombre||f};
   }
   return {fotos:[], fuente:null, nombre:''};
@@ -1521,14 +1571,26 @@ function fbF360VendListen(){
       const d=chg.doc.data()||{};
       const ch=d.ch; if(!ch || !d.fuente) return;
       if(!f360VendCache[ch]) f360VendCache[ch]={};
-      f360VendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[]};
+      f360VendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
     });
     webSyncPronto();
+    if(typeof podaAuto==='function') podaAuto();  /* por si llega recien la cache de un vehiculo vendido hace rato */
+    if(typeof pintaPendientes==='function') pintaPendientes();
   }, e=>console.error('fbF360VendListen', e));
 }
+/* Misma idea que fotosEfectivas(), pero para la vista 360° -- ver ese comentario. */
 function fotosEfectivas360(v){
+  const t=st(v.ch);
+  const cache=f360VendCache[v.ch]||{};
+  if(t.fuentePref360){
+    if(t.fuentePref360==='sistema'){
+      if(Array.isArray(v.f360) && v.f360.length) return {fotos:v.f360, fuente:'sistema', nombre:''};
+    }else{
+      const c=cache[t.fuentePref360];
+      if(c && c.fotos.length) return {fotos:c.fotos, fuente:t.fuentePref360, nombre:c.nombre||t.fuentePref360};
+    }
+  }
   if(Array.isArray(v.f360) && v.f360.length) return {fotos:v.f360, fuente:'sistema', nombre:''};
-  const cache=f360VendCache[v.ch];
   const orden=ordenarFuentes(cache);
   for(const f of orden){
     const c=cache[f];
@@ -1536,6 +1598,76 @@ function fotosEfectivas360(v){
   }
   return {fotos:[], fuente:null, nombre:''};
 }
+/* --- elegir a mano qué fuente se muestra (fotos y 360°) + aprobar/descartar pendientes ---
+   Todo esto vive acá porque solo Sistema arma el catálogo público (ver webDoc()/webSync()). */
+const FUENTE_ETIQUETA={sistema:'Tú (André)', victor:'Víctor', bryan:'Bryan', corea:'Corea (mamá)'};
+function fuenteLabel(f){ return FUENTE_ETIQUETA[f] || f; }
+function candidatosFotos(v){
+  const list=[];
+  if(Array.isArray(v.fotos) && v.fotos.length) list.push({key:'sistema', n:v.fotos.length, pendiente:false});
+  const c=fotosVendCache[v.ch]||{};
+  for(const k in c){ if(c[k] && c[k].fotos && c[k].fotos.length) list.push({key:k, n:c[k].fotos.length, pendiente:!!c[k].pendiente, nombre:c[k].nombre}); }
+  return list;
+}
+function candidatos360(v){
+  const list=[];
+  if(Array.isArray(v.f360) && v.f360.length) list.push({key:'sistema', n:v.f360.length, pendiente:false});
+  const c=f360VendCache[v.ch]||{};
+  for(const k in c){ if(c[k] && c[k].fotos && c[k].fotos.length) list.push({key:k, n:c[k].fotos.length, pendiente:!!c[k].pendiente, nombre:c[k].nombre}); }
+  return list;
+}
+/* Borra el/los aviso(s) "fotoPend" pendientes de este vehículo+tipo -- se llama apenas André
+   decide algo al respecto (elegir una fuente, o descartar y dejar lo que ya estaba). */
+function limpiarAvisoFotoPend(ch,tipo){
+  const cat=tipo==='fotos'?'fotos':'f360';
+  AVISOSVEND.filter(a=>a.tipo==='fotoPend' && a.ch===ch && a.cat===cat && !a.atendido)
+    .forEach(a=>marcarAvisoAtendido(a.ts));
+}
+/* André elige a mano qué fuente se muestra para este vehículo (tipo: 'fotos' o 'v360').
+   key vacío = volver a automático. Si la fuente elegida era de un vendedor/Corea y estaba
+   pendiente de revisión, queda aprobada (se limpia el pendiente en la nube). */
+async function elegirFuente(ch,tipo,key){
+  const t=st(ch);
+  const campo=tipo==='fotos'?'fuentePref':'fuentePref360';
+  t[campo]=key||'';
+  await save();
+  if(key && key!=='sistema'){
+    const col=tipo==='fotos'?FB_FOTOS_COL:F360_VEND_COL;
+    const cache=tipo==='fotos'?fotosVendCache:f360VendCache;
+    const c=cache[ch] && cache[ch][key];
+    if(c && c.pendiente){
+      c.pendiente=false;
+      if(fbReady){ try{ await fbDb.collection(col).doc(ch+'__'+key).set({pendiente:false},{merge:true}); }catch(e){ console.error('elegirFuente',e); } }
+    }
+  }
+  limpiarAvisoFotoPend(ch,tipo);
+  webSyncPronto(); draw();
+  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
+  toast(key ? 'Ahora se muestran las fotos de '+fuenteLabel(key) : 'Vuelto a automático');
+}
+/* André revisó y decidió mantener lo que ya se está mostrando (sin elegir ninguna fuente
+   nueva a mano): solo limpia la marca de "pendiente" de las que la tenían, y el aviso. */
+async function descartarAvisoFuente(ch,tipo){
+  const col=tipo==='fotos'?FB_FOTOS_COL:F360_VEND_COL;
+  const cache=tipo==='fotos'?fotosVendCache:f360VendCache;
+  const c=cache[ch]||{};
+  for(const k in c){
+    if(c[k] && c[k].pendiente){
+      c[k].pendiente=false;
+      if(fbReady){ try{ await fbDb.collection(col).doc(ch+'__'+k).set({pendiente:false},{merge:true}); }catch(e){ console.error('descartarAvisoFuente',e); } }
+    }
+  }
+  limpiarAvisoFotoPend(ch,tipo);
+  webSyncPronto(); draw();
+  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
+  toast('Aviso descartado · se mantienen las fotos actuales');
+}
+document.addEventListener('click',e=>{
+  const fs=e.target.closest('[data-fsel]');
+  if(fs){ const [tipo,key]=fs.dataset.fsel.split('|'); elegirFuente(phCh,tipo,key); return; }
+  const fd=e.target.closest('[data-fdesc]');
+  if(fd){ descartarAvisoFuente(phCh,fd.dataset.fdesc); return; }
+});
 
 async function fbSubirTodo(){
   const el=document.getElementById('fbMigEstado');
@@ -1937,6 +2069,86 @@ async function fzCorrige(archivo){
   }catch(e){ console.error('fzCorrige',e); pinta('✗ '+(e.message||e),'#B5533C'); }
 }
 
+/* Restaura v.ct/v.cif desde un archivo {"costos":{chasis:{ct,cif}}} sacado del Excel
+   original. Existe porque se detectaron vehiculos con el costo en $0 en la app real
+   sin que el Excel original los tuviera vacios. Solo completa donde ct Y cif estan
+   vacios en la app -- nunca sobreescribe un costo que ya este cargado. */
+async function costoCorrige(archivo){
+  const el=document.getElementById('ccxEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  try{
+    pinta('Leyendo el archivo…');
+    const paq=JSON.parse(await archivo.text());
+    const tabla=(paq&&paq.costos)||paq;
+    if(!tabla || typeof tabla!=='object') throw new Error('el archivo no trae una tabla de costos');
+    let yaTenian=0, cambian=0, noEstan=0;
+    const lista=[];
+    for(const ch in tabla){
+      const dato=tabla[ch]; if(!dato) continue;
+      const ct=Number(dato.ct)||0, cif=Number(dato.cif)||0;
+      if(!ct && !cif) continue;
+      const v=IDX[ch];
+      if(!v){ noEstan++; continue; }
+      if(v.ct || v.cif){ yaTenian++; continue; }
+      lista.push([ch, ct, cif]); cambian++;
+    }
+    if(!cambian){ pinta('Nada que restaurar: no hay vehículos con costo en $0 pendientes.','#2E7D32'); return; }
+    const muestra=lista.slice(0,5).map(x=>x[0]+': '+clp(x[1])).join('\n');
+    if(!confirm('Se va a restaurar el costo en '+cambian+' vehículo(s) que estaban en $0:\n\n'
+      +muestra+(lista.length>5?('\n…y '+(lista.length-5)+' más'):'')
+      +'\n\nSolo se completa donde estaba vacío -- no se toca ningún costo ya cargado.\n\n¿Restaurar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+    for(const [ch,ct,cif] of lista){ IDX[ch].ct=ct; IDX[ch].cif=cif; }
+    guardaCacheV(); draw();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    pinta('✓ Restaurados '+cambian+' vehículo(s)'+(yaTenian?(' · '+yaTenian+' ya tenían costo cargado'):'')
+      +(noEstan?(' · '+noEstan+' del archivo no están en el stock'):'')
+      +'. Se están subiendo a la nube solos.','#2E7D32');
+    toast('Costo restaurado');
+  }catch(e){ console.error('costoCorrige',e); pinta('✗ '+(e.message||e),'#B5533C'); }
+}
+
+/* Copia, una sola vez, v.vev ("Estimado", cargado en su momento desde el Excel) al
+   Valor mínimo (S[ch].pmin) de cada vehículo que todavía no tenga uno cargado.
+   No borra v.vev ni toca el precio de venta -- solo llena pmin donde falta. */
+function migraEstimadoAMinimo(){
+  const el=document.getElementById('migEstEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  const candidatos=V.filter(v=>v.vev && !st(v.ch).pmin);
+  if(!candidatos.length){ pinta('Nada que migrar: no hay vehículos con "Estimado" sin Valor mínimo.','#2E7D32'); return; }
+  const muestra=candidatos.slice(0,5).map(v=>v.ch+': '+clp(v.vev)).join('\n');
+  if(!confirm('Se va a copiar el "Estimado" como Valor mínimo en '+candidatos.length+' vehículo(s):\n\n'
+    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
+    +'\n\nNo se borra el Estimado ni se toca el precio de venta.\n\n¿Migrar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  for(const v of candidatos) st(v.ch).pmin=v.vev;
+  save(); draw();
+  pinta('✓ Migrados '+candidatos.length+' vehículo(s) a Valor mínimo.','#2E7D32');
+  toast('Valor mínimo cargado desde Estimado');
+}
+
+/* SOLO PRUEBAS: pone pventa en "pmin + $300.000" en los no vendidos que tengan
+   valor mínimo cargado y no tengan precio de venta -- para dejar de ver tarjetas
+   vacías mientras se prueba la app. Nunca sobreescribe un precio de venta ya cargado. */
+function rellenaPventaPrueba(){
+  const el=document.getElementById('rellPventaEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'#5A6B70')+'">'+t+'</span>'; };
+  const noVendidos=V.filter(v=>!sold(v.ch));
+  const sinMinimo=noVendidos.filter(v=>!st(v.ch).pmin).length;
+  const candidatos=noVendidos.filter(v=>st(v.ch).pmin&&!st(v.ch).pventa);
+  if(!candidatos.length){
+    pinta('Nada que rellenar'+(sinMinimo?(' · hay '+sinMinimo+' sin valor mínimo, no se pudo calcular'):'')+'.','#2E7D32');
+    return;
+  }
+  const muestra=candidatos.slice(0,5).map(v=>v.ch+': '+clp(st(v.ch).pmin+300000)).join('\n');
+  if(!confirm('SOLO DE PRUEBA: se va a poner el precio de venta en "valor mínimo + $300.000" en '+candidatos.length+' vehículo(s) sin precio de venta:\n\n'
+    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
+    +'\n\nNo son precios reales -- esto se sincroniza con Vendedores.\n\n¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  for(const v of candidatos){ const t=st(v.ch); t.pventa=t.pmin+300000; }
+  save(); draw();
+  pinta('✓ Precio de venta de prueba puesto en '+candidatos.length+' vehículo(s)'
+    +(sinMinimo?(' · '+sinMinimo+' sin valor mínimo quedaron sin tocar'):'')+'.','#2E7D32');
+  toast('Precio de venta de prueba cargado');
+}
+
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
   if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
@@ -2097,6 +2309,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(fz) fz.addEventListener('click',()=>document.getElementById('fzFile').click());
   const fzf=document.getElementById('fzFile');
   if(fzf) fzf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) fzCorrige(f); e.target.value=''; });
+  const ccx=document.getElementById('ccxBtn');
+  if(ccx) ccx.addEventListener('click',()=>document.getElementById('ccxFile').click());
+  const ccxf=document.getElementById('ccxFile');
+  if(ccxf) ccxf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) costoCorrige(f); e.target.value=''; });
+  const me=document.getElementById('migEstBtn');
+  if(me) me.addEventListener('click',migraEstimadoAMinimo);
+  const rp=document.getElementById('rellPventaBtn');
+  if(rp) rp.addEventListener('click',rellenaPventaPrueba);
   const hv=document.getElementById('histVolver');
   if(hv) hv.addEventListener('click',histVolver);
   const ha=document.getElementById('histArch');
@@ -2146,8 +2366,29 @@ async function boot(){
 async function save(){try{await window.storage.set(KEY,JSON.stringify(S))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1700)}
 
-function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
- $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
+
+/* Anima de forma fluida un cambio de alto dentro de `el` (evita el "salto brusco"
+   al cambiar de pestaña o de sección: fotos <-> vista 360 <-> video, Stock <-> Hoy,
+   etc). `cambiar` hace el cambio real de contenido (mostrar/ocultar hijos). */
+function alturaFluida(el, cambiar){
+  if(!el){ cambiar(); return; }
+  if(el._afFin){ el.removeEventListener('transitionend', el._afFin); el._afFin=null; }
+  const h0=el.getBoundingClientRect().height;
+  el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
+  cambiar();
+  const h1=el.scrollHeight;
+  void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
+  el.style.transition='height .22s ease';
+  el.style.height=h1+'px';
+  const fin=()=>{ el.style.transition=''; el.style.height=''; el.style.overflow=''; el.removeEventListener('transitionend',fin); el._afFin=null; };
+  el._afFin=fin;
+  el.addEventListener('transitionend',fin);
+}
+const MAIN=$('main');
+function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
+ $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
+})}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 
 function openSheet(id){$('#scrim').classList.add('on');$('#'+id).classList.add('on')}
@@ -2200,7 +2441,11 @@ function cardS(v){
   if(isS&&s.price){
     filas.push(`Venta <b>${fmtMon(s)}${s.moneda==='USD'?' · '+clp(ventaCLP):''}</b>`);
     filas.push(`Margen <b style="color:${marg>=0?'var(--green)':'var(--red)'}">${clp(marg)}</b>`);
-  } else if(v.vev) filas.push(`Estimado <b>${clp(v.vev)}</b>`);
+  } else {
+    if(v.vev && !s.pmin) filas.push(`Estimado <b>${clp(v.vev)}</b>`);
+    filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}</b>`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
+    filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}</b>`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
+  }
   if(deb)  filas.push(`Por pagar <b style="color:var(--amber)">${clp(deb)}</b>`);
   if(pest) filas.push(`Estimado taller <b>${clp(pest)}</b>`);
   if(deb||pest) filas.push(`Proyectado <b>${clp(cost+deb+pest)}</b>`);
@@ -2225,8 +2470,8 @@ function cardS(v){
    <div class="acts">${isS
      ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
      : (v.st==='ORIGEN'
-       ? `<button class="btn b-pri" data-lleg="${v.ch}">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-       : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`)}
+       ? `<button class="btn b-pri" data-lleg="${v.ch}">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button><button class="btn b-sec" data-pub="${v.ch}" style="flex:0 0 auto">＄ Venta</button>`
+       : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button><button class="btn b-sec" data-pub="${v.ch}" style="flex:0 0 auto">＄ Venta</button>`)}
      <button class="btn b-sec" data-photo="${v.ch}" style="flex:0 0 auto">▣ ${nf||''}</button>
      ${nf?`<button class="btn b-sec" data-share="${v.ch}" style="flex:0 0 auto">➦</button>`:''}
      <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
@@ -2432,7 +2677,7 @@ function drawVit(){
       ${t.pub?'<span class="tag t-pub">En web</span>':''}${t.of?'<span class="tag t-of">Oferta</span>':''}</div></div>
      <div class="money"><div>Precio visible<b>${t.of&&t.pprice?clp(t.pprice):'Consultar'}</b></div>
       ${t.pventa?`<div>Precio de venta<b>${clp(t.pventa)}</b></div>`:'<div style="color:var(--red)">⚠ Falta precio de venta</div>'}
-     ${t.pmin?`<div>Mínimo equipo<b style="color:var(--amber)">${clp(t.pmin)}</b></div>`:''}
+     ${t.pmin?`<div>Precio mínimo<b style="color:var(--amber)">${clp(t.pmin)}</b></div>`:'<div style="color:var(--red)">⚠ Falta valor mínimo</div>'}
       ${v.sv?'<div>Sello verde<b style="color:var(--green)">Sí</b></div>':''}</div>
      <div class="acts"><button class="btn b-sec" data-pub="${v.ch}">Editar publicación</button>
       <button class="btn b-sec" data-photo="${v.ch}" style="flex:0 0 auto">▣</button></div></div>`}).join('')
@@ -2707,11 +2952,45 @@ async function podaAuto(){
   let n=0;
   for(const c in S){
     const t=S[c];
-    if(!t.sold || (t.nf||0)<=KEEP) continue;
+    if(!t.sold) continue;
     if(diasDesde(t.date) < DIAS_PODA) continue;
-    if(await pruneOne(c)) n++;
+    let podado=false;
+    if((t.nf||0)>KEEP && await pruneOne(c)) podado=true;
+    if(await podaF360Propio(c)) podado=true;
+    if(await podaVendCoreaNube(c)) podado=true;
+    if(podado) n++;
   }
   if(n){ draw(); toast(n+' vehículo'+(n===1?'':'s')+': fotos reducidas tras '+DIAS_PODA+' días'); }
+}
+/* Reduce la vista 360 propia (v.f360, subida a GitHub) a KEEP tomas -- misma idea
+   que pruneOne() pero para el arreglo de 360, que viaja aparte de las fotos. */
+async function podaF360Propio(c){
+  const v=IDX[c];
+  if(!v || !Array.isArray(v.f360) || v.f360.length<=KEEP) return false;
+  v.f360=v.f360.slice(0,KEEP); guardaCacheV();
+  return true;
+}
+/* Reduce a KEEP fotos las colecciones que suben Vendedores/Corea (fotosVend y
+   f360Vend, una por fuente: victor/bryan/corea) para un vehiculo ya vendido hace
+   rato -- mismo espiritu que pruneOne() pero escribiendo directo a Firestore,
+   porque esas fotos no pasan por este dispositivo. */
+async function podaVendCoreaNube(ch){
+  if(!fbReady) return false;
+  let podado=false;
+  for(const [col,cache] of [[FB_FOTOS_COL,fotosVendCache[ch]],[F360_VEND_COL,f360VendCache[ch]]]){
+    if(!cache) continue;
+    for(const fu in cache){
+      const c=cache[fu];
+      if(!c || !Array.isArray(c.fotos) || c.fotos.length<=KEEP) continue;
+      try{
+        const recorte=c.fotos.slice(0,KEEP);
+        await fbDb.collection(col).doc(ch+'__'+fu).set({fotos:recorte},{merge:true});
+        c.fotos=recorte;
+        podado=true;
+      }catch(e){ console.error('podaVendCoreaNube',col,ch,fu,e); }
+    }
+  }
+  return podado;
 }
 async function pruneOne(c){
   const arr=await loadPhotos(c);
@@ -2752,7 +3031,7 @@ $('#spOk').addEventListener('click',()=>{const t=st(editing);
   t.pmin=pnum($('#spMin').value);
   save();draw();closeAll();toast('Publicación actualizada ✓')});
 
-['#spMin','#spVenta'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
+['#spMin','#spVenta','#emVNVenta','#emVNMin','#nvVenta','#nvMin'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
 ['#ssTC'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':String(n)}));
 ['#ssP','#scA','#spP'].forEach(s=>$(s).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
 $('#q').addEventListener('input',e=>{q=e.target.value;drawStock()});
@@ -2860,10 +3139,12 @@ async function subirFotosNube(ch,arr,silencioso){
 }
 
 function segShow(k){
-  $('#secFotos').hidden = k!=='fotos';
-  $('#sec360').hidden  = k!=='v360';
-  $('#secVideo').hidden = k!=='video';
-  $$('#phSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.seg===k?'true':'false'));
+  alturaFluida($('#shPhoto'),()=>{
+    $('#secFotos').hidden = k!=='fotos';
+    $('#sec360').hidden  = k!=='v360';
+    $('#secVideo').hidden = k!=='video';
+    $$('#phSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.seg===k?'true':'false'));
+  });
   if(k!=='v360') stopSpin();
 }
 $('#phSegs').addEventListener('click',e=>{const b=e.target.closest('[data-seg]');if(b)segShow(b.dataset.seg)});
@@ -2887,7 +3168,6 @@ $('#phVideo').addEventListener('change',()=>{
   if(v.video===val) return;
   v.video=val; guardaCacheV(); draw();
 });
-const FUENTE_ETIQUETA={victor:'Víctor',bryan:'Bryan',corea:'Corea (mamá)'};
 function pintaFuenteTip(){
   const el=$('#phFuenteTip'); if(!el) return;
   if(phArr.length){ el.hidden=true; return; }
@@ -2898,9 +3178,29 @@ function pintaFuenteTip(){
   el.hidden=false;
   el.textContent='☁ No subiste fotos propias: ahora mismo la web está mostrando las de '+nom+'.';
 }
+/* Panel para elegir a mano qué fuente se muestra en la web (o volver a automático), y para
+   descartar un aviso de fotos pendientes sin cambiar nada. Solo aparece cuando hay más de
+   una fuente disponible, o alguna está pendiente de revisión. */
+function pintaFuenteSel(){
+  const el=$('#phFuenteSel'); if(!el) return;
+  const v=IDX[phCh]; if(!v){ el.hidden=true; return; }
+  const cands=candidatosFotos(v);
+  const hayPend=cands.some(c=>c.pendiente);
+  if(cands.length<2 && !hayPend){ el.hidden=true; return; }
+  const t=st(phCh);
+  const actual=fotosEfectivas(v).fuente;
+  el.hidden=false;
+  el.innerHTML='<div class="mtr" style="margin-bottom:6px">Fuente que se muestra en la web'+(t.fuentePref?' · elegida por ti':' · automático')+'</div>'
+    +'<div class="catg" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">'
+    +cands.map(c=>`<button class="cg" data-fsel="fotos|${c.key}" aria-pressed="${c.key===actual}">${fuenteLabel(c.key)}${c.pendiente?' · pendiente':''}</button>`).join('')
+    +(t.fuentePref?'<button class="cg" data-fsel="fotos|">Automático</button>':'')
+    +'</div>'
+    +(hayPend?'<button class="btn b-sec" style="margin-top:8px" data-fdesc="fotos">Descartar aviso (mantener lo actual)</button>':'');
+}
 function drawPhotos(){
   $('#phSend').hidden=!phArr.length;
   pintaFuenteTip();
+  pintaFuenteSel();
   $('#phShare').textContent = phSel.size ? `➦ Enviar ${phSel.size} foto${phSel.size===1?'':'s'}` : '➦ Enviar fotos';
   $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph ${phSel.has(i)?'sel':''}" data-sel="${i}">
     <img src="${d}" alt="Foto ${i+1}">
@@ -3809,6 +4109,17 @@ function abrirAvisoPendiente(av){
   openCost(av.ch,null,null,'est');
   marcarAvisoAtendido(av.ts);
 }
+/* Abre la ficha de fotos/vista 360° de un vehículo con fotos nuevas pendientes de revisión
+   (alguien subió estando otra fuente ya arriba). NO marca el aviso como atendido acá -- eso
+   solo pasa cuando André realmente decide algo (elegirFuente/descartarAvisoFuente), para que
+   quede como pendiente hasta que él elija. */
+async function abrirAvisoFoto(av){
+  const v=IDX[av.ch];
+  if(!v){ marcarAvisoAtendido(av.ts); toast('Ese vehículo ya no está en el stock'); return; }
+  show('pStock');
+  await openPhotos(av.ch);
+  segShow(av.cat==='f360'?'v360':'fotos');
+}
 function pintaInsumos(){
   const el=$('#insumosList'); if(!el) return;
   const L=AVISOSVEND.filter(x=>x.tipo==='insumo').sort((a,b)=>b.ts-a.ts);
@@ -3999,6 +4310,8 @@ function pendientesGlobales(){
   if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
   const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
+  if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
   return p;
 }
@@ -4755,18 +5068,22 @@ function pend(c){return tasks(c).filter(x=>!x.hecho).length}
 const saldo=x=>(x.est||0);
 
 function cseg(k){
+ alturaFluida(MAIN,()=>{
   $('#secEst').hidden = k!=='est';
   $('#secReal').hidden= k!=='real';
   $('#secCorea').hidden= k!=='corea';
   if(k==='corea') pintaCorea();
   $$('#scSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cseg===k?'true':'false'));
+ });
 }
 function ngseg(k){
-  [['dinero','ngDinero'],['mes','ngMes'],['embarque','ngEmbarque'],['ajustes','ngAjustes'],['traspaso','ngTraspaso']].forEach(([n,id])=>{
-    const el=$('#'+id); if(el) el.hidden = n!==k;
-  });
-  $$('#ngSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ng===k?'true':'false'));
   window.scrollTo(0,0);
+  alturaFluida(MAIN,()=>{
+    [['dinero','ngDinero'],['mes','ngMes'],['embarque','ngEmbarque'],['ajustes','ngAjustes'],['traspaso','ngTraspaso']].forEach(([n,id])=>{
+      const el=$('#'+id); if(el) el.hidden = n!==k;
+    });
+    $$('#ngSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ng===k?'true':'false'));
+  });
 }
 $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');if(b)ngseg(b.dataset.ng)});
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
@@ -4917,8 +5234,26 @@ async function load360(c){
   t3=[]; try{const r=await window.storage.get(T3K(c)); if(r&&r.value){const o=JSON.parse(r.value); t3=o.f||[]; t3n=o.n||16}}catch(e){}
   t3i=0; draw360();
 }
+/* Igual que pintaFuenteSel() pero para la vista 360°. */
+function pinta360FuenteSel(){
+  const el=$('#t3FuenteSel'); if(!el) return;
+  const v=IDX[t3ch]; if(!v){ el.hidden=true; return; }
+  const cands=candidatos360(v);
+  const hayPend=cands.some(c=>c.pendiente);
+  if(cands.length<2 && !hayPend){ el.hidden=true; return; }
+  const t=st(t3ch);
+  const actual=fotosEfectivas360(v).fuente;
+  el.hidden=false;
+  el.innerHTML='<div class="mtr" style="margin-bottom:6px">Fuente que se muestra en la web'+(t.fuentePref360?' · elegida por ti':' · automático')+'</div>'
+    +'<div class="catg" style="grid-template-columns:repeat(auto-fit,minmax(96px,1fr))">'
+    +cands.map(c=>`<button class="cg" data-fsel="v360|${c.key}" aria-pressed="${c.key===actual}">${fuenteLabel(c.key)}${c.pendiente?' · pendiente':''}</button>`).join('')
+    +(t.fuentePref360?'<button class="cg" data-fsel="v360|">Automático</button>':'')
+    +'</div>'
+    +(hayPend?'<button class="btn b-sec" style="margin-top:8px" data-fdesc="v360">Descartar aviso (mantener lo actual)</button>':'');
+}
 function draw360(){
   $('#t3N').innerHTML=[12,16,24].map(n=>`<button data-n360="${n}" aria-pressed="${n===t3n}" ${t3.length?'disabled style="opacity:.4"':''}>${n} tomas</button>`).join('');
+  pinta360FuenteSel();
   const done=t3.length, full=done>=t3n;
   $('#t3Prog').innerHTML=Array.from({length:t3n},(_,i)=>`<i class="${i<done?'on':(i===done?'next':'')}"></i>`).join('');
   if(done){
@@ -6561,7 +6896,9 @@ $('#emVNAdd').addEventListener('click',async()=>{
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; emVNWarn=false;
-  ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv'].forEach(i=>$('#'+i).value='');
+  const pventaEmVN=pnum($('#emVNVenta').value), pminEmVN=pnum($('#emVNMin').value);
+  if(pventaEmVN||pminEmVN){ const t=st(ch); if(pventaEmVN) t.pventa=pventaEmVN; if(pminEmVN) t.pmin=pminEmVN; save(); }
+  ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv','emVNVenta','emVNMin'].forEach(i=>$('#'+i).value='');
   $('#emVNTr').value='4X2';
   $('#emVNChT').textContent=''; emVNTransTocado=false; emVNTransSugerir();
   if(typeof selOtroReset==='function') selOtroReset();
@@ -6916,7 +7253,9 @@ $('#nvAdd').addEventListener('click',async()=>{
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; nvWarn=false;
-  ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv'].forEach(i=>$('#'+i).value='');
+  const pventaNv=pnum($('#nvVenta').value), pminNv=pnum($('#nvMin').value);
+  if(pventaNv||pminNv){ const t=st(ch); if(pventaNv) t.pventa=pventaNv; if(pminNv) t.pmin=pminNv; save(); }
+  ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv','nvVenta','nvMin'].forEach(i=>$('#'+i).value='');
   $('#nvTr').value='4X2';
   $('#nvChT').textContent=''; nvTransTocado=false; nvTransSugerir();
   if(typeof selOtroReset==='function') selOtroReset();
@@ -7033,12 +7372,19 @@ $('#rxBtn').addEventListener('click',async()=>{
   toast(nuevos.length+' vehículo'+(nuevos.length===1?'':'s')+' cargado'+(nuevos.length===1?'':'s'));
 });
 $('#eFree').addEventListener('click',async()=>{
-  const cands=Object.keys(S).filter(c=>S[c].sold&&(S[c].nf||0)>KEEP);
+  const cands=Object.keys(S).filter(c=>S[c].sold);
   if(!cands.length){toast('No hay nada que podar');return}
   $('#eFree').disabled=true; $('#eFree').textContent='Podando…';
-  let n=0; for(const c of cands){ if(await pruneOne(c)) n++; }
+  let n=0;
+  for(const c of cands){
+    let podado=false;
+    if((S[c].nf||0)>KEEP && await pruneOne(c)) podado=true;
+    if(await podaF360Propio(c)) podado=true;
+    if(await podaVendCoreaNube(c)) podado=true;
+    if(podado) n++;
+  }
   $('#eFree').disabled=false; $('#eFree').textContent='Podar fotos de vendidos';
-  draw(); toast(n+' vehículo'+(n===1?'':'s')+' podado'+(n===1?'':'s'));
+  draw(); toast(n?n+' vehículo'+(n===1?'':'s')+' podado'+(n===1?'':'s'):'No había nada que podar');
 });
 $('#eVend').addEventListener('click',()=>{
   const out=V.filter(v=>!sold(v.ch)).map(v=>{const t=st(v.ch);

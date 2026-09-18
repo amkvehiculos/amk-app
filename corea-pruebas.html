@@ -39,8 +39,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .ch{font-family:var(--mono);font-size:10.5px;color:var(--mute);letter-spacing:.05em;margin-top:2px}
 .cover{width:52px;height:39px;border-radius:7px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto}
 .tag{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;white-space:nowrap}
-.t-ok{background:var(--green);color:#fff}.t-pend{background:var(--amberBg);color:#B47A06}
-.t-nochas{background:var(--redBg);color:#9B2A28}
+.t-ok{background:var(--greenBg);color:var(--green)}.t-pend{background:var(--amberBg);color:var(--amber)}
+.t-nochas{background:var(--redBg);color:var(--red)}
 .specs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .sp{font-size:11.5px;font-weight:500;background:var(--seaL);border:1px solid var(--line);color:var(--ink2);padding:3px 7px;border-radius:6px}
 .nota{margin-top:9px;font-size:13px;color:var(--ink2);background:var(--seaL);border-left:3px solid var(--line);padding:8px 10px;border-radius:0 7px 7px 0}
@@ -593,8 +593,28 @@ document.addEventListener('DOMContentLoaded',()=>{
   const p=document.getElementById('logPass');
   if(p) p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbEntrar(); });
 });
-function show(p){tab=p;$$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
- $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));window.scrollTo(0,0)}
+
+/* Anima de forma fluida un cambio de alto dentro de `el` (evita el "salto brusco"
+   al cambiar de pestaña). `cambiar` hace el cambio real de contenido. */
+function alturaFluida(el, cambiar){
+  if(!el){ cambiar(); return; }
+  if(el._afFin){ el.removeEventListener('transitionend', el._afFin); el._afFin=null; }
+  const h0=el.getBoundingClientRect().height;
+  el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
+  cambiar();
+  const h1=el.scrollHeight;
+  void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
+  el.style.transition='height .22s ease';
+  el.style.height=h1+'px';
+  const fin=()=>{ el.style.transition=''; el.style.height=''; el.style.overflow=''; el.removeEventListener('transitionend',fin); el._afFin=null; };
+  el._afFin=fin;
+  el.addEventListener('transitionend',fin);
+}
+const MAIN=$('main');
+function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
+ $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
+})}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on')}
 function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));if(typeof stopSpinMy360C==='function')stopSpinMy360C()}
