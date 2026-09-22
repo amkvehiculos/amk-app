@@ -206,6 +206,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label for="histProv">Proveedor</label><select id="histProv"></select></div>
     <div id="histList"></div>
   </section>
+
+  <section class="panel" id="pGastos">
+    <h2>Gastos generales</h2><p class="sub">Compras que no son de un vehículo en particular (ej: cromados comprados en bloque). Anótalas acá y después ve asignando cuánto le corresponde a cada vehículo. Lo que quede sin asignar se reparte después, en Sistema, entre los vehículos del embarque.</p>
+    <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
+    <p class="cnt" id="genCnt"></p>
+    <div id="genList"></div>
+  </section>
 </main>
 
 <nav class="tabbar" role="tablist">
@@ -213,6 +220,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <button class="tb" role="tab" data-p="pRemesa" aria-selected="false"><i>₩</i>Remesas</button>
   <button class="tb" role="tab" data-p="pEnviar" aria-selected="false"><i>➦</i>Enviar</button>
   <button class="tb" role="tab" data-p="pHist" aria-selected="false"><i>▤</i>Histórico</button>
+  <button class="tb" role="tab" data-p="pGastos" aria-selected="false"><i>◫</i>Gastos</button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
@@ -259,6 +267,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" placeholder="₩0"></div>
     <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
   </div>
+  <div class="fld"><label for="fSenia">Seña pagada (KRW)</label><input id="fSenia" inputmode="numeric" placeholder="₩0"></div>
   <div class="fld"><label>Gastos en Corea (KRW)</label>
     <div class="two" style="gap:8px">
       <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" placeholder="₩0"></div>
@@ -320,6 +329,25 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <input id="asCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: CK322436">
     <div class="err" id="eAs"></div></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="asOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shGasto">
+  <h3 id="genT">Nuevo gasto general</h3><div class="sb">Ej: cromados comprados para varios vehículos a la vez</div>
+  <div class="fld"><label>Categoría</label><div class="opt" id="genCat"></div></div>
+  <div class="fld"><label for="genMonto">Monto total (KRW)</label><input id="genMonto" inputmode="numeric" placeholder="₩0"></div>
+  <div class="fld"><label for="genFe">Fecha</label><input id="genFe" type="date"></div>
+  <div class="fld"><label for="genProv">Proveedor</label><input id="genProv" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan"></div>
+  <div class="fld"><label for="genNota">Nota (opcional)</label><input id="genNota" autocomplete="off" placeholder="Ej: para el contenedor de julio"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shGastoAsig">
+  <h3>Asignar a un vehículo</h3><div class="sb" id="genAsigC"></div>
+  <div class="fld"><label for="genAsigCh">Vehículo</label>
+    <input id="genAsigCh" list="dlGenV" autocomplete="off" placeholder="Busca por marca, modelo o chasis">
+    <datalist id="dlGenV"></datalist></div>
+  <div class="fld"><label for="genAsigMonto">Monto para este vehículo (KRW)</label><input id="genAsigMonto" inputmode="numeric" placeholder="₩0"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genAsigOk">Asignar</button></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -386,7 +414,8 @@ const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=12,CAP=4.2e6;
 const RX=/^[A-Z]{2}\d{6}$/;
 let sinCh=false, warnOnce=false;
 const CC=[['BAT','Batería'],['ASI','Asiento'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
-let L=[], RE=[], PROV=[], CONT=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:''};
+let L=[], RE=[], GEN=[], PROV=[], CONT=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:''};
+let genCat='CRO', genEdit=null, genAsigId=null;
 let phCh=null, phArr=[];
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
@@ -418,8 +447,9 @@ async function boot(){
   CONT=[...new Map(CONT.map(c=>[String(c).trim().toUpperCase(),String(c).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_extra');if(r&&r.value)EXTRA=Object.assign(EXTRA,JSON.parse(r.value))}catch(e){console.error('boot EXTRA',e)}
   try{const r=await window.storage.get('amkc_remesas');if(r&&r.value)RE=JSON.parse(r.value)}catch(e){console.error('boot RE',e)}
+  try{const r=await window.storage.get('amkc_gastos');if(r&&r.value)GEN=JSON.parse(r.value)}catch(e){console.error('boot GEN',e)}
   dlProv(); dlCont(); await cargaDemandaLocal();
-  $('#boot').remove();show(tab);opts();draw();pintaRE();
+  $('#boot').remove();show(tab);opts();draw();pintaRE();pintaGastos();
   pintaHK();
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(e){console.error('save',e); toast('No se pudo guardar')} fbEnviaPronto();}
@@ -434,6 +464,8 @@ const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"am
 const FB_USER='corea@amk-vehiculos.app';
 const FB_COL='pruebas_vehiculos';
 const RECOREA_COL='pruebas_remesasCorea';
+const GASTOS_COL='pruebas_gastosCorea';
+let fbGastosEscuchando=false;
 const FOTOSVEND_COL='pruebas_fotosVend';
 const F360_VEND_COL='pruebas_f360Vend';
 let fbRecoreaEscuchando=false;
@@ -460,7 +492,7 @@ function fbMuestraLogin(m){
    envío ni nada local, así que cambiar eso no dispara un reenvío. */
 function fbFirma(v){
   let s='';
-  try{ s=JSON.stringify([FB_GEN.map(k=>v[k]===undefined?null:v[k]), v.krw===undefined?null:v.krw, v.cc===undefined?null:v.cc]); }
+  try{ s=JSON.stringify([FB_GEN.map(k=>v[k]===undefined?null:v[k]), v.krw===undefined?null:v.krw, v.cc===undefined?null:v.cc, v.senia===undefined?null:v.senia]); }
   catch(e){ return ''; }
   let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0;
   return (h>>>0).toString(36)+'.'+s.length;
@@ -510,14 +542,17 @@ async function fbEnvia(){
     for(const v of pend){
       const firma=fbFirma(v);
       const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
+      if(v._primerEnvio) gen.st='ORIGEN';   /* recién comprado en Corea: arranca 'En camino' en Sistema, solo la primera vez */
       gen._ts=firebase.firestore.FieldValue.serverTimestamp();
       try{
         await fbDb.collection(FB_COL).doc(v.ch).set(gen,{merge:true});
+        delete v._primerEnvio;
         let costosOk=true;
         try{
           const costos={};
           if(v.krw!==undefined) costos.krw=v.krw;
           if(v.cc!==undefined) costos.cc=v.cc;
+          if(v.senia!==undefined) costos.senia=v.senia;
           if(Object.keys(costos).length){
             costos._ts=firebase.firestore.FieldValue.serverTimestamp();
             await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('costos').set(costos,{merge:true});
@@ -583,6 +618,144 @@ async function fbDeleteRemesa(ts){
   try{ await fbDb.collection(RECOREA_COL).doc(String(ts)).delete(); }
   catch(e){ console.error('fbDeleteRemesa',e); }
 }
+
+/* ---------- Gastos generales (compras que no son de un vehículo en particular) ---------- */
+async function guardaGEN(){ try{ await window.storage.set('amkc_gastos',JSON.stringify(GEN)); }catch(e){ console.error('guardaGEN',e); } }
+function genAsignado(g){ return (g.asig||[]).reduce((a,x)=>a+(x.monto||0),0); }
+function genSaldo(g){ return Math.max(0, (g.monto||0) - genAsignado(g)); }
+const genFirma=g=>JSON.stringify([g.cat,g.monto||0,g.fe||'',g.prov||'',g.nota||'',(g.asig||[]).map(a=>[a.ch,a.monto,a.ts])]);
+async function fbSyncGasto(g){
+  if(!fbReady) return false;
+  const firma=genFirma(g);
+  try{
+    await fbDb.collection(GASTOS_COL).doc(g.id).set({
+      cat:g.cat, monto:g.monto||0, fe:g.fe||'', prov:g.prov||'', nota:g.nota||'', asig:g.asig||[],
+      _ts:firebase.firestore.FieldValue.serverTimestamp()
+    },{merge:true});
+    g.nube=firma; await guardaGEN(); pintaGastos();
+    return true;
+  }catch(e){ console.error('fbSyncGasto',e); return false; }
+}
+let fbGastosTimer=null;
+function fbEnviaGastosPronto(){ if(!fbReady) return; clearTimeout(fbGastosTimer); fbGastosTimer=setTimeout(fbSyncGastosPend, 1200); }
+async function fbSyncGastosPend(){
+  if(!fbReady) return;
+  for(const g of GEN.filter(y=>y.nube===undefined || y.nube!==genFirma(y))){ await fbSyncGasto(g); }
+}
+async function fbDeleteGasto(id){
+  if(!fbReady) return;
+  try{ await fbDb.collection(GASTOS_COL).doc(id).delete(); }
+  catch(e){ console.error('fbDeleteGasto',e); }
+}
+/* Sistema escribe 'prorrateo' cuando reparte, en el Embarque, el saldo sin asignar de un gasto
+   entre los vehículos de ese embarque -- acá solo se refleja para que quede claro que ya se
+   repartió (no se puede volver a asignar a mano un gasto que ya se prorrateó). */
+function fbGastosListen(){
+  if(!fbReady) return;
+  fbDb.collection(GASTOS_COL).onSnapshot(snap=>{
+    let cambio=false;
+    snap.docChanges().forEach(chg=>{
+      if(chg.type==='removed') return;
+      const d=chg.doc.data()||{};
+      const g=GEN.find(x=>x.id===chg.doc.id);
+      if(g && d.prorrateo && !g.prorrateo){ g.prorrateo=d.prorrateo; cambio=true; }
+    });
+    if(cambio){ guardaGEN(); pintaGastos(); }
+  }, e=>console.error('fbGastosListen', e));
+}
+
+function pintaGenCat(bloqueado){
+  $('#genCat').innerHTML=CC.map(([k,n])=>`<button data-gencat="${k}" aria-pressed="${k===genCat?'true':'false'}" ${bloqueado?'disabled':''}>${n}</button>`).join('');
+}
+function pintaGastos(){
+  const CCN=Object.fromEntries(CC);
+  $('#genCnt').textContent=GEN.length?GEN.length+' gasto'+(GEN.length===1?'':'s')+' general'+(GEN.length===1?'':'es'):'';
+  $('#genList').innerHTML=GEN.length?GEN.slice().reverse().map(g=>{
+    const asignado=genAsignado(g), saldo=genSaldo(g);
+    const asigFilas=(g.asig||[]).map(a=>`<div class="xrow"><span style="font-family:var(--body)">${a.ch}</span>
+      <span style="color:var(--mute);font-size:13px">${krw(a.monto)}<button data-genasigdel="${g.id}|${a.ch}|${a.ts}" style="background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:2px 0 2px 8px">✕</button></span></div>`).join('');
+    return `<div class="card">
+     <div class="r1"><div><div class="tt">${CCN[g.cat]||g.cat} · ${krw(g.monto)}</div>
+       <div class="ch">${fd(g.fe)}${g.prov?' · '+g.prov:''}</div></div>
+       <span class="tag ${(g.prorrateo||!saldo)?'t-ok':'t-pend'}">${g.prorrateo?'Repartido ✓':(saldo?'Sin asignar':'Asignado ✓')}</span></div>
+     ${g.nota?`<div class="nota">${g.nota.replace(/</g,'&lt;')}</div>`:''}
+     <div class="specs"><span class="sp">Asignado ${krw(asignado)}</span>${(saldo&&!g.prorrateo)?`<span class="sp" style="color:var(--amber)">Sin asignar ${krw(saldo)}</span>`:''}</div>
+     ${g.prorrateo?`<div class="nota" style="border-left-color:var(--sea)">Saldo repartido en Sistema: ${krw(g.prorrateo.monto)} entre ${g.prorrateo.n} vehículo${g.prorrateo.n===1?'':'s'} del embarque (${krw(g.prorrateo.porVehiculo)} c/u)</div>`:''}
+     ${asigFilas}
+     <div class="acts">
+       ${(!g.prorrateo && saldo>0)?`<button class="btn b-pri" data-genasig="${g.id}">Asignar a vehículo</button>`:''}
+       <button class="btn b-sec" data-genedit="${g.id}" style="flex:0 0 auto">✎</button>
+       <button class="btn b-sec" data-gendel="${g.id}" style="flex:0 0 auto">✕</button>
+     </div></div>`;
+  }).join('') : '<div class="empty">Sin gastos generales todavía.<br>Cuando compres algo que no es de un vehículo en particular (ej: cromados en bloque), anótalo acá.</div>';
+}
+$('#genNuevo').addEventListener('click',()=>{
+  genEdit=null; genCat='CRO';
+  $('#genT').textContent='Nuevo gasto general';
+  $('#genMonto').value='';$('#genFe').value=iso();$('#genProv').value='';$('#genNota').value='';
+  pintaGenCat(false); openSheet('shGasto');
+});
+$('#genOk').addEventListener('click', async()=>{
+  const monto=pnum($('#genMonto').value)||0;
+  if(!monto){ toast('Ingresa el monto'); return; }
+  const prov=$('#genProv').value.trim().toUpperCase();
+  const fe=$('#genFe').value||iso(), nota=$('#genNota').value.trim();
+  if(genEdit){
+    const g=GEN.find(x=>x.id===genEdit); if(!g)return;
+    if((g.asig||[]).length && monto<genAsignado(g)){ toast('Ese monto es menor a lo ya asignado ('+krw(genAsignado(g))+'). Ajusta o quita alguna asignación primero.'); return; }
+    g.cat=genCat; g.monto=monto; g.fe=fe; g.prov=prov; g.nota=nota; g.nube=null;
+  } else {
+    GEN.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,7), cat:genCat, monto, fe, prov, nota, asig:[], nube:null, ts:Date.now()});
+  }
+  await guardaGEN(); pintaGastos(); closeAll(); fbEnviaGastosPronto();
+  toast(genEdit?'Actualizado ✓':'Gasto general guardado ✓');
+});
+$('#genAsigOk').addEventListener('click', async()=>{
+  const g=GEN.find(x=>x.id===genAsigId); if(!g)return;
+  const raw=$('#genAsigCh').value.trim();
+  const ch=(raw.includes('·')?raw.split('·').pop():raw).trim().toUpperCase();
+  const v=L.find(x=>x.ch===ch);
+  if(!v){ toast('No encontré ese vehículo. Elígelo de la lista.'); return; }
+  const monto=pnum($('#genAsigMonto').value)||0;
+  if(!monto){ toast('Ingresa el monto'); return; }
+  const saldo=genSaldo(g);
+  if(monto>saldo && !confirm('Ese monto ('+krw(monto)+') es mayor al saldo sin asignar ('+krw(saldo)+'). ¿Asignar igual?')) return;
+  g.asig=g.asig||[]; g.asig.push({ch:v.ch, monto, ts:Date.now()}); g.nube=null;
+  v.cc=v.cc||{}; v.cc[g.cat]=(v.cc[g.cat]||0)+monto;
+  await save(); await guardaGEN(); pintaGastos(); draw(); closeAll(); fbEnviaGastosPronto();
+  toast('Asignado a '+v.ch+' ✓');
+});
+document.addEventListener('click', async e=>{
+  const gc=e.target.closest('[data-gencat]');
+  if(gc && !gc.disabled){ genCat=gc.dataset.gencat; pintaGenCat(false); return; }
+  const ed=e.target.closest('[data-genedit]');
+  if(ed){ const g=GEN.find(x=>x.id===ed.dataset.genedit); if(!g)return;
+    genEdit=g.id; genCat=g.cat;
+    $('#genT').textContent='Editar gasto general';
+    $('#genMonto').value=g.monto||'';$('#genFe').value=g.fe||iso();$('#genProv').value=g.prov||'';$('#genNota').value=g.nota||'';
+    pintaGenCat(!!(g.asig&&g.asig.length)); openSheet('shGasto'); return; }
+  const dl=e.target.closest('[data-gendel]');
+  if(dl){ const g=GEN.find(x=>x.id===dl.dataset.gendel); if(!g)return;
+    if(!confirm('¿Eliminar este gasto general? Si ya tenía monto asignado a vehículos, esos montos NO se quitan de los vehículos (solo se borra el registro del gasto).'))return;
+    GEN=GEN.filter(x=>x.id!==g.id); await guardaGEN(); pintaGastos();
+    fbDeleteGasto(g.id); return; }
+  const asigBtn=e.target.closest('[data-genasig]');
+  if(asigBtn){ genAsigId=asigBtn.dataset.genasig; const g=GEN.find(x=>x.id===genAsigId); if(!g)return;
+    $('#genAsigC').textContent='Sin asignar: '+krw(genSaldo(g));
+    $('#genAsigCh').value=''; $('#genAsigMonto').value='';
+    $('#dlGenV').innerHTML=L.filter(v=>!v.soloReferencia).map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
+    openSheet('shGastoAsig'); return; }
+  const asigDel=e.target.closest('[data-genasigdel]');
+  if(asigDel){ const [gid,ch,ts]=asigDel.dataset.genasigdel.split('|'); const g=GEN.find(x=>x.id===gid); if(!g)return;
+    const i=(g.asig||[]).findIndex(a=>a.ch===ch && String(a.ts)===ts); if(i<0)return;
+    if(!confirm('¿Quitar esta asignación? Se resta del costo de taller en Corea de ese vehículo.'))return;
+    const a=g.asig[i];
+    const v=L.find(x=>x.ch===ch);
+    if(v && v.cc){ v.cc[g.cat]=Math.max(0,(v.cc[g.cat]||0)-a.monto); if(!v.cc[g.cat]) delete v.cc[g.cat]; }
+    g.asig.splice(i,1); g.nube=null;
+    await save(); await guardaGEN(); pintaGastos(); draw(); fbEnviaGastosPronto();
+    toast('Asignación quitada'); return; }
+});
 function fbRecoreaListen(){
   if(!fbReady) return;
   fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
@@ -712,7 +885,7 @@ async function fbInit(){
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } }
       else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
     });
   }catch(e){ console.error('fbInit',e); fbEstado('Sin conexión: los vehículos quedan solo en este teléfono','#B5533C'); }
@@ -772,7 +945,7 @@ $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 /* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
 let snap0='', step='A';
 function formSnap(){
-  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value,$('#fCont').value]); }
+  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fSenia').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value,$('#fCont').value]); }
   catch(e){ return ''; }
 }
 function setStep(s){
@@ -838,7 +1011,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b
 function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N'};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
-  ['fCh','fAn','fKm','fPa','fKrw','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
+  ['fCh','fAn','fKm','fPa','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts();
@@ -911,12 +1084,12 @@ $('#fmOk').addEventListener('click',async()=>{
     dlCont();}
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
-    krw:pnum($('#fKrw').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
+    krw:pnum($('#fKrw').value)||null,senia:pnum($('#fSenia').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
      llegó de Sistema, estado en la nube...). Antes se armaba un objeto nuevo y se perdía el ✓ de la vista 360°. */
   if(edit){const i=L.findIndex(x=>x.ch===edit); const old=L[i]; L[i]=Object.assign({},old,o,{nf:old.nf,cov:old.cov,nube:old.nube})}
-  else{ o.nube=null; L.unshift(o); }
+  else{ o.nube=null; o._primerEnvio=true; L.unshift(o); }
   await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
 });
 
@@ -963,9 +1136,11 @@ function draw(){
       <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
+      ${(v.senia&&v.krw&&v.krw>v.senia)?`<span class="tag t-pend">Saldo ${krw(v.krw-v.senia)}</span>`:''}
       <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span></div></div>
      <div class="specs">${sp}</div>
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
+     ${v.senia?`<div class="nota" style="border-left-color:var(--amber)">Seña pagada ${krw(v.senia)}${v.krw?(v.krw>v.senia?' · Saldo pendiente '+krw(v.krw-v.senia):' · Sin saldo pendiente'):''}</div>`:''}
      ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
      <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Fotos ${v.nf||''}</button>
       <button class="btn b-sec" data-mi360="${v.ch}" style="flex:0 0 auto">📷 360°${v.n360?' ✓':''}</button>
@@ -1270,13 +1445,21 @@ document.addEventListener('click',async e=>{
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
-  $('#fPa').value=v.pa||'';$('#fKrw').value=v.krw||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
+  $('#fPa').value=v.pa||'';$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
   $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
  if(dl){const c=dl.dataset.del;
   if(!confirm('¿Eliminar este vehículo y sus fotos?'))return;
+  const vBorrado=L.find(x=>x.ch===c);
   L=L.filter(x=>x.ch!==c);try{await window.storage.delete(PK(c))}catch(_){}
-  await save();draw();toast('Eliminado');return}
+  await save();draw();
+  if(vBorrado && !vBorrado.soloReferencia && fbReady){
+    try{
+      await fbDb.collection(FB_COL).doc(c).set({borrado:true},{merge:true});
+      toast('Eliminado también en Chile ✓');
+    }catch(e){ console.error('fbBorra',e); toast('Eliminado acá. No se pudo avisar a Chile -- revisa tu conexión y avísale a Andre.'); }
+  } else toast('Eliminado');
+  return}
 });
 
 async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}

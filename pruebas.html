@@ -497,6 +497,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         </div>
       </div>
 
+      <div class="box" id="boxGastosCorea" hidden><h3>Gastos generales de Corea</h3>
+        <p class="mtr" style="margin:0 0 10px">Compras que tu mamá anotó en su app sin asignarlas a un vehículo en particular (ej: cromados comprados en bloque). El saldo que le queda sin asignar se puede repartir en partes iguales entre todos los vehículos de este embarque.</p>
+        <div id="emGastosList"></div>
+      </div>
+
       <div class="box"><h3>Costos estimados (este embarque)</h3>
         <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
         <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
@@ -558,7 +563,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 19:58 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 21:17 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1358,7 +1363,7 @@ let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
-const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
+const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
    NO se sincroniza n360 (cantidad de tomas 360°, un contador nada más) porque las tomas mismas
@@ -1419,7 +1424,7 @@ async function fbInit(){
         fbReady=true;
         fbMuestraLogin(false);
         fbPintaSync(); fbSchedulePush();   /* si había cambios pendientes de una vez anterior, salen ahora */
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2500,7 +2505,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
@@ -2645,8 +2650,10 @@ function cardS(v){
 
   const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat} · ${fd(x.date)}</span><span>${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
   const cov=s.cov?`<img class="cover" src="${s.cov}" alt="">`:'';
+  const saldoCorea=(v.krw&&v.senia)?Math.max(0,v.krw-v.senia):null;
   const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
+    +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · Seña ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
     +(v.nota?`<div class="xlist" style="font-size:13px;color:var(--ink2)">${String(v.nota).replace(/</g,'&lt;')}</div>`:'')
     +(xr?`<div class="xlist">${xr}</div>`:'');
 
@@ -4177,10 +4184,83 @@ async function cargaRM(){
    nunca se adivina solo. En cuanto se vincula, se le avisa de vuelta a la app de Corea. */
 const RECOREA_COL='pruebas_remesasCorea';
 let RECOREA=[];
+const GASTOS_COL='pruebas_gastosCorea';
+let GASTOS_COREA=[];
 async function cargaRecorea(){
   try{const r=await window.storage.get('amk_recorea_cache'); if(r&&r.value) RECOREA=JSON.parse(r.value)}catch(e){}
   pintaRecorea(); pintaPendientes();
 }
+async function cargaGastosCorea(){
+  try{const r=await window.storage.get('amk_gastoscorea_cache'); if(r&&r.value) GASTOS_COREA=JSON.parse(r.value)}catch(e){}
+  pintaEmGastos();
+}
+function gastoAsignado(g){ return (g.asig||[]).reduce((a,x)=>a+(x.monto||0),0); }
+function gastoSaldo(g){ return Math.max(0, (g.monto||0) - gastoAsignado(g)); }
+function fbGastosCoreaListen(){
+  if(!fbReady) return;
+  fbDb.collection(GASTOS_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      const id=chg.doc.id;
+      GASTOS_COREA=GASTOS_COREA.filter(x=>x.id!==id);
+      if(chg.type!=='removed'){
+        const d=chg.doc.data()||{};
+        GASTOS_COREA.push({id, cat:d.cat||'OTR', monto:d.monto||0, fe:d.fe||'', prov:d.prov||'', nota:d.nota||'', asig:d.asig||[], prorrateo:d.prorrateo||null});
+      }
+    });
+    try{window.storage.set('amk_gastoscorea_cache', JSON.stringify(GASTOS_COREA))}catch(_){}
+    pintaEmGastos();
+  }, e=>console.error('fbGastosCoreaListen', e));
+}
+function pintaEmGastos(){
+  const box=$('#boxGastosCorea'); const el=$('#emGastosList'); if(!box||!el) return;
+  const e=E();
+  const pend=GASTOS_COREA.filter(g=>!g.prorrateo && gastoSaldo(g)>0);
+  box.hidden=!pend.length;
+  if(!pend.length){ el.innerHTML=''; return; }
+  const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
+  const n=(e&&e.veh)?e.veh.length:0;
+  el.innerHTML=pend.map(g=>{
+    const saldo=gastoSaldo(g);
+    const share=n?Math.floor(saldo/n):0;
+    return `<div class="card plain" style="padding:11px;margin-bottom:8px">
+      <div class="r1"><div><div class="tt" style="font-size:15px">${CCN[g.cat]||g.cat} · ${Math.round(g.monto).toLocaleString('es-CL')} ₩</div>
+      <div class="ch">${g.prov?g.prov+' · ':''}${fd(g.fe)}</div></div></div>
+      <div class="mtr" style="margin:6px 0">Sin asignar: <b style="color:var(--amber)">${Math.round(saldo).toLocaleString('es-CL')} ₩</b>${gastoAsignado(g)?' (ya asignado a mano: '+Math.round(gastoAsignado(g)).toLocaleString('es-CL')+' ₩)':''}</div>
+      ${n?`<button class="btn b-pri" data-gastorepartir="${g.id}" style="width:100%">Repartir ${Math.round(saldo).toLocaleString('es-CL')} ₩ entre los ${n} vehículos de este embarque (${Math.round(share).toLocaleString('es-CL')} ₩ c/u)</button>`
+        :`<p class="mtr" style="color:var(--red);margin:0">Agrega vehículos a este embarque para poder repartir.</p>`}
+      </div>`;
+  }).join('');
+}
+async function repartirGastoCorea(id){
+  const g=GASTOS_COREA.find(x=>x.id===id); if(!g)return;
+  const e=E(); if(!e||!e.veh||!e.veh.length){ toast('Agrega vehículos a este embarque primero'); return; }
+  const saldo=gastoSaldo(g); if(saldo<=0){ toast('Este gasto ya no tiene saldo sin asignar'); return; }
+  const n=e.veh.length, share=Math.floor(saldo/n), resto=saldo-share*n;
+  const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
+  if(!confirm('¿Repartir '+Math.round(saldo).toLocaleString('es-CL')+' ₩ de '+(CCN[g.cat]||g.cat)+' entre los '+n+' vehículos de este embarque? ('+Math.round(share).toLocaleString('es-CL')+' ₩ cada uno)'))return;
+  let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
+  e.veh.forEach((f,i)=>{
+    const v=IDX[f.ch]; if(!v)return;
+    const monto=share+(i<resto?1:0); if(!monto)return;
+    v.cc=v.cc||{}; v.cc[g.cat]=(v.cc[g.cat]||0)+monto;
+    const iPrev=prev.findIndex(x=>x.ch===f.ch);
+    if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch:f.ch,cc:v.cc,soloCC:true})}
+  });
+  try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  const prorrateo={embId:e.id, n, monto:saldo, porVehiculo:share, fecha:iso()};
+  g.prorrateo=prorrateo;
+  try{window.storage.set('amk_gastoscorea_cache', JSON.stringify(GASTOS_COREA))}catch(_){}
+  if(fbReady){
+    try{ await fbDb.collection(GASTOS_COL).doc(g.id).set({prorrateo},{merge:true}); }
+    catch(err){ console.error('repartirGastoCorea',err); toast('Se repartió acá, pero no se pudo avisar a la app de Corea (revisa la conexión)'); draw(); pintaEmb(); return; }
+  }
+  draw(); pintaEmb();
+  toast('Repartido entre los '+n+' vehículos ✓');
+}
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-gastorepartir]'); if(!b)return;
+  repartirGastoCorea(b.dataset.gastorepartir);
+});
 function fbRecoreaListen(){
   if(!fbReady) return;
   fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
@@ -6967,6 +7047,7 @@ function pintaEmb(){
   pintaEmCC();
   pintaEmEst();
   pintaEmZofri();
+  pintaEmGastos();
   const r=embCalc();
   $('#emTot').innerHTML=r?`<div>Por contenedor (30/70) <b>${clp(r.tCont)}</b></div>
     ${r.comFlete?`<div style="padding-left:12px;font-size:12px;color:var(--mute)">incluye comisión de remesas de flete: ${clp(r.comFlete)}</div>`:''}
