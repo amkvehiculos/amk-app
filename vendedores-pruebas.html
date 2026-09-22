@@ -661,6 +661,11 @@ const INSUMO_PRESETS_DEF=[
  ['silicona','Silicona']
 ];
 let PEND_PRESETS=PEND_PRESETS_DEF.slice(), INSUMO_PRESETS=INSUMO_PRESETS_DEF.slice();
+/* Sistema manda presets/insumos como arreglos de objetos {k,n,c}/{k,n} (Firestore no admite
+   un arreglo de arreglos); acá se convierten de vuelta a [k,n,c]/[k,n], que es como los usa
+   el resto de esta app. */
+function presetsDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n,o.c]); }
+function insumosDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n]); }
 let fbConfigPendEscuchando=false, pdCh=null;
 function fbConfigPendListen(){
   if(fbConfigPendEscuchando||!fbReady) return;
@@ -668,8 +673,8 @@ function fbConfigPendListen(){
   fbDb.collection(CONFIGPEND_COL).doc('main').onSnapshot(d=>{
     if(d.exists){
       const x=d.data()||{};
-      PEND_PRESETS=(x.presets&&x.presets.length)?x.presets:PEND_PRESETS_DEF.slice();
-      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?x.insumos:INSUMO_PRESETS_DEF.slice();
+      PEND_PRESETS=(x.presets&&x.presets.length)?presetsDeObjs(x.presets):PEND_PRESETS_DEF.slice();
+      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?insumosDeObjs(x.insumos):INSUMO_PRESETS_DEF.slice();
       try{window.storage.set('amkv_configpend', JSON.stringify({presets:PEND_PRESETS, insumos:INSUMO_PRESETS}))}catch(_){}
     }
   }, e=>console.error('fbConfigPendListen',e));

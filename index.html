@@ -562,7 +562,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 21:17<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 21:59<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -4387,6 +4387,14 @@ $('#ctaOk').addEventListener('click', async()=>{
   }
 });
 const CONFIGPEND_COL='configPend';
+/* Firestore no admite un arreglo con arreglos como elementos directos (nested arrays).
+   presets/insumos se siguen usando en memoria como arreglos [key,label,cat?] (igual que
+   Vendedores), pero se convierten a objetos {k,n,c} solo al mandarlos a la nube, y de vuelta
+   a arreglos al leerlos, para no mandar nunca un arreglo de arreglos. */
+function presetsAObjs(arr){ return (arr||[]).map(p=>Array.isArray(p)?{k:p[0],n:p[1],c:p[2]}:p); }
+function presetsDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n,o.c]); }
+function insumosAObjs(arr){ return (arr||[]).map(p=>Array.isArray(p)?{k:p[0],n:p[1]}:p); }
+function insumosDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n]); }
 const PEND_PRESETS_DEF=[
  ['huele','Huele fuerte / posible regeneración (requiere escáner)','MECANICO'],
  ['aceite','Aceite bajo o sucio','FLUIDOS'],
@@ -4422,12 +4430,12 @@ function fbConfigPendListen(){
   fbDb.collection(CONFIGPEND_COL).doc('main').onSnapshot(d=>{
     if(d.exists){
       const x=d.data()||{};
-      PEND_PRESETS=(x.presets&&x.presets.length)?x.presets:PEND_PRESETS_DEF.slice();
-      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?x.insumos:INSUMO_PRESETS_DEF.slice();
+      PEND_PRESETS=(x.presets&&x.presets.length)?presetsDeObjs(x.presets):PEND_PRESETS_DEF.slice();
+      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?insumosDeObjs(x.insumos):INSUMO_PRESETS_DEF.slice();
       PEND_CANDIDATOS=x.candidatos||[];
       try{window.storage.set('amk_configpend_cache', JSON.stringify({presets:PEND_PRESETS, insumos:INSUMO_PRESETS, candidatos:PEND_CANDIDATOS}))}catch(_){}
     }else{
-      fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:PEND_PRESETS_DEF, insumos:INSUMO_PRESETS_DEF, candidatos:[]}).catch(e=>console.error('seedConfigPend',e));
+      fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:presetsAObjs(PEND_PRESETS_DEF), insumos:insumosAObjs(INSUMO_PRESETS_DEF), candidatos:[]}).catch(e=>console.error('seedConfigPend',e));
     }
     pintaModeracion(); pintaPendientes();
   }, e=>console.error('fbConfigPendListen', e));
@@ -4489,8 +4497,8 @@ function pintaModeracion(){
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin categorías nuevas por revisar.</p>';
 }
 async function guardaConfigPend(){
-  try{await fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:PEND_PRESETS, insumos:INSUMO_PRESETS, candidatos:PEND_CANDIDATOS}, {merge:true});}
-  catch(e){console.error('guardaConfigPend',e); toast('No se pudo guardar en la nube');}
+  try{await fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:presetsAObjs(PEND_PRESETS), insumos:insumosAObjs(INSUMO_PRESETS), candidatos:PEND_CANDIDATOS}, {merge:true});}
+  catch(e){console.error('guardaConfigPend',e); toast('No se pudo guardar en la nube'+(e&&e.code?' ('+e.code+')':(e&&e.message?': '+e.message:'')));}
 }
 document.addEventListener('click',async e=>{
   const insok=e.target.closest('[data-insok]');
