@@ -490,7 +490,7 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
 const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
@@ -1047,8 +1047,9 @@ async function outEnviaUno(it){
     await outLimite(opts?ref.set(data,opts):ref.set(data),15000);
     it.okDoc=true; outGuarda();
   }
-  if(it.cand){
+  if(it.cand&&!it.okCand){
     await outLimite(fbDb.collection(CONFIGPEND_COL).doc('main').set({candidatos:firebase.firestore.FieldValue.arrayUnion(it.cand)},{merge:true}),15000);
+    it.okCand=true; outGuarda();
   }
 }
 async function outEnvia(){
@@ -2036,9 +2037,10 @@ $('#ivV').addEventListener('input',()=>{
     ivVehActual=v;
     $('#ivTitulo').value=(v.ma+' '+v.mo+' '+(v.an||'')).toUpperCase();
     ivFotoIdx=0; loadPhotos(v.ch).then(a=>{ ivFotos=a; pintaIvFotoPick(); });
-    ivMotorSel=''; ivCilSel='';
-    $$('#ivMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
-    $$('#ivCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+    ivMotorSel=(v.motor==='DIESEL'||v.motor==='BENCINA')?v.motor:'';
+    ivCilSel=['1.6','1.7','2.0','2.2','2.5','3.0'].includes(v.cil)?v.cil:'';
+    $$('#ivMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===ivMotorSel?'true':'false'));
+    $$('#ivCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===ivCilSel?'true':'false'));
     pintaIvPas(v);
     ivPasSel=v.pa?(String(v.pa).padStart(2,'0')+' PASAJEROS'):'';
     $$('#ivPas .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===ivPasSel?'true':'false'));

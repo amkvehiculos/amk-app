@@ -94,8 +94,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .acts2{display:grid;grid-template-columns:repeat(2,1fr);margin-top:8px}
 .acts2.c3{grid-template-columns:repeat(3,1fr)}
 .acts2 .btn{padding:10px 6px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.acts2 .btn:last-child:nth-child(odd){grid-column:1/-1}
-@media(max-width:370px){.acts2.c3{grid-template-columns:repeat(2,1fr)}}
+.acts2.c3 .btn{padding-left:2px;padding-right:2px}
+
+@media(max-width:370px){.acts2 .btn{padding:9px 3px;font-size:11.5px}}
 .btn{flex:1;min-width:0;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14.5px;cursor:pointer}
 .b-pri{background:var(--plata);color:#0B1C23}
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
@@ -557,7 +558,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 13:09 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 17:08 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -865,6 +866,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div class="fld"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvMotor">Motor</label><select id="nvMotor"><option value="DIESEL" selected>Diésel</option><option value="BENCINA">Bencina</option></select></div>
+        <div class="fld"><label for="nvCilSel">Cilindrada</label><select id="nvCilSel"><option value="" selected>Sin especificar</option><option value="1.6">1.6</option><option value="1.7">1.7</option><option value="2.0">2.0</option><option value="2.2">2.2</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="__otro__">Otro…</option></select>
+          <input id="nvCil" inputmode="decimal" placeholder="Ej: 2.4" style="margin-top:6px" hidden></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvCatSel">Categoría</label><select id="nvCatSel"></select>
           <input id="nvCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
         <div class="fld"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
@@ -1004,12 +1010,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 
   <div id="secCorea" hidden>
     <p style="color:var(--mute);font-size:13.5px;margin:0 0 12px">Lo que se compró o reparó en Corea, en wones. Si tu mamá no lo cargó desde su app, anótalo acá.</p>
+    <p id="scCoreaBloq" hidden style="color:var(--amber);font-size:12.5px;margin:0 0 12px">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
   </div>
   <div id="secReal">
   <div class="note" id="scAviso" hidden style="margin-bottom:12px">Este vehículo ya está vendido. Lo que registres se contará como <b>gasto posventa</b> y se descontará del margen.</div>
   <div class="fld"><label>Categoría</label><div class="catg" id="scCat"></div></div>
+  <div class="fld" id="scCatOtroWrap" hidden><label for="scCatOtro">Nombre de la categoría</label>
+    <input id="scCatOtro" placeholder="Ej: Bencina" autocomplete="off"></div>
   <div class="fld"><label for="scProv">Taller o persona (opcional)</label>
     <input id="scProv" list="dlProv" autocomplete="off" placeholder="Ej: Don Luis (pintura)">
     <datalist id="dlProv"></datalist></div>
@@ -1045,6 +1054,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="fld"><label for="evTr">Tracción</label><select id="evTr"><option value="4X2">4X2</option><option value="4X4">4X4</option></select></div>
     <div class="fld"><label for="evPa">Pasajeros</label><input id="evPa" inputmode="numeric" placeholder="7"></div>
+  </div>
+  <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evMotor">Motor</label><select id="evMotor"><option value="">Sin especificar</option><option value="DIESEL">Diésel</option><option value="BENCINA">Bencina</option></select></div>
+    <div class="fld"><label for="evCilSel">Cilindrada</label><select id="evCilSel"><option value="">Sin especificar</option><option value="1.6">1.6</option><option value="1.7">1.7</option><option value="2.0">2.0</option><option value="2.2">2.2</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="__otro__">Otro…</option></select>
+      <input id="evCil" inputmode="decimal" placeholder="Ej: 2.4" style="margin-top:6px" hidden></div>
   </div>
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="fld"><label for="evCatSel">Categoría</label><select id="evCatSel"></select>
@@ -1294,8 +1308,12 @@ function guardaCacheV(inmediato){
 const KEY='amk_sistema_v2', OLD='amk_ventas_v1';
 const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánico'],['REPNUE','Rep. nuevos'],
  ['ELECT','TV / Eléct.'],['PARB','Parabrisas'],['NEUMAT','Neumáticos'],['ASIENTOS','Asientos'],
- ['REPUSA','Rep. usados'],['BATERIA','Batería'],['ALERON','Alerón'],['LAVADO','Lavado'],['CHASIS','Chasis/planchas']];
+ ['REPUSA','Rep. usados'],['BATERIA','Batería'],['ALERON','Alerón'],['LAVADO','Lavado'],['CHASIS','Chasis/planchas'],
+ ['OTRO','Otro']];
 const CN=Object.fromEntries(CATS);
+let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- solo de este computador/teléfono */
+function todasCATS(){ return CATS.concat(CATS_CUSTOM) }
+function slugCat(t){ return (String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24))||'OTRO' }
 const COL={'Blanco':'#E9EAE6','Negro':'#20262A','Gris':'#8A9296','Plateado':'#B9C0C3','Azul':'#1F4E86','Rojo':'#9B2A28',
  'Beige':'#C9B79A','Amarillo':'#D6A81C','Naranja':'#C4661F','Dorado':'#B29246','Burdeo':'#6B2231','Verde':'#2C5B41','Marrón':'#6A4C38'};
 /* La muestra de color se busca sin distinguir mayúsculas: los formularios guardan 'VERDE' pero la tabla tiene 'Verde'. */
@@ -1338,7 +1356,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2893,17 +2911,17 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
       lbl.textContent='FOB Zeta · para ingresar en Zofri';
       $('#ssFz').textContent=fmt(fz); $('#ssFz').style.color='var(--ink)';
       $('#ssFzCp').dataset.v=Number(fz).toFixed(2);
-      $('#ssFzCp').disabled=false; $('#ssFzCp').style.opacity=1;
+      $('#ssFzCp').disabled=false; $('#ssFzCp').style.opacity=1; $('#ssFzCp').style.color='';
     }else if(FOBEST[v.ch]){
       lbl.textContent='FOB Zeta estimado · no registrado en el Excel';
       $('#ssFz').textContent='≈ '+fmt(FOBEST[v.ch]); $('#ssFz').style.color='var(--amber)';
       $('#ssFzCp').dataset.v=Number(FOBEST[v.ch]).toFixed(2);
-      $('#ssFzCp').disabled=false; $('#ssFzCp').style.opacity=1;
+      $('#ssFzCp').disabled=false; $('#ssFzCp').style.opacity=1; $('#ssFzCp').style.color='';
     }else{
       lbl.textContent='FOB Zeta';
       $('#ssFz').textContent='Anterior a esta medida'; $('#ssFz').style.color='var(--mute)';
       $('#ssFzCp').dataset.v='';
-      $('#ssFzCp').disabled=true; $('#ssFzCp').style.opacity=.35;
+      $('#ssFzCp').disabled=true; $('#ssFzCp').style.opacity=1; $('#ssFzCp').style.color='var(--mute)';
     }
     const nf=st(v.ch).nf||0;
     $('#ssPrWrap').hidden = nf<=KEEP;
@@ -2987,7 +3005,8 @@ function openCost(ch,pcat,pamt,seg){
   tkCh=editing; tkCat='PINTURA'; $('#tkNota').value=''; $('#tkEst').value='';
   drawTaskSheet(); sugEst(); cseg(seg||'real');
   scCat=pcat||'OBLIG';
-  $('#scCat').innerHTML=CATS.map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+  $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value='';
   $('#scA').value=pamt?clp(pamt):'';$('#scD').value=iso();
   scParcial=false; $('#scPagoTodo').setAttribute('aria-pressed','true');
   $('#scPagoParte').setAttribute('aria-pressed','false');
@@ -3066,22 +3085,40 @@ function drawCostList(){
 }
 
 $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');if(!b)return;
-  scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'))});
+  scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'));
+  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
 $('#scOk').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value, ac=pnum($('#scA').value);
   if(!ac){toast('Ingresa el precio acordado');return}
+  let catFinal=scCat, nombreOtro='';
+  if(scCat==='OTRO'){
+    nombreOtro=$('#scCatOtro').value.trim();
+    if(!nombreOtro){toast('Escribe el nombre de la categoría');return}
+    catFinal=slugCat(nombreOtro);
+    if(!CN[catFinal]) CN[catFinal]=nombreOtro;
+  }
   const f=$('#scD').value||iso();
   const pago=scParcial?(pnum($('#scAb').value)||0):ac;
   if(scParcial&&!pago){toast('Ingresa el monto abonado');return}
   const prov=$('#scProv').value.trim();
   await recuerdaTaller(prov);
-  const nuevo={ts:Date.now(),cat:scCat,acor:ac,date:f,prov,post:sold(ch),abonos:pago?[{m:pago,f}]:[]};
+  const nuevo={ts:Date.now(),cat:catFinal,acor:ac,date:f,prov,post:sold(ch),abonos:pago?[{m:pago,f}]:[]};
   st(ch).costs.push(nuevo);
   await save();draw();drawCostList();
   ultimo={ch,ts:nuevo.ts};
   $('#scA').value='';$('#scAb').value='';
   toast(pago<ac?'Registrado · saldo '+clp(ac-pago):'Costo registrado ✓');
   compartirComprobante(ch,nuevo.ts,true);
+  /* categoría escrita a mano: preguntar si de ahora en adelante queda como botón fijo, igual */
+  /* que las demás -- solo se pregunta si de verdad es nueva (no una que ya existía con ese nombre) */
+  if(nombreOtro&&!CATS_CUSTOM.some(([k])=>k===catFinal)&&!CATS.some(([k])=>k===catFinal)){
+    if(confirm('¿Guardar "'+nombreOtro+'" como categoría fija para la próxima vez?')){
+      CATS_CUSTOM=CATS_CUSTOM.concat([[catFinal,nombreOtro]]);
+      try{await window.storage.set('amk_cats_custom',JSON.stringify(CATS_CUSTOM))}catch(e){toast('No se pudo guardar el botón fijo')}
+    }
+  }
+  scCat=catFinal; $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+  $('#scCatOtroWrap').hidden=true;
 });
 
 document.addEventListener('click',async e=>{
@@ -3557,6 +3594,7 @@ async function cargaFJ(){
   if(!Object.keys(FJ).length) FJ=Object.fromEntries(FJDEF.map(([k])=>[k, k==='victor'?1800000:(k==='bryan'?500000:0)]));
   try{const r=await window.storage.get('amk_adelantos'); if(r&&r.value) AD=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
+  try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[]; CATS_CUSTOM.forEach(([k,n])=>CN[k]=n) }}catch(e){}
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
   try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_fijos_krw');
@@ -5419,7 +5457,8 @@ document.addEventListener('click',async e=>{
   const tc=e.target.closest('[data-tcost]');
   if(tc){const x=tasks(tkCh).find(y=>String(y.ts)===tc.dataset.tcost);
     if(x){scCat=COSTMAP[x.cat]||x.cat;
-      $('#scCat').innerHTML=CATS.map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+      $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+      $('#scCatOtroWrap').hidden=true;
       $('#scA').value=x.est?clp(x.est):'';
       $('#scSug').innerHTML=x.est?`Estimado del taller ${clp(x.est)}`:'';
       cseg('real');}
@@ -6447,9 +6486,10 @@ $('#genImg').addEventListener('click',async function(){
   try{const r=await window.storage.get('amk_fotos_'+gv.ch); if(r&&r.value) imFotos=JSON.parse(r.value)||[]}catch(_){}
   pintaImFotoPick();
   $('#imTitulo').value=(gv.ma+' '+gv.mo+' '+(gv.an||'')).toUpperCase();
-  imMotorSel=''; imCilSel='';
-  $$('#imMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
-  $$('#imCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===''?'true':'false'));
+  imMotorSel=(gv.motor==='DIESEL'||gv.motor==='BENCINA')?gv.motor:'';
+  imCilSel=['1.6','1.7','2.0','2.2','2.5','3.0'].includes(gv.cil)?gv.cil:'';
+  $$('#imMotor .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===imMotorSel?'true':'false'));
+  $$('#imCil .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===imCilSel?'true':'false'));
   pintaImPas(gv);
   imPasSel=gv.pa?(String(gv.pa).padStart(2,'0')+' PASAJEROS'):'';
   $$('#imPas .chip').forEach(x=>x.setAttribute('aria-selected', x.dataset.val===imPasSel?'true':'false'));
@@ -7344,11 +7384,13 @@ const ccCLP=v=>Math.round(ccKRW(v)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
   v.cc=v.cc||{};
+  const bloq=!!v.ct;   /* ya se aplicaron los costos de Zofri a este vehículo ("Aplicar costos" en Embarque) */
+  $('#scCoreaBloq').hidden=!bloq;
   $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
     <span style="font-family:var(--body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
     <span style="white-space:nowrap;flex:0 0 auto"><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
-      placeholder="0" style="width:120px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;
-      font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span></div>`).join('');
+      placeholder="0" ${bloq?'disabled':''} style="width:120px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;
+      font-size:13.5px;text-align:right;background:var(--paper);color:${bloq?'var(--mute)':'var(--ink)'}"> ₩</span></div>`).join('');
   const t=ccKRW(v);
   $('#scCoreaT').innerHTML=t?`<div>Total en Corea <b>${Math.round(t).toLocaleString('es-CL')} ₩</b></div>
     <div>En pesos <b>${clp(ccCLP(v))}</b></div>`:'';
@@ -7471,6 +7513,24 @@ SELOTRO.forEach(([selId,inputId])=>{
     selOtroPinta();
   });
 });
+function cilVal(selId,inpId){
+  const sel=$('#'+selId).value;
+  return sel==='__otro__' ? $('#'+inpId).value.trim() : sel;
+}
+function pintaCilSel(selId,inpId,val){
+  const sel=$('#'+selId), inp=$('#'+inpId), presets=['1.6','1.7','2.0','2.2','2.5','3.0'];
+  if(val&&presets.includes(val)){ sel.value=val; inp.hidden=true; inp.value=''; }
+  else if(val){ sel.value='__otro__'; inp.hidden=false; inp.value=val; }
+  else { sel.value=''; inp.hidden=true; inp.value=''; }
+}
+function wireCilSel(selId,inpId){
+  const sel=$('#'+selId), inp=$('#'+inpId);
+  sel.addEventListener('change',()=>{
+    if(sel.value==='__otro__'){ inp.hidden=false; inp.value=''; inp.focus(); }
+    else { inp.hidden=true; inp.value=''; }
+  });
+}
+wireCilSel('nvCilSel','nvCil'); wireCilSel('evCilSel','evCil');
 function listasNv(){
   $('#dlNvMa').innerHTML=marcasValores().map(x=>`<option value="${x}">`).join('');
   $('#dlNvMo').innerHTML=selOtroValores('mo').map(x=>`<option value="${x}">`).join('');
@@ -7519,6 +7579,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   const zofNv={}; if(vinNv.length===17) zofNv.vin=vinNv; const transNv=$('#nvTrans').value; if(transNv) zofNv.trans=transNv;
   const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#nvCe').value.trim().toUpperCase(),cat:$('#nvCat').value.trim().toUpperCase(),
     tr:$('#nvTr').value.trim().toUpperCase(),pa:pnum($('#nvPa').value)||null,ca,tp:false,km:null,
+    motor:$('#nvMotor').value||'', cil:cilVal('nvCilSel','nvCil'),
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
     trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#nvProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
   if(Object.keys(zofNv).length) nuevo.zof=zofNv;
@@ -7527,8 +7588,9 @@ $('#nvAdd').addEventListener('click',async()=>{
   V.push(nuevo); IDX[ch]=nuevo; nvWarn=false;
   const pventaNv=pnum($('#nvVenta').value), pminNv=pnum($('#nvMin').value);
   if(pventaNv||pminNv){ const t=st(ch); if(pventaNv) t.pventa=pventaNv; if(pminNv) t.pmin=pminNv; save(); }
-  ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv','nvVenta','nvMin'].forEach(i=>$('#'+i).value='');
+  ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv','nvVenta','nvMin','nvCil'].forEach(i=>$('#'+i).value='');
   $('#nvTr').value='4X2';
+  $('#nvMotor').value='DIESEL'; $('#nvCilSel').value=''; $('#nvCil').hidden=true;
   $('#nvChT').textContent=''; nvTransTocado=false; nvTransSugerir();
   if(typeof selOtroReset==='function') selOtroReset();
   listasNv(); draw(); drawPick();
@@ -7554,6 +7616,7 @@ function abrirEditVeh(ch){
   $('#evPa').value=v.pa||'';
   $('#evCat').value=v.cat||'';
   $('#evCa').value=(v.ca&&v.ca!=='S/N')?v.ca:'';
+  $('#evMotor').value=v.motor||''; pintaCilSel('evCilSel','evCil',v.cil||'');
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
   $('#evSv').setAttribute('aria-pressed', v.sv?'true':'false');
   if(typeof listasNv==='function') listasNv();
@@ -7574,6 +7637,7 @@ $('#evOk').addEventListener('click',()=>{
   v.pa=pnum($('#evPa').value)||null;
   v.cat=$('#evCat').value.trim().toUpperCase();
   v.ca=$('#evCa').value.trim().toUpperCase()||'S/N';
+  v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil');
   v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
   v.sv=$('#evSv').getAttribute('aria-pressed')==='true';
   guardaCacheV(); draw();
