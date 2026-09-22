@@ -6,9 +6,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
- --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#7B8B8E;--paper:#152B35;--card:#183640;--line:#3D5D6B;
+ --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#98A8AB;--paper:#152B35;--card:#183640;--line:#3D5D6B;
  --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
- --amber:#E8B04B;--amberBg:#332914;--red:#E8736A;--redBg:#331F1D;
+ --amber:#E8B04B;--amberBg:#332914;--red:#EE8780;--redBg:#331F1D;
  --azul:#6AA9E0;--azulBg:#132B3C;--plata:#C8D2D4;--btn2:#3D5D6B;--btn2b:#618292;
  --fVerde:#3FAE72;--fAzul:#5E97C7;--fAmbar:#CE9C45;--fPlata:#8C9DA3;
  --disp:'Archivo',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
@@ -109,6 +109,32 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--seaD);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35);
  padding:12px 17px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.22s;z-index:90;pointer-events:none;max-width:88%;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* --- ajustes de la ronda del 21-09-2026 --- */
+.cg{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:10px;font-weight:600;font-size:13.5px;cursor:pointer}
+.cg[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:#fff}
+#loginBox{position:fixed;inset:0;z-index:200;background:var(--paper);color:var(--ink);align-items:center;justify-content:center;padding:20px}
+#loginBox .lgw{width:100%;max-width:360px}
+#loginBox h2{margin:0 0 6px;color:var(--ink)}
+#loginBox p{margin:0 0 16px;font-size:13.5px;color:var(--ink2)}
+.lgi{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:16px;margin-bottom:10px;background:var(--card);color:var(--ink)}
+#loginBox .btn{padding:14px;font-size:16px}
+.dmhead{display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;background:none;border:none;color:var(--ink);padding:0;text-align:left;cursor:pointer;font:inherit}
+.dmhead b{font-family:var(--disp);font-weight:700;font-size:16px}
+.dmcount{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px}
+.dmhead i{font-style:normal;color:var(--ink2);transition:transform .2s ease}
+.dmhead[aria-expanded="true"] i{transform:rotate(180deg)}
+.dmlist{max-height:46vh;overflow-y:auto;overscroll-behavior:contain}
+.xrow{padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.xrow:first-child{border-top:none;padding-top:0}
+.steps{display:flex;gap:6px;margin:0 0 13px;padding:4px;background:var(--seaL);border:1px solid var(--line);border-radius:12px}
+.steps button{flex:1;border:none;background:none;color:var(--ink2);font-weight:700;font-size:13.5px;padding:10px 6px;border-radius:9px;cursor:pointer}
+.steps button[aria-selected="true"]{background:var(--sea);color:#fff}
+#shForm{display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;max-height:93vh;max-height:93dvh}
+#shForm .sbody{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 8px;margin:0 -2px}
+#shForm .sact{margin:0;padding:10px 0 calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--card)}
+#fltRow{margin:0 0 4px}
+@media(max-width:350px){.acts{gap:6px}.acts .btn{padding:12px 9px}}   /* teléfonos muy angostos: la fila de 5 botones se salía de la tarjeta */
+@media(max-width:380px){.steps button{font-size:12.5px;padding:10px 3px}}   /* que “2 · Compra y gastos” quepa en una línea */
 </style></head><body>
 <div style="background:#B4321C;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700;letter-spacing:.02em">COPIA DE PRUEBAS · datos separados · no es tu app real</div>
 
@@ -119,26 +145,30 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <main class="wrap">
   <div id="boot" style="padding:50px 0;text-align:center;color:var(--mute)">Cargando…</div>
-  <div id="loginBox" style="display:none;position:fixed;inset:0;z-index:200;background:#fff;align-items:center;justify-content:center;padding:20px">
-    <div style="width:100%;max-width:360px">
-      <h2 style="margin:0 0 6px">AMK · Compras Corea</h2>
-      <p style="margin:0 0 16px;font-size:13px;color:var(--mute)">Inicia sesión para que los vehículos que cargues lleguen solos a Chile.</p>
-      <input id="logUser" autocomplete="username" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:10px">
-      <input id="logPass" type="password" autocomplete="current-password" placeholder="Contraseña" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;margin-bottom:12px">
+  <div id="loginBox" style="display:none">
+    <div class="lgw">
+      <h2>AMK · Compras Corea</h2>
+      <p>Inicia sesión para que los vehículos que cargues lleguen solos a Chile.</p>
+      <input id="logUser" class="lgi" autocomplete="username" aria-label="Cuenta">
+      <input id="logPass" class="lgi" type="password" autocomplete="current-password" placeholder="Contraseña" aria-label="Contraseña" style="margin-bottom:12px">
       <button class="btn b-pri" id="logEntrar" style="width:100%">Entrar</button>
       <button class="btn b-sec" id="logSaltar" style="width:100%;margin-top:8px">Seguir sin conexión</button>
-      <div id="logEstado" style="margin-top:10px;font-size:13px"></div>
+      <div id="logEstado" style="margin-top:10px;font-size:13.5px"></div>
     </div>
   </div>
-  <div id="syncEstado" style="font-size:12px;padding:6px 0"></div>
+  <div id="syncEstado" style="font-size:13px;padding:6px 0"></div>
 
   <section class="panel" id="pLista">
     <h2>Vehículos comprados</h2><p class="sub">Carga cada vehículo apenas lo compres.</p>
-    <div class="box" id="boxDemanda"><h3>Demanda de clientes en Iquique</h3>
-      <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
-      <div id="demandaList"></div></div>
+    <div class="box" id="boxDemanda">
+      <button class="dmhead" id="dmToggle" aria-expanded="false" aria-controls="demandaBody">
+        <span><b>Demanda de clientes en Iquique</b><span class="dmcount" id="dmCount">—</span></span><i aria-hidden="true">▾</i></button>
+      <div id="demandaBody" hidden style="margin-top:11px">
+        <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
+        <div id="demandaList" class="dmlist"></div></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
+    <div class="opt" id="fltRow"></div>
     <p class="cnt" id="cnt"></p>
     <div id="list"></div>
   </section>
@@ -149,15 +179,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <p class="cnt" id="reCnt"></p>
     <div id="reList"></div>
     <div class="box" id="boxAvisar" hidden><h3>Avisar a Iquique</h3>
-      <p>Manda el detalle de lo que llegó.</p>
+      <p>Con internet, las remesas se avisan solas. Si alguna sigue en “Por avisar”, usa este botón para mandarla por WhatsApp.</p>
       <button class="btn b-pri" id="reSend" style="width:100%">Avisar a Iquique</button></div>
   </section>
 
   <section class="panel" id="pEnviar">
-    <h2>Enviar a Iquique</h2><p class="sub">Manda las fichas y las fotos por separado.</p>
+    <h2>Enviar a Iquique</h2><p class="sub">Las fichas se envían solas cuando hay internet (dicen “En Chile ✓”). Esta pantalla es el respaldo por WhatsApp para cuando no hay señal.</p>
     <div class="box"><h3>1 · Fichas de los vehículos</h3>
       <p id="envTxt">—</p>
-      <button class="btn b-pri" id="envFichas" style="width:100%">Enviar fichas pendientes</button></div>
+      <button class="btn b-pri" id="envFichas" style="width:100%">Enviar por WhatsApp las pendientes</button></div>
     <div class="box"><h3>2 · Fotos</h3>
       <p>Las fotos van aparte porque pesan. Entra a cada vehículo y usa el botón de enviar fotos.</p></div>
     <div class="box"><h3>Marcar como enviados</h3>
@@ -183,6 +213,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shForm">
   <h3 id="fmT">Nuevo vehículo</h3><div class="sb">Los campos con * son necesarios</div>
+  <div class="steps" role="tablist">
+    <button role="tab" id="stTabA" data-step="A" aria-selected="true">1 · Vehículo</button>
+    <button role="tab" id="stTabB" data-step="B" aria-selected="false">2 · Compra y gastos</button></div>
+  <div class="sbody" id="fBody"><div id="stA">
   <div class="fld" id="wCh"><label for="fCh">Chasis</label>
     <input id="fCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: BA123290">
     <div class="err" id="eCh"></div>
@@ -190,8 +224,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       Todavía no tengo el chasis</button></div>
   <div class="fld"><label>Marca *</label><div class="opt" id="fMa"></div>
     <input id="fMaNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe la marca nueva" hidden style="margin-top:8px"></div>
-  <div class="fld"><label for="fMo">Modelo *</label><input id="fMo" list="dlMo" autocomplete="off" placeholder="Ej: SORENTO">
-    <datalist id="dlMo"></datalist></div>
+  <div class="fld"><label>Modelo *</label><div class="opt" id="fMoOpts"></div>
+    <input id="fMoNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe el modelo" hidden style="margin-top:8px"></div>
   <div class="two">
     <div class="fld"><label for="fAn">Año *</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
     <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" placeholder="80000"></div>
@@ -206,6 +240,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="opt"><button id="fTrabNo" aria-pressed="true">No, es un auto</button>
       <button id="fTrabSi" aria-pressed="false">Sí, es de trabajo</button></div></div>
   <div class="fld" id="wCa" hidden><label>Tipo de carrocería</label><div class="opt" id="fCa"></div></div>
+  <button class="btn b-sec" id="stNext" type="button" style="width:100%;margin:2px 0 6px">Siguiente: compra y gastos →</button>
+  </div>
+  <div id="stB" hidden>
   <div class="fld"><label for="fPr">Proveedor</label>
     <input id="fPr" list="dlPr" autocomplete="off" placeholder="Ej: Sr. Chan">
     <datalist id="dlPr"></datalist></div>
@@ -225,6 +262,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="mtr" id="cTot" style="margin-top:7px"></div></div>
   <div class="fld"><label for="fNo">Estado observado</label>
     <textarea id="fNo" rows="3" placeholder="Ej: rayón leve puerta trasera derecha, neumáticos 70%, batería nueva"></textarea></div>
+  <button class="btn b-sec" id="stBack" type="button" style="width:100%;margin:2px 0 6px">← Volver a vehículo</button>
+  </div></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="fmOk">Guardar</button></div>
 </div>
 
@@ -345,12 +384,20 @@ const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN
 const krw=n=>n?'₩'+Number(n).toLocaleString('es-CL'):'';
 const clp=n=>n?'$'+Number(n).toLocaleString('es-CL'):'';
 const kb=n=>Math.round(n/1024)+' KB';
-const iso=()=>new Date().toISOString().slice(0,10);
+/* Fecha en hora LOCAL del teléfono (antes usaba UTC y en Corea, de 00:00 a 09:00, proponía el día anterior). */
+const iso=(d)=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const fd=s=>s?s.split('-').reverse().join('/'):'';
 function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join('')}
 function sumCC(){let t=0;for(const[k]of CC)t+=pnum($('#c'+k).value)||0;
  $('#cTot').textContent=t?('Total en Corea: '+krw(t)):''; return t}
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)}
+/* El aviso dura según lo largo del mensaje (los de error largos no alcanzaban a leerse en 1,8 s) y un aviso nuevo
+   cancela el temporizador del anterior (antes el viejo apagaba el nuevo antes de tiempo). */
+let toastT=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);
+ toastT=setTimeout(()=>t.classList.remove('on'),Math.min(8000,Math.max(1800,1300+String(m).length*60)))}
+function pintaHK(){const n=L.filter(v=>!v.soloReferencia).length;const h=$('#hk');
+ if(h)h.textContent='Corea '+horaKR()+' · '+n+' cargado'+(n===1?'':'s')}
 function horaKR(){try{return new Intl.DateTimeFormat('es-CL',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'}).format(new Date())}catch(e){return''}}
 
 async function boot(){
@@ -360,7 +407,7 @@ async function boot(){
   try{const r=await window.storage.get('amkc_remesas');if(r&&r.value)RE=JSON.parse(r.value)}catch(e){console.error('boot RE',e)}
   dlProv(); await cargaDemandaLocal();
   $('#boot').remove();show(tab);opts();draw();pintaRE();
-  $('#hk').textContent='Corea '+horaKR()+' · '+L.length+' cargados';
+  pintaHK();
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(e){console.error('save',e); toast('No se pudo guardar')} fbEnviaPronto();}
 
@@ -380,11 +427,15 @@ let fbRecoreaEscuchando=false;
 let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
 const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
-const fbUltimo={};
+/* Estado real de cada vehículo en la nube. v.nube guarda la "firma" de lo último que la nube confirmó (ver fbFirma):
+   si coincide con la firma actual => "En Chile ✓". null => cargado/editado y todavía sin confirmar.
+   undefined => vehículo anterior a esta versión: se revisa UNA vez contra la nube (fbRevisaLegado), no se reenvía a ciegas. */
+let fbEnviando=false, fbReenviar=false, fbLegadoOk=false, fbRemLegadoOk=false;
 
 function fbEstado(txt,color){
   const el=document.getElementById('syncEstado');
-  if(el) el.innerHTML='<span style="color:'+(color||'#5A6B70')+'">'+txt+'</span>';
+  const c={'#2E7D32':'var(--green)','#B5533C':'var(--red)'}[color]||color||'var(--ink2)';
+  if(el) el.innerHTML='<span style="color:'+c+'">'+txt+'</span>';
 }
 function fbMuestraLogin(m){
   const el=document.getElementById('loginBox');
@@ -392,43 +443,88 @@ function fbMuestraLogin(m){
   el.style.display = m ? 'flex' : 'none';
   if(m){ const u=document.getElementById('logUser'); if(u && !u.value) u.value=FB_USER; }
 }
-function fbFirma(v){ try{ return JSON.stringify(v); }catch(e){ return ''; } }
+/* Firma de lo que esta app manda a la nube: ficha + compra en wones + gastos. No incluye fotos, portada, marcas de
+   envío ni nada local, así que cambiar eso no dispara un reenvío. */
+function fbFirma(v){
+  let s='';
+  try{ s=JSON.stringify([FB_GEN.map(k=>v[k]===undefined?null:v[k]), v.krw===undefined?null:v.krw, v.cc===undefined?null:v.cc]); }
+  catch(e){ return ''; }
+  let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0;
+  return (h>>>0).toString(36)+'.'+s.length;
+}
+/* "En Chile ✓" = la nube lo confirmó tal como está ahora, o se marcó a mano como enviado por WhatsApp (respaldo). */
+function enChile(v){ return !!(v.sent || (v.nube && v.nube===fbFirma(v))); }
+async function guardaL(){ try{ await window.storage.set(KEY,JSON.stringify(L)); }catch(e){ console.error('guardaL',e); } }
 let fbTimer=null;
 function fbEnviaPronto(){
   if(!fbReady) return;
   clearTimeout(fbTimer);
   fbTimer=setTimeout(fbEnvia, 1200);
 }
+/* Vehículos de antes de esta versión (nube sin definir): se mira UNA vez si ya están en la nube. Los que ya están
+   NO se reenvían (antes se reenviaba todo cada vez que se abría la app y eso podía pisar correcciones hechas en
+   Sistema), salvo que ella los haya editado aquí después de la última subida. Si no se puede leer, no se reenvía
+   a ciegas: se reintenta la próxima vez. */
+async function fbRevisaLegado(){
+  if(fbLegadoOk) return;
+  const sin=L.filter(v=>v.ch && !v.soloReferencia && v.nube===undefined);
+  if(!sin.length){ fbLegadoOk=true; return; }
+  let cambio=false;
+  for(const v of sin){
+    try{
+      const ds=await fbDb.collection(FB_COL).doc(v.ch).get();
+      if(ds.exists){
+        const d=ds.data()||{};
+        const tsNube=(d._ts && d._ts.toMillis) ? d._ts.toMillis() : 0;
+        v.nube=(tsNube && (v.ts||0)>tsNube) ? null : fbFirma(v);
+      }else v.nube=null;
+      cambio=true;
+    }catch(e){ console.error('fbRevisaLegado',e); if(cambio) await guardaL(); return; }
+  }
+  fbLegadoOk=true;
+  if(cambio) await guardaL();
+}
 async function fbEnvia(){
   if(!fbReady) return;
-  const pend=L.filter(v=>v.ch && !v.soloReferencia && fbUltimo[v.ch]!==fbFirma(v));
-  if(!pend.length) return;
-  fbEstado('Enviando '+pend.length+' vehículo(s) a Chile…');
-  let ok=0, errCostos=0, otroErr='';
-  for(const v of pend){
-    const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
-    gen._ts=firebase.firestore.FieldValue.serverTimestamp();
-    try{
-      await fbDb.collection(FB_COL).doc(v.ch).set(gen,{merge:true});
+  if(fbEnviando){ fbReenviar=true; return; }
+  fbEnviando=true;
+  try{
+    await fbRevisaLegado();
+    const pend=L.filter(v=>v.ch && !v.soloReferencia && v.nube!==undefined && v.nube!==fbFirma(v));
+    if(!pend.length) return;
+    fbEstado('Enviando '+pend.length+' vehículo(s) a Chile…');
+    let ok=0, errCostos=0, otroErr='';
+    for(const v of pend){
+      const firma=fbFirma(v);
+      const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
+      gen._ts=firebase.firestore.FieldValue.serverTimestamp();
       try{
-        const costos={};
-        if(v.krw!==undefined) costos.krw=v.krw;
-        if(v.cc!==undefined) costos.cc=v.cc;
-        if(Object.keys(costos).length){
-          costos._ts=firebase.firestore.FieldValue.serverTimestamp();
-          await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('costos').set(costos,{merge:true});
-        }
-      }catch(e){ errCostos++; }
-      fbUltimo[v.ch]=fbFirma(v);
-      ok++;
-    }catch(e){ console.error('fbEnvia',e); otroErr=(e.message||e.code||e); }
-  }
-  if(otroErr){ fbEstado('✗ No se pudieron enviar algunos vehículos: '+otroErr,'#B5533C'); return; }
-  if(errCostos){
-    fbEstado('✓ '+ok+' vehículo(s) enviados, pero la compra en wones y los gastos de taller NO se pudieron guardar (falta permiso en las reglas de Firestore). Avísale a Andre.','#B5533C');
-    fbAvisoCostos=true;
-  }else{
-    fbEstado('✓ '+ok+' vehículo(s) enviados a Chile','#2E7D32');
+        await fbDb.collection(FB_COL).doc(v.ch).set(gen,{merge:true});
+        let costosOk=true;
+        try{
+          const costos={};
+          if(v.krw!==undefined) costos.krw=v.krw;
+          if(v.cc!==undefined) costos.cc=v.cc;
+          if(Object.keys(costos).length){
+            costos._ts=firebase.firestore.FieldValue.serverTimestamp();
+            await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('costos').set(costos,{merge:true});
+          }
+        }catch(e){ errCostos++; costosOk=false; }
+        if(costosOk) v.nube=firma;   /* solo queda "En Chile ✓" si llegó TODO lo que se manda */
+        ok++;
+      }catch(e){ console.error('fbEnvia',e); otroErr=(e.message||e.code||e); }
+    }
+    await guardaL(); draw();
+    if(otroErr){ fbEstado('✗ No se pudieron enviar algunos vehículos: '+otroErr,'#B5533C'); return; }
+    if(errCostos){
+      fbEstado('✓ '+ok+' vehículo(s) enviados, pero la compra en wones y los gastos de taller NO se pudieron guardar (falta permiso en las reglas de Firestore). Avísale a Andre.','#B5533C');
+      fbAvisoCostos=true;
+    }else{
+      fbEstado('✓ '+ok+' vehículo(s) enviados a Chile','#2E7D32');
+    }
+  }finally{
+    fbEnviando=false;
+    if(fbReenviar){ fbReenviar=false; fbEnviaPronto(); }
   }
 }
 /* ---------- Remesas recibidas, en vivo hacia/desde Sistema ----------
@@ -438,14 +534,36 @@ async function fbEnvia(){
    que vos anotas otra), y cuando Iquique la vincule a un envío, esta app se entera sola
    y la marca como "Vinculada en Iquique". El botón de avisar por WhatsApp se deja como
    respaldo para cuando no hay internet. */
+/* Igual que con los vehículos: x.nube guarda la firma de lo último que la nube confirmó. Coincide => "Avisada ✓".
+   null => anotada/corregida y todavía sin confirmar (se reintenta sola al abrir con internet).
+   undefined => anterior a esta versión: solo se verifica contra la nube, no se reenvía a ciegas. */
+const remFirma=x=>[x.k||0,x.com||0,x.f||'',x.fll||x.f||''].join('|');
+const avisada=x=>!!(x.sent || (x.nube && x.nube===remFirma(x)));
+async function guardaRE(){ try{ await window.storage.set('amkc_remesas',JSON.stringify(RE)); }catch(_){} }
 async function fbSyncRemesa(x){
-  if(!fbReady) return;
+  if(!fbReady) return false;
+  const firma=remFirma(x);
   try{
     await fbDb.collection(RECOREA_COL).doc(String(x.ts)).set({
       k:x.k||0, com:x.com||0, f:x.f||'', fll:x.fll||x.f||'',
       _ts:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
-  }catch(e){ console.error('fbSyncRemesa',e); }
+    x.nube=firma; await guardaRE(); pintaRE();
+    return true;
+  }catch(e){ console.error('fbSyncRemesa',e); return false; }
+}
+async function fbSyncRemesasPend(){
+  if(!fbReady) return;
+  if(!fbRemLegadoOk){
+    let cambio=false, fallo=false;
+    for(const x of RE.filter(y=>y.nube===undefined)){
+      try{ const ds=await fbDb.collection(RECOREA_COL).doc(String(x.ts)).get(); if(ds.exists){ x.nube=remFirma(x); cambio=true; } }
+      catch(e){ console.error('fbSyncRemesasPend',e); fallo=true; break; }
+    }
+    if(!fallo) fbRemLegadoOk=true;
+    if(cambio){ await guardaRE(); pintaRE(); }
+  }
+  for(const x of RE.filter(y=>y.nube!==undefined && y.nube!==remFirma(y))){ await fbSyncRemesa(x); }
 }
 async function fbDeleteRemesa(ts){
   if(!fbReady) return;
@@ -504,9 +622,12 @@ function fbVehiculosListen(){
         });
       }
       if(priv){
+        const enSync=!!(v.nube && v.nube===fbFirma(v));
         if(priv.krw && priv.krw!==v.krw){ v.krw=priv.krw; cambio=true; }
         if(priv.cc && Object.keys(priv.cc).length){ v.cc=Object.assign({}, v.cc, priv.cc); cambio=true; }
         if(priv.ct!==undefined && priv.ct && priv.ct!==v.ct){ v.ct=priv.ct; cambio=true; }
+        /* Si estaba al día y lo nuevo vino DE la nube, sigue al día: no hay que reenviarlo. */
+        if(enSync) v.nube=fbFirma(v);
       }
     }
     if(cambio){
@@ -545,6 +666,8 @@ function fbDemandaListen(){
 function pintaDemanda(){
   const el=document.getElementById('demandaList'); if(!el) return;
   const activas=DEMANDA.filter(d=>!d.atendido);
+  const cnt=document.getElementById('dmCount');
+  if(cnt) cnt.textContent=activas.length?activas.length+' pedido'+(activas.length===1?'':'s')+' activo'+(activas.length===1?'':'s'):'Sin pedidos por ahora';
   el.innerHTML=activas.length?activas.map(d=>{
     const anio=d.anioDesde?(d.anioHasta&&d.anioHasta!==d.anioDesde?`${d.anioDesde}-${d.anioHasta}`:String(d.anioDesde)):'';
     const veces=contarDemanda(d.marca,d.modelo);
@@ -552,7 +675,7 @@ function pintaDemanda(){
       <b>${(d.marca||'').replace(/</g,'&lt;')} ${(d.modelo||'').replace(/</g,'&lt;')}</b> ${anio}
       ${d.caracteristicas?`<br><span style="color:var(--ink2)">${String(d.caracteristicas).replace(/</g,'&lt;')}</span>`:''}
       ${veces>1?`<br><span style="color:var(--azul);font-size:12px">Preguntado ${veces} veces en total</span>`:''}
-      <br><span style="color:var(--mute);font-size:12px">${d.vendedor||'—'} · ${fd(new Date(d.ts).toISOString().slice(0,10))}</span></span></div>`;
+      <br><span style="color:var(--mute);font-size:12px">${d.vendedor||'—'} · ${fd(iso(new Date(d.ts)))}</span></span></div>`;
   }).join('') : '<p style="color:var(--mute);font-size:13.5px;margin:0">Nadie ha anotado demanda todavía.</p>';
 }
 async function fbInit(){
@@ -561,7 +684,7 @@ async function fbInit(){
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); }
       else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
     });
   }catch(e){ console.error('fbInit',e); fbEstado('Sin conexión: los vehículos quedan solo en este teléfono','#B5533C'); }
@@ -570,19 +693,19 @@ async function fbEntrar(){
   const el=document.getElementById('logEstado');
   const u=(document.getElementById('logUser').value||'').trim();
   const p=document.getElementById('logPass').value||'';
-  if(!u||!p){ el.innerHTML='<span style="color:#B5533C">Escribe la cuenta y la contraseña.</span>'; return; }
-  if(!fbAuth){ el.innerHTML='<span style="color:#B5533C">Sin conexión a internet.</span>'; return; }
+  if(!u||!p){ el.innerHTML='<span style="color:var(--red)">Escribe la cuenta y la contraseña.</span>'; return; }
+  if(!fbAuth){ el.innerHTML='<span style="color:var(--red)">Sin conexión a internet.</span>'; return; }
   el.textContent='Entrando…';
   try{
     await fbAuth.signInWithEmailAndPassword(u,p);
     document.getElementById('logPass').value='';
-    el.innerHTML='<span style="color:#2E7D32">✓ Sesión iniciada</span>';
+    el.innerHTML='<span style="color:var(--green)">✓ Sesión iniciada</span>';
   }catch(e){
     const cod=(e.code||'');
     const msg = cod.includes('wrong-password')||cod.includes('invalid-credential') ? 'Contraseña incorrecta.'
               : cod.includes('network') ? 'Sin conexión a internet.'
               : (e.message||cod);
-    el.innerHTML='<span style="color:#B5533C">✗ '+msg+'</span>';
+    el.innerHTML='<span style="color:var(--red)">✗ '+msg+'</span>';
   }
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -618,10 +741,34 @@ function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
  $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
 })}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
-function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on')}
+/* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
+let snap0='', step='A';
+function formSnap(){
+  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value]); }
+  catch(e){ return ''; }
+}
+function setStep(s){
+  step=s;
+  $('#stA').hidden=(s!=='A'); $('#stB').hidden=(s!=='B');
+  $('#stTabA').setAttribute('aria-selected',s==='A'?'true':'false');
+  $('#stTabB').setAttribute('aria-selected',s==='B'?'true':'false');
+  $('#fBody').scrollTop=0;
+}
+function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on');if(i==='shForm'){setStep('A');snap0=formSnap()}}
 function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));if(typeof stopSpinMy360C==='function')stopSpinMy360C()}
-$('#scrim').addEventListener('click',closeAll);
-$$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
+/* Tocar fuera de la hoja ya no cierra el formulario si hay datos escritos sin guardar. */
+$('#scrim').addEventListener('click',()=>{
+  if($('#shForm').classList.contains('on') && formSnap()!==snap0){toast('Tienes datos sin guardar · toca Guardar, o Cancelar para descartarlos');return}
+  closeAll();
+});
+$$('[data-close]').forEach(b=>b.addEventListener('click',()=>{
+  if(b.closest('#shForm') && formSnap()!==snap0 && !confirm('¿Descartar lo que escribiste?')) return;
+  closeAll();
+}));
+$('#stTabA').addEventListener('click',()=>setStep('A'));
+$('#stTabB').addEventListener('click',()=>setStep('B'));
+$('#stNext').addEventListener('click',()=>setStep('B'));
+$('#stBack').addEventListener('click',()=>setStep('A'));
 
 function chips(id,arr,key){
   $(id).innerHTML=arr.map(v=>`<button data-k="${key}" data-v="${v}" aria-pressed="${sel[key]===v}">${v}</button>`).join('');
@@ -630,28 +777,50 @@ function marcas(){return [...new Set([...OPT.marcas,...EXTRA.marcas])].sort()}
 function modelos(ma){return [...new Set([...(OPT.modelos[ma]||[]),...((EXTRA.modelos||{})[ma]||[])])].sort()}
 function opts(){
   const el=document.getElementById('fMa');
-  el.innerHTML=marcas().map(v=>`<button data-k="ma" data-v="${v}" aria-pressed="${sel.ma===v}">${v}</button>`).join('')
+  const ms=marcas(); if(sel.ma && !ms.includes(sel.ma)) ms.push(sel.ma);   /* editar un vehículo con marca fuera de la lista */
+  el.innerHTML=ms.map(v=>`<button data-k="ma" data-v="${esc(v)}" aria-pressed="${sel.ma===v}">${esc(v)}</button>`).join('')
     +`<button id="fMaAdd" aria-pressed="false">＋ Otra marca</button>`;
   chips('#fCat',OPT.cats,'cat');chips('#fCe',OPT.colores,'ce');
   chips('#fTr',OPT.tracc,'tr');chips('#fCa',OPT.carr,'ca');
+  moChips();
+}
+/* Modelo: botones filtrados por la marca elegida + "Otro modelo" (antes era un cuadro con lista desplegable que
+   no funcionaba bien al tacto). Si la marca todavía no está elegida, se puede escribir el modelo directamente. */
+function moChips(){
+  const el=document.getElementById('fMoOpts'), inp=document.getElementById('fMoNew');
+  if(!el||!inp) return;
+  if(!sel.ma){
+    el.innerHTML='<span class="mtr" style="margin:0;align-self:center">Elige la marca para ver sus modelos, o escribe el modelo abajo.</span>';
+    inp.hidden=false; return;
+  }
+  const lista=modelos(sel.ma);
+  const todos=(sel.mo && !lista.includes(sel.mo)) ? [...lista,sel.mo] : lista;
+  el.innerHTML=todos.map(v=>`<button data-k="mo" data-v="${esc(v)}" aria-pressed="${sel.mo===v}">${esc(v)}</button>`).join('')
+    +`<button id="fMoAdd" aria-pressed="false">＋ Otro modelo</button>`;
+  if(!todos.length) inp.hidden=false;
 }
 async function guardaExtra(){try{await window.storage.set('amkc_extra',JSON.stringify(EXTRA))}catch(_){}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;
-  const k=b.dataset.k,v=b.dataset.v; sel[k]=(sel[k]===v)?'':v; opts();
-  if(k==='ma'){$('#fMaNew').hidden=true;$('#dlMo').innerHTML=modelos(sel.ma).map(m=>`<option value="${m}">`).join('')}
+  const k=b.dataset.k,v=b.dataset.v; sel[k]=(sel[k]===v)?'':v;
+  if(k==='ma'){ sel.mo=''; $('#fMaNew').hidden=true; $('#fMoNew').value=''; $('#fMoNew').hidden=true; }
+  if(k==='mo'){ $('#fMoNew').value=''; $('#fMoNew').hidden=true; }
+  opts();
 });
 
 function limpia(){
-  sel={ma:'',cat:'',ce:'',tr:'',ca:'S/N'};edit=null;sinCh=false;warnOnce=false;
+  sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N'};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
-  ['fCh','fMo','fAn','fKm','fPa','fKrw','fNo','fPr'].forEach(i=>$('#'+i).value='');
+  ['fCh','fAn','fKm','fPa','fKrw','fNo','fPr'].forEach(i=>$('#'+i).value='');
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
-  $('#fFe').value=iso();$('#wCh').classList.remove('bad');$('#dlMo').innerHTML='';
-  $('#fMaNew').value='';$('#fMaNew').hidden=true;setTrab(false);opts();
+  $('#fFe').value=iso();$('#wCh').classList.remove('bad');
+  $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts();
 }
 CC.forEach(([k])=>{const el=document.getElementById('c'+k); if(el) el.addEventListener('input',sumCC)});
 document.addEventListener('click',e=>{
-  if(e.target.id==='fMaAdd'){const i=$('#fMaNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
+  if(e.target.id==='fMaAdd'){const i=$('#fMaNew');i.hidden=!i.hidden;
+    /* Marca nueva: se suelta la marca y el modelo elegidos para que no queden botones de modelos de OTRA marca. */
+    if(!i.hidden){sel.ma='';sel.mo='';$('#fMoNew').value='';opts();i.focus()}}
+  if(e.target.id==='fMoAdd'){const i=$('#fMoNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
 });
 $('#fTrabNo').addEventListener('click',()=>setTrab(false));
 $('#fTrabSi').addEventListener('click',()=>setTrab(true));
@@ -674,15 +843,16 @@ $('#addV').addEventListener('click',()=>{limpia();$('#fmT').textContent='Nuevo v
 $('#fmOk').addEventListener('click',async()=>{
   let ch=$('#fCh').value.trim().toUpperCase();
   const w=$('#wCh'),er=$('#eCh');
+  const irA=()=>{ if(step!=='A') setStep('A'); };   /* los errores de chasis/marca/modelo/año están en la pestaña 1 */
   if(sinCh){
     let k=1; while(L.some(x=>x.ch==='PEND-'+String(k).padStart(3,'0'))) k++;
     ch=edit&&edit.startsWith('PEND-')?edit:'PEND-'+String(k).padStart(3,'0');
   }else{
-    if(!ch){w.classList.add('bad');er.textContent='Escribe el chasis o marca “Todavía no tengo el chasis”.';return}
+    if(!ch){irA();w.classList.add('bad');er.textContent='Escribe el chasis o marca “Todavía no tengo el chasis”.';return}
     const dupIQ=OPT.chasis.includes(ch), dupLoc=L.some(x=>x.ch===ch&&x.ch!==edit);
-    if(dupIQ||dupLoc){w.classList.add('bad');er.textContent=dupIQ?'Ese chasis ya está en el sistema de Iquique.':'Ya cargaste ese chasis acá.';return}
+    if(dupIQ||dupLoc){irA();w.classList.add('bad');er.textContent=dupIQ?'Ese chasis ya está en el sistema de Iquique.':'Ya cargaste ese chasis acá.';return}
     if(!RX.test(ch)&&!warnOnce){
-      w.classList.add('bad');warnOnce=true;
+      irA();w.classList.add('bad');warnOnce=true;
       er.textContent='Ese chasis no tiene el formato habitual (2 letras + 6 números). Revísalo. Si está correcto, toca Guardar otra vez.';
       return;
     }
@@ -693,14 +863,15 @@ $('#fmOk').addEventListener('click',async()=>{
     if(!EXTRA.marcas.includes(maNew)&&!OPT.marcas.includes(maNew)){EXTRA.marcas.push(maNew);await guardaExtra()}
     sel.ma=maNew;
   }
-  if(!sel.ma){toast('Elige la marca');return}
-  const mo=$('#fMo').value.trim().toUpperCase(); if(!mo){toast('Falta el modelo');return}
+  if(!sel.ma){irA();toast('Elige la marca');return}
+  const moNew=$('#fMoNew').value.trim().toUpperCase();
+  const mo=(moNew&&!$('#fMoNew').hidden)?moNew:(sel.mo||''); if(!mo){irA();toast('Falta el modelo');return}
   if(!modelos(sel.ma).includes(mo)){
     EXTRA.modelos=EXTRA.modelos||{};
     EXTRA.modelos[sel.ma]=[...(EXTRA.modelos[sel.ma]||[]),mo];
     await guardaExtra();
   }
-  const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){toast('Revisa el año');return}
+  const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){irA();toast('Revisa el año');return}
   const cc={}; for(const[k]of CC){const n=pnum($('#c'+k).value); if(n) cc[k]=n}
   const prov=$('#fPr').value.trim();
   if(prov&&!PROV.includes(prov)){PROV.push(prov);PROV.sort();
@@ -710,36 +881,56 @@ $('#fmOk').addEventListener('click',async()=>{
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
     krw:pnum($('#fKrw').value)||null,fe:$('#fFe').value||iso(),prov,cc,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
-  if(edit){const i=L.findIndex(x=>x.ch===edit); const old=L[i]; Object.assign(o,{nf:old.nf,cov:old.cov,sent:false}); L[i]=o}
-  else L.unshift(o);
+  /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
+     llegó de Sistema, estado en la nube...). Antes se armaba un objeto nuevo y se perdía el ✓ de la vista 360°. */
+  if(edit){const i=L.findIndex(x=>x.ch===edit); const old=L[i]; L[i]=Object.assign({},old,o,{nf:old.nf,cov:old.cov,nube:old.nube})}
+  else{ o.nube=null; L.unshift(o); }
   await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
 });
 
-let q='';
+let q='', flt='';
+/* Filtros rápidos sobre la lista: Por enviar (aún sin confirmar en Chile) / Sin fotos / Sin chasis. */
+function fltOk(v){
+  if(flt==='pend') return !enChile(v);
+  if(flt==='foto') return !v.nf;
+  if(flt==='sinch') return v.ch.startsWith('PEND-');
+  return true;
+}
+function pintaFiltros(base){
+  const n={pend:base.filter(v=>!enChile(v)).length, foto:base.filter(v=>!v.nf).length, sinch:base.filter(v=>v.ch.startsWith('PEND-')).length};
+  const fila=[['','Todos',base.length],['pend','Por enviar',n.pend],['foto','Sin fotos',n.foto],['sinch','Sin chasis',n.sinch]]
+    .filter(([k,,c])=>k===''||c>0||flt===k);
+  $('#fltRow').innerHTML=base.length?fila.map(([k,t,c])=>`<button data-f="${k}" aria-pressed="${flt===k}">${t} · ${c}</button>`).join(''):'';
+}
 function draw(){
+  pintaHK();
+  const base=L.filter(v=>!v.soloReferencia);
+  pintaFiltros(base);
   const s=q.trim().toLowerCase();
   const toks=s?s.split(/\s+/):[];
-  const LV=L.filter(v=>{
-    if(v.soloReferencia)return false;
+  const LV=base.filter(v=>{
+    if(!fltOk(v))return false;
     if(!toks.length)return true;
     const hay=(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase();
     return toks.every(tk=>hay.includes(tk));
   });
   const sc=LV.filter(v=>v.ch.startsWith('PEND-')).length;
-  $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+LV.filter(v=>!v.sent).length+' por enviar'+(sc?' · '+sc+' sin chasis':''):'';
+  const nPend=LV.filter(v=>!enChile(v)).length;
+  $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+(nPend?nPend+' por enviar':'todos en Chile ✓')+(sc?' · '+sc+' sin chasis':''):'';
   $('#list').innerHTML=LV.length?LV.map(v=>{
     const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
     const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
     const sp=[v.cat,v.tr,(v.pa?v.pa+' pas.':''),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
       .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
-    return `<div class="card ${v.sent?'sent':''}">
+    const en=enChile(v);
+    return `<div class="card ${en?'sent':''}">
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
       <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></div>
       <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
-      <span class="tag ${v.sent?'t-ok':'t-pend'}">${v.sent?'Enviado':'Por enviar'}</span></div></div>
+      <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span></div></div>
      <div class="specs">${sp}</div>
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
      ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
@@ -748,9 +939,10 @@ function draw(){
       ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}" style="flex:0 0 auto">＃</button>`:''}
       <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
       <button class="btn b-sec" data-del="${v.ch}" style="flex:0 0 auto">✕</button></div></div>`}).join('')
-   :'<div class="empty">Todavía no cargas vehículos.<br>Toca “Agregar vehículo” para empezar.</div>';
-  const pend=LV.filter(v=>!v.sent).length;
-  $('#envTxt').textContent=pend?`${pend} ficha${pend===1?'':'s'} sin enviar.`:'No hay fichas pendientes.';
+   :(base.length?'<div class="empty">Ningún vehículo coincide con la búsqueda o el filtro.</div>'
+                :'<div class="empty">Todavía no cargas vehículos.<br>Toca “Agregar vehículo” para empezar.</div>');
+  const pend=base.filter(v=>!enChile(v)).length;
+  $('#envTxt').textContent=pend?`${pend} ficha${pend===1?'':'s'} todavía sin confirmar en Chile.`:'Todas las fichas ya están en Chile ✓';
   pintaHist();
 }
 
@@ -792,7 +984,7 @@ function pintaHist(){
       <div class="specs"><span class="sp">${n} compra${n===1?'':'s'}</span><span class="sp">Promedio ${krw(prom)}</span>${n>1?`<span class="sp">Rango ${krw(min)}–${krw(max)}</span>`:''}</div>
       <div class="nota">Última compra en Corea: ${krw(g.ultPrecio)}${g.ultProv?' · '+g.ultProv.replace(/</g,'&lt;'):''}${g.ultFe?' · '+fd(g.ultFe):''}</div>
       ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}
-      ${promCt?`<div class="nota" style="border-left-color:#2E7D32">Costo total real en Chile: promedio ${clp(promCt)}${g.cts.length>1?' · rango '+clp(minCt)+'–'+clp(maxCt):''}</div>`:''}</div>`;
+      ${promCt?`<div class="nota" style="border-left-color:var(--green)">Costo total real en Chile: promedio ${clp(promCt)}${g.cts.length>1?' · rango '+clp(minCt)+'–'+clp(maxCt):''}</div>`:''}</div>`;
   }).join(''):'<div class="empty">Todavía no hay compras con precio cargado'+(histProv?' de este proveedor':'')+'.</div>';
 }
 $('#histProv').addEventListener('change',e=>{histProv=e.target.value;pintaHist()});
@@ -886,9 +1078,16 @@ $('#phShare').addEventListener('click',async()=>{
  if(navigator.canShare&&navigator.canShare({files})){
   try{await navigator.share({files,text:txt,title:txt});toast('Fotos enviadas');return}
   catch(e){if(e&&e.name==='AbortError')return}}
- let n=0;for(const f of files){const u=URL.createObjectURL(f);const a=document.createElement('a');
-  a.href=u;a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),4000);n++}
- toast('Descargadas '+n+' fotos')});
+ /* Descarga varias juntas: los navegadores (sobre todo en el celular) bloquean la segunda descarga
+   automática si se dispara pegada a la primera. Con el enlace agregado al documento y una pequeña
+   pausa entre cada una, bajan todas. */
+ for(let i=0;i<files.length;i++){
+  const f=files[i], u=URL.createObjectURL(f), a=document.createElement('a');
+  a.href=u; a.download=f.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),4000);
+  if(i<files.length-1) await new Promise(r=>setTimeout(r,400));
+ }
+ toast('Descargadas '+files.length+' fotos')});
 $('#phWeb').addEventListener('click',subirFotosWeb);
 
 
@@ -1034,11 +1233,10 @@ document.addEventListener('click',async e=>{
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
  if(ed){const v=L.find(x=>x.ch===ed.dataset.edit);edit=v.ch;
-  sel={ma:v.ma,cat:v.cat,ce:v.ce,tr:v.tr,ca:v.ca};
+  sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:v.ce,tr:v.tr,ca:v.ca};
+  $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
-  $('#fMaNew').value='';$('#fMaNew').hidden=true;
-  $('#dlMo').innerHTML=modelos(v.ma).map(x=>`<option value="${x}">`).join('');
-  $('#fCh').value=v.ch;$('#fMo').value=v.mo;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
+  $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fPa').value=v.pa||'';$('#fKrw').value=v.krw||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
   $('#fPr').value=v.prov||''; CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
@@ -1052,28 +1250,28 @@ async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}
  catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();
  try{document.execCommand('copy');toast(m)}catch(_){toast('No se pudo copiar')}a.remove()}}
 $('#envFichas').addEventListener('click',async()=>{
- const p=L.filter(v=>!v.sent);
- if(!p.length){toast('No hay fichas pendientes');return}
+ const p=L.filter(v=>!enChile(v));
+ if(!p.length){toast('No hay fichas pendientes · todas están en Chile ✓');return}
  const data=p.map(({ch,ma,mo,an,km,cat,ce,tr,pa,ca,krw,fe,nota,prov,cc})=>({ch,ma,mo,an,km,cat,ce,tr,pa,ca,krw,fe,nota,prov,cc}));
  const txt='AMK-COREA '+JSON.stringify(data);
  if(navigator.share){try{await navigator.share({text:txt,title:'Fichas AMK Corea'});toast('Enviado');return}
   catch(e){if(e&&e.name==='AbortError')return}}
  cp(txt,p.length+' fichas copiadas · pégalas en WhatsApp')});
 $('#envMark').addEventListener('click',async()=>{
- const n=L.filter(v=>!v.sent).length; if(!n){toast('Nada pendiente');return}
- L.forEach(v=>v.sent=true);await save();draw();toast(n+' marcados como enviados')});
+ const n=L.filter(v=>!enChile(v)).length; if(!n){toast('Nada pendiente');return}
+ L.forEach(v=>{ if(!enChile(v)) v.sent=true });await save();draw();toast(n+' marcados como enviados')});
 
 const dec2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
 function pintaRE(){
-  const porInf=RE.filter(x=>!x.sent).length;
-  $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':''):'';
+  const porInf=RE.filter(x=>!avisada(x)).length;
+  $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':' · todas avisadas ✓'):'';
   const box=$('#boxAvisar'); if(box) box.hidden=!porInf;
-  $('#reList').innerHTML=RE.length?RE.slice().reverse().map(x=>`<div class="card ${x.sent?'sent':''}">
+  $('#reList').innerHTML=RE.length?RE.slice().reverse().map(x=>`<div class="card ${avisada(x)?'sent':''}">
     <div class="r1"><div><div class="tt">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
       <div class="ch">Llegó el ${fd(x.fll||x.f)}</div></div>
-      <span class="tag ${x.sent?'t-ok':'t-pend'}">${x.sent?'Avisada':'Por avisar'}</span></div>
+      <span class="tag ${avisada(x)?'t-ok':'t-pend'}">${avisada(x)?'Avisada ✓':'Por avisar'}</span></div>
     ${x.com?`<div class="specs"><span class="sp">Comisión ${Math.round(x.com).toLocaleString('es-CL')} ₩</span></div>`:''}
-    ${x.vinculada?`<div class="specs"><span class="sp" style="color:#2E7D32">✓ Vinculada en Iquique</span></div>`:''}
+    ${x.vinculada?`<div class="specs"><span class="sp" style="color:var(--green)">✓ Vinculada en Iquique</span></div>`:''}
     <div class="acts"><button class="btn b-sec" data-rell="${x.ts}">Corregir</button>
       <button class="btn b-sec" data-redel="${x.ts}" style="flex:0 0 auto">✕</button></div></div>`).join('')
    :'<div class="empty">Sin remesas registradas.<br>Cuando llegue una, toca el botón de arriba.</div>';
@@ -1088,12 +1286,12 @@ $('#llOk').addEventListener('click',async()=>{
   if(!k){toast('Ingresa los wones');return}
   const com=pnum($('#llCom').value)||0, f=$('#llD').value||iso();
   let x;
-  if(llId){x=RE.find(y=>String(y.ts)===llId); if(x){x.k=k;x.com=com;x.fll=f;x.sent=false}}
-  else {x={ts:Date.now(),k,com,f,fll:f,sent:false}; RE.push(x);}
-  try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
-  fbSyncRemesa(x);
+  if(llId){x=RE.find(y=>String(y.ts)===llId); if(x){x.k=k;x.com=com;x.fll=f;x.sent=false;x.nube=null}}
+  else {x={ts:Date.now(),k,com,f,fll:f,sent:false,nube:null}; RE.push(x);}
+  await guardaRE();
+  fbSyncRemesa(x);   /* sin esperar: al confirmar la nube, la tarjeta pasa sola a "Avisada ✓" */
   pintaRE(); closeAll();
-  toast(fbReady?'Registrada · se avisa sola a Iquique':'Registrada · sin internet, avísale por WhatsApp');
+  toast(fbReady?'Registrada · se avisa sola a Iquique':'Registrada · sin internet: se avisa sola cuando haya señal (o usa el botón de WhatsApp)');
 });
 let llId=null;
 document.addEventListener('click',async e=>{
@@ -1104,13 +1302,14 @@ document.addEventListener('click',async e=>{
     openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240); return}
   const d=e.target.closest('[data-redel]'); if(!d)return;
   const delTs=d.dataset.redel;
+  if(!confirm('¿Borrar esta remesa? También se borra en Iquique.'))return;
   RE=RE.filter(x=>String(x.ts)!==delTs);
   try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
   fbDeleteRemesa(delTs);
   pintaRE();
 });
 $('#reSend').addEventListener('click',async()=>{
-  const p=RE.filter(x=>x.k&&!x.sent);
+  const p=RE.filter(x=>x.k&&!avisada(x));
   if(!p.length){toast('No hay remesas por informar');return}
   const txt='Remesas recibidas en Corea\n\n'+p.map(x=>
     `${fd(x.fll||x.f)} — llegaron ${Math.round(x.k).toLocaleString('es-CL')} ₩`
@@ -1118,9 +1317,18 @@ $('#reSend').addEventListener('click',async()=>{
   try{ if(navigator.share){await navigator.share({text:txt,title:'Remesas AMK'});}
        else { await navigator.clipboard.writeText(txt); toast('Copiado'); } }
   catch(e){ if(e&&e.name==='AbortError')return; try{await navigator.clipboard.writeText(txt);toast('Copiado')}catch(_){} }
-  RE.forEach(x=>x.sent=true);
-  try{await window.storage.set('amkc_remesas',JSON.stringify(RE))}catch(_){}
+  p.forEach(x=>x.sent=true);
+  await guardaRE();
   pintaRE();
+});
+/* Filtros rápidos de la lista y caja de demanda plegable. */
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-f]'); if(!f) return;
+  flt=f.dataset.f; draw();
+});
+$('#dmToggle').addEventListener('click',()=>{
+  const b=$('#dmToggle'), abre=b.getAttribute('aria-expanded')!=='true';
+  alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#demandaBody').hidden=!abre; });
 });
 fbInit();
 boot();
