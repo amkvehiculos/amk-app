@@ -1288,7 +1288,7 @@ async function loadPhotos(c){try{const r=await window.storage.get(PK(c));return 
 async function savePhotos(c,a){try{a.length?await window.storage.set(PK(c),JSON.stringify(a)):await window.storage.delete(PK(c));return true}catch(e){toast('No se pudieron guardar');return false}}
 
 /* --- subir fotos a la web pública (colección fotosVend, con prioridad: Andre > Víctor > Bryan > Corea) --- */
-const WEBW=640, WEBQ=.58, WEBMAXN=6, WEBCAP=850000;
+const WEBW=640, WEBQ=.58, WEBMAXN=20, WEBCAP=850000;
 function shrinkDataURI(d,w,q){return new Promise(res=>{const im=new Image();
  im.onload=()=>{const sc=Math.min(1,w/Math.max(im.width||1,im.height||1));
   const cv=document.createElement('canvas');cv.width=Math.round((im.width||w)*sc);cv.height=Math.round((im.height||w)*sc);
