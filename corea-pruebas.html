@@ -166,6 +166,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="demandaBody" hidden style="margin-top:11px">
         <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
         <div id="demandaList" class="dmlist"></div></div></div>
+    <div class="box" id="boxCont">
+      <button class="dmhead" id="ctToggle" aria-expanded="false" aria-controls="contBody">
+        <span><b>Contenedores</b><span class="dmcount" id="ctCount">—</span></span><i aria-hidden="true">▾</i></button>
+      <div id="contBody" hidden style="margin-top:11px">
+        <p>Agrupación simulada, para ir viendo cómo se va llenando cada contenedor. Se arma a mano: anota el contenedor de cada vehículo al cargarlo o editarlo.</p>
+        <div id="contList" class="dmlist"></div></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
     <div class="opt" id="fltRow"></div>
@@ -244,8 +250,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   </div>
   <div id="stB" hidden>
   <div class="fld"><label for="fPr">Proveedor</label>
-    <input id="fPr" list="dlPr" autocomplete="off" placeholder="Ej: Sr. Chan">
+    <input id="fPr" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan">
     <datalist id="dlPr"></datalist></div>
+  <div class="fld"><label for="fCont">Contenedor</label>
+    <input id="fCont" list="dlCont" autocapitalize="characters" autocomplete="off" placeholder="Ej: Contenedor 1 (sin asignar si lo dejas vacío)">
+    <datalist id="dlCont"></datalist></div>
   <div class="two">
     <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" placeholder="₩0"></div>
     <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
@@ -371,13 +380,13 @@ window.storage = (function(){
   return {get, set, delete: del};
 })();
 
-const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["Blanco","Negro","Gris","Plateado","Azul","Rojo","Beige","Verde","Naranja","Amarillo","Dorado","Burdeo","Marrón"],"tracc":["4X2","4X4"],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
+const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["BLANCO","NEGRO","GRIS","PLATEADO","AZUL","ROJO","BEIGE","VERDE","NARANJA","AMARILLO","DORADO","BURDEO","MARRÓN"],"tracc":["4X2","4X4"],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
 const KEY='amkc_vehiculos', PK=c=>'amkc_fotos_'+c;
 const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=12,CAP=4.2e6;
 const RX=/^[A-Z]{2}\d{6}$/;
 let sinCh=false, warnOnce=false;
 const CC=[['BAT','Batería'],['ASI','Asiento'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
-let L=[], RE=[], PROV=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:''};
+let L=[], RE=[], PROV=[], CONT=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:''};
 let phCh=null, phArr=[];
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
@@ -389,6 +398,7 @@ const iso=(d)=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const fd=s=>s?s.split('-').reverse().join('/'):'';
 function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join('')}
+function dlCont(){const d=$('#dlCont'); if(d) d.innerHTML=CONT.map(c=>`<option value="${c}">`).join('')}
 function sumCC(){let t=0;for(const[k]of CC)t+=pnum($('#c'+k).value)||0;
  $('#cTot').textContent=t?('Total en Corea: '+krw(t)):''; return t}
 /* El aviso dura según lo largo del mensaje (los de error largos no alcanzaban a leerse en 1,8 s) y un aviso nuevo
@@ -403,9 +413,12 @@ function horaKR(){try{return new Intl.DateTimeFormat('es-CL',{timeZone:'Asia/Seo
 async function boot(){
   try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
   try{const r=await window.storage.get('amkc_prov');if(r&&r.value)PROV=JSON.parse(r.value)}catch(e){console.error('boot PROV',e); PROV=[]}
+  PROV=[...new Map(PROV.map(p=>[String(p).trim().toUpperCase(),String(p).trim().toUpperCase()])).keys()].filter(Boolean).sort();
+  try{const r=await window.storage.get('amkc_cont');if(r&&r.value)CONT=JSON.parse(r.value)}catch(e){console.error('boot CONT',e); CONT=[]}
+  CONT=[...new Map(CONT.map(c=>[String(c).trim().toUpperCase(),String(c).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_extra');if(r&&r.value)EXTRA=Object.assign(EXTRA,JSON.parse(r.value))}catch(e){console.error('boot EXTRA',e)}
   try{const r=await window.storage.get('amkc_remesas');if(r&&r.value)RE=JSON.parse(r.value)}catch(e){console.error('boot RE',e)}
-  dlProv(); await cargaDemandaLocal();
+  dlProv(); dlCont(); await cargaDemandaLocal();
   $('#boot').remove();show(tab);opts();draw();pintaRE();
   pintaHK();
 }
@@ -663,6 +676,21 @@ function fbDemandaListen(){
     pintaDemanda();
   }, e=>console.error('fbDemandaListen',e));
 }
+function pintaContenedores(){
+  const el=document.getElementById('contList'); if(!el) return;
+  const base=L.filter(v=>!v.soloReferencia);
+  const grupos={};
+  let sinAsignar=0;
+  base.forEach(v=>{ const c=(v.cont||'').trim(); if(c){ grupos[c]=(grupos[c]||0)+1; } else { sinAsignar++; } });
+  const nombres=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'es'));
+  const cnt=document.getElementById('ctCount');
+  if(cnt) cnt.textContent=nombres.length?nombres.length+' contenedor'+(nombres.length===1?'':'es'):'Sin contenedores todavía';
+  const filas=nombres.map(n=>`<div class="xrow"><span style="font-family:var(--body)"><b>${n.replace(/</g,'&lt;')}</b></span>
+    <span style="color:var(--mute);font-size:13px">${grupos[n]} vehículo${grupos[n]===1?'':'s'}</span></div>`).join('');
+  const filaSin=`<div class="xrow"><span style="font-family:var(--body);color:var(--mute)">Sin contenedor asignado</span>
+    <span style="color:var(--mute);font-size:13px">${sinAsignar} vehículo${sinAsignar===1?'':'s'}</span></div>`;
+  el.innerHTML=(nombres.length?filas:'<p style="color:var(--mute);font-size:13.5px;margin:0">Todavía no se ha asignado ningún contenedor.</p>')+(base.length?filaSin:'');
+}
 function pintaDemanda(){
   const el=document.getElementById('demandaList'); if(!el) return;
   const activas=DEMANDA.filter(d=>!d.atendido);
@@ -744,7 +772,7 @@ $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 /* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
 let snap0='', step='A';
 function formSnap(){
-  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value]); }
+  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value,$('#fCont').value]); }
   catch(e){ return ''; }
 }
 function setStep(s){
@@ -810,7 +838,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b
 function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N'};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
-  ['fCh','fAn','fKm','fPa','fKrw','fNo','fPr'].forEach(i=>$('#'+i).value='');
+  ['fCh','fAn','fKm','fPa','fKrw','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts();
@@ -873,13 +901,17 @@ $('#fmOk').addEventListener('click',async()=>{
   }
   const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){irA();toast('Revisa el año');return}
   const cc={}; for(const[k]of CC){const n=pnum($('#c'+k).value); if(n) cc[k]=n}
-  const prov=$('#fPr').value.trim();
+  const prov=$('#fPr').value.trim().toUpperCase();
   if(prov&&!PROV.includes(prov)){PROV.push(prov);PROV.sort();
     try{await window.storage.set('amkc_prov',JSON.stringify(PROV))}catch(_){}
     dlProv();}
+  const cont=$('#fCont').value.trim().toUpperCase();
+  if(cont&&!CONT.includes(cont)){CONT.push(cont);CONT.sort();
+    try{await window.storage.set('amkc_cont',JSON.stringify(CONT))}catch(_){}
+    dlCont();}
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
-    krw:pnum($('#fKrw').value)||null,fe:$('#fFe').value||iso(),prov,cc,
+    krw:pnum($('#fKrw').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
      llegó de Sistema, estado en la nube...). Antes se armaba un objeto nuevo y se perdía el ✓ de la vista 360°. */
@@ -904,6 +936,7 @@ function pintaFiltros(base){
 }
 function draw(){
   pintaHK();
+  pintaContenedores();
   const base=L.filter(v=>!v.soloReferencia);
   pintaFiltros(base);
   const s=q.trim().toLowerCase();
@@ -1233,12 +1266,12 @@ document.addEventListener('click',async e=>{
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
  if(ed){const v=L.find(x=>x.ch===ed.dataset.edit);edit=v.ch;
-  sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:v.ce,tr:v.tr,ca:v.ca};
+  sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:String(v.ce||'').toUpperCase(),tr:v.tr,ca:v.ca};
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fPa').value=v.pa||'';$('#fKrw').value=v.krw||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
-  $('#fPr').value=v.prov||''; CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
+  $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
  if(dl){const c=dl.dataset.del;
   if(!confirm('¿Eliminar este vehículo y sus fotos?'))return;
@@ -1329,6 +1362,10 @@ document.addEventListener('click',e=>{
 $('#dmToggle').addEventListener('click',()=>{
   const b=$('#dmToggle'), abre=b.getAttribute('aria-expanded')!=='true';
   alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#demandaBody').hidden=!abre; });
+});
+$('#ctToggle').addEventListener('click',()=>{
+  const b=$('#ctToggle'), abre=b.getAttribute('aria-expanded')!=='true';
+  alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#contBody').hidden=!abre; });
 });
 fbInit();
 boot();
