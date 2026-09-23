@@ -563,7 +563,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:52 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 16:39 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1381,10 +1381,12 @@ function fbPubData(v){
 }
 function fbPrivData(v){
   const t=S[v.ch]||{};
-  const o={}; FB_PRIV_FIELDS.forEach(k=>o[k]=v[k]!==undefined?v[k]:null);
+  /* Estos SOLO se mandan si este aparato realmente los tiene cargados. Antes se mandaba
+     null cuando faltaban (por ejemplo, justo al abrir la app, antes de terminar de bajar
+     los costos de la nube) y, con escritura merge, ese null pisaba el costo real en la
+     nube -- de ahí podían aparecer costos en $0 sin que nadie los borrara a propósito. */
+  const o={}; FB_PRIV_FIELDS.forEach(k=>{ if(v[k]!==undefined && v[k]!==null) o[k]=v[k]; });
   o.costs=t.costs||[];
-  /* Estos SOLO se mandan si existen acá. Como la escritura es con merge, así un
-     aparato que nunca los tuvo no le borra estos datos a otro que sí los tiene. */
   FB_PRIV_S_FIELDS.forEach(k=>{ if(t[k]!==undefined) o[k]=t[k]; });
   return o;
 }
@@ -1586,7 +1588,7 @@ function fbApplyRemote(ch, pub, priv){
   const esNuevoAqui=!v;
   if(!v){ v={ch}; V.push(v); IDX[ch]=v; }
   if(pub) FB_PUB_FIELDS.forEach(k=>{ if(pub[k]!==undefined) v[k]=pub[k]; });
-  if(priv) FB_PRIV_FIELDS.forEach(k=>{ if(priv[k]!==undefined) v[k]=priv[k]; });
+  if(priv) FB_PRIV_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) v[k]=priv[k]; });
   // Si llega de la nube sin fecha (la app de origen no la trae), se usa el día en que
   // este aparato lo vio por primera vez — así también se puede ordenar por fecha en Stock.
   if(esNuevoAqui && !v.fe) v.fe=iso();
@@ -7378,7 +7380,8 @@ function pintaEmBlPreview(){
         ${camposNuevo}
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fld"><label>Compra en Corea (₩)</label><input data-eblf="${i}|valor" inputmode="numeric" value="${x.valor?Math.round(x.valor).toLocaleString('es-CL'):''}"></div>
-          <div class="fld"><label>Contenedor</label><input data-eblf="${i}|cn" inputmode="numeric" value="${x.cn||1}"></div>
+          <div class="fld"><label>Contenedor</label><input data-eblf="${i}|cn" inputmode="numeric" value="${x.cn||1}">
+            ${x.cod?`<div style="font-size:11px;color:var(--mute);margin-top:4px">Código real: ${esc(x.cod)}</div>`:''}</div>
         </div>
         <div class="fld"><label>% del contenedor (volumen)</label><input data-eblf="${i}|pv" inputmode="decimal" value="${x.pv||''}"></div>
         <button class="b-und" data-ebldel="${i}">✕ Quitar de la lista</button>
