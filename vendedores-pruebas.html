@@ -883,7 +883,7 @@ function fbAplica(ch, d){
   const i = V.findIndex(x=>x.ch===ch);
   /* Vendido, o marcado como borrado en la nube (borrado blando desde el historial
      de Sistema): en ambos casos se quita del catalogo y no se vuelve a agregar. */
-  if(d.sold || d.borrado===true){ if(i>=0) V.splice(i,1); return; }
+  if(d.sold || d.borrado===true || d.baja===true){ if(i>=0) V.splice(i,1); return; }
   let v = i>=0 ? V[i] : null;
   if(!v){ v={ch:ch}; V.push(v); }
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
