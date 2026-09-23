@@ -379,7 +379,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
     </div>
     <div class="box" id="boxAdel" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Adelantos</h3>
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Adelantos de sueldo</h3>
         <button class="b-und" style="flex:0 0 auto" id="adAdd">＋ Anotar</button></div>
       <div id="adList"></div>
     </div>
@@ -415,6 +415,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div id="ngEmbarque" hidden>
       <div class="box"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Embarque</h3><span id="emSaveStatus" style="font-size:12px;color:var(--mute)"></span></div>
         <p>Reparte los costos del contenedor entre los vehículos y calcula el FOB Zeta.</p>
+        <div style="margin:0 0 14px;padding:12px;border:1px dashed var(--line);border-radius:10px">
+          <h3 style="margin:0 0 6px;font-size:14px">Cargar desde el BL</h3>
+          <div class="mtr" style="margin:0 0 8px">Pega aquí el código que te genera Claude a partir del BL (N° de BL + chasis y contenedor de cada vehículo). Si el chasis no existe en Stock, se crea automáticamente. Nada se guarda hasta que revises y toques "Confirmar y guardar".</div>
+          <textarea id="emBlTxt" placeholder="AMK-BL [...]" style="width:100%;min-height:70px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;background:var(--paper);color:var(--ink);font-family:monospace"></textarea>
+          <button class="btn b-sec" id="emBlBtn" style="width:100%;margin-top:8px">Cargar del BL</button>
+          <div id="emBlPreviewBox" hidden style="margin-top:12px"></div>
+        </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
           <div><div class="mtr" style="margin:0 0 4px">Número de BL</div>
             <input id="emNom" placeholder="Ej: MSCUXXXXXXX" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
@@ -487,13 +494,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emVadd" style="width:100%">Agregar vehículo a BL</button>
         <div id="emLista2" style="margin-top:12px"></div>
 
-        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)">
-          <h3 style="margin:0 0 6px;font-size:14px">Cargar vehículos desde el BL</h3>
-          <div class="mtr" style="margin:0 0 8px">Pega aquí el código que te genera Claude a partir del BL (chasis + contenedor de cada vehículo). Si el chasis no existe en Stock, se crea automáticamente.</div>
-          <textarea id="emBlTxt" placeholder="AMK-BL [...]" style="width:100%;min-height:70px;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;background:var(--paper);color:var(--ink);font-family:monospace"></textarea>
-          <button class="btn b-sec" id="emBlBtn" style="width:100%;margin-top:8px">Cargar del BL</button>
-          <div id="emBlPreviewBox" hidden style="margin-top:12px"></div>
-        </div>
       </div>
 
       <div class="box" id="boxGastosCorea" hidden><h3>Gastos generales de Corea</h3>
@@ -562,7 +562,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->22-09-2026 21:59<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:09<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1154,7 +1154,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 </div>
 
 <div class="sheet" id="shAdel">
-  <h3>Anotar adelanto</h3><div class="sb" id="adC">Se descuenta del sueldo del mes</div>
+  <h3>Anotar adelanto de sueldo</h3><div class="sb" id="adC">Se descuenta del sueldo del mes</div>
   <div class="fld"><label>¿A quién?</label><div class="catg" id="adQuien"></div></div>
   <div class="fld"><label for="adM">Monto</label><input id="adM" inputmode="numeric" placeholder="$0"></div>
   <div class="fld"><label for="adD">Fecha</label><input id="adD" type="date"></div>
@@ -4660,7 +4660,7 @@ function pendientesGlobales(){
   const pendVenta=AVISOSVEND.filter(x=>x.tipo==='venta'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendVenta.length) p.push({texto:pendVenta.length+' venta'+(pendVenta.length===1?'':'s')+' avisada'+(pendVenta.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoVenta(pendVenta[0])});
   const pendAdel=AVISOSVEND.filter(x=>x.tipo==='adelanto'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
-  if(pendAdel.length) p.push({texto:pendAdel.length+' adelanto'+(pendAdel.length===1?'':'s')+' avisado'+(pendAdel.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoAdelanto(pendAdel[0])});
+  if(pendAdel.length) p.push({texto:pendAdel.length+' adelanto'+(pendAdel.length===1?'':'s')+' de sueldo avisado'+(pendAdel.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoAdelanto(pendAdel[0])});
   const pendVeh=AVISOSVEND.filter(x=>x.tipo==='pendiente'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
   const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
@@ -7314,17 +7314,22 @@ $('#emVNAdd').addEventListener('click',async()=>{
   toast(ma+' '+mo+' creado · completa Compra/Costos y toca "Agregar vehículo a BL" para sumarlo al embarque');
 });
 let emBlPreview=null;
+let emBlNum=null;
 $('#emBlBtn').addEventListener('click',()=>{
   let t=$('#emBlTxt').value.trim();
   if(!t){toast('Pega el código primero');return}
-  const i=t.indexOf('['); if(i>=0) t=t.slice(i);
+  const iA=t.indexOf('['), iO=t.indexOf('{');
+  const i=(iA<0)?iO:(iO<0?iA:Math.min(iA,iO));
+  if(i>=0) t=t.slice(i);
   let d; try{d=JSON.parse(t)}catch(e){toast('El código no es válido');return}
-  if(!Array.isArray(d)||!d.length){toast('El código no trae vehículos');return}
+  const vehArr=Array.isArray(d)?d:(Array.isArray(d&&d.veh)?d.veh:(Array.isArray(d&&d.vehiculos)?d.vehiculos:null));
+  if(!vehArr||!vehArr.length){toast('El código no trae vehículos');return}
   const e=E(); if(!e){toast('Primero crea o abre un embarque');return}
   const have=new Set(V.map(v=>v.ch));
   const vistos=new Set();
   emBlPreview=[];
-  for(const x of d){
+  emBlNum=(!Array.isArray(d)&&d.bl)?String(d.bl):(e.nom||'');
+  for(const x of vehArr){
     if(!x.ch || vistos.has(x.ch)) continue;
     vistos.add(x.ch);
     emBlPreview.push({
@@ -7332,10 +7337,10 @@ $('#emBlBtn').addEventListener('click',()=>{
       ma:x.ma||'', mo:x.mo||'', an:x.an||null, ce:x.ce||'', cat:x.cat||'', tr:x.tr||'',
       pa:x.pa||null, ca:x.ca||'S/N', prov:x.prov||'', km:x.km||null, krw:x.krw||null,
       fe:x.fe||'', nota:x.nota||'', cc:x.cc||{},
-      valor:pnum(x.valor)||0, cn:pnum(x.cn)||1, pv:pnum(x.pv)||0,
+      valor:pnum(x.valor)||0, cn:pnum(x.cn)||null, pv:pnum(x.pv)||0,
     });
   }
-  if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;return}
+  if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;emBlNum=null;return}
   pintaEmBlPreview();
 });
 function pintaEmBlPreview(){
@@ -7343,7 +7348,9 @@ function pintaEmBlPreview(){
   if(!emBlPreview||!emBlPreview.length){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
   const esc=s=>String(s==null?'':s).replace(/"/g,'&quot;');
+  const escN=s=>String(s==null?'':s).replace(/"/g,'&quot;');
   box.innerHTML='<div class="mtr" style="margin:0 0 10px">Revisa y completa antes de guardar — '+emBlPreview.length+' vehículo(s) leído(s) del BL. Nada se guarda todavía.</div>'
+    +'<div class="fld" style="margin-bottom:12px"><label>Número de BL</label><input id="emBlNumInp" value="'+escN(emBlNum||'')+'" placeholder="Ej: MSCUXXXXXXX"></div>'
     +emBlPreview.map((x,i)=>{
       const camposNuevo=x.nuevo?`
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -7377,6 +7384,7 @@ function pintaEmBlPreview(){
     +'<div class="acts"><button class="btn b-sec" id="emBlCancelar" type="button">Cancelar</button><button class="btn b-pri" id="emBlConfirmar" type="button">Confirmar y guardar</button></div>';
 }
 document.addEventListener('input',e=>{
+  if(e.target.id==='emBlNumInp'){ emBlNum=e.target.value; return }
   const f=e.target.closest('[data-eblf]'); if(!f||!emBlPreview) return;
   const [iStr,field]=f.dataset.eblf.split('|'); const i=+iStr;
   if(!emBlPreview[i]) return;
@@ -7387,7 +7395,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('click',async e=>{
   const del=e.target.closest('[data-ebldel]');
   if(del&&emBlPreview){ emBlPreview.splice(+del.dataset.ebldel,1); pintaEmBlPreview(); return }
-  if(e.target.id==='emBlCancelar'){ emBlPreview=null; pintaEmBlPreview(); toast('Carga del BL cancelada'); return }
+  if(e.target.id==='emBlCancelar'){ emBlPreview=null; emBlNum=null; pintaEmBlPreview(); toast('Carga del BL cancelada'); return }
   if(e.target.id==='emBlConfirmar'){
     const e=E(); if(!e||!emBlPreview||!emBlPreview.length){toast('Nada que guardar');return}
     const have=new Set(V.map(v=>v.ch));
@@ -7402,20 +7410,20 @@ document.addEventListener('click',async e=>{
           fe:x.fe||iso(),nota:x.nota||'',prov:x.prov||'',cc:x.cc||{}};
         nuevos.push(nv); have.add(ch);
       }
-      const cn=pnum(x.cn)||1;
       const pv=pnum(x.pv)||0;
       const valor=pnum(x.valor)||0;
       const idxV=e.veh.findIndex(v=>v.ch===ch);
-      if(idxV>=0){ e.veh[idxV].cn=cn; if(pv) e.veh[idxV].pv=pv; if(valor) e.veh[idxV].valor=valor; actualizados++ }
-      else { e.veh.push({ch,valor,cif:0,cn,pv}); agregados++ }
+      if(idxV>=0){ if(x.cn) e.veh[idxV].cn=x.cn; if(pv) e.veh[idxV].pv=pv; if(valor) e.veh[idxV].valor=valor; actualizados++ }
+      else { e.veh.push({ch,valor,cif:0,cn:x.cn||1,pv}); agregados++ }
     }
     if(nuevos.length){
       let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
       try{await window.storage.set(EXK,JSON.stringify(prev.concat(nuevos)))}catch(err){toast('No se pudo guardar en Stock');return}
       V=V.concat(nuevos); nuevos.forEach(v=>IDX[v.ch]=v);
     }
+    if(emBlNum && emBlNum.trim()) e.nom = emBlNum.trim();
     await guardaEmb(); pintaEmb(); draw(); drawPick();
-    $('#emBlTxt').value=''; emBlPreview=null; pintaEmBlPreview();
+    $('#emBlTxt').value=''; emBlPreview=null; emBlNum=null; pintaEmBlPreview();
     toast((agregados+actualizados)+' vehículo(s) en el embarque'+(nuevos.length?', '+nuevos.length+' nuevo(s) en Stock':''));
     return;
   }

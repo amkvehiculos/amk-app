@@ -317,12 +317,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="box"><h3>Mi sueldo</h3>
       <p>Esta quincena y la anterior, con los descuentos y comisiones ya aplicados. Se actualiza solo, cuando Andre hace cambios en Sistema.</p>
       <div id="miSueldoList"></div></div>
-    <div class="box"><h3>Adelantos</h3>
+    <div class="box"><h3>Adelantos de sueldo</h3>
       <p>Deja constancia de lo que recibiste. Se envía al administrador.</p>
       <div class="fld"><label for="avM">Monto recibido</label><input id="avM" inputmode="numeric" placeholder="$0"></div>
       <div class="fld"><label for="avD">Fecha</label><input id="avD" type="date"></div>
       <div class="fld"><label for="avN">Nota (opcional)</label><input id="avN" placeholder="Ej: para la micro"></div>
-      <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto</button>
+      <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto de sueldo</button>
       <div id="avList" style="margin-top:12px"></div></div>
     <div class="box"><h3>Ventas avisadas</h3>
       <p>Lo que reportaste con "Avisar venta" en cada vehículo. Se marca cuando Andre ya lo revisó en Sistema.</p>
@@ -1150,7 +1150,7 @@ async function reconecta(manual){
   await reintenta(manual);
   if(manual) toast(estadoSync().t);
 }
-const LBL={venta:['venta','ventas'],adelanto:['adelanto','adelantos'],pendiente:['pendiente reportado','pendientes reportados'],insumo:['insumo','insumos'],
+const LBL={venta:['venta','ventas'],adelanto:['adelanto de sueldo','adelantos de sueldo'],pendiente:['pendiente reportado','pendientes reportados'],insumo:['insumo','insumos'],
   demanda:['pedido de cliente','pedidos de clientes'],aviso:['aviso','avisos'],v360:['vista 360°','vistas 360°']};
 function resumenCola(){
   const m={}; OUT.forEach(x=>{ const k=LBL[x.lbl]?x.lbl:'aviso'; m[k]=(m[k]||0)+1; });
@@ -1727,7 +1727,7 @@ function pintaAV(){
     ?'<div class="mtr" style="margin-bottom:7px">Este mes: '+clp(tot)+'</div>'
       +L.slice().reverse().slice(0,8).map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
         <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}${x.quien?'':' · sin identificar'}${(!x.atendido&&enCola('adel',x.ts))?' · <b style="color:var(--amber)">⚠ sin enviar</b>':''}</span><span>${x.atendido?'✓ visto':clp(x.m)}</span></div>`).join('')
-    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos anotados.</p>';
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos de sueldo anotados.</p>';
 }
 function pintaVT(){
   const el=$('#vtList'); if(!el) return;
@@ -1746,7 +1746,7 @@ $('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.val
 $('#avOk').addEventListener('click',async()=>{
   const m=pnum($('#avM').value)||0;
   if(!m){toast('Ingresa el monto');return}
-  if(pideQuien('avisar un adelanto')) return;
+  if(pideQuien('avisar un adelanto de sueldo')) return;
   if(rebote()) return;
   const f=$('#avD').value||iso(), nota=$('#avN').value.trim();
   const ts=Date.now();
