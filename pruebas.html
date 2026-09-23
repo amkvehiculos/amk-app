@@ -563,7 +563,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:09 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:37 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -7338,7 +7338,7 @@ $('#emBlBtn').addEventListener('click',()=>{
       ma:x.ma||'', mo:x.mo||'', an:x.an||null, ce:x.ce||'', cat:x.cat||'', tr:x.tr||'',
       pa:x.pa||null, ca:x.ca||'S/N', prov:x.prov||'', km:x.km||null, krw:x.krw||null,
       fe:x.fe||'', nota:x.nota||'', cc:x.cc||{},
-      valor:pnum(x.valor)||0, cn:pnum(x.cn)||null, pv:pnum(x.pv)||0,
+      valor:pnum(x.valor)||0, cn:pnum(x.cn)||null, pv:pnum(x.pv)||0, cod:(x.cod||'').toUpperCase(),
     });
   }
   if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;emBlNum=null;return}
@@ -7416,6 +7416,11 @@ document.addEventListener('click',async e=>{
       const idxV=e.veh.findIndex(v=>v.ch===ch);
       if(idxV>=0){ if(x.cn) e.veh[idxV].cn=x.cn; if(pv) e.veh[idxV].pv=pv; if(valor) e.veh[idxV].valor=valor; actualizados++ }
       else { e.veh.push({ch,valor,cif:0,cn:x.cn||1,pv}); agregados++ }
+      if(x.cn && x.cod){ e.contCod=e.contCod||{}; if(!e.contCod[x.cn]) e.contCod[x.cn]=x.cod }
+    }
+    if(!e.cont){
+      const maxCn=Math.max(0,...emBlPreview.map(x=>pnum(x.cn)||0));
+      if(maxCn) e.cont=maxCn;
     }
     if(nuevos.length){
       let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
