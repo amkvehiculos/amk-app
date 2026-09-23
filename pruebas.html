@@ -570,7 +570,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 21:03 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 21:36 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -700,6 +700,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts">
         <button class="btn b-sec" id="rellPventaBtn" style="width:100%">⚙ Rellenar precio de venta de prueba (+$300.000)</button></div>
       <div id="rellPventaEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Calcular equivalente en dólares en vehículos existentes</h3>
+      <p>Calcula (con el dólar de mercado actual) el equivalente en dólares del precio de venta y del valor mínimo en los vehículos que ya tienen un precio cargado pero todavía no tienen ese equivalente -- por ejemplo, los que se cargaron antes de que existiera esta función. No toca el precio en pesos, y no hace falta repetirlo salvo que aparezcan más vehículos viejos sin este dato.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="migUSDBtn" style="width:100%">⚙ Calcular equivalente en dólares en vehículos existentes</button></div>
+      <div id="migUSDEstado" class="mtr" style="margin-top:9px"></div>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -2290,6 +2296,25 @@ async function costoCorrige(archivo){
 /* Copia, una sola vez, v.vev ("Estimado", cargado en su momento desde el Excel) al
    Valor mínimo (S[ch].pmin) de cada vehículo que todavía no tenga uno cargado.
    No borra v.vev ni toca el precio de venta -- solo llena pmin donde falta. */
+function migraUSDPrecios(){
+  const el=document.getElementById('migUSDEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  const candidatos=V.filter(v=>{ const t=st(v.ch); return (t.pventa&&!t.pventaUSD)||(t.pmin&&!t.pminUSD); });
+  if(!candidatos.length){ pinta('Nada que calcular: todos los precios cargados ya tienen su equivalente en dólares.','var(--green)'); return; }
+  const muestra=candidatos.slice(0,5).map(v=>v.ch).join(', ');
+  if(!confirm('Se va a calcular el equivalente en dólares (con el dólar de mercado de hoy) del precio de venta y/o valor mínimo en '+candidatos.length+' vehículo(s):\n\n'
+    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
+    +'\n\nNo se toca el precio en pesos.\n\n¿Calcular?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  for(const v of candidatos){
+    const t=st(v.ch);
+    if(t.pventa && !t.pventaUSD) t.pventaUSD=calcPventaUSD(t.pventa);
+    if(t.pmin && !t.pminUSD) t.pminUSD=calcPventaUSD(t.pmin);
+  }
+  save(); draw();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  pinta('✓ Calculado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
+  toast('Equivalente en dólares calculado');
+}
 function migraEstimadoAMinimo(){
   const el=document.getElementById('migEstEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
@@ -2495,6 +2520,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(ccxf) ccxf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) costoCorrige(f); e.target.value=''; });
   const me=document.getElementById('migEstBtn');
   if(me) me.addEventListener('click',migraEstimadoAMinimo);
+  const mu=document.getElementById('migUSDBtn');
+  if(mu) mu.addEventListener('click',migraUSDPrecios);
   const rp=document.getElementById('rellPventaBtn');
   if(rp) rp.addEventListener('click',rellenaPventaPrueba);
   const hv=document.getElementById('histVolver');
