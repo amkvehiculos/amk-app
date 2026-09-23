@@ -316,12 +316,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="box"><h3>Mi sueldo</h3>
       <p>Esta quincena y la anterior, con los descuentos y comisiones ya aplicados. Se actualiza solo, cuando Andre hace cambios en Sistema.</p>
       <div id="miSueldoList"></div></div>
-    <div class="box"><h3>Adelantos</h3>
+    <div class="box"><h3>Adelantos de sueldo</h3>
       <p>Deja constancia de lo que recibiste. Se envía al administrador.</p>
       <div class="fld"><label for="avM">Monto recibido</label><input id="avM" inputmode="numeric" placeholder="$0"></div>
       <div class="fld"><label for="avD">Fecha</label><input id="avD" type="date"></div>
       <div class="fld"><label for="avN">Nota (opcional)</label><input id="avN" placeholder="Ej: para la micro"></div>
-      <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto</button>
+      <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto de sueldo</button>
       <div id="avList" style="margin-top:12px"></div></div>
     <div class="box"><h3>Ventas avisadas</h3>
       <p>Lo que reportaste con "Avisar venta" en cada vehículo. Se marca cuando Andre ya lo revisó en Sistema.</p>
@@ -660,6 +660,11 @@ const INSUMO_PRESETS_DEF=[
  ['silicona','Silicona']
 ];
 let PEND_PRESETS=PEND_PRESETS_DEF.slice(), INSUMO_PRESETS=INSUMO_PRESETS_DEF.slice();
+/* Sistema manda presets/insumos como arreglos de objetos {k,n,c}/{k,n} (Firestore no admite
+   un arreglo de arreglos); acá se convierten de vuelta a [k,n,c]/[k,n], que es como los usa
+   el resto de esta app. */
+function presetsDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n,o.c]); }
+function insumosDeObjs(arr){ return (arr||[]).map(o=>Array.isArray(o)?o:[o.k,o.n]); }
 let fbConfigPendEscuchando=false, pdCh=null;
 function fbConfigPendListen(){
   if(fbConfigPendEscuchando||!fbReady) return;
@@ -667,8 +672,8 @@ function fbConfigPendListen(){
   fbDb.collection(CONFIGPEND_COL).doc('main').onSnapshot(d=>{
     if(d.exists){
       const x=d.data()||{};
-      PEND_PRESETS=(x.presets&&x.presets.length)?x.presets:PEND_PRESETS_DEF.slice();
-      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?x.insumos:INSUMO_PRESETS_DEF.slice();
+      PEND_PRESETS=(x.presets&&x.presets.length)?presetsDeObjs(x.presets):PEND_PRESETS_DEF.slice();
+      INSUMO_PRESETS=(x.insumos&&x.insumos.length)?insumosDeObjs(x.insumos):INSUMO_PRESETS_DEF.slice();
       try{window.storage.set('amkv_configpend', JSON.stringify({presets:PEND_PRESETS, insumos:INSUMO_PRESETS}))}catch(_){}
     }
   }, e=>console.error('fbConfigPendListen',e));
@@ -877,7 +882,7 @@ function fbAplica(ch, d){
   const i = V.findIndex(x=>x.ch===ch);
   /* Vendido, o marcado como borrado en la nube (borrado blando desde el historial
      de Sistema): en ambos casos se quita del catalogo y no se vuelve a agregar. */
-  if(d.sold || d.borrado===true){ if(i>=0) V.splice(i,1); return; }
+  if(d.sold || d.borrado===true || d.baja===true){ if(i>=0) V.splice(i,1); return; }
   let v = i>=0 ? V[i] : null;
   if(!v){ v={ch:ch}; V.push(v); }
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
@@ -885,6 +890,8 @@ function fbAplica(ch, d){
   v.oferta = !!d.of;
   if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin; else if(d.pmin===null) delete v.pmin;
   if(d.pventa!==undefined && d.pventa!==null) v.pventa=d.pventa; else if(d.pventa===null) delete v.pventa;
+  if(d.pventaUSD!==undefined && d.pventaUSD!==null) v.pventaUSD=d.pventaUSD; else if(d.pventaUSD===null) delete v.pventaUSD;
+  if(d.pminUSD!==undefined && d.pminUSD!==null) v.pminUSD=d.pminUSD; else if(d.pminUSD===null) delete v.pminUSD;
   if(d.of && d.pprice) v.vev=d.pprice;
   v.pendPub = Array.isArray(d.pendPub) ? d.pendPub : [];
 }
@@ -1144,7 +1151,7 @@ async function reconecta(manual){
   await reintenta(manual);
   if(manual) toast(estadoSync().t);
 }
-const LBL={venta:['venta','ventas'],adelanto:['adelanto','adelantos'],pendiente:['pendiente reportado','pendientes reportados'],insumo:['insumo','insumos'],
+const LBL={venta:['venta','ventas'],adelanto:['adelanto de sueldo','adelantos de sueldo'],pendiente:['pendiente reportado','pendientes reportados'],insumo:['insumo','insumos'],
   demanda:['pedido de cliente','pedidos de clientes'],aviso:['aviso','avisos'],v360:['vista 360°','vistas 360°']};
 function resumenCola(){
   const m={}; OUT.forEach(x=>{ const k=LBL[x.lbl]?x.lbl:'aviso'; m[k]=(m[k]||0)+1; });
@@ -1426,8 +1433,8 @@ function draw(){
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
-   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}</b></div>`:''}
-   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}</b></div>`:''}
+   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
    <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos${nf?' ('+nf+')':''}</button>
     <button class="btn b-sec" data-mi360="${v.ch}">📷 Mi 360°${sin360?' ⚠':(t.n360?' ✓':'')}</button></div>
@@ -1721,7 +1728,7 @@ function pintaAV(){
     ?'<div class="mtr" style="margin-bottom:7px">Este mes: '+clp(tot)+'</div>'
       +L.slice().reverse().slice(0,8).map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
         <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}${x.quien?'':' · sin identificar'}${(!x.atendido&&enCola('adel',x.ts))?' · <b style="color:var(--amber)">⚠ sin enviar</b>':''}</span><span>${x.atendido?'✓ visto':clp(x.m)}</span></div>`).join('')
-    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos anotados.</p>';
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos de sueldo anotados.</p>';
 }
 function pintaVT(){
   const el=$('#vtList'); if(!el) return;
@@ -1740,7 +1747,7 @@ $('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.val
 $('#avOk').addEventListener('click',async()=>{
   const m=pnum($('#avM').value)||0;
   if(!m){toast('Ingresa el monto');return}
-  if(pideQuien('avisar un adelanto')) return;
+  if(pideQuien('avisar un adelanto de sueldo')) return;
   if(rebote()) return;
   const f=$('#avD').value||iso(), nota=$('#avN').value.trim();
   const ts=Date.now();
