@@ -562,7 +562,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:37<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 15:52<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -7087,9 +7087,11 @@ function pintaEmb(){
         +lista.map(f=>{
           const v=IDX[f.ch]||{};
           const cnOpts=Array.from({length:contN},(_,k)=>k+1).map(n=>`<option value="${n}" ${n===cn?'selected':''}>Cont. ${n}</option>`).join('');
+          const contCodF=((e.contCod||{})[f.cn||cn])||'';
           return `<div class="card plain" style="padding:11px">
       <div class="r1"><div><div class="tt" style="font-size:14.5px">${v.ma||''} ${v.mo||''} ${v.an||''}</div>
-        <div class="ch">${f.ch}</div></div>
+        <div class="ch">${f.ch}</div>
+        <div style="font-size:11px;color:var(--mute);margin-top:2px">Cont. ${f.cn||cn}${contCodF?(' · '+contCodF):''}</div></div>
         <div style="display:flex;align-items:center;gap:6px">
           <input data-emvpvset="${f._i}" inputmode="decimal" value="${f.pv?f.pv:''}" placeholder="% vol" title="% del contenedor (volumen)" style="width:52px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-size:11.5px;text-align:right;background:var(--paper);color:var(--ink)">
           <select data-emvcnset="${f._i}" style="border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11.5px;background:var(--paper);color:var(--ink)">${cnOpts}</select>
