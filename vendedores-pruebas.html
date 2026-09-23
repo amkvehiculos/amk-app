@@ -891,6 +891,8 @@ function fbAplica(ch, d){
   v.oferta = !!d.of;
   if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin; else if(d.pmin===null) delete v.pmin;
   if(d.pventa!==undefined && d.pventa!==null) v.pventa=d.pventa; else if(d.pventa===null) delete v.pventa;
+  if(d.pventaUSD!==undefined && d.pventaUSD!==null) v.pventaUSD=d.pventaUSD; else if(d.pventaUSD===null) delete v.pventaUSD;
+  if(d.pminUSD!==undefined && d.pminUSD!==null) v.pminUSD=d.pminUSD; else if(d.pminUSD===null) delete v.pminUSD;
   if(d.of && d.pprice) v.vev=d.pprice;
   v.pendPub = Array.isArray(d.pendPub) ? d.pendPub : [];
 }
@@ -1432,8 +1434,8 @@ function draw(){
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
-   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}</b></div>`:''}
-   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}</b></div>`:''}
+   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
    <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos${nf?' ('+nf+')':''}</button>
     <button class="btn b-sec" data-mi360="${v.ch}">📷 Mi 360°${sin360?' ⚠':(t.n360?' ✓':'')}</button></div>

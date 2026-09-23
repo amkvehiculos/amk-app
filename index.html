@@ -205,6 +205,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <datalist id="dlNvTr"></datalist>
 <datalist id="dlNvCat"></datalist>
 <datalist id="dlNvCa"></datalist>
+<datalist id="dlNvProv"></datalist>
 
 <header><div class="wrap">
   <div class="hd"><svg viewBox="0 2 673 309" xmlns="http://www.w3.org/2000/svg" style="height:34px;width:auto;display:block" aria-label="AMK Vehículos Selectos"><path fill="#C8D2D4" d="M 115 9 L 6 227 L 49 227 L 114 90 L 180 226 L 224 226 Z M 267 9 L 267 226 L 303 198 L 304 84 L 376 140 L 450 84 L 452 199 L 488 226 L 487 8 L 377 93 Z M 621 8 L 534 115 L 620 226 L 667 227 L 581 115 L 667 9 Z"/><path fill="#9DACB2" fill-rule="evenodd" d="M 488 291 L 488 293 L 489 294 L 503 294 L 503 290 L 489 290 Z M 414 291 L 414 293 L 415 294 L 428 294 L 429 293 L 429 291 L 428 290 L 415 290 Z M 63 291 L 63 293 L 64 294 L 77 294 L 77 293 L 78 292 L 77 291 L 77 290 L 64 290 Z M 636 280 L 633 284 L 634 291 L 638 294 L 652 294 L 655 299 L 651 302 L 635 301 L 633 305 L 656 304 L 659 296 L 655 291 L 637 288 L 639 283 L 656 283 L 656 279 Z M 596 280 L 591 287 L 591 296 L 593 301 L 598 305 L 615 304 L 619 299 L 618 283 L 612 279 Z M 599 283 L 602 282 L 610 282 L 615 286 L 616 288 L 616 297 L 612 301 L 610 302 L 600 302 L 595 297 L 595 288 Z M 554 279 L 555 283 L 565 284 L 565 305 L 568 305 L 568 286 L 570 283 L 579 283 L 580 280 Z M 521 280 L 519 283 L 520 303 L 523 305 L 542 305 L 542 302 L 539 301 L 526 302 L 522 299 L 522 286 L 525 283 L 541 283 L 542 279 Z M 483 279 L 482 302 L 486 305 L 505 305 L 505 302 L 487 301 L 485 299 L 485 284 L 504 283 L 505 279 Z M 445 279 L 445 304 L 469 305 L 469 302 L 467 301 L 454 302 L 449 300 L 449 279 Z M 407 280 L 408 302 L 411 305 L 430 305 L 431 303 L 428 301 L 413 301 L 411 299 L 411 284 L 430 283 L 431 280 Z M 371 280 L 368 284 L 369 291 L 373 294 L 387 294 L 390 299 L 386 302 L 371 301 L 368 304 L 391 304 L 394 300 L 393 294 L 388 290 L 374 290 L 372 285 L 374 283 L 391 283 L 392 279 Z M 312 280 L 309 284 L 310 291 L 314 294 L 328 294 L 331 299 L 326 302 L 311 301 L 309 305 L 332 304 L 335 296 L 331 291 L 313 288 L 315 283 L 331 283 L 332 279 Z M 272 280 L 268 284 L 267 288 L 268 300 L 274 305 L 291 304 L 295 299 L 295 285 L 293 282 L 288 279 Z M 275 283 L 277 282 L 286 282 L 291 286 L 291 298 L 286 302 L 277 302 L 272 299 L 271 297 L 271 288 Z M 232 279 L 232 304 L 255 305 L 256 302 L 240 301 L 239 302 L 236 300 L 236 280 Z M 191 279 L 192 299 L 200 305 L 216 305 L 217 280 L 213 279 L 213 299 L 211 301 L 200 301 L 194 294 L 194 279 Z M 156 280 L 154 282 L 154 302 L 158 305 L 177 305 L 177 302 L 161 302 L 157 299 L 157 285 L 159 283 L 177 283 L 177 279 Z M 135 279 L 135 305 L 138 305 L 139 304 L 139 280 L 138 279 Z M 94 279 L 94 305 L 98 304 L 99 294 L 115 294 L 116 304 L 120 305 L 120 279 L 116 280 L 115 290 L 99 290 L 98 280 Z M 57 279 L 57 302 L 61 305 L 80 305 L 80 302 L 64 302 L 60 300 L 60 284 L 79 283 L 80 279 Z M 16 279 L 27 303 L 31 305 L 43 282 L 43 279 L 39 280 L 30 297 L 27 295 L 20 279 Z"/></svg><button id="syncChip" class="sync sy-off" type="button" aria-live="polite">○ Sin nube</button></div>
@@ -241,6 +242,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="chip" data-f="camino" aria-selected="false">En camino</button>
       <button class="chip" data-f="vend" aria-selected="false">Vendidos</button>
       <button class="chip" data-f="todos" aria-selected="false">Todos</button>
+      <button class="chip" data-f="arch" aria-selected="false">Archivados</button>
+    </div>
+    <div id="stDepBar" style="margin:8px 0 0;display:none;align-items:center;gap:8px;flex-wrap:wrap">
+      <span id="stDepCnt" style="font-size:12.5px;color:var(--mute)"></span>
+      <button class="btn b-pri" id="stDepGo" type="button" style="display:none">Archivar seleccionados</button>
+      <button class="btn b-sec" id="stDepCancel" type="button">Cancelar</button>
     </div>
     <div style="margin:8px 0 0"><label style="font-size:12.5px;color:var(--mute)">Orden
       <select id="stOrden" style="margin-left:6px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)">
@@ -562,7 +569,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 16:39<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->23-09-2026 20:54<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -587,10 +594,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
       <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
       <div class="fld"><label for="dcMarca">Marca</label>
-        <input id="dcMarca" list="dlDcMarca" autocomplete="off" placeholder="Ej: Hyundai (o escribe una nueva)">
+        <input id="dcMarca" list="dlDcMarca" autocapitalize="characters" autocomplete="off" placeholder="Ej: Hyundai (o escribe una nueva)">
         <datalist id="dlDcMarca"></datalist></div>
       <div class="fld"><label for="dcModelo">Modelo</label>
-        <input id="dcModelo" list="dlDcModelo" autocomplete="off" placeholder="Ej: Santa Fe (o escribe uno nuevo)">
+        <input id="dcModelo" list="dlDcModelo" autocapitalize="characters" autocomplete="off" placeholder="Ej: Santa Fe (o escribe uno nuevo)">
         <datalist id="dlDcModelo"></datalist></div>
       <div class="fld"><label for="dcAnioD">Año desde</label><input id="dcAnioD" inputmode="numeric" placeholder="Ej: 2014"></div>
       <div class="fld"><label for="dcAnioH">Año hasta (opcional)</label><input id="dcAnioH" inputmode="numeric" placeholder="Ej: 2015"></div>
@@ -676,6 +683,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="ccxBtn" style="width:100%">⚙ Restaurar costo desde el Excel</button></div>
       <input type="file" id="ccxFile" accept=".json,application/json" style="display:none">
       <div id="ccxEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Depurar vehículos</h3>
+      <p>Para cuando tengas vehículos subidos que ya no son parte de tu stock real -- no fue una venta, simplemente ya no los tienes. Se archivan, no se borran: los puedes ver y restaurar cuando quieras desde la pestaña "Archivados" del Stock. No es algo que necesites usar seguido.</p>
+      <div class="acts"><button class="btn b-sec" id="irDepurar" style="width:100%">🗄 Depurar vehículos</button></div>
     </div>
     <div class="box"><h3>Pasar "Estimado" a Valor mínimo</h3>
       <p>Copia, una sola vez, el "Estimado" del Excel a "Valor mínimo" en cada vehículo que todavía no tenga uno cargado. No borra el Estimado ni toca el precio de venta.</p>
@@ -1070,6 +1081,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="fld"><label for="evCaSel">Carrocería</label><select id="evCaSel"></select>
       <input id="evCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
   </div>
+  <div class="fld"><label for="evProvSel">Proveedor</label><select id="evProvSel"></select>
+    <input id="evProv" list="dlNvProv" autocapitalize="characters" placeholder="Escribe el proveedor" style="margin-top:6px" hidden></div>
   <div class="fld"><label>Otros</label><div class="catg" style="grid-template-columns:1fr 1fr">
     <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button>
     <button class="cg" type="button" id="evSv" aria-pressed="false">Sello verde</button></div></div>
@@ -1086,9 +1099,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="sug" id="spS"></div></div>
   <div class="fld"><label for="spVenta">Precio de venta · lo que deben pedir</label>
     <input id="spVenta" inputmode="numeric" placeholder="$0">
+    <div class="mtr" style="margin-top:5px">~ <b id="spVentaUSD">US$0</b> <span style="color:var(--mute)">(para cotizar a Paraguay, se calcula solo)</span></div>
     <div class="mtr" style="margin-top:5px">Lo ven Víctor y Bryan para cotizar y armar sus publicaciones (Marketplace, Instagram, etc). No es el precio de la web — para eso usa "Oferta" arriba.</div></div>
   <div class="fld"><label for="spMin">Precio mínimo · solo para tu equipo</label>
     <input id="spMin" inputmode="numeric" placeholder="$0">
+    <div class="mtr" style="margin-top:5px">~ <b id="spMinUSD">US$0</b></div>
     <div class="mtr" id="spMinT" style="margin-top:5px">Lo verán Víctor y Bryan en su app. Nunca aparece en la web.</div></div>
   <div class="sact fija"><button class="cx" data-close>Cancelar</button><button class="ok" id="spOk">Guardar</button></div>
 </div>
@@ -1326,6 +1341,7 @@ const colorDe=ce=>COL[ce]||COLU[String(ce||'').trim().toUpperCase()]||'#8A9296';
 let IDX=Object.fromEntries(V.map(v=>[v.ch,v]));
 let S={};                 // chasis -> {sold,price,date,pub,of,pprice,costs:[]}
 let tab='pStock', fS='patio', q='', qv='', tv={pub:0,of:0}, editing=null, scCat='OBLIG', per='hoy';
+let depurando=false, depSel=new Set();
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
@@ -1334,6 +1350,22 @@ const isoDe=d=>{const z=new Date(d);return z.getFullYear()+'-'+String(z.getMonth
 const iso=()=>isoDe(Date.now());
 const fd=s=>s?s.split('-').reverse().join('/'):'';
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
+/* Precio de venta equivalente en dólares, para cotizar a compradores de Paraguay -- NO es un
+   precio de la web, es un dato que ven Víctor y Bryan (y tú) en la app. Se calcula con el
+   Dólar mercado (TC.medio, el mismo que ya se actualiza solo) y se redondea hacia arriba a la
+   centena -- ej. si da 5.330, queda 5.400 -- para cotizar con un número redondo. */
+function calcPventaUSD(pesos){
+  const tc=(typeof TC!=='undefined'&&TC.medio)?TC.medio:0;
+  if(!pesos||!tc) return null;
+  return Math.ceil((pesos/tc)/100)*100;
+}
+/* "~ US$X" compacto para pegar después de un monto en pesos ya formateado (clp(...)). Usa el
+   dólar ya guardado (usdGuardado) si lo hay, y si no lo calcula al vuelo -- así sirve tanto
+   para lo que ya está guardado como para una vista previa en vivo. */
+function conUSD(pesos,usdGuardado){
+  const usd=usdGuardado||calcPventaUSD(pesos);
+  return usd?(' ~ US$'+usd.toLocaleString('es-CL')):'';
+}
 const st=c=>S[c]||(S[c]={sold:false,price:'',date:'',pub:false,of:false,pprice:'',costs:[],nf:0,cov:'',fuentePref:'',fuentePref360:''});
 const sold=c=>!!(S[c]&&S[c].sold);
 const xls=v=>Object.values(v.xc||{}).reduce((a,b)=>a+(b||0),0);      // costos ya en Excel
@@ -1361,7 +1393,7 @@ const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube() */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -2595,6 +2627,8 @@ $('#askOpts').addEventListener('click',e=>{const b=e.target.closest('[data-askop
 
 /* ---------- STOCK ---------- */
 function passS(v){
+  if(fS==='arch') return !!v.baja;
+  if(v.baja) return false;
   if(fS==='patio') return v.st==='IQQ'&&!sold(v.ch);
   if(fS==='camino')return v.st==='ORIGEN'&&!sold(v.ch);
   if(fS==='vend')  return sold(v.ch);
@@ -2640,8 +2674,8 @@ function cardS(v){
     filas.push(`Margen <b style="color:${marg>=0?'var(--green)':'var(--red)'}">${clp(marg)}</b>`);
   } else {
     if(v.vev && !s.pmin) filas.push(`Estimado <b>${clp(v.vev)}</b>`);
-    filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}</b>`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
-    filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}</b>`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
+    filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}${conUSD(s.pventa,s.pventaUSD)}</b>`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
+    filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}${conUSD(s.pmin,s.pminUSD)}</b>`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
   }
   if(deb)  filas.push(`Por pagar <b style="color:var(--amber)">${clp(deb)}</b>`);
   if(pest) filas.push(`Estimado taller <b>${clp(pest)}</b>`);
@@ -2666,16 +2700,20 @@ function cardS(v){
    <div class="bignum"><b>${clp(cost)}</b><span>costo total</span></div>
    ${filas.length?`<div class="money">${filas.map(f=>'<div>'+f+'</div>').join('')}</div>`:''}
    ${extra}
-   <div class="acts">${isS
-     ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-     : (v.st==='ORIGEN'
-       ? `<button class="btn b-pri" data-lleg="${v.ch}" style="flex:1 1 100%">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-       : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`)}
+   <div class="acts">${v.baja
+     ? `<button class="btn b-pri" data-restaura="${v.ch}" style="flex:1 1 100%">↩ Restaurar a Stock</button>`
+     : (depurando
+       ? `<label class="btn b-sec" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 100%"><input type="checkbox" class="depChk" data-arch="${v.ch}" ${depSel.has(v.ch)?'checked':''}> Marcar para archivar</label>`
+       : (isS
+         ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
+         : (v.st==='ORIGEN'
+           ? `<button class="btn b-pri" data-lleg="${v.ch}" style="flex:1 1 100%">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
+           : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`)))}
    </div>
    <div class="acts acts2 c${2+(nf?1:0)+(isS?0:1)>3?4:2+(nf?1:0)+(isS?0:1)}">
      <button class="btn b-sec" data-photo="${v.ch}">▣ Fotos${nf?' · '+nf:''}</button>
      ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
-     ${isS?'':`<button class="btn b-sec" data-pub="${v.ch}">＄ Precio web</button>`}
+     ${isS?'':`<button class="btn b-sec" data-pub="${v.ch}">＄ Precio</button>`}
      <button class="btn b-sec" data-edit="${v.ch}">✎ Editar</button>
    </div></div></div>`;
 }
@@ -2863,7 +2901,7 @@ function drawVit(){
   const s=qv.trim().toLowerCase();
   const toksV=s?s.split(/\s+/):[];
   const L=V.filter(v=>{
-    if(sold(v.ch))return false;
+    if(sold(v.ch)||v.baja)return false;
     const t=st(v.ch);
     if(tv.pub&&!t.pub)return false;
     if(tv.of&&!t.of)return false;
@@ -2871,8 +2909,8 @@ function drawVit(){
     const hay=(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase();
     return toksV.every(tk=>hay.includes(tk));
   });
-  const sinPrecioVenta=V.filter(v=>!sold(v.ch)&&!st(v.ch).pventa).length;
-  $('#cVit').textContent=L.length+' vehículos · '+V.filter(v=>!sold(v.ch)&&st(v.ch).pub).length+' publicados'+(sinPrecioVenta?' · '+sinPrecioVenta+' sin precio de venta':'');
+  const sinPrecioVenta=V.filter(v=>!sold(v.ch)&&!v.baja&&!st(v.ch).pventa).length;
+  $('#cVit').textContent=L.length+' vehículos · '+V.filter(v=>!sold(v.ch)&&!v.baja&&st(v.ch).pub).length+' publicados'+(sinPrecioVenta?' · '+sinPrecioVenta+' sin precio de venta':'');
   $('#lVit').innerHTML=L.length?L.map(v=>{const t=st(v.ch),c=colorDe(v.ce);
     const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
     const est2 = t.of?'var(--fAmbar)':(t.pub?'var(--fVerde)':'var(--fPlata)');
@@ -2882,8 +2920,8 @@ function drawVit(){
       <div class="ch">${v.ch}${t.nf?' · '+t.nf+' fotos':' · sin fotos'}</div></div></div><div style="display:flex;gap:5px">
       ${t.pub?'<span class="tag t-pub">En web</span>':''}${t.of?'<span class="tag t-of">Oferta</span>':''}</div></div>
      <div class="money"><div>Precio visible <b>${t.of&&t.pprice?clp(t.pprice):'Consultar'}</b></div>
-      ${t.pventa?`<div>Precio de venta <b>${clp(t.pventa)}</b></div>`:'<div style="color:var(--red)">⚠ Falta precio de venta</div>'}
-     ${t.pmin?`<div>Precio mínimo <b style="color:var(--amber)">${clp(t.pmin)}</b></div>`:'<div style="color:var(--red)">⚠ Falta valor mínimo</div>'}
+      ${t.pventa?`<div>Precio de venta <b>${clp(t.pventa)}${conUSD(t.pventa,t.pventaUSD)}</b></div>`:'<div style="color:var(--red)">⚠ Falta precio de venta</div>'}
+     ${t.pmin?`<div>Precio mínimo <b style="color:var(--amber)">${clp(t.pmin)}${conUSD(t.pmin,t.pminUSD)}</b></div>`:'<div style="color:var(--red)">⚠ Falta valor mínimo</div>'}
       ${v.sv?'<div>Sello verde <b style="color:var(--green)">Sí</b></div>':''}</div>
      <div class="acts"><button class="btn b-sec" data-pub="${v.ch}">Editar publicación</button>
       <button class="btn b-sec" data-photo="${v.ch}" style="flex:0 0 auto">▣ Fotos</button></div></div>`}).join('')
@@ -2891,9 +2929,9 @@ function drawVit(){
 }
 
 function draw(){
-  const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)).length;
-  const ven=V.filter(v=>sold(v.ch)).length;
-  const pub=V.filter(v=>!sold(v.ch)&&st(v.ch).pub).length;
+  const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)&&!v.baja).length;
+  const ven=V.filter(v=>sold(v.ch)&&!v.baja).length;
+  const pub=V.filter(v=>!sold(v.ch)&&!v.baja&&st(v.ch).pub).length;
   let hoy=0; const t=iso();
   for(const c in S) for(const x of (S[c].costs||[])) if(x.date===t) hoy+=x.amt;
   $('#kPatio').textContent=pat;$('#kVend').textContent=ven;$('#kPub').textContent=pub;
@@ -2962,8 +3000,18 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     vseg('venta'); loadCarnet(v.ch);
     openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx],[data-edit],[data-lleg]');
+  const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx],[data-edit],[data-lleg],[data-restaura]');
   if(!b)return;
+  if(b.dataset.restaura) {
+    const v=IDX[b.dataset.restaura]; if(!v){toast('No se encontró el vehículo');return}
+    if(!confirm('¿Restaurar '+v.ma+' '+v.mo+' ('+v.ch+') al Stock?')) return;
+    delete v.baja; delete v.bajaFe;
+    guardaCacheV(); draw();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    if(typeof webSyncPronto==='function') webSyncPronto();
+    toast(v.ma+' '+v.mo+' volvió al Stock');
+    return;
+  }
   if(b.dataset.lleg) {
     const v=IDX[b.dataset.lleg]; if(!v){toast('No se encontró el vehículo');return}
     if(!confirm('¿Confirmas que '+v.ma+' '+v.mo+' ('+v.ch+') ya llegó a Iquique y está en patio?')) return;
@@ -2986,6 +3034,10 @@ document.addEventListener('click',e=>{
     $('#spP').value=t.pprice?clp(t.pprice):'';
     $('#spVenta').value=t.pventa?clp(t.pventa):'';
     $('#spMin').value=t.pmin?clp(t.pmin):'';
+    const usdVentaIni=calcPventaUSD(t.pventa);
+    $('#spVentaUSD').textContent=usdVentaIni?('US$'+usdVentaIni.toLocaleString('es-CL')):'US$0';
+    const usdMinIni=calcPventaUSD(t.pmin);
+    $('#spMinUSD').textContent=usdMinIni?('US$'+usdMinIni.toLocaleString('es-CL')):'US$0';
     const cst=ctot(v);
     $('#spMinT').innerHTML=cst
       ? `Costo total ${clp(cst)}. Lo verán Víctor y Bryan; nunca aparece en la web.`
@@ -3260,9 +3312,19 @@ $('#spOk').addEventListener('click',()=>{const t=st(editing);
   t.pprice=pnum($('#spP').value);
   t.pventa=pnum($('#spVenta').value);
   t.pmin=pnum($('#spMin').value);
+  t.pventaUSD=calcPventaUSD(t.pventa);
+  t.pminUSD=calcPventaUSD(t.pmin);
   save();draw();closeAll();toast('Publicación actualizada ✓')});
 
 ['#spMin','#spVenta','#emVNVenta','#emVNMin','#nvVenta','#nvMin'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
+$('#spVenta').addEventListener('input',()=>{
+  const usd=calcPventaUSD(pnum($('#spVenta').value));
+  $('#spVentaUSD').textContent=usd?('US$'+usd.toLocaleString('es-CL')):'US$0';
+});
+$('#spMin').addEventListener('input',()=>{
+  const usd=calcPventaUSD(pnum($('#spMin').value));
+  $('#spMinUSD').textContent=usd?('US$'+usd.toLocaleString('es-CL')):'US$0';
+});
 ['#ssTC'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':String(n)}));
 ['#ssP','#scA','#spP'].forEach(s=>$(s).addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)}));
 $('#q').addEventListener('input',e=>{q=e.target.value;drawStock()});
@@ -3270,7 +3332,42 @@ $('#stOrden').addEventListener('change',drawStock);
 $('#qv').addEventListener('input',e=>{qv=e.target.value;drawVit()});
 $$('#pStock .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
-  c.setAttribute('aria-selected','true');fS=c.dataset.f;drawStock()}));
+  c.setAttribute('aria-selected','true');fS=c.dataset.f;
+  if(fS==='arch'){depurando=false;depSel.clear();}
+  pintaDepBar();drawStock()}));
+function pintaDepBar(){
+  const n=depSel.size;
+  $('#stDepBar').style.display=depurando?'flex':'none';
+  $('#stDepCnt').textContent=n+(n===1?' seleccionado':' seleccionados');
+  $('#stDepGo').style.display=n?'':'none';
+}
+document.addEventListener('change',e=>{
+  const c=e.target.closest('.depChk'); if(!c)return;
+  const ch=c.dataset.arch;
+  if(c.checked) depSel.add(ch); else depSel.delete(ch);
+  pintaDepBar();
+});
+$('#stDepCancel').addEventListener('click',()=>{
+  depurando=false; depSel.clear(); pintaDepBar(); drawStock();
+});
+$('#irDepurar').addEventListener('click',()=>{
+  show('pStock');
+  $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected',x.dataset.f==='patio'?'true':'false'));
+  fS='patio'; depurando=true; depSel.clear(); pintaDepBar(); drawStock();
+});
+$('#stDepGo').addEventListener('click',()=>{
+  if(!depSel.size) return;
+  const lista=[...depSel].map(ch=>{const v=IDX[ch]; return v?(v.ma+' '+v.mo+' ('+v.ch+')'):ch});
+  if(!confirm('Vas a archivar '+depSel.size+' vehículo'+(depSel.size===1?'':'s')+':\n\n'+lista.join('\n')+'\n\nNo se borran: quedan guardados aparte, en "Archivados", y se pueden restaurar cuando quieras. No se marcan como vendidos.\n\n¿Confirmas?')) return;
+  const hoy=iso();
+  depSel.forEach(ch=>{const v=IDX[ch]; if(v){v.baja=true; v.bajaFe=hoy;}});
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  depurando=false; depSel.clear(); pintaDepBar();
+  toast('Archivados');
+  draw();
+});
 $$('#perChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#perChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true');per=c.dataset.per;drawResumen()}));
@@ -3802,6 +3899,27 @@ document.addEventListener('input',async e=>{
   const el=e.target.closest('[data-krw]'); if(!el)return;
   const n=pnum(el.value); el.value=n===''?'':Math.round(n).toLocaleString('es-CL');
   FJK[el.dataset.krw]=n||0; await guardaKRW(); pintaFJ();
+});
+/* Separador de miles en vivo (solo la vista) para el resto de los campos de dinero de
+   Embarque/Corea que todavía no lo tenían. pnum() ya ignora los puntos al guardar, así que
+   esto no cambia ningún dato -- solo lo hace más fácil de leer mientras se escribe. */
+document.addEventListener('input',e=>{
+  if(!e.target.matches('[data-emcc],[data-emcedit],[data-emcm],[data-emvvalset],[data-cck2],[data-cck]')) return;
+  const n=pnum(e.target.value); e.target.value=n===''?'':n.toLocaleString('es-CL');
+});
+/* Mismo separador de miles en vivo, pero para el único campo de dinero con decimales
+   (CIF Zofri a declarar, en US$): la parte entera lleva punto cada tres cifras, la parte
+   decimal (después de una coma) se deja tal cual se está escribiendo -- estilo chileno,
+   igual que ya se ve en pantalla con obs2(). */
+document.addEventListener('input',e=>{
+  if(!e.target.matches('[data-emvcifset]')) return;
+  const el=e.target, raw=el.value;
+  const i=Math.max(raw.lastIndexOf(','), raw.lastIndexOf('.'));
+  let nuevo;
+  if(i<0){ const d=raw.replace(/[^0-9]/g,''); nuevo=d?Number(d).toLocaleString('es-CL'):''; }
+  else{ const ent=raw.slice(0,i).replace(/[^0-9]/g,''), dec=raw.slice(i+1).replace(/[^0-9]/g,'');
+    nuevo=(ent?Number(ent).toLocaleString('es-CL'):'0')+','+dec; }
+  el.value=nuevo;
 });
 $('#fjComB').addEventListener('input',async e=>{
   const n=pnum(e.target.value); e.target.value=n===''?'':clp(n);
@@ -4842,7 +4960,9 @@ document.addEventListener('change',async e=>{
     await guardaEmb(); pintaEmb(); return}
   const cifset=e.target.closest('[data-emvcifset]');
   if(cifset){const i=+cifset.dataset.emvcifset; const ve=E()&&E().veh[i]; if(!ve)return;
-    ve.cif=pdec(cifset.value)||0;
+    /* cifset.value puede venir con puntos de miles (agregados al escribir, ver más abajo) --
+       se sacan antes de pdec() para que la coma se siga leyendo como el separador decimal. */
+    ve.cif=pdec(cifset.value.replace(/\./g,''))||0;
     await guardaEmb(); pintaEmb(); return}
   const valset=e.target.closest('[data-emvvalset]');
   if(valset){const i=+valset.dataset.emvvalset; const ve=E()&&E().veh[i]; if(!ve)return;
@@ -6774,6 +6894,7 @@ $('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]'
 // pierde si cambias de categoría (Pintura → Mecánica) sin apretar "Guardar estimados".
 $('#emEstLista').addEventListener('input',e=>{
   const inp=e.target.closest('[data-emestmonto]'); if(!inp) return;
+  const n=pnum(inp.value); inp.value=n===''?'':n.toLocaleString('es-CL');   /* separador de miles en vivo */
   emEstDraftCat()[inp.dataset.emestmonto]=inp.value;
 });
 $('#emEstTodosBtn').addEventListener('click',()=>{
@@ -7287,6 +7408,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   if(!RXCH.test(ch)&&!emVNWarn){emVNWarn=true;toast('Formato inusual · toca de nuevo si está correcto');return}
   const ma=$('#emVNMa').value.trim().toUpperCase(), mo=$('#emVNMo').value.trim().toUpperCase();
   if(!ma||!mo){toast('Falta marca o modelo');return}
+  if(!avisaProvSiParecido($('#emVNProv').value)) return;
   const an=pnum($('#emVNAn').value)||null;
   const ca=$('#emVNCa').value.trim().toUpperCase()||'S/N';
   const TR={'BARANDA':1,'BARANDA BAJA':1,'FREEZER':1,'GAVIOTA':1,'CAJÓN SIMPLE':1,'POWER GATE':1};
@@ -7302,7 +7424,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; emVNWarn=false;
   const pventaEmVN=pnum($('#emVNVenta').value), pminEmVN=pnum($('#emVNMin').value);
-  if(pventaEmVN||pminEmVN){ const t=st(ch); if(pventaEmVN) t.pventa=pventaEmVN; if(pminEmVN) t.pmin=pminEmVN; save(); }
+  if(pventaEmVN||pminEmVN){ const t=st(ch); if(pventaEmVN){ t.pventa=pventaEmVN; t.pventaUSD=calcPventaUSD(t.pventa); } if(pminEmVN){ t.pmin=pminEmVN; t.pminUSD=calcPventaUSD(t.pmin); } save(); }
   ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv','emVNVenta','emVNMin'].forEach(i=>$('#'+i).value='');
   $('#emVNTr').value='4X2';
   $('#emVNChT').textContent=''; emVNTransTocado=false; emVNTransSugerir();
@@ -7371,7 +7493,7 @@ function pintaEmBlPreview(){
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fld"><label>Categoría</label><input data-eblf="${i}|cat" list="dlNvCat" autocapitalize="characters" value="${esc(x.cat)}"></div>
-          <div class="fld"><label>Proveedor</label><input data-eblf="${i}|prov" autocapitalize="characters" value="${esc(x.prov)}"></div>
+          <div class="fld"><label>Proveedor</label><input data-eblf="${i}|prov" list="dlNvProv" autocapitalize="characters" value="${esc(x.prov)}"></div>
         </div>`:'';
       return `<div class="card plain" style="margin-bottom:10px">
         <div class="r1"><div class="tt" style="font-size:14.5px">${x.ch}</div>
@@ -7394,7 +7516,11 @@ document.addEventListener('input',e=>{
   const [iStr,field]=f.dataset.eblf.split('|'); const i=+iStr;
   if(!emBlPreview[i]) return;
   if(field==='an'||field==='pa'||field==='cn') emBlPreview[i][field]=pnum(f.value)||null;
-  else if(field==='valor'||field==='pv') emBlPreview[i][field]=pnum(f.value)||0;
+  else if(field==='valor'){
+    const n=pnum(f.value); f.value=n===''?'':n.toLocaleString('es-CL');   /* separador de miles en vivo */
+    emBlPreview[i][field]=n||0;
+  }
+  else if(field==='pv') emBlPreview[i][field]=pnum(f.value)||0;
   else emBlPreview[i][field]=f.value;
 });
 document.addEventListener('click',async e=>{
@@ -7412,7 +7538,7 @@ document.addEventListener('click',async e=>{
         const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:x.mo||'',an:x.an||null,ce:x.ce||'',
           cat:x.cat||'',tr:x.tr||'',pa:x.pa||null,ca:x.ca||'S/N',tp:false,km:x.km||null,
           cif:null,fob:null,ct:null,vev:null,xc:{},trab:false,sv:false,krw:x.krw||null,
-          fe:x.fe||iso(),nota:x.nota||'',prov:x.prov||'',cc:x.cc||{}};
+          fe:x.fe||iso(),nota:x.nota||'',prov:(x.prov||'').trim().toUpperCase(),cc:x.cc||{}};
         nuevos.push(nv); have.add(ch);
       }
       const pv=pnum(x.pv)||0;
@@ -7572,7 +7698,7 @@ const SELOTRO=[
   ['emVNMaSel','emVNMa',()=>marcasValores()],['emVNMoSel','emVNMo',()=>modelosDe($('#emVNMa').value)],['emVNCeSel','emVNCe',()=>selOtroValores('ce')],
   ['emVNCatSel','emVNCat',()=>selOtroValores('cat')],['emVNCaSel','emVNCa',()=>selOtroValores('ca')],['emVNProvSel','emVNProv',()=>selOtroValores('prov')],
   ['evMaSel','evMa',()=>marcasValores()],['evMoSel','evMo',()=>modelosDe($('#evMa').value)],['evCeSel','evCe',()=>selOtroValores('ce')],
-  ['evCatSel','evCat',()=>selOtroValores('cat')],['evCaSel','evCa',()=>selOtroValores('ca')],
+  ['evCatSel','evCat',()=>selOtroValores('cat')],['evCaSel','evCa',()=>selOtroValores('ca')],['evProvSel','evProv',()=>selOtroValores('prov')],
 ];
 function selOtroValores(campo){
   if(campo==='ca') return ['BARANDA BAJA','FREEZER','GAVIOTA','CAJÓN SIMPLE','POWER GATE'];
@@ -7580,6 +7706,35 @@ function selOtroValores(campo){
   const m=new Map();
   V.forEach(v=>{ const raw=v[campo]; if(!raw) return; const up=String(raw).trim().toUpperCase(); if(up) m.set(up,up); });
   return [...m.keys()].sort();
+}
+/* Distancia de edición (Levenshtein): cuántas letras hay que agregar/quitar/cambiar para
+   pasar de una palabra a otra. Se usa para detectar un probable error de tipeo en
+   Proveedor -- "uno es humano y se puede equivocar siempre" (André). */
+function distEdicion(a,b){
+  const m=a.length,n=b.length; const d=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)d[i][0]=i; for(let j=0;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[m][n];
+}
+/* Si "nuevo" (un Proveedor recién escrito a mano, no elegido del menú) se parece mucho a
+   uno que ya existe pero no es exactamente igual, devuelve ese existente; si no, ''. El
+   umbral (2 letras de diferencia, y solo en palabras de 4+ letras) agarra los típos más
+   comunes sin molestar por proveedores que de verdad son distintos. */
+function provParecidoA(nuevo){
+  const n=String(nuevo||'').trim().toUpperCase(); if(!n) return '';
+  for(const ex of selOtroValores('prov')){
+    if(ex===n) continue;
+    if(Math.max(n.length,ex.length)>=4 && distEdicion(n,ex)<=2) return ex;
+  }
+  return '';
+}
+/* true = seguir guardando (no se parece a nada, o el usuario confirmó que es distinto).
+   false = el usuario dijo que fue un error de tipeo -- no guardar, para que lo corrija. */
+function avisaProvSiParecido(nuevo){
+  const parecido=provParecidoA(nuevo);
+  if(!parecido) return true;
+  return confirm('El proveedor "'+String(nuevo).trim().toUpperCase()+'" se parece mucho a uno que ya tienes cargado: "'+parecido+'".\n\n¿Son proveedores distintos de verdad?\n\nAceptar = sí, son distintos, guardar como nuevo.\nCancelar = fue un error al escribir, quiero corregirlo.');
 }
 function selOtroPinta(){
   SELOTRO.forEach(([selId,inputId,valoresFn])=>{
@@ -7644,6 +7799,7 @@ function listasNv(){
   $('#dlNvTr').innerHTML=['4X2','4X4'].map(x=>`<option value="${x}">`).join('');
   $('#dlNvCat').innerHTML=selOtroValores('cat').map(x=>`<option value="${x}">`).join('');
   $('#dlNvCa').innerHTML=selOtroValores('ca').map(x=>`<option value="${x}">`).join('');
+  $('#dlNvProv').innerHTML=selOtroValores('prov').map(x=>`<option value="${x}">`).join('');
   selOtroPinta();
 }
 let nvWarn=false;
@@ -7677,6 +7833,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   if(!RXCH.test(ch)&&!nvWarn){nvWarn=true;toast('Formato inusual · toca de nuevo si está correcto');return}
   const ma=$('#nvMa').value.trim().toUpperCase(), mo=$('#nvMo').value.trim().toUpperCase();
   if(!ma||!mo){toast('Falta marca o modelo');return}
+  if(!avisaProvSiParecido($('#nvProv').value)) return;
   const an=pnum($('#nvAn').value)||null;
   const ca=$('#nvCa').value.trim().toUpperCase()||'S/N';
   const TR={'BARANDA':1,'BARANDA BAJA':1,'FREEZER':1,'GAVIOTA':1,'CAJÓN SIMPLE':1,'POWER GATE':1};
@@ -7693,7 +7850,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
   V.push(nuevo); IDX[ch]=nuevo; nvWarn=false;
   const pventaNv=pnum($('#nvVenta').value), pminNv=pnum($('#nvMin').value);
-  if(pventaNv||pminNv){ const t=st(ch); if(pventaNv) t.pventa=pventaNv; if(pminNv) t.pmin=pminNv; save(); }
+  if(pventaNv||pminNv){ const t=st(ch); if(pventaNv){ t.pventa=pventaNv; t.pventaUSD=calcPventaUSD(t.pventa); } if(pminNv){ t.pmin=pminNv; t.pminUSD=calcPventaUSD(t.pmin); } save(); }
   ['nvVin','nvCh','nvMa','nvMo','nvAn','nvCe','nvTr','nvPa','nvCat','nvCa','nvTrans','nvProv','nvVenta','nvMin','nvCil'].forEach(i=>$('#'+i).value='');
   $('#nvTr').value='4X2';
   $('#nvMotor').value='DIESEL'; $('#nvCilSel').value=''; $('#nvCil').hidden=true;
@@ -7722,6 +7879,7 @@ function abrirEditVeh(ch){
   $('#evPa').value=v.pa||'';
   $('#evCat').value=v.cat||'';
   $('#evCa').value=(v.ca&&v.ca!=='S/N')?v.ca:'';
+  $('#evProv').value=v.prov||'';
   $('#evMotor').value=v.motor||''; pintaCilSel('evCilSel','evCil',v.cil||'');
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
   $('#evSv').setAttribute('aria-pressed', v.sv?'true':'false');
@@ -7743,6 +7901,8 @@ $('#evOk').addEventListener('click',()=>{
   v.pa=pnum($('#evPa').value)||null;
   v.cat=$('#evCat').value.trim().toUpperCase();
   v.ca=$('#evCa').value.trim().toUpperCase()||'S/N';
+  if(!avisaProvSiParecido($('#evProv').value)) return;
+  v.prov=$('#evProv').value.trim().toUpperCase();
   v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil');
   v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
   v.sv=$('#evSv').getAttribute('aria-pressed')==='true';
