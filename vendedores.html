@@ -882,7 +882,7 @@ function fbAplica(ch, d){
   const i = V.findIndex(x=>x.ch===ch);
   /* Vendido, o marcado como borrado en la nube (borrado blando desde el historial
      de Sistema): en ambos casos se quita del catalogo y no se vuelve a agregar. */
-  if(d.sold || d.borrado===true || d.baja===true){ if(i>=0) V.splice(i,1); return; }
+  if(d.sold || d.borrado===true || d.baja===true || d.creando===true){ if(i>=0) V.splice(i,1); return; }
   let v = i>=0 ? V[i] : null;
   if(!v){ v={ch:ch}; V.push(v); }
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
@@ -992,6 +992,17 @@ let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='',
 let phCh=null, phArr=[], phSel=new Set();
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
+/* Reformatea e.target.value en vivo sin que el cursor salte al final -- ver sis/patch32.py. */
+function fmtVivo(el,fn){
+  const viejo=el.value, pos=el.selectionStart==null?viejo.length:el.selectionStart;
+  const antes=(viejo.slice(0,pos).match(/\d/g)||[]).length;
+  el.value=fn(viejo);
+  if(document.activeElement!==el) return;
+  if(!antes){ try{el.setSelectionRange(0,0)}catch(_){} return; }
+  let c=0,i=0;
+  for(;i<el.value.length;i++){ if(/\d/.test(el.value[i])){ c++; if(c===antes){ i++; break; } } }
+  try{ el.setSelectionRange(i,i); }catch(_){}
+}
 const kb=n=>Math.round(n/1024)+' KB';
 const isoDe=d=>{const z=new Date(d);return z.getFullYear()+'-'+String(z.getMonth()+1).padStart(2,'0')+'-'+String(z.getDate()).padStart(2,'0')};
 const iso=()=>isoDe(Date.now());
@@ -1685,7 +1696,7 @@ document.addEventListener('click',async e=>{
  if(pk){gv=IDX[pk.dataset.pick];gvar=0;drawGen();return}
  if(c&&window.__BLK){cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
 });
-$('#soP').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
+$('#soP').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#soOk').addEventListener('click',async()=>{
  const ch=$('#soOk').dataset.ch, v=IDX[ch];
  if(!v){ toast('Ese vehículo ya no está en el catálogo'); closeAll(); return }
@@ -1743,7 +1754,7 @@ function pintaVT(){
       }).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin ventas avisadas.</p>';
 }
-$('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);e.target.value=n===''?'':clp(n)});
+$('#avM').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#avOk').addEventListener('click',async()=>{
   const m=pnum($('#avM').value)||0;
   if(!m){toast('Ingresa el monto');return}
@@ -1788,7 +1799,7 @@ function pintaCB(){
   window.__CBTOT=tot;
 }
 ['#cbVenta','#cbBase','#cbTras'].forEach(sel=>$(sel).addEventListener('input',e=>{
-  const n=pnum(e.target.value); e.target.value=n===''?'':clp(n); pintaCB()}));
+  const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaCB()}));
 $('#cbV').addEventListener('input',pintaCB);
 $('#cbEnv').addEventListener('click',async()=>{
   const base=pnum($('#cbBase').value)||0;
