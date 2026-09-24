@@ -570,7 +570,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 17:36<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 18:09<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -706,6 +706,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts">
         <button class="btn b-sec" id="migUSDBtn" style="width:100%">⚙ Calcular equivalente en dólares en vehículos existentes</button></div>
       <div id="migUSDEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Recuperar precios borrados (23-09-2026)</h3>
+      <p>Restaura el precio de venta y mínimo de los 14 vehículos a los que se les borró por el
+      error de sincronización de hoy, usando el respaldo del 23-09. Uso único: SOLO llena un
+      vehículo si en este aparato su precio está vacío en este momento -- nunca pisa un precio
+      ya cargado (ni el que traiga el respaldo, ni uno más nuevo).</p>
+      <div class="acts">
+        <button class="btn b-sec" id="recupPrecios2309Btn" style="width:100%">⚙ Recuperar precios borrados (23-09-2026)</button></div>
+      <div id="recupPrecios2309Estado" class="mtr" style="margin-top:9px"></div>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -1426,7 +1435,11 @@ const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs'];
 function fbPubData(v){
   const t=S[v.ch]||{};
   const o={}; FB_PUB_FIELDS.forEach(k=>o[k]=v[k]!==undefined?v[k]:null);
-  FB_S_FIELDS.forEach(k=>o[k]=t[k]!==undefined?t[k]:null);
+  /* Igual que en fbPrivData (ver su comentario): solo se manda un campo de FB_S_FIELDS si este
+     aparato realmente lo tiene cargado. Antes se mandaba null cuando faltaba y, con merge, ese
+     null pisaba el precio de venta/mínimo real en la nube -- así podía desaparecer para todos
+     los aparatos sin que nadie lo borrara a propósito. */
+  FB_S_FIELDS.forEach(k=>{ if(t[k]!==undefined) o[k]=t[k]; });
   return o;
 }
 function fbPrivData(v){
@@ -2327,6 +2340,28 @@ function migraUSDPrecios(){
   pinta('✓ Calculado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
   toast('Equivalente en dólares calculado');
 }
+const RECUP_PRECIOS_2309={'AA012941':[5400000,5200000],'EC282505':[9600000,9300000],'EF706197':[7400000,7100000],'EU842923':[4600000,4300000],'FW600736':[7900000,7700000],'FW641759':[7700000,7400000],'GK021203':[7700000,7400000],'GU295795':[6000000,5700000],'HB098077':[7200000,6900000],'KU048955':[13900000,13500000],'KU104839':[13800000,13400000],'LU132655':[18900000,18500000],'MS026561':[17000000,16700000],'5W634052':[3900000,3600000]};
+function recupPrecios2309(){
+  const el=document.getElementById('recupPrecios2309Estado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  const candidatos=Object.keys(RECUP_PRECIOS_2309).filter(ch=>{
+    const v=IDX[ch]; if(!v) return false;
+    const t=st(ch);
+    return !t.pventa && !t.pmin;
+  });
+  if(!candidatos.length){ pinta('Nada que recuperar: ninguno de los 14 vehículos está vacío en este aparato ahora mismo.','var(--green)'); return; }
+  if(!confirm('Se va a rellenar el precio de venta y mínimo de '+candidatos.length+' vehículo(s) con el respaldo del 23-09:\n\n'
+    +candidatos.join(', ')+'\n\nSolo se llenan los que estén vacíos ahora mismo. ¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  for(const ch of candidatos){
+    const t=st(ch), [pv,pm]=RECUP_PRECIOS_2309[ch];
+    t.pventa=pv; t.pmin=pm;
+    t.pventaUSD=calcPventaUSD(pv); t.pminUSD=calcPventaUSD(pm);
+  }
+  save(); draw();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  pinta('✓ Recuperado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
+  toast('Precios recuperados');
+}
 function migraEstimadoAMinimo(){
   const el=document.getElementById('migEstEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
@@ -2532,6 +2567,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(ccxf) ccxf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) costoCorrige(f); e.target.value=''; });
   const me=document.getElementById('migEstBtn');
   if(me) me.addEventListener('click',migraEstimadoAMinimo);
+  const rp2309=document.getElementById('recupPrecios2309Btn');
+  if(rp2309) rp2309.addEventListener('click',recupPrecios2309);
   const mu=document.getElementById('migUSDBtn');
   if(mu) mu.addEventListener('click',migraUSDPrecios);
   const rp=document.getElementById('rellPventaBtn');
