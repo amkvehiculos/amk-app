@@ -570,7 +570,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 18:09<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 18:54<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1434,7 +1434,13 @@ const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs'];
 
 function fbPubData(v){
   const t=S[v.ch]||{};
-  const o={}; FB_PUB_FIELDS.forEach(k=>o[k]=v[k]!==undefined?v[k]:null);
+  const o={};
+  /* Igual que con FB_S_FIELDS (ver comentario más abajo) y FB_PRIV_FIELDS: solo se manda un
+     campo si este aparato realmente lo tiene cargado. Antes se mandaba null para el que faltara
+     y, con merge, ese null podía borrar baja/bajaFe/creando de verdad en la nube -- así podía
+     "resucitar" un vehículo archivado/descartado para todos los aparatos sin que nadie lo
+     restaurara a propósito. */
+  FB_PUB_FIELDS.forEach(k=>{ if(v[k]!==undefined) o[k]=v[k]; });
   /* Igual que en fbPrivData (ver su comentario): solo se manda un campo de FB_S_FIELDS si este
      aparato realmente lo tiene cargado. Antes se mandaba null cuando faltaba y, con merge, ese
      null pisaba el precio de venta/mínimo real en la nube -- así podía desaparecer para todos
@@ -3086,7 +3092,7 @@ document.addEventListener('click',e=>{
   if(b.dataset.confcrea) {
     const v=IDX[b.dataset.confcrea]; if(!v){toast('No se encontró el vehículo');return}
     if(!confirm('¿Confirmar '+v.ma+' '+v.mo+' ('+v.ch+') y enviarlo a Stock como "En camino"?\n\nDeja de estar "en creación" y pasa a la lista normal de Stock.')) return;
-    delete v.creando;
+    v.creando=false;
     guardaCacheV(); draw();
     if(typeof fbSchedulePush==='function') fbSchedulePush();
     if(typeof webSyncPronto==='function') webSyncPronto();
@@ -3096,7 +3102,7 @@ document.addEventListener('click',e=>{
   if(b.dataset.descartacrea) {
     const v=IDX[b.dataset.descartacrea]; if(!v){toast('No se encontró el vehículo');return}
     if(!confirm('¿Descartar '+v.ma+' '+v.mo+' ('+v.ch+')?\n\nNo se borra -- queda archivado (pestaña "Archivados"), por si te equivocaste y lo quieres recuperar.')) return;
-    delete v.creando; v.baja=true; v.bajaFe=iso();
+    v.creando=false; v.baja=true; v.bajaFe=iso();
     guardaCacheV(); draw();
     if(typeof fbSchedulePush==='function') fbSchedulePush();
     if(typeof webSyncPronto==='function') webSyncPronto();
@@ -3106,7 +3112,7 @@ document.addEventListener('click',e=>{
   if(b.dataset.restaura) {
     const v=IDX[b.dataset.restaura]; if(!v){toast('No se encontró el vehículo');return}
     if(!confirm('¿Restaurar '+v.ma+' '+v.mo+' ('+v.ch+') al Stock?')) return;
-    delete v.baja; delete v.bajaFe;
+    v.baja=false; v.bajaFe=null;
     guardaCacheV(); draw();
     if(typeof fbSchedulePush==='function') fbSchedulePush();
     if(typeof webSyncPronto==='function') webSyncPronto();
