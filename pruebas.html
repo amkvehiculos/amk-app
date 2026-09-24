@@ -572,7 +572,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 22:23 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 22:42 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5121,6 +5121,7 @@ document.addEventListener('click',async e=>{
 document.addEventListener('click',async e=>{
   const cck2g=e.target.closest('[data-cck2guardar]'); if(!cck2g) return;
   const ch=cck2g.dataset.cck2guardar; const v=IDX[ch]; if(!v)return;
+  if(v.ct){toast('Este vehículo ya se ingresó por Zofri: no se pueden agregar más costos');return}
   v.cc=v.cc||{};
   $$('[data-cck2^="'+ch+'|"]').forEach(el=>{
     const [,k]=el.dataset.cck2.split('|'); const n=pnum(el.value)||0;
@@ -5134,6 +5135,21 @@ document.addEventListener('click',async e=>{
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
   pintaEmb(); draw(); toast('Costos de Corea guardados ✓');
+});
+document.addEventListener('change',async e=>{
+  const cck2=e.target.closest('[data-cck2]'); if(!cck2) return;
+  const [ch,key]=cck2.dataset.cck2.split('|'); const v=IDX[ch]; if(!v||v.ct)return;
+  const nMonto=pnum(cck2.value)||0;
+  v.cc=v.cc||{};
+  if(nMonto) v.cc[key]=nMonto; else delete v.cc[key];
+  let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
+  const iPrev=prev.findIndex(x=>x.ch===ch);
+  if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch,cc:v.cc,soloCC:true})}
+  try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pintaEmb(); draw(); toast('Costo de taller guardado');
 });
 document.addEventListener('change',async e=>{
   const rt=e.target.closest('[data-rmtipo]');
@@ -7032,8 +7048,15 @@ function embVeh(){ return buscaVeh($('#emV').value.trim()) }
 function pintaEmCC(){
   const grid=$('#emCCGrid'); if(!grid) return;
   const v=embVeh();
-  if(!v){ grid.innerHTML='<p style="color:var(--mute);font-size:12.5px;margin:0;grid-column:1/-1">Busca (o crea) un vehículo arriba primero.</p>'; return; }
+  if(!v){ grid.innerHTML='<p style="color:var(--mute);font-size:12.5px;margin:0;grid-column:1/-1">Busca (o crea) un vehículo arriba primero.</p>'; if($('#emCCGuardar')) $('#emCCGuardar').hidden=true; return; }
   v.cc=v.cc||{};
+  const bloq=!!v.ct;   /* ya se aplicaron los costos de Zofri a este vehículo ("Aplicar costos" en Embarque) */
+  if(bloq){
+    grid.innerHTML='<p style="color:var(--amber);font-size:12.5px;margin:0;grid-column:1/-1">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>';
+    if($('#emCCGuardar')) $('#emCCGuardar').hidden=true;
+    return;
+  }
+  if($('#emCCGuardar')) $('#emCCGuardar').hidden=false;
   const cats=(typeof CCAT!=='undefined')?CCAT:[];
   grid.innerHTML=cats.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
     <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
@@ -7043,6 +7066,7 @@ function pintaEmCC(){
 $('#emV').addEventListener('input',()=>pintaEmCC());
 $('#emCCGuardar').addEventListener('click',async()=>{
   const v=embVeh(); if(!v){toast('Busca (o crea) un vehículo arriba primero');return}
+  if(v.ct){toast('Este vehículo ya se ingresó por Zofri: no se pueden agregar más costos');return}
   v.cc=v.cc||{};
   $$('#emCCGrid input[data-emcc]').forEach(el=>{
     const [,k]=el.dataset.emcc.split('|'); const n=pnum(el.value)||0;
@@ -7059,7 +7083,7 @@ $('#emCCGuardar').addEventListener('click',async()=>{
 });
 document.addEventListener('change',async e=>{
   const emcc=e.target.closest('[data-emcc]'); if(!emcc)return;
-  const [ch,key]=emcc.dataset.emcc.split('|'); const v=IDX[ch]; if(!v)return;
+  const [ch,key]=emcc.dataset.emcc.split('|'); const v=IDX[ch]; if(!v||v.ct)return;
   const nMonto=pnum(emcc.value)||0;
   v.cc=v.cc||{};
   if(nMonto) v.cc[key]=nMonto; else delete v.cc[key];
@@ -7458,11 +7482,12 @@ function pintaEmb(){
       </div>
       <details style="margin-top:8px">
         <summary style="cursor:pointer;font-size:12px;color:var(--mute)">Detalle de costos de taller en Corea</summary>
+        ${v.ct?'<p style="color:var(--amber);font-size:12px;margin:6px 0 0">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>':''}
         <div style="margin-top:6px;display:grid;gap:5px">${CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
           <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
-          <span style="white-space:nowrap;flex:0 0 auto"><input data-cck2="${f.ch}|${k}" inputmode="numeric" value="${v.cc&&v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
+          <span style="white-space:nowrap;flex:0 0 auto"><input data-cck2="${f.ch}|${k}" inputmode="numeric" value="${v.cc&&v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" ${v.ct?'disabled':''} style="width:100px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:${v.ct?'var(--mute)':'var(--ink)'}"> ₩</span>
         </div>`).join('')}</div>
-        <button class="btn b-sec" data-cck2guardar="${f.ch}" style="width:100%;margin-top:6px;font-size:12px">Guardar costos Corea</button>
+        ${v.ct?'':`<button class="btn b-sec" data-cck2guardar="${f.ch}" style="width:100%;margin-top:6px;font-size:12px">Guardar costos Corea</button>`}
       </details>
       </div>`;
         }).join('');
