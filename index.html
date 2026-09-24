@@ -484,6 +484,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div style="margin:0 0 12px">
           <div class="mtr" style="margin:0 0 6px">Costos de taller en Corea (₩) <span>— por si mi mamá lo anotó en cuaderno y no en la app</span></div>
           <div id="emCCGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+          <button class="btn b-sec" id="emCCGuardar" type="button" style="width:100%;margin-top:8px">Guardar costos Corea</button>
         </div>
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
           <div><div class="mtr" style="margin:0 0 4px">Precio de venta (opcional)</div>
@@ -570,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 21:47<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 22:23<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1061,6 +1062,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <p id="scCoreaBloq" hidden style="color:var(--amber);font-size:12.5px;margin:0 0 12px">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
+    <div class="sact" style="margin-top:11px" id="scCoreaGuardarWrap"><button class="ok" id="scCoreaGuardar">Guardar costos Corea</button></div>
   </div>
   <div id="secReal">
   <div class="note" id="scAviso" hidden style="margin-bottom:12px">Este vehículo ya está vendido. Lo que registres se contará como <b>gasto posventa</b> y se descontará del margen.</div>
@@ -3330,6 +3332,7 @@ function drawCostList(){
 $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');if(!b)return;
   scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'));
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
+$('#scCoreaGuardar').addEventListener('click',guardaScCorea);
 $('#scOk').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value, ac=pnum($('#scA').value);
   if(!ac){toast('Ingresa el precio acordado');return}
@@ -5114,6 +5117,23 @@ document.addEventListener('click',async e=>{
     try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
     pintaRM(); if(typeof pintaEmb==='function') pintaEmb(); return}
 });
+document.addEventListener('click',async e=>{
+  const cck2g=e.target.closest('[data-cck2guardar]'); if(!cck2g) return;
+  const ch=cck2g.dataset.cck2guardar; const v=IDX[ch]; if(!v)return;
+  v.cc=v.cc||{};
+  $$('[data-cck2^="'+ch+'|"]').forEach(el=>{
+    const [,k]=el.dataset.cck2.split('|'); const n=pnum(el.value)||0;
+    if(n) v.cc[k]=n; else delete v.cc[k];
+  });
+  let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
+  const iPrev=prev.findIndex(x=>x.ch===ch);
+  if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch,cc:v.cc,soloCC:true})}
+  try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pintaEmb(); draw(); toast('Costos de Corea guardados ✓');
+});
 document.addEventListener('change',async e=>{
   const rt=e.target.closest('[data-rmtipo]');
   if(rt){const ts=rt.dataset.rmtipo; const x=RM.find(y=>String(y.ts)===ts); if(!x)return;
@@ -5159,17 +5179,6 @@ document.addEventListener('change',async e=>{
     const val=contcod.value.trim().toUpperCase();
     if(val) em.contCod[cn]=val; else delete em.contCod[cn];
     await guardaEmb(); pintaEmb(); return}
-  const cck2=e.target.closest('[data-cck2]');
-  if(cck2){const [ch,key]=cck2.dataset.cck2.split('|'); const v=IDX[ch]; if(!v)return;
-    const nMonto=pnum(cck2.value)||0;
-    v.cc=v.cc||{};
-    if(nMonto) v.cc[key]=nMonto; else delete v.cc[key];
-    let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
-    const iPrev=prev.findIndex(x=>x.ch===ch);
-    if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch,cc:v.cc,soloCC:true})}
-    try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
-    pintaEmb(); draw(); toast('Costo de taller guardado');
-    return}
   const zof=e.target.closest('[data-zof]');
   if(zof){const [ch,key]=zof.dataset.zof.split('|');
     let val=zof.value.trim();
@@ -7031,6 +7040,22 @@ function pintaEmCC(){
   </div>`).join('');
 }
 $('#emV').addEventListener('input',()=>pintaEmCC());
+$('#emCCGuardar').addEventListener('click',async()=>{
+  const v=embVeh(); if(!v){toast('Busca (o crea) un vehículo arriba primero');return}
+  v.cc=v.cc||{};
+  $$('#emCCGrid input[data-emcc]').forEach(el=>{
+    const [,k]=el.dataset.emcc.split('|'); const n=pnum(el.value)||0;
+    if(n) v.cc[k]=n; else delete v.cc[k];
+  });
+  let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
+  const iPrev=prev.findIndex(x=>x.ch===v.ch);
+  if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch:v.ch,cc:v.cc,soloCC:true})}
+  try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pintaEmCC(); pintaEmb(); draw(); toast('Costos de Corea guardados ✓');
+});
 document.addEventListener('change',async e=>{
   const emcc=e.target.closest('[data-emcc]'); if(!emcc)return;
   const [ch,key]=emcc.dataset.emcc.split('|'); const v=IDX[ch]; if(!v)return;
@@ -7041,6 +7066,9 @@ document.addEventListener('change',async e=>{
   const iPrev=prev.findIndex(x=>x.ch===ch);
   if(iPrev>=0){prev[iPrev].cc=v.cc} else {prev.push({ch,cc:v.cc,soloCC:true})}
   try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
   pintaEmb(); draw(); toast('Costo de taller guardado');
 });
 let emEstCat='PINTURA';
@@ -7433,6 +7461,7 @@ function pintaEmb(){
           <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
           <span style="white-space:nowrap;flex:0 0 auto"><input data-cck2="${f.ch}|${k}" inputmode="numeric" value="${v.cc&&v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
         </div>`).join('')}</div>
+        <button class="btn b-sec" data-cck2guardar="${f.ch}" style="width:100%;margin-top:6px;font-size:12px">Guardar costos Corea</button>
       </details>
       </div>`;
         }).join('');
@@ -7874,6 +7903,23 @@ function pintaCorea(){
   const t=ccKRW(v);
   $('#scCoreaT').innerHTML=t?`<div>Total en Corea <b>${Math.round(t).toLocaleString('es-CL')} ₩</b></div>
     <div>En pesos <b>${clp(ccCLP(v))}</b></div>`:'';
+  const wrap=$('#scCoreaGuardarWrap'); if(wrap) wrap.hidden=bloq;
+}
+async function guardaScCorea(){
+  const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
+  v.cc=v.cc||{};
+  $$('#scCoreaC input[data-cck]').forEach(el=>{
+    const k=el.dataset.cck, n=pnum(el.value)||0;
+    if(n) v.cc[k]=n; else delete v.cc[k];
+  });
+  let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
+  const i=prev.findIndex(x=>x.ch===ch);
+  if(i>=0){prev[i].cc=v.cc} else {prev.push({ch,cc:v.cc,soloCC:true})}
+  try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pintaCorea(); draw(); toast('Costos de Corea guardados ✓');
 }
 document.addEventListener('change',async e=>{
   const el=e.target.closest('[data-cck]'); if(!el)return;
@@ -7886,6 +7932,9 @@ document.addEventListener('change',async e=>{
   if(i>=0){prev[i].cc=v.cc}
   else prev.push({ch,cc:v.cc,soloCC:true});
   try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){}
+  guardaCacheV();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
   pintaCorea(); draw(); toast('Gasto de Corea guardado');
 });
 
