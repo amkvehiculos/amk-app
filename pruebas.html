@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 18:54 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 20:04 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -716,6 +716,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts">
         <button class="btn b-sec" id="recupPrecios2309Btn" style="width:100%">⚙ Recuperar precios borrados (23-09-2026)</button></div>
       <div id="recupPrecios2309Estado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Borrar cascarones del BL (24-09-2026)</h3>
+      <p>Borra por completo (local y de la nube) los 30 chasis del BL de hoy que quedaron como
+      "cascarón" (sin marca/modelo) por el bug de sincronización. Solo borra los que TODAVÍA se
+      ven rotos ahora mismo -- si ya completaste alguno a mano, ese no se toca. Después puedes
+      pegar el código del BL de nuevo y van a entrar como vehículos nuevos, limpios.</p>
+      <div class="acts">
+        <button class="btn b-sec" id="borraCascaronesBlBtn" style="width:100%">🧹 Borrar cascarones del BL (24-09-2026)</button></div>
+      <div id="borraCascaronesBlEstado" class="mtr" style="margin-top:9px"></div>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -2369,6 +2378,43 @@ function recupPrecios2309(){
   pinta('✓ Recuperado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
   toast('Precios recuperados');
 }
+const CHASIS_ROTOS_BL_2409=['HK280997','BA141392','CK224983','KS470685','GK006852','JU500967','HU357043','DU096613','KS544114','GU255940','BK021998','EA493481','EK573617','FU395308','EK533744','GK084184','FA081004','FU432757','GU259761','DK794013','GK041454','FU495654','EU748137','FU461455','FU954258','GU224807','HU349016','KU618405','HU419129','BA122938'];
+async function borraCascaronesBl2409(){
+  const el=document.getElementById('borraCascaronesBlEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  const rotos=CHASIS_ROTOS_BL_2409.filter(ch=>{
+    const v=IDX[ch]; if(!v) return false;
+    return !v.ma && !v.mo;
+  });
+  if(!rotos.length){ pinta('Nada que borrar: ninguno de esos chasis se ve como cascarón roto ahora mismo en este aparato.','var(--green)'); return; }
+  if(!confirm('Se van a borrar por completo (este aparato y la nube) '+rotos.length+' vehículo(s) rotos:\n\n'
+    +rotos.join(', ')+'\n\nDespués los puedes volver a cargar pegando el código del BL de nuevo. Esto NO se puede deshacer. ¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  let enNube=0, fallosNube=0;
+  for(const ch of rotos){
+    const j=V.findIndex(v=>v.ch===ch);
+    if(j>-1) V.splice(j,1);
+    delete IDX[ch]; delete S[ch]; delete fbLastPush[ch]; delete fbPend[ch];
+    if(typeof fbReady!=='undefined' && fbReady && fbDb){
+      try{
+        await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('costos').delete().catch(()=>{});
+        await fbDb.collection(FB_COL).doc(ch).delete();
+        await fbDb.collection(WEB_COL).doc(ch).delete().catch(()=>{});
+        enNube++;
+      }catch(e){ fallosNube++; console.error('borraCascaronesBl2409',ch,e); }
+    }
+  }
+  const e=E();
+  if(e && Array.isArray(e.veh)){
+    const antes=e.veh.length;
+    e.veh=e.veh.filter(x=>!rotos.includes(x.ch));
+    if(e.veh.length!==antes) await guardaEmb();
+  }
+  guardaCacheV(true); draw(); pintaEmb();
+  pinta('✓ Borrados '+rotos.length+' vehículo(s)'+(enNube?(' ('+enNube+' también de la nube)'):'')
+    +(fallosNube?(' · '+fallosNube+' no se pudieron borrar de la nube (revisa tu conexión)'):'')
+    +'. Ya puedes pegar el código del BL de nuevo.','var(--green)');
+  toast('Cascarones borrados');
+}
 function migraEstimadoAMinimo(){
   const el=document.getElementById('migEstEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
@@ -2576,6 +2622,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(me) me.addEventListener('click',migraEstimadoAMinimo);
   const rp2309=document.getElementById('recupPrecios2309Btn');
   if(rp2309) rp2309.addEventListener('click',recupPrecios2309);
+  const bcbl=document.getElementById('borraCascaronesBlBtn');
+  if(bcbl) bcbl.addEventListener('click',borraCascaronesBl2409);
   const mu=document.getElementById('migUSDBtn');
   if(mu) mu.addEventListener('click',migraUSDPrecios);
   const rp=document.getElementById('rellPventaBtn');
