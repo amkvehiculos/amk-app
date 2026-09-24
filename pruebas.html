@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 20:13 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->24-09-2026 21:47 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -725,6 +725,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts">
         <button class="btn b-sec" id="borraCascaronesBlBtn" style="width:100%">🧹 Borrar cascarones del BL (24-09-2026)</button></div>
       <div id="borraCascaronesBlEstado" class="mtr" style="margin-top:9px"></div>
+    </div>
+    <div class="box"><h3>Volver a "en creación" (BL 24-09-2026)</h3>
+      <p>Los 29 vehículos del BL de hoy que se confirmaron ANTES del arreglo de sincronización
+      quedaron "en camino" en vez de "en creación". Este botón los vuelve a poner "en creación"
+      (solo esos 29 chasis puntuales, y solo si todavía existen y no están vendidos/dados de
+      baja) para que queden junto con el resto del BL mientras lo sigues armando.</p>
+      <button class="btn b-sec" id="restauraEnCreacionBlBtn" style="width:100%">↺ Volver "en creación" los 29 del BL (24-09-2026)</button>
+      <p id="restauraEnCreacionBlEstado" style="font-size:12.5px;color:var(--mute);margin-top:8px"></p>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -2415,6 +2423,24 @@ async function borraCascaronesBl2409(){
     +'. Ya puedes pegar el código del BL de nuevo.','var(--green)');
   toast('Cascarones borrados');
 }
+const CHASIS_EN_CREACION_BL_2409=['HK280997','BA141392','CK224983','KS470685','GK006852','JU500967','HU357043','DU096613','KS544114','GU255940','BK021998','EA493481','EK573617','FU395308','EK533744','GK084184','FA081004','FU432757','GU259761','DK794013','GK041454','FU495654','EU748137','FU461455','FU954258','GU224807','HU349016','KU618405','HU419129'];
+async function restauraEnCreacionBl2409(){
+  const el=document.getElementById('restauraEnCreacionBlEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  const cand=CHASIS_EN_CREACION_BL_2409.filter(ch=>{
+    const v=IDX[ch]; if(!v) return false;
+    return !v.creando && !v.baja && !(S[ch]&&S[ch].sold);
+  });
+  if(!cand.length){ pinta('Nada que cambiar: ninguno de esos 29 sigue pendiente de volver a "en creación" en este aparato.','var(--green)'); return; }
+  if(!confirm('Se van a volver a poner "en creación" '+cand.length+' vehículo(s):\n\n'
+    +cand.join(', ')+'\n\n¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
+  cand.forEach(ch=>{ IDX[ch].creando=true; });
+  guardaCacheV(); draw();
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pinta('✓ '+cand.length+' vehículo(s) de vuelta en "en creación".','var(--green)');
+  toast('Vuelven a "en creación"');
+}
 function migraEstimadoAMinimo(){
   const el=document.getElementById('migEstEstado');
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
@@ -2624,6 +2650,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(rp2309) rp2309.addEventListener('click',recupPrecios2309);
   const bcbl=document.getElementById('borraCascaronesBlBtn');
   if(bcbl) bcbl.addEventListener('click',borraCascaronesBl2409);
+  const recb=document.getElementById('restauraEnCreacionBlBtn');
+  if(recb) recb.addEventListener('click',restauraEnCreacionBl2409);
   const mu=document.getElementById('migUSDBtn');
   if(mu) mu.addEventListener('click',migraUSDPrecios);
   const rp=document.getElementById('rellPventaBtn');
@@ -7632,15 +7660,41 @@ $('#emBlBtn').addEventListener('click',()=>{
   }).map(o=>o.x);
   pintaEmBlPreview();
 });
+function emblCCTotHtml(cc){
+  const t=cc?Object.values(cc).reduce((a,b)=>a+(b||0),0):0;
+  if(!t) return '';
+  const clpAprox=Math.round(t*(typeof tcKRW!=='undefined'?tcKRW:0.685));
+  return 'Total taller en Corea: ₩'+Math.round(t).toLocaleString('es-CL')+' (≈ $'+clpAprox.toLocaleString('es-CL')+')';
+}
+function emblSumaHtml(lista){
+  const sumPv=lista.reduce((a,f)=>a+(pnum(f.pv)||0),0);
+  const pvOk=Math.abs(sumPv-100)<=1;
+  return sumPv?`<span style="font-weight:400;text-transform:none;letter-spacing:0;color:${pvOk?'var(--green)':'var(--amber)'}">· volumen asignado ${sumPv.toFixed(0)}%${pvOk?'':' (debería sumar 100%)'}</span>`
+    :`<span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--mute)">· sin % de volumen (se reparte parejo)</span>`;
+}
+function emBlActualizaSumas(){
+  if(!emBlPreview) return;
+  const gruposBl={};
+  emBlPreview.forEach(x=>{const cn=x.cn||1; (gruposBl[cn]=gruposBl[cn]||[]).push(x)});
+  Object.keys(gruposBl).forEach(cn=>{
+    const el=document.getElementById('emblSum-'+cn); if(!el) return;
+    el.innerHTML=emblSumaHtml(gruposBl[cn]);
+  });
+}
 function pintaEmBlPreview(){
   const box=$('#emBlPreviewBox'); if(!box) return;
   if(!emBlPreview||!emBlPreview.length){ box.hidden=true; box.innerHTML=''; return; }
   box.hidden=false;
   const esc=s=>String(s==null?'':s).replace(/"/g,'&quot;');
   const escN=s=>String(s==null?'':s).replace(/"/g,'&quot;');
+  const gruposBl={};
+  emBlPreview.forEach(x=>{const cn=x.cn||1; (gruposBl[cn]=gruposBl[cn]||[]).push(x)});
+  let cnAnt=null;
   box.innerHTML='<div class="mtr" style="margin:0 0 10px">Revisa y completa antes de guardar — '+emBlPreview.length+' vehículo(s) leído(s) del BL. Nada se guarda todavía.</div>'
     +'<div class="fld" style="margin-bottom:12px"><label>Número de BL</label><input id="emBlNumInp" value="'+escN(emBlNum||'')+'" placeholder="Ej: MSCUXXXXXXX"></div>'
     +emBlPreview.map((x,i)=>{
+      const cn=x.cn||1;
+      const cab=cn!==cnAnt ? (cnAnt=cn,`<div style="margin:10px 0 6px;font-weight:700;font-size:12.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em">Contenedor ${cn} <span id="emblSum-${cn}">${emblSumaHtml(gruposBl[cn])}</span></div>`) : '';
       const camposNuevo=x.nuevo?`
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fld"><label>Marca</label><input data-eblf="${i}|ma" list="dlNvMa" autocapitalize="characters" value="${esc(x.ma)}"></div>
@@ -7658,7 +7712,7 @@ function pintaEmBlPreview(){
           <div class="fld"><label>Categoría</label><input data-eblf="${i}|cat" list="dlNvCat" autocapitalize="characters" value="${esc(x.cat)}"></div>
           <div class="fld"><label>Proveedor</label><input data-eblf="${i}|prov" list="dlNvProv" autocapitalize="characters" value="${esc(x.prov)}"></div>
         </div>`:'';
-      return `<div class="card plain" style="margin-bottom:10px">
+      return cab+`<div class="card plain" style="margin-bottom:10px">
         <div class="r1"><div class="tt" style="font-size:14.5px">${x.ch}</div>
           <span class="tag ${x.nuevo?'t-or':'t-sold'}">${x.nuevo?'Nuevo en Stock':'Ya existe en Stock'}</span></div>
         ${camposNuevo}
@@ -7668,7 +7722,16 @@ function pintaEmBlPreview(){
             ${x.cod?`<div style="font-size:11px;color:var(--mute);margin-top:4px">Código real: ${esc(x.cod)}</div>`:''}</div>
         </div>
         <div class="fld"><label>% del contenedor (volumen)</label><input data-eblf="${i}|pv" inputmode="decimal" value="${x.pv||''}"></div>
-        <button class="b-und" data-ebldel="${i}">✕ Quitar de la lista</button>
+        <div style="margin:10px 0 0">
+          <div class="mtr" style="margin:0 0 6px">Costos de taller en Corea (₩)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${(typeof CCAT!=='undefined'?CCAT:[]).map(([k,n])=>`
+            <div class="xrow" style="align-items:center;flex-wrap:nowrap">
+              <span style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
+              <span style="white-space:nowrap;flex:0 0 auto"><input data-eblcc="${i}|${k}" inputmode="numeric" value="${(x.cc&&x.cc[k])?Math.round(x.cc[k]).toLocaleString('es-CL'):''}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)"> ₩</span>
+            </div>`).join('')}</div>
+          <div id="eblccTot-${i}" style="font-size:11.5px;color:var(--mute);margin-top:4px">${emblCCTotHtml(x.cc)}</div>
+        </div>
+        <button class="b-und" data-ebldel="${i}" style="margin-top:10px">✕ Quitar de la lista</button>
       </div>`;
     }).join('')
     +'<div class="acts"><button class="btn b-sec" id="emBlCancelar" type="button">Cancelar</button><button class="btn b-pri" id="emBlConfirmar" type="button">Confirmar y guardar</button></div>';
@@ -7685,6 +7748,18 @@ document.addEventListener('input',e=>{
   }
   else if(field==='pv') emBlPreview[i][field]=pnum(f.value)||0;
   else emBlPreview[i][field]=f.value;
+  if(field==='pv'||field==='cn') emBlActualizaSumas();
+});
+/* Listener aparte: el de arriba corta con "return" si el campo no es [data-eblf], así que un
+   costo de taller (data-eblcc) nunca lo alcanzaría si se agregara adentro. */
+document.addEventListener('input',e=>{
+  const cc=e.target.closest('[data-eblcc]'); if(!cc||!emBlPreview) return;
+  const [iStr,key]=cc.dataset.eblcc.split('|'); const ic=+iStr;
+  if(!emBlPreview[ic]) return;
+  const n=pnum(cc.value); cc.value=n===''?'':n.toLocaleString('es-CL');
+  emBlPreview[ic].cc=emBlPreview[ic].cc||{};
+  if(n) emBlPreview[ic].cc[key]=n; else delete emBlPreview[ic].cc[key];
+  const tot=document.getElementById('eblccTot-'+ic); if(tot) tot.innerHTML=emblCCTotHtml(emBlPreview[ic].cc);
 });
 document.addEventListener('click',async e=>{
   const del=e.target.closest('[data-ebldel]');
@@ -7709,6 +7784,12 @@ document.addEventListener('click',async e=>{
       const idxV=e.veh.findIndex(v=>v.ch===ch);
       if(idxV>=0){ if(x.cn) e.veh[idxV].cn=x.cn; if(pv) e.veh[idxV].pv=pv; if(valor) e.veh[idxV].valor=valor; actualizados++ }
       else { e.veh.push({ch,valor,cif:0,cn:x.cn||1,pv}); agregados++ }
+      /* costos de taller en Corea: para un vehículo que ya existía en Stock, `nv` no se crea
+         (no pasa por el bloque de arriba), así que hay que guardarlos aparte en el vehículo real. */
+      if(x.cc && Object.keys(x.cc).length){
+        const vReal=IDX[ch];
+        if(vReal){ vReal.cc=vReal.cc||{}; Object.assign(vReal.cc, x.cc); }
+      }
       if(x.cn && x.cod){ e.contCod=e.contCod||{}; if(!e.contCod[x.cn]) e.contCod[x.cn]=x.cod }
     }
     if(!e.cont){
@@ -7722,6 +7803,11 @@ document.addEventListener('click',async e=>{
     }
     if(emBlNum && emBlNum.trim()) e.nom = emBlNum.trim();
     await guardaEmb(); pintaEmb(); draw(); drawPick();
+    /* Único lugar de la app que cambiaba vehículos sin avisar a la nube -- se agrega el mismo
+       aviso que usa el resto (confirmar/descartar/restaurar/llegó a patio, etc.). */
+    guardaCacheV();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    if(typeof webSyncPronto==='function') webSyncPronto();
     $('#emBlTxt').value=''; emBlPreview=null; emBlNum=null; pintaEmBlPreview();
     toast((agregados+actualizados)+' vehículo(s) en el embarque'+(nuevos.length?', '+nuevos.length+' nuevo(s) en Stock':''));
     return;
