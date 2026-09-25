@@ -573,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 16:14 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 17:01 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -2691,10 +2691,24 @@ async function mergeExtra(){
       V.forEach(v=>IDX[v.ch]=v);
     }}catch(e){console.error('mergeExtra',e)}
 }
+/* Migración de una sola vez (patch51): corrige vehículos ya cargados con "PORTER"/"BONGO" a
+   secas, o con número arábigo, a la notación correcta (Porter II / Bongo III). Si no hay nada
+   que corregir, no toca nada ni avisa a la nube. */
+function migraModelosPorterBongo(){
+  let n=0;
+  V.forEach(v=>{ const corr=normalizaModelo(v.mo); if(corr && corr!==v.mo){ v.mo=corr; n++; } });
+  if(n){
+    guardaCacheV();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    if(typeof webSyncPronto==='function') webSyncPronto();
+  }
+  return n;
+}
 async function boot(){
   await cargaCacheV();
   await fbPendCarga();
   await mergeExtra();
+  migraModelosPorterBongo();
   try{const r=await window.storage.get(KEY); if(r&&r.value) S=JSON.parse(r.value);}catch(e){console.error('boot S',e); S={}}
   if(!Object.keys(S).length){
     try{const o=await window.storage.get(OLD);
@@ -7677,7 +7691,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   if(!ch){toast('Falta el chasis');return}
   if(IDX[ch]){toast('Ese chasis ya existe');return}
   if(!RXCH.test(ch)&&!emVNWarn){emVNWarn=true;toast('Formato inusual · toca de nuevo si está correcto');return}
-  const ma=$('#emVNMa').value.trim().toUpperCase(), mo=$('#emVNMo').value.trim().toUpperCase();
+  const ma=$('#emVNMa').value.trim().toUpperCase(), mo=normalizaModelo($('#emVNMo').value.trim().toUpperCase());
   if(!ma||!mo){toast('Falta marca o modelo');return}
   if(!avisaProvSiParecido($('#emVNProv').value)) return;
   const an=pnum($('#emVNAn').value)||null;
@@ -7880,7 +7894,7 @@ document.addEventListener('click',async e=>{
         const moU=String(x.mo||'').toUpperCase(), caU=String(x.ca||'').toUpperCase();
         const trabBl=esTrabajoPorCaMo(moU,caU);
         const paBl=x.pa||(paxSugeridos(moU)?+paxSugeridos(moU):null);
-        const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:x.mo||'',an:x.an||null,ce:x.ce||'',
+        const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:normalizaModelo(x.mo)||'',an:x.an||null,ce:x.ce||'',
           cat:x.cat||'',tr:x.tr||'',pa:paBl,ca:x.ca||'S/N',tp:false,km:x.km||null,
           cif:null,fob:null,ct:null,vev:null,xc:{},trab:trabBl,sv:!!(x.an&&x.an>=2018)&&!trabBl,krw:x.krw||null,
           motor:x.motor||motorSugerido(moU),cil:x.cil||cilSugerida(moU),
@@ -8066,8 +8080,8 @@ const RXCH=/^[A-Z]{2}\d{6}$/;
 // de mostrar TODOS los modelos de todas las marcas mezclados. Si se agrega una marca nueva
 // (por "Otro"), Modelo cae de vuelta a la lista completa de modelos ya usados.
 const MARCA_MODELO={
-  'KIA':['SORENTO','SPORTAGE','CARNIVAL','BONGO','MORNING','K5'],
-  'HYUNDAI':['TUCSON','SANTA FE','STAREX','PORTER','PALISADE','KONA','I30','I40','AVANTE','VELOSTER'],
+  'KIA':['SORENTO','SPORTAGE','CARNIVAL','BONGO III','MORNING','K5'],
+  'HYUNDAI':['TUCSON','SANTA FE','STAREX','PORTER II','PALISADE','KONA','I30','I40','AVANTE','VELOSTER'],
   'SSANGYONG':['KORANDO SPORTS','KORANDO','ACTYON SPORTS','ACTYON'],
   'JEEP':['RENEGADE','CHEROKEE','WRANGLER SAHARA','WRANGLER RUBICON'],
   'MERC.BENZ':['C220','E220'],
@@ -8208,6 +8222,17 @@ function listasNv(){
    pisa solo -- el usuario siempre puede cambiarlo igual. */
 const CARROC_TRABAJO={'BARANDA':1,'BARANDA BAJA':1,'FREEZER':1,'GAVIOTA':1,'CAJÓN SIMPLE':1,'POWER GATE':1};
 function esModeloTrabajo(mo){ mo=String(mo||'').trim().toUpperCase(); return mo.startsWith('PORTER')||mo.startsWith('BONGO'); }
+/* André pidió que Porter/Bongo se guarden SIEMPRE con su numeración en número romano (Porter II,
+   Bongo III) -- nunca a secas, ni con número arábigo ("Porter 2") -- porque si no, para
+   estadísticas el mismo modelo queda contado como si fueran varios distintos. Detecta cualquier
+   variante (con o sin sufijo) y la deja en la notación correcta; para cualquier otro modelo, no
+   cambia nada -- se deja tal cual llegó. */
+function normalizaModelo(mo){
+  const m=String(mo||'').trim().toUpperCase();
+  if(m.startsWith('PORTER')) return 'PORTER II';
+  if(m.startsWith('BONGO')) return 'BONGO III';
+  return mo;
+}
 function esTrabajoPorCaMo(mo,ca){ return !!CARROC_TRABAJO[String(ca||'').trim().toUpperCase()]||esModeloTrabajo(mo); }
 const MOTOR_GASOLINA_MODELOS=['VELOSTER'];   /* salvo estos, todo parte en diésel -- son muy pocos los que son a gasolina (André) */
 function motorSugerido(mo){ return MOTOR_GASOLINA_MODELOS.includes(String(mo||'').trim().toUpperCase())?'BENCINA':'DIESEL'; }
@@ -8259,7 +8284,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   if(!ch){toast('Falta el chasis');return}
   if(IDX[ch]){toast('Ese chasis ya existe');return}
   if(!RXCH.test(ch)&&!nvWarn){nvWarn=true;toast('Formato inusual · toca de nuevo si está correcto');return}
-  const ma=$('#nvMa').value.trim().toUpperCase(), mo=$('#nvMo').value.trim().toUpperCase();
+  const ma=$('#nvMa').value.trim().toUpperCase(), mo=normalizaModelo($('#nvMo').value.trim().toUpperCase());
   if(!ma||!mo){toast('Falta marca o modelo');return}
   if(!avisaProvSiParecido($('#nvProv').value)) return;
   const an=pnum($('#nvAn').value)||null;
@@ -8353,7 +8378,7 @@ $('#evAn').addEventListener('input',evSvActualizar);
 $('#evTp').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#evOk').addEventListener('click',()=>{
   const ch=editing, v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
-  const ma=$('#evMa').value.trim().toUpperCase(), mo=$('#evMo').value.trim().toUpperCase();
+  const ma=$('#evMa').value.trim().toUpperCase(), mo=normalizaModelo($('#evMo').value.trim().toUpperCase());
   if(!ma||!mo){toast('Falta marca o modelo');return}
   v.ma=ma; v.mo=mo;
   v.an=pnum($('#evAn').value)||null;
@@ -8425,7 +8450,7 @@ $('#rxBtn').addEventListener('click',async()=>{
     const moU=String(e.mo||'').toUpperCase(), caU=String(e.ca||'').toUpperCase();
     const trab=esTrabajoPorCaMo(moU,caU);
     const pa=e.pa||(paxSugeridos(moU)?+paxSugeridos(moU):null);
-    const nv={ch:e.ch,st:'ORIGEN',ma:e.ma||'',mo:e.mo||'',an:e.an||null,ce:e.ce||'',
+    const nv={ch:e.ch,st:'ORIGEN',ma:e.ma||'',mo:normalizaModelo(e.mo)||'',an:e.an||null,ce:e.ce||'',
       cat:e.cat||'',tr:e.tr||'',pa,ca:e.ca||'S/N',tp:false,km:e.km||null,
       cif:null,fob:null,ct:null,vev:null,xc:{},
       trab, sv:!!(e.an&&e.an>=2018)&&!trab,krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',

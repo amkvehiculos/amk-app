@@ -413,7 +413,7 @@ window.storage = (function(){
   return {get, set, delete: del};
 })();
 
-const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["BLANCO","NEGRO","GRIS","PLATEADO","AZUL","ROJO","BEIGE","VERDE","NARANJA","AMARILLO","DORADO","BURDEO","MARRÓN"],"tracc":["4X2","4X4"],"motores":[["DIESEL","Diésel"],["BENCINA","Bencina"]],"trans":[["AUTOMATICA","Automática"],["MECANICA","Mecánica"]],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
+const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO III","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER II","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["BLANCO","NEGRO","GRIS","PLATEADO","AZUL","ROJO","BEIGE","VERDE","NARANJA","AMARILLO","DORADO","BURDEO","MARRÓN"],"tracc":["4X2","4X4"],"motores":[["DIESEL","Diésel"],["BENCINA","Bencina"]],"trans":[["AUTOMATICA","Automática"],["MECANICA","Mecánica"]],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
 const KEY='amkc_vehiculos', PK=c=>'amkc_fotos_'+c;
 const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=12,CAP=4.2e6;
 const RX=/^[A-Z]{2}\d{6}$/;
@@ -444,8 +444,18 @@ function pintaHK(){const n=L.filter(v=>!v.soloReferencia).length;const h=$('#hk'
  if(h)h.textContent='Corea '+horaKR()+' · '+n+' cargado'+(n===1?'':'s')}
 function horaKR(){try{return new Intl.DateTimeFormat('es-CL',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'}).format(new Date())}catch(e){return''}}
 
+/* Migración de una sola vez (pc10): corrige vehículos ya cargados con "PORTER"/"BONGO" a
+   secas, o con número arábigo, a la notación correcta. Si no hay nada que corregir, no toca
+   nada ni guarda de más. */
+function migraModelosPorterBongo(){
+  let n=0;
+  L.forEach(v=>{ const corr=normalizaModelo(v.mo); if(corr && corr!==v.mo){ v.mo=corr; n++; } });
+  if(n){ save(); }
+  return n;
+}
 async function boot(){
   try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
+  migraModelosPorterBongo();
   try{const r=await window.storage.get('amkc_prov');if(r&&r.value)PROV=JSON.parse(r.value)}catch(e){console.error('boot PROV',e); PROV=[]}
   PROV=[...new Map(PROV.map(p=>[String(p).trim().toUpperCase(),String(p).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_cont');if(r&&r.value)CONT=JSON.parse(r.value)}catch(e){console.error('boot CONT',e); CONT=[]}
@@ -982,6 +992,15 @@ function chips(id,arr,key){
 function chipsPar(id,arr,key){
   $(id).innerHTML=arr.map(([v,t])=>`<button data-k="${key}" data-v="${v}" aria-pressed="${sel[key]===v}">${t}</button>`).join('');
 }
+/* Mismo arreglo que en Sistema (sis/patch51.py): Porter/Bongo se guardan siempre con su
+   numeración en número romano, sin importar cómo se haya escrito. Para cualquier otro modelo,
+   no cambia nada. */
+function normalizaModelo(mo){
+  const m=String(mo||'').trim().toUpperCase();
+  if(m.startsWith('PORTER')) return 'PORTER II';
+  if(m.startsWith('BONGO')) return 'BONGO III';
+  return mo;
+}
 function marcas(){return [...new Set([...OPT.marcas,...EXTRA.marcas])].sort()}
 function modelos(ma){return [...new Set([...(OPT.modelos[ma]||[]),...((EXTRA.modelos||{})[ma]||[])])].sort()}
 function opts(){
@@ -1075,7 +1094,7 @@ $('#fmOk').addEventListener('click',async()=>{
   }
   if(!sel.ma){irA();toast('Elige la marca');return}
   const moNew=$('#fMoNew').value.trim().toUpperCase();
-  const mo=(moNew&&!$('#fMoNew').hidden)?moNew:(sel.mo||''); if(!mo){irA();toast('Falta el modelo');return}
+  const mo=normalizaModelo((moNew&&!$('#fMoNew').hidden)?moNew:(sel.mo||'')); if(!mo){irA();toast('Falta el modelo');return}
   if(!modelos(sel.ma).includes(mo)){
     EXTRA.modelos=EXTRA.modelos||{};
     EXTRA.modelos[sel.ma]=[...(EXTRA.modelos[sel.ma]||[]),mo];
