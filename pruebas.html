@@ -573,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 15:39 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 16:14 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1062,8 +1062,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div id="secCorea" hidden>
     <p style="color:var(--mute);font-size:13.5px;margin:0 0 12px">Lo que se compró o reparó en Corea, en wones. Si tu mamá no lo cargó desde su app, anótalo acá.</p>
     <p id="scCoreaBloq" hidden style="color:var(--amber);font-size:12.5px;margin:0 0 12px">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>
-    <div id="scCoreaValorWrap" hidden style="margin-bottom:13px"><div class="fld"><label for="scCoreaValor">Valor de compra (₩)</label>
-      <input id="scCoreaValor" inputmode="numeric" placeholder="0"></div></div>
+    <div id="scCoreaValorWrap" hidden style="margin-bottom:13px"><div class="fld"><label for="scCoreaValor">Valor de compra</label>
+      <span style="display:flex;align-items:center;gap:6px"><input id="scCoreaValor" inputmode="numeric" placeholder="0" style="flex:1"> ₩</span></div></div>
     <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Este vehículo no está vinculado a ningún embarque, así que el valor de compra no se puede editar desde acá -- se agrega al crear o cargar el embarque.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
@@ -3342,6 +3342,7 @@ function drawCostList(){
 $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');if(!b)return;
   scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'));
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
+$('#scCoreaValor').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
 $('#scCoreaGuardar').addEventListener('click',guardaScCorea);
 $('#scOk').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value, ac=pnum($('#scA').value);
@@ -4441,6 +4442,7 @@ function pintaFlujo(){
   const ceEl=$('#fcEmergCLP'); if(ceEl && document.activeElement!==ceEl) ceEl.value=FLOWCFG.emergCLP?clp(FLOWCFG.emergCLP):'';
   const ueEl=$('#fcEmergUSD'); if(ueEl && document.activeElement!==ueEl) ueEl.value=(FLOWCFG.emergUSD||FLOWCFG.emergUSD===0)?obs2(FLOWCFG.emergUSD):'';
 }
+$('#fcEmergCLP').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#fcGuardar').addEventListener('click',async()=>{
   FLOWCFG.emergCLP=pnum($('#fcEmergCLP').value)||0;
   FLOWCFG.emergUSD=pdec($('#fcEmergUSD').value)||0;
@@ -8420,13 +8422,18 @@ $('#rxBtn').addEventListener('click',async()=>{
   const nuevos=[];
   for(const e of d){
     if(!e.ch||have.has(e.ch)) continue;
-    const TR={'BARANDA':1,'BARANDA BAJA':1,'FREEZER':1,'GAVIOTA':1,'CAJÓN SIMPLE':1,'POWER GATE':1};
-    nuevos.push({ch:e.ch,st:'ORIGEN',ma:e.ma||'',mo:e.mo||'',an:e.an||null,ce:e.ce||'',
-      cat:e.cat||'',tr:e.tr||'',pa:e.pa||null,ca:e.ca||'S/N',tp:false,km:e.km||null,
+    const moU=String(e.mo||'').toUpperCase(), caU=String(e.ca||'').toUpperCase();
+    const trab=esTrabajoPorCaMo(moU,caU);
+    const pa=e.pa||(paxSugeridos(moU)?+paxSugeridos(moU):null);
+    const nv={ch:e.ch,st:'ORIGEN',ma:e.ma||'',mo:e.mo||'',an:e.an||null,ce:e.ce||'',
+      cat:e.cat||'',tr:e.tr||'',pa,ca:e.ca||'S/N',tp:false,km:e.km||null,
       cif:null,fob:null,ct:null,vev:null,xc:{},
-      trab:!!TR[e.ca]||String(e.mo||'').toUpperCase().startsWith('PORTER')||String(e.mo||'').toUpperCase().startsWith('BONGO'),
-      sv:!!(e.an&&e.an>=2018)&&!(!!TR[e.ca]||String(e.mo||'').toUpperCase().startsWith('PORTER')||String(e.mo||'').toUpperCase().startsWith('BONGO')),krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',
-      prov:e.prov||'',cc:e.cc||{}});
+      trab, sv:!!(e.an&&e.an>=2018)&&!trab,krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',
+      motor:e.motor||motorSugerido(moU), cil:e.cil||cilSugerida(moU),
+      prov:e.prov||'',cc:e.cc||{}};
+    const trans=e.trans||transSugerida(trab);
+    if(trans) nv.zof={trans};
+    nuevos.push(nv);
     have.add(e.ch);
   }
   if(!nuevos.length){toast('Esos vehículos ya estaban cargados');return}
