@@ -246,6 +246,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="chip" data-f="creando" aria-selected="false">En creación</button>
       <button class="chip" data-f="arch" aria-selected="false">Archivados</button>
     </div>
+    <button class="btn b-sec" id="irLlegaron" type="button" style="display:none;margin-top:8px;width:100%">🚚 Marcar varios: llegaron a patio</button>
     <div id="stDepBar" style="margin:8px 0 0;display:none;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="stDepCnt" style="font-size:12.5px;color:var(--mute)"></span>
       <button class="btn b-pri" id="stDepGo" type="button" style="display:none">Archivar seleccionados</button>
@@ -572,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 00:44 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 13:32 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1061,6 +1062,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div id="secCorea" hidden>
     <p style="color:var(--mute);font-size:13.5px;margin:0 0 12px">Lo que se compró o reparó en Corea, en wones. Si tu mamá no lo cargó desde su app, anótalo acá.</p>
     <p id="scCoreaBloq" hidden style="color:var(--amber);font-size:12.5px;margin:0 0 12px">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>
+    <div id="scCoreaValorWrap" hidden style="margin-bottom:13px"><div class="fld"><label for="scCoreaValor">Valor de compra (₩)</label>
+      <input id="scCoreaValor" inputmode="numeric" placeholder="0"></div></div>
+    <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Este vehículo no está vinculado a ningún embarque, así que el valor de compra no se puede editar desde acá -- se agrega al crear o cargar el embarque.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
     <div class="sact" style="margin-top:11px" id="scCoreaGuardarWrap"><button class="ok" id="scCoreaGuardar">Guardar costos Corea</button></div>
@@ -1377,7 +1381,7 @@ const colorDe=ce=>COL[ce]||COLU[String(ce||'').trim().toUpperCase()]||'#8A9296';
 let IDX=Object.fromEntries(V.map(v=>[v.ch,v]));
 let S={};                 // chasis -> {sold,price,date,pub,of,pprice,costs:[]}
 let tab='pStock', fS='patio', q='', qv='', tv={pub:0,of:0}, editing=null, scCat='OBLIG', per='hoy';
-let depurando=false, depSel=new Set();
+let depurando=false, depSel=new Set(), depModo='arch';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
@@ -2868,13 +2872,18 @@ function cardS(v){
      ? `<button class="btn b-pri" data-confcrea="${v.ch}" style="flex:1 1 100%">✓ Confirmar y enviar a Stock</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button><button class="btn b-sec" data-descartacrea="${v.ch}">✕ Descartar</button>`
      : v.baja
      ? `<button class="btn b-pri" data-restaura="${v.ch}" style="flex:1 1 100%">↩ Restaurar a Stock</button>`
-     : (depurando
-       ? `<label class="btn b-sec" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 100%"><input type="checkbox" class="depChk" data-arch="${v.ch}" ${depSel.has(v.ch)?'checked':''}> Marcar para archivar</label>`
-       : (isS
-         ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-         : (v.st==='ORIGEN'
-           ? `<button class="btn b-pri" data-lleg="${v.ch}" style="flex:1 1 100%">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-           : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`)))}
+     : (()=>{
+         const normal = isS
+           ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
+           : (v.st==='ORIGEN'
+             ? `<button class="btn b-pri" data-lleg="${v.ch}" style="flex:1 1 100%">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
+             : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`);
+         if(!depurando) return normal;
+         if(depModo==='lleg') return (!isS && v.st==='ORIGEN')
+           ? `<label class="btn b-sec" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 100%"><input type="checkbox" class="depChk" data-lleg2="${v.ch}" ${depSel.has(v.ch)?'checked':''}> Marcar para enviar a patio</label>`
+           : normal;
+         return `<label class="btn b-sec" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 100%"><input type="checkbox" class="depChk" data-arch="${v.ch}" ${depSel.has(v.ch)?'checked':''}> Marcar para archivar</label>`;
+       })()}
    </div>
    <div class="acts acts2 c${2+(nf?1:0)+(isS?0:1)>3?4:2+(nf?1:0)+(isS?0:1)}">
      <button class="btn b-sec" data-photo="${v.ch}">▣ Fotos${nf?' · '+nf:''}</button>
@@ -3520,31 +3529,49 @@ $('#qv').addEventListener('input',e=>{qv=e.target.value;drawVit()});
 $$('#pStock .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true');fS=c.dataset.f;
-  if(fS==='arch'){depurando=false;depSel.clear();}
+  if(fS!=='camino'){depurando=false;depSel.clear();depModo='arch';}
+  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none';
   pintaDepBar();drawStock()}));
 function pintaDepBar(){
   const n=depSel.size;
   $('#stDepBar').style.display=depurando?'flex':'none';
   $('#stDepCnt').textContent=n+(n===1?' seleccionado':' seleccionados');
   $('#stDepGo').style.display=n?'':'none';
+  $('#stDepGo').textContent=depModo==='lleg'?'Enviar seleccionados a patio':'Archivar seleccionados';
+  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none';
 }
 document.addEventListener('change',e=>{
   const c=e.target.closest('.depChk'); if(!c)return;
-  const ch=c.dataset.arch;
+  const ch=c.dataset.arch||c.dataset.lleg2;
   if(c.checked) depSel.add(ch); else depSel.delete(ch);
   pintaDepBar();
 });
 $('#stDepCancel').addEventListener('click',()=>{
-  depurando=false; depSel.clear(); pintaDepBar(); drawStock();
+  depurando=false; depSel.clear(); depModo='arch'; pintaDepBar(); drawStock();
 });
 $('#irDepurar').addEventListener('click',()=>{
   show('pStock');
   $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected',x.dataset.f==='patio'?'true':'false'));
-  fS='patio'; depurando=true; depSel.clear(); pintaDepBar(); drawStock();
+  fS='patio'; depurando=true; depModo='arch'; depSel.clear(); pintaDepBar(); drawStock();
+});
+$('#irLlegaron').addEventListener('click',()=>{
+  depurando=true; depModo='lleg'; depSel.clear(); pintaDepBar(); drawStock();
 });
 $('#stDepGo').addEventListener('click',()=>{
   if(!depSel.size) return;
   const lista=[...depSel].map(ch=>{const v=IDX[ch]; return v?(v.ma+' '+v.mo+' ('+v.ch+')'):ch});
+  if(depModo==='lleg'){
+    if(!confirm('Vas a marcar '+depSel.size+' vehículo'+(depSel.size===1?'':'s')+' como llegados a Iquique (pasan a "En patio"):\n\n'+lista.join('\n')+'\n\n¿Confirmas?')) return;
+    const hoy=iso();
+    depSel.forEach(ch=>{const v=IDX[ch]; if(v){v.st='IQQ'; v.llp=hoy;}});
+    guardaCacheV();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+    if(typeof webSyncPronto==='function') webSyncPronto();
+    depurando=false; depSel.clear(); depModo='arch'; pintaDepBar();
+    toast('Pasaron a patio');
+    draw();
+    return;
+  }
   if(!confirm('Vas a archivar '+depSel.size+' vehículo'+(depSel.size===1?'':'s')+':\n\n'+lista.join('\n')+'\n\nNo se borran: quedan guardados aparte, en "Archivados", y se pueden restaurar cuando quieras. No se marcan como vendidos.\n\n¿Confirmas?')) return;
   const hoy=iso();
   depSel.forEach(ch=>{const v=IDX[ch]; if(v){v.baja=true; v.bajaFe=hoy;}});
@@ -7680,6 +7707,22 @@ $('#emVNAdd').addEventListener('click',async()=>{
 });
 let emBlPreview=null;
 let emBlNum=null;
+/* Si el chasis ya tiene un valor de compra guardado en algún embarque (por ejemplo, cargado a
+   mano desde ＄Costos > Corea), se usa ese como punto de partida en la vista previa del BL, para
+   no mostrarla vacía como si faltara -- y para que si no se toca, no se pierda ni se duplique. */
+function valorYaGuardado(ch){
+  const em=(typeof embDeVeh==='function')?embDeVeh(ch):Object.values(EMB).find(e=>(e.veh||[]).some(x=>x.ch===ch));
+  const ve=em&&(em.veh||[]).find(x=>x.ch===ch);
+  return (ve&&ve.valor)||0;
+}
+/* Igual que valorYaGuardado(), pero para los costos de taller en Corea (v.cc) -- estos SÍ viven
+   en el vehículo real (no en el embarque), así que se busca directo en IDX. Devuelve una copia
+   nueva (nunca el objeto original) para no arriesgarse a mutar v.cc por accidente al editar la
+   vista previa. */
+function ccYaGuardado(ch){
+  const v=IDX[ch];
+  return (v&&v.cc)?Object.assign({},v.cc):{};
+}
 $('#emBlBtn').addEventListener('click',()=>{
   let t=$('#emBlTxt').value.trim();
   if(!t){toast('Pega el código primero');return}
@@ -7701,8 +7744,8 @@ $('#emBlBtn').addEventListener('click',()=>{
       ch:x.ch, nuevo:!have.has(x.ch),
       ma:x.ma||'', mo:x.mo||'', an:x.an||null, ce:x.ce||'', cat:x.cat||'', tr:x.tr||'',
       pa:x.pa||null, ca:x.ca||'S/N', prov:x.prov||'', km:x.km||null, krw:x.krw||null,
-      fe:x.fe||'', nota:x.nota||'', cc:x.cc||{},
-      valor:pnum(x.valor)||0, cn:pnum(x.cn)||null, pv:pnum(x.pv)||0, cod:(x.cod||'').toUpperCase(),
+      fe:x.fe||'', nota:x.nota||'', cc:Object.assign(ccYaGuardado(x.ch), x.cc||{}),
+      valor:pnum(x.valor)||valorYaGuardado(x.ch), cn:pnum(x.cn)||null, pv:pnum(x.pv)||0, cod:(x.cod||'').toUpperCase(),
     });
   }
   if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;emBlNum=null;return}
@@ -7916,11 +7959,22 @@ const CCAT=[['BATERIA','Batería'],['ASIENTOS','Asiento'],['CROMADO','Cromado'],
             ['PISADERA','Pisadera'],['PARABRISAS','Parabrisas'],['OTRO','Otro']];
 const ccKRW=v=>v&&v.cc?Object.values(v.cc).reduce((a,b)=>a+(b||0),0):0;
 const ccCLP=v=>Math.round(ccKRW(v)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
+function embDeVeh(ch){ return Object.values(EMB).find(e=>(e.veh||[]).some(x=>x.ch===ch)); }
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
   v.cc=v.cc||{};
   const bloq=!!v.ct;   /* ya se aplicaron los costos de Zofri a este vehículo ("Aplicar costos" en Embarque) */
   $('#scCoreaBloq').hidden=!bloq;
+  const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
+  const vwrap=$('#scCoreaValorWrap'); const sinEmb=$('#scCoreaSinEmb');
+  if(veV){
+    vwrap.hidden=false; vwrap.style.display=''; sinEmb.hidden=true;
+    const inpVal=$('#scCoreaValor');
+    inpVal.value=veV.valor?Math.round(veV.valor).toLocaleString('es-CL'):'';
+    inpVal.disabled=bloq; inpVal.style.color=bloq?'var(--mute)':'var(--ink)';
+  } else {
+    vwrap.hidden=true; vwrap.style.display='none'; sinEmb.hidden=false;
+  }
   $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
     <span style="font-family:var(--body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
     <span style="white-space:nowrap;flex:0 0 auto"><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
@@ -7945,9 +7999,20 @@ async function guardaScCorea(){
   guardaCacheV();
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
+  const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
+  if(veV && !v.ct){
+    const inpVal=$('#scCoreaValor');
+    if(inpVal && !inpVal.disabled){ veV.valor=pnum(inpVal.value)||0; await guardaEmb(); }
+  }
   pintaCorea(); draw(); toast('Costos de Corea guardados ✓');
 }
 document.addEventListener('change',async e=>{
+  const valEl=e.target.closest('#scCoreaValor'); if(valEl){
+    const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v||v.ct)return;
+    const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
+    if(veV){ veV.valor=pnum(valEl.value)||0; await guardaEmb(); toast('Valor de compra guardado'); }
+    return;
+  }
   const el=e.target.closest('[data-cck]'); if(!el)return;
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v)return;
   const n=pnum(el.value)||0;
