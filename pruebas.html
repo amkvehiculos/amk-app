@@ -444,7 +444,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <button class="btn b-sec" id="emBorrar">Borrar este embarque</button></div>
       </div>
 
-      <div class="box"><h3>Vehículos del embarque</h3>
+      <details class="box" id="emAccVeh"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vehículos del embarque</h3> <span id="emAccVehStat" class="mtr"></span></summary>
         <div class="fld" style="margin-bottom:9px"><input id="emV" list="dlEmV" autocomplete="off" placeholder="Buscar vehículo"
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)">
           <datalist id="dlEmV"></datalist></div>
@@ -506,14 +506,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emVadd" style="width:100%">Agregar vehículo a BL</button>
         <div id="emLista2" style="margin-top:12px"></div>
 
-      </div>
+      </details>
 
-      <div class="box" id="boxGastosCorea" hidden><h3>Gastos generales de Corea</h3>
+      <details class="box" id="boxGastosCorea" hidden><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Gastos generales de Corea</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Compras que tu mamá anotó en su app sin asignarlas a un vehículo en particular (ej: cromados comprados en bloque). El saldo que le queda sin asignar se puede repartir en partes iguales entre todos los vehículos de este embarque.</p>
         <div id="emGastosList"></div>
-      </div>
+      </details>
 
-      <div class="box"><h3>Costos estimados (este embarque)</h3>
+      <details class="box" id="emAccEst"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos estimados (este embarque)</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
         <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
         <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
@@ -524,9 +524,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div id="emEstLista"></div>
         <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
         <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
-      </div>
+      </details>
 
-      <div class="box"><h3>Costos a repartir</h3>
+      <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
         <div class="segs" id="emCt">
           <button data-emt="contenedor" aria-pressed="true">Por contenedor</button>
           <button data-emt="vehiculo" aria-pressed="false">Por vehículo</button>
@@ -547,34 +547,34 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <button class="btn b-sec" id="emCadd" style="flex:0 0 auto;padding:10px 14px">Agregar</button>
         </div>
         <div class="money" id="emTot" style="margin-top:12px"></div>
-      </div>
+      </details>
 
-      <div class="box" id="boxAcum"><h3>Costos de período acumulados</h3>
+      <details class="box" id="boxAcum"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos de período acumulados</h3> <span id="emAccAcumStat" class="mtr"></span></summary>
         <p id="acumT"></p>
         <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px">
           <input id="acumM" inputmode="numeric" placeholder="₩0" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:15px;background:var(--paper);color:var(--ink)">
           <button class="btn b-pri" id="acumAdd" style="flex:0 0 auto;padding:10px 14px">Traer</button>
         </div>
         <div class="mtr" style="margin-top:8px">Si un mes no hubo embarque, estos costos siguen corriendo y se imputan al siguiente.</div>
-      </div>
+      </details>
 
-      <div class="box"><h3>FOB Zeta</h3>
+      <details class="box" id="emAccFob"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">FOB Zeta</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Se calcula solo, a partir del FOB y el flete de cada vehículo — igual que en el Excel. No hay nada que escribir a mano acá.</p>
         <div id="emFob"></div>
         <button class="btn b-pri" id="emFobCp" style="width:100%;margin-top:11px">➦ Copiar lista para Zofri</button>
-      </div>
+      </details>
 
-      <div class="box"><h3>Vista previa de Zofri</h3>
+      <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada vehículo en el "Detalle de Items" de Zofri, con las reglas ya confirmadas. Puertas, Asientos, Cabina y Tracción se calculan solos; el resto (VIN completo, Motor, Cilindrada, Tipo de vehículo, Encendido, Transmisión, Peso) hay que completarlo una vez por vehículo — todavía no hay de dónde sacarlo automático.</p>
         <div id="emZof"></div>
-      </div>
+      </details>
 
       <div class="box"><h3>Aplicar al stock</h3>
         <p>Guarda el costo hasta Chile calculado en cada vehículo. Reemplaza el valor que traían del Excel.</p>
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 19:02 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 19:58 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -675,20 +675,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="ghSave">Guardar</button></div>
       <div id="ghEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos en ese repositorio (es lo que permite que Instagram los tome). Usa un token de tipo "fine-grained" con permiso de Contenido: lectura y escritura, solo sobre ese repositorio. Conviene un repositorio aparte (ej. amk-media), no el de la web.</div></div>
-    <div class="box"><h3>Corregir FOB Zeta desde el Excel</h3>
-      <p>Al pasar los datos del Excel a la app, el FOB Zeta se guardó redondeado y perdió sus dos decimales. Este botón los devuelve exactos, leyendo <b>AMK_fobzeta_desde_excel.json</b>. Solo toca el FOB Zeta.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="fzBtn" style="width:100%">⚙ Corregir FOB Zeta</button></div>
-      <input type="file" id="fzFile" accept=".json,application/json" style="display:none">
-      <div id="fzEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Restaurar costo (CIF) desde el Excel</h3>
-      <p>Si algún vehículo quedó con el costo total en $0 sin que le hayas tocado nada, este botón lo repone leyendo <b>AMK_costos_desde_excel.json</b> (los mismos datos de tu Excel original). Solo completa el costo donde está vacío — nunca reemplaza uno que ya tengas cargado.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="ccxBtn" style="width:100%">⚙ Restaurar costo desde el Excel</button></div>
-      <input type="file" id="ccxFile" accept=".json,application/json" style="display:none">
-      <div id="ccxEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
     <div class="box"><h3>Depurar vehículos</h3>
       <p>Para cuando tengas vehículos subidos que ya no son parte de tu stock real -- no fue una venta, simplemente ya no los tienes. Se archivan, no se borran: los puedes ver y restaurar cuando quieras desde la pestaña "Archivados" del Stock. No es algo que necesites usar seguido.</p>
       <div class="acts"><button class="btn b-sec" id="irDepurar" style="width:100%">🗄 Depurar vehículos</button></div>
@@ -2230,83 +2216,6 @@ async function histDesdeArchivo(archivo){
   }catch(e){ console.error('histDesdeArchivo',e); pinta('✗ '+(e.message||e),'var(--red)'); }
 }
 
-/* Corrige el FOB Zeta desde un archivo {"fob":{chasis:valor}} sacado del Excel.
-   Existe porque al pasar los datos del Excel a la app en su momento el FOB Zeta
-   se guardo REDONDEADO y perdio sus dos decimales (ej: 602,76 quedo como 603).
-   Solo toca el FOB Zeta; no mira ningun otro dato. */
-async function fzCorrige(archivo){
-  const el=document.getElementById('fzEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  try{
-    pinta('Leyendo el archivo…');
-    const paq=JSON.parse(await archivo.text());
-    const tabla=(paq&&paq.fob)||paq;
-    if(!tabla || typeof tabla!=='object') throw new Error('el archivo no trae una tabla de FOB Zeta');
-    let iguales=0, cambian=0, noEstan=0;
-    const lista=[];
-    for(const ch in tabla){
-      const nuevo=Number(tabla[ch]);
-      if(!isFinite(nuevo)) continue;
-      const v=IDX[ch];
-      if(!v){ noEstan++; continue; }
-      const viejo=Number(v.fob);
-      if(isFinite(viejo) && Math.abs(viejo-nuevo)<0.005){ iguales++; continue; }
-      lista.push([ch, v.fob, nuevo]); cambian++;
-    }
-    if(!cambian){ pinta('Nada que corregir: los '+iguales+' FOB Zeta ya están exactos.','var(--green)'); return; }
-    const muestra=lista.slice(0,5).map(x=>x[0]+': '+(x[1]===undefined||x[1]===''?'(vacío)':x[1])+' → '+x[2].toFixed(2)).join('\n');
-    if(!confirm('Se van a corregir '+cambian+' FOB Zeta con el valor exacto del Excel.\n\n'
-      +muestra+(lista.length>5?('\n…y '+(lista.length-5)+' más'):'')
-      +'\n\nNo se toca ningún otro dato.\n\n¿Corregir?')) { pinta('Cancelado. No se tocó nada.'); return; }
-    for(const [ch,,nuevo] of lista) IDX[ch].fob=nuevo;
-    guardaCacheV(); draw();
-    if(typeof fbSchedulePush==='function') fbSchedulePush();
-    pinta('✓ Corregidos '+cambian+' FOB Zeta'+(iguales?(' · '+iguales+' ya estaban bien'):'')
-      +(noEstan?(' · '+noEstan+' del archivo no están en el stock'):'')
-      +'. Se están subiendo a la nube solos.','var(--green)');
-    toast('FOB Zeta corregido');
-  }catch(e){ console.error('fzCorrige',e); pinta('✗ '+(e.message||e),'var(--red)'); }
-}
-
-/* Restaura v.ct/v.cif desde un archivo {"costos":{chasis:{ct,cif}}} sacado del Excel
-   original. Existe porque se detectaron vehiculos con el costo en $0 en la app real
-   sin que el Excel original los tuviera vacios. Solo completa donde ct Y cif estan
-   vacios en la app -- nunca sobreescribe un costo que ya este cargado. */
-async function costoCorrige(archivo){
-  const el=document.getElementById('ccxEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  try{
-    pinta('Leyendo el archivo…');
-    const paq=JSON.parse(await archivo.text());
-    const tabla=(paq&&paq.costos)||paq;
-    if(!tabla || typeof tabla!=='object') throw new Error('el archivo no trae una tabla de costos');
-    let yaTenian=0, cambian=0, noEstan=0;
-    const lista=[];
-    for(const ch in tabla){
-      const dato=tabla[ch]; if(!dato) continue;
-      const ct=Number(dato.ct)||0, cif=Number(dato.cif)||0;
-      if(!ct && !cif) continue;
-      const v=IDX[ch];
-      if(!v){ noEstan++; continue; }
-      if(v.ct || v.cif){ yaTenian++; continue; }
-      lista.push([ch, ct, cif]); cambian++;
-    }
-    if(!cambian){ pinta('Nada que restaurar: no hay vehículos con costo en $0 pendientes.','var(--green)'); return; }
-    const muestra=lista.slice(0,5).map(x=>x[0]+': '+clp(x[1])).join('\n');
-    if(!confirm('Se va a restaurar el costo en '+cambian+' vehículo(s) que estaban en $0:\n\n'
-      +muestra+(lista.length>5?('\n…y '+(lista.length-5)+' más'):'')
-      +'\n\nSolo se completa donde estaba vacío -- no se toca ningún costo ya cargado.\n\n¿Restaurar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-    for(const [ch,ct,cif] of lista){ IDX[ch].ct=ct; IDX[ch].cif=cif; }
-    guardaCacheV(); draw();
-    if(typeof fbSchedulePush==='function') fbSchedulePush();
-    pinta('✓ Restaurados '+cambian+' vehículo(s)'+(yaTenian?(' · '+yaTenian+' ya tenían costo cargado'):'')
-      +(noEstan?(' · '+noEstan+' del archivo no están en el stock'):'')
-      +'. Se están subiendo a la nube solos.','var(--green)');
-    toast('Costo restaurado');
-  }catch(e){ console.error('costoCorrige',e); pinta('✗ '+(e.message||e),'var(--red)'); }
-}
-
-
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
   if(paquete && Array.isArray(paquete.vehiculos)) return paquete.vehiculos;
@@ -2463,14 +2372,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(rb) rb.addEventListener('click',()=>document.getElementById('resFile').click());
   const rf=document.getElementById('resFile');
   if(rf) rf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) resRestaurar(f); e.target.value=''; });
-  const fz=document.getElementById('fzBtn');
-  if(fz) fz.addEventListener('click',()=>document.getElementById('fzFile').click());
-  const fzf=document.getElementById('fzFile');
-  if(fzf) fzf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) fzCorrige(f); e.target.value=''; });
-  const ccx=document.getElementById('ccxBtn');
-  if(ccx) ccx.addEventListener('click',()=>document.getElementById('ccxFile').click());
-  const ccxf=document.getElementById('ccxFile');
-  if(ccxf) ccxf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) costoCorrige(f); e.target.value=''; });
   const hv=document.getElementById('histVolver');
   if(hv) hv.addEventListener('click',histVolver);
   const ha=document.getElementById('histArch');
@@ -4388,6 +4289,7 @@ function pintaEmGastos(){
   const pend=GASTOS_COREA.filter(g=>!g.prorrateo && gastoSaldo(g)>0);
   box.hidden=!pend.length;
   if(!pend.length){ el.innerHTML=''; return; }
+  box.open=true;
   const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
   const n=(e&&e.veh)?e.veh.length:0;
   el.innerHTML=pend.map(g=>{
@@ -6995,7 +6897,7 @@ $('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]'
 // pierde si cambias de categoría (Pintura → Mecánica) sin apretar "Guardar estimados".
 $('#emEstLista').addEventListener('input',e=>{
   const inp=e.target.closest('[data-emestmonto]'); if(!inp) return;
-  const n=pnum(inp.value); inp.value=n===''?'':n.toLocaleString('es-CL');   /* separador de miles en vivo */
+  const n=pnum(inp.value); fmtVivo(inp,()=>n===''?'':n.toLocaleString('es-CL'));   /* separador de miles en vivo, sin saltar el cursor */
   emEstDraftCat()[inp.dataset.emestmonto]=inp.value;
 });
 $('#emEstTodosBtn').addEventListener('click',()=>{
@@ -7211,6 +7113,29 @@ function embCalc(){
   return {n,tCont,tIgual,comBanco,comFlete,sumVal,total:tCont+tIgual+comBanco,filas,
           repartido:filas.reduce((a,f)=>a+f.asignado,0)};
 }
+function emAccAbre(){
+  const e=E(); if(!e) return;
+  const nVeh=(e.veh||[]).length;
+  const okVeh=nVeh>0;
+  const okCt=(e.costos||[]).some(c=>c.tipo!=='periodo' && c.monto>0);
+  const acumOk=(e.costos||[]).some(c=>c.n==='Costos de período acumulados');
+  const vs=document.getElementById('emAccVehStat');
+  if(vs) vs.textContent=nVeh?(nVeh+' vehículo'+(nVeh===1?'':'s')):'sin vehículos todavía';
+  const cs=document.getElementById('emAccCtStat');
+  if(cs) cs.textContent=okCt?'✓ cargados':'sin costos todavía';
+  const as=document.getElementById('emAccAcumStat');
+  if(as) as.textContent=acumOk?'✓ imputado':'pendiente';
+  const dVeh=document.getElementById('emAccVeh'), dEst=document.getElementById('emAccEst'),
+        dCt=document.getElementById('emAccCt'), dAcum=document.getElementById('boxAcum'),
+        dFob=document.getElementById('emAccFob'), dZof=document.getElementById('emAccZof');
+  if(dVeh) dVeh.open=!okVeh;
+  if(dEst) dEst.open=okVeh && !okCt;
+  if(dCt) dCt.open=okVeh && !okCt;
+  if(dAcum) dAcum.open=okVeh && okCt && !acumOk;
+  const listo=okVeh && okCt && acumOk;
+  if(dFob) dFob.open=listo;
+  if(dZof) dZof.open=listo;
+}
 function pintaEmb(){
   const e=E(); if(!e) return;
   $('#emNom').value=e.nom||''; $('#emCont').value=e.cont||'';
@@ -7295,6 +7220,7 @@ function pintaEmb(){
     ? `Van <b>${meses} mes${meses===1?'':'es'}</b> desde el último embarque. A ₩${Math.round(acumKRW).toLocaleString('es-CL')} mensuales son <b>₩${Math.round(acumKRWTotal).toLocaleString('es-CL')}</b> <span style="color:var(--mute)">(≈ ${clp(Math.round(acumKRWTotal*(typeof tcKRW!=='undefined'?tcKRW:0.685)))})</span>.`
     : 'Sin meses acumulados desde el último embarque.';
   const am=$('#acumM'); if(am && !am.value) am.value=acumKRWTotal?Math.round(acumKRWTotal).toLocaleString('es-CL'):'';
+  emAccAbre();
   {
     const grupos2={};
     (r?r.filas:[]).forEach((f,i)=>{const cn=f.cn||1; (grupos2[cn]=grupos2[cn]||[]).push({...f,_i:i})});
@@ -7633,7 +7559,8 @@ function pintaEmBlPreview(){
     +'<div class="fld" style="margin-bottom:12px"><label>Número de BL</label><input id="emBlNumInp" value="'+escN(emBlNum||'')+'" placeholder="Ej: MSCUXXXXXXX"></div>'
     +emBlPreview.map((x,i)=>{
       const cn=x.cn||1;
-      const cab=cn!==cnAnt ? (cnAnt=cn,`<div style="margin:10px 0 6px;font-weight:700;font-size:12.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em">Contenedor ${cn} <span id="emblSum-${cn}">${emblSumaHtml(gruposBl[cn])}</span></div>`) : '';
+      const esPrimero=cnAnt===null;
+      const cab=cn!==cnAnt ? (cnAnt=cn,(esPrimero?'':'</details>')+`<details open style="margin:10px 0 10px"><summary style="cursor:pointer;font-weight:700;font-size:12.5px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em">Contenedor ${cn} <span id="emblSum-${cn}">${emblSumaHtml(gruposBl[cn])}</span></summary>`) : '';
       const camposNuevo=x.nuevo?`
         <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fld"><label>Marca</label><input data-eblf="${i}|ma" list="dlNvMa" autocapitalize="characters" value="${esc(x.ma)}"></div>
@@ -7673,6 +7600,7 @@ function pintaEmBlPreview(){
         <button class="b-und" data-ebldel="${i}" style="margin-top:10px">✕ Quitar de la lista</button>
       </div>`;
     }).join('')
+    +(emBlPreview.length?'</details>':'')
     +'<div class="acts"><button class="btn b-sec" id="emBlCancelar" type="button">Cancelar</button><button class="btn b-pri" id="emBlConfirmar" type="button">Confirmar y guardar</button></div>';
 }
 document.addEventListener('input',e=>{
@@ -7682,7 +7610,7 @@ document.addEventListener('input',e=>{
   if(!emBlPreview[i]) return;
   if(field==='an'||field==='pa'||field==='cn') emBlPreview[i][field]=pnum(f.value)||null;
   else if(field==='valor'){
-    const n=pnum(f.value); f.value=n===''?'':n.toLocaleString('es-CL');   /* separador de miles en vivo */
+    const n=pnum(f.value); fmtVivo(f,()=>n===''?'':n.toLocaleString('es-CL'));   /* separador de miles en vivo, sin saltar el cursor */
     emBlPreview[i][field]=n||0;
   }
   else if(field==='pv') emBlPreview[i][field]=pnum(f.value)||0;
@@ -7695,7 +7623,7 @@ document.addEventListener('input',e=>{
   const cc=e.target.closest('[data-eblcc]'); if(!cc||!emBlPreview) return;
   const [iStr,key]=cc.dataset.eblcc.split('|'); const ic=+iStr;
   if(!emBlPreview[ic]) return;
-  const n=pnum(cc.value); cc.value=n===''?'':n.toLocaleString('es-CL');
+  const n=pnum(cc.value); fmtVivo(cc,()=>n===''?'':n.toLocaleString('es-CL'));   /* separador de miles en vivo, sin saltar el cursor */
   emBlPreview[ic].cc=emBlPreview[ic].cc||{};
   if(n) emBlPreview[ic].cc[key]=n; else delete emBlPreview[ic].cc[key];
   const tot=document.getElementById('eblccTot-'+ic); if(tot) tot.innerHTML=emblCCTotHtml(emBlPreview[ic].cc);
