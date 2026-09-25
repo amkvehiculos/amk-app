@@ -472,7 +472,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="fld"><label for="emVNCatSel">Categoría</label><select id="emVNCatSel"></select>
               <input id="emVNCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
-            <div class="fld"><label for="emVNCaSel">Carrocería</label><select id="emVNCaSel"></select>
+            <div class="fld" id="emVNCaWrap"><label for="emVNCaSel">Carrocería</label><select id="emVNCaSel"></select>
               <input id="emVNCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
           </div>
           <div class="fld"><label for="emVNTrans">Transmisión (para Zofri, opcional)</label>
@@ -573,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 13:32 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 15:39 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -924,7 +924,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvCatSel">Categoría</label><select id="nvCatSel"></select>
           <input id="nvCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
-        <div class="fld"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
+        <div class="fld" id="nvCaWrap"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
           <input id="nvCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
       </div>
       <div class="fld"><label for="nvTrans">Transmisión (para Zofri, opcional)</label>
@@ -1055,7 +1055,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <input id="tkNota" placeholder="Ej: golpe puerta trasera derecha"></div>
   <div class="fld"><label for="tkEst">Costo estimado (opcional)</label>
     <input id="tkEst" inputmode="numeric" placeholder="$0"><div class="sug" id="tkSug"></div></div>
-  <div class="sact" style="margin-bottom:13px"><button class="ok" id="tkAdd">Agregar</button></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="tkAdd">Agregar</button></div>
   <div id="tkList"></div>
   </div>
 
@@ -1067,7 +1067,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Este vehículo no está vinculado a ningún embarque, así que el valor de compra no se puede editar desde acá -- se agrega al crear o cargar el embarque.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
-    <div class="sact" style="margin-top:11px" id="scCoreaGuardarWrap"><button class="ok" id="scCoreaGuardar">Guardar costos Corea</button></div>
+    <div class="sact fija" id="scCoreaGuardarWrap"><button class="cx" data-close>Cerrar</button><button class="ok" id="scCoreaGuardar">Guardar costos Corea</button></div>
   </div>
   <div id="secReal">
   <div class="note" id="scAviso" hidden style="margin-bottom:12px">Este vehículo ya está vendido. Lo que registres se contará como <b>gasto posventa</b> y se descontará del margen.</div>
@@ -1086,11 +1086,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="fld" id="scAbWrap" hidden><label for="scAb">Monto abonado ahora</label>
     <input id="scAb" inputmode="numeric" placeholder="$0"></div>
   <div class="fld"><label for="scD">Fecha</label><input id="scD" type="date"></div>
-  <div class="sact" style="margin-bottom:13px"><button class="ok" id="scOk">Guardar costo</button></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="scOk">Guardar costo</button></div>
   <div id="scList"></div>
   </div>
-
-  <div class="sact" style="margin-top:11px"><button class="cx" data-close>Cerrar</button></div>
 </div>
 
 <div class="sheet" id="shEditVeh">
@@ -1118,14 +1116,16 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="fld"><label for="evCatSel">Categoría</label><select id="evCatSel"></select>
       <input id="evCat" placeholder="Escribe la categoría" style="margin-top:6px" hidden></div>
-    <div class="fld"><label for="evCaSel">Carrocería</label><select id="evCaSel"></select>
+    <div class="fld" id="evCaWrap"><label for="evCaSel">Carrocería</label><select id="evCaSel"></select>
       <input id="evCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
   </div>
+  <div class="fld"><label for="evTrans">Transmisión (para Zofri, opcional)</label>
+    <select id="evTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
   <div class="fld"><label for="evProvSel">Proveedor</label><select id="evProvSel"></select>
     <input id="evProv" list="dlNvProv" autocapitalize="characters" placeholder="Escribe el proveedor" style="margin-top:6px" hidden></div>
   <div class="fld"><label>Otros</label><div class="catg" style="grid-template-columns:1fr 1fr">
     <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button>
-    <button class="cg" type="button" id="evSv" aria-pressed="false">Sello verde</button></div></div>
+    <button class="cg" type="button" id="evSv" aria-pressed="false" disabled tabindex="-1" style="pointer-events:none" title="Se calcula solo: año 2018 en adelante y que no sea vehículo de trabajo">Sello verde (automático)</button></div></div>
   <div class="mtr" style="margin-top:4px">Corrige los datos del vehículo (no toca estado, ventas ni costos). Se sincroniza solo con la nube.</div>
   <div class="sact fija"><button class="cx" data-close>Cancelar</button><button class="ok" id="evOk">Guardar</button></div>
 </div>
@@ -7656,6 +7656,9 @@ $('#emVNTrans').addEventListener('change',()=>{emVNTransTocado=true});
 $('#emVNMo').addEventListener('input',emVNTransSugerir);
 $('#emVNCa').addEventListener('input',emVNTransSugerir);
 emVNTransSugerir();
+function emVNCaVis(){ const w=$('#emVNCaWrap'); if(w) w.hidden=!esModeloTrabajo($('#emVNMo').value); }
+$('#emVNMo').addEventListener('input',emVNCaVis);
+emVNCaVis();
 $('#emVNVin').addEventListener('input',()=>{
   const vin=$('#emVNVin').value.trim().toUpperCase();
   if(vin.length===17){ $('#emVNCh').value=vin.slice(-8); $('#emVNCh').dispatchEvent(new Event('input')); }
@@ -7694,6 +7697,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   ['emVNVin','emVNCh','emVNMa','emVNMo','emVNAn','emVNCe','emVNTr','emVNPa','emVNCat','emVNCa','emVNTrans','emVNProv','emVNVenta','emVNMin'].forEach(i=>$('#'+i).value='');
   $('#emVNTr').value='4X2';
   $('#emVNChT').textContent=''; emVNTransTocado=false; emVNTransSugerir();
+  emVNCaVis();
   if(typeof selOtroReset==='function') selOtroReset();
   if(typeof listasNv==='function') listasNv();
   $('#dlEmV').innerHTML=V.map(x=>`<option value="${x.ma} ${x.mo} ${x.an||''} · ${x.ch}">`).join('');
@@ -7746,6 +7750,7 @@ $('#emBlBtn').addEventListener('click',()=>{
       pa:x.pa||null, ca:x.ca||'S/N', prov:x.prov||'', km:x.km||null, krw:x.krw||null,
       fe:x.fe||'', nota:x.nota||'', cc:Object.assign(ccYaGuardado(x.ch), x.cc||{}),
       valor:pnum(x.valor)||valorYaGuardado(x.ch), cn:pnum(x.cn)||null, pv:pnum(x.pv)||0, cod:(x.cod||'').toUpperCase(),
+      motor:x.motor||'', cil:x.cil||'', trans:x.trans||'',
     });
   }
   if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;emBlNum=null;return}
@@ -7870,10 +7875,16 @@ document.addEventListener('click',async e=>{
     for(const x of emBlPreview){
       const ch=x.ch;
       if(!have.has(ch)){
+        const moU=String(x.mo||'').toUpperCase(), caU=String(x.ca||'').toUpperCase();
+        const trabBl=esTrabajoPorCaMo(moU,caU);
+        const paBl=x.pa||(paxSugeridos(moU)?+paxSugeridos(moU):null);
         const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:x.mo||'',an:x.an||null,ce:x.ce||'',
-          cat:x.cat||'',tr:x.tr||'',pa:x.pa||null,ca:x.ca||'S/N',tp:false,km:x.km||null,
-          cif:null,fob:null,ct:null,vev:null,xc:{},trab:false,sv:false,krw:x.krw||null,
+          cat:x.cat||'',tr:x.tr||'',pa:paBl,ca:x.ca||'S/N',tp:false,km:x.km||null,
+          cif:null,fob:null,ct:null,vev:null,xc:{},trab:trabBl,sv:!!(x.an&&x.an>=2018)&&!trabBl,krw:x.krw||null,
+          motor:x.motor||motorSugerido(moU),cil:x.cil||cilSugerida(moU),
           fe:x.fe||iso(),nota:x.nota||'',prov:(x.prov||'').trim().toUpperCase(),cc:x.cc||{},creando:true};
+        const transBl=x.trans||transSugerida(trabBl);
+        if(transBl) nv.zof={trans:transBl};
         nuevos.push(nv); have.add(ch);
       }
       const pv=pnum(x.pv)||0;
@@ -7983,7 +7994,7 @@ function pintaCorea(){
   const t=ccKRW(v);
   $('#scCoreaT').innerHTML=t?`<div>Total en Corea <b>${Math.round(t).toLocaleString('es-CL')} ₩</b></div>
     <div>En pesos <b>${clp(ccCLP(v))}</b></div>`:'';
-  const wrap=$('#scCoreaGuardarWrap'); if(wrap){ wrap.hidden=bloq; wrap.style.display=bloq?'none':''; }
+  const btnG=$('#scCoreaGuardar'); if(btnG){ btnG.hidden=bloq; btnG.style.display=bloq?'none':''; }
 }
 async function guardaScCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
@@ -8190,6 +8201,18 @@ function listasNv(){
   $('#dlNvProv').innerHTML=selOtroValores('prov').map(x=>`<option value="${x}">`).join('');
   selOtroPinta();
 }
+/* ---- patch47: sugerencias automáticas por marca/modelo al ingresar o editar un vehículo ----
+   Son sugerencias: si el campo ya tiene algo (guardado o tipeado a mano en el formulario), no se
+   pisa solo -- el usuario siempre puede cambiarlo igual. */
+const CARROC_TRABAJO={'BARANDA':1,'BARANDA BAJA':1,'FREEZER':1,'GAVIOTA':1,'CAJÓN SIMPLE':1,'POWER GATE':1};
+function esModeloTrabajo(mo){ mo=String(mo||'').trim().toUpperCase(); return mo.startsWith('PORTER')||mo.startsWith('BONGO'); }
+function esTrabajoPorCaMo(mo,ca){ return !!CARROC_TRABAJO[String(ca||'').trim().toUpperCase()]||esModeloTrabajo(mo); }
+const MOTOR_GASOLINA_MODELOS=['VELOSTER'];   /* salvo estos, todo parte en diésel -- son muy pocos los que son a gasolina (André) */
+function motorSugerido(mo){ return MOTOR_GASOLINA_MODELOS.includes(String(mo||'').trim().toUpperCase())?'BENCINA':'DIESEL'; }
+function cilSugerida(mo){ return esModeloTrabajo(mo)?'2.5':''; }
+function paxSugeridos(mo){ mo=String(mo||'').trim().toUpperCase(); return (mo.startsWith('SORENTO')||mo.includes('SANTA FE'))?'7':''; }
+function transSugerida(trab){ return trab?'MECANICA':'AUTOMATICA'; }
+
 let nvWarn=false;
 let nvTransTocado=false;
 function nvTransSugerir(){
@@ -8203,6 +8226,21 @@ $('#nvTrans').addEventListener('change',()=>{nvTransTocado=true});
 $('#nvMo').addEventListener('input',nvTransSugerir);
 $('#nvCa').addEventListener('input',nvTransSugerir);
 nvTransSugerir();
+let nvMotorTocado=false, nvCilTocado=false, nvPaTocado=false;
+function nvCaVis(){ const w=$('#nvCaWrap'); if(w) w.hidden=!esModeloTrabajo($('#nvMo').value); }
+function nvSugerirExtra(){
+  const mo=$('#nvMo').value.trim().toUpperCase();
+  if(!nvMotorTocado) $('#nvMotor').value=motorSugerido(mo);
+  if(!nvCilTocado) pintaCilSel('nvCilSel','nvCil',cilSugerida(mo));
+  if(!nvPaTocado) $('#nvPa').value=paxSugeridos(mo);
+  nvCaVis();
+}
+$('#nvMotor').addEventListener('change',()=>{nvMotorTocado=true});
+$('#nvCilSel').addEventListener('change',()=>{nvCilTocado=true});
+$('#nvCil').addEventListener('input',()=>{nvCilTocado=true});
+$('#nvPa').addEventListener('input',()=>{nvPaTocado=true});
+$('#nvMo').addEventListener('input',nvSugerirExtra);
+nvSugerirExtra();
 $('#nvVin').addEventListener('input',()=>{
   const vin=$('#nvVin').value.trim().toUpperCase();
   if(vin.length===17){ $('#nvCh').value=vin.slice(-8); $('#nvCh').dispatchEvent(new Event('input')); }
@@ -8243,6 +8281,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   $('#nvTr').value='4X2';
   $('#nvMotor').value='DIESEL'; $('#nvCilSel').value=''; $('#nvCil').hidden=true;
   $('#nvChT').textContent=''; nvTransTocado=false; nvTransSugerir();
+  nvMotorTocado=false; nvCilTocado=false; nvPaTocado=false; nvSugerirExtra();
   if(typeof selOtroReset==='function') selOtroReset();
   listasNv(); draw(); drawPick();
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
@@ -8255,6 +8294,29 @@ $('#nvAdd').addEventListener('click',async()=>{
    ficha permite corregirlo. A proposito NO toca chasis (es la llave del vehiculo),
    estado ORIGEN/patio (ya tiene "Volver a patio"/"Vendí este") ni "vehiculo de trabajo"
    (cambia supuestos de calculo en otras partes de la app, como el sello verde). */
+/* patch47: transmisión, motor, cilindrada y pasajeros se sugieren solos según el modelo -- pero
+   SOLO cuando el campo está vacío (nunca se pisa nada que ya esté guardado). El sello verde NO
+   se toca acá: ya se calcula solo al crear el vehículo (nuevo/embarque), y "Editar" es adrede
+   para vehículos ya existentes, no para recalcular datos que ya tienen. */
+let evTransTocado=false, evMotorTocado=false, evCilTocado=false, evPaTocado=false;
+function evCaVis(){ const w=$('#evCaWrap'); if(w) w.hidden=!esModeloTrabajo($('#evMo').value); }
+function evSugerir(){
+  const mo=$('#evMo').value.trim().toUpperCase(), ca=$('#evCa').value.trim().toUpperCase();
+  if(!evTransTocado && !$('#evTrans').value) $('#evTrans').value=transSugerida(esTrabajoPorCaMo(mo,ca));
+  if(!evMotorTocado && !$('#evMotor').value) $('#evMotor').value=motorSugerido(mo);
+  if(!evCilTocado && !cilVal('evCilSel','evCil')) pintaCilSel('evCilSel','evCil',cilSugerida(mo));
+  if(!evPaTocado && !$('#evPa').value) $('#evPa').value=paxSugeridos(mo);
+  evCaVis();
+}
+/* Sello verde en "Editar vehículo" ya no se puede tocar a mano (para no dejarlo "apretado"
+   distinto de lo que corresponde según año+trab) -- se recalcula solo cada vez que cambia el
+   Año. "vehiculo de trabajo" (v.trab) no se edita acá a propósito (ver comentario más arriba),
+   así que la única variable que puede cambiar el resultado desde esta ficha es el Año. */
+function evSvActualizar(){
+  const v=IDX[editing]; if(!v) return;
+  const an=pnum($('#evAn').value);
+  $('#evSv').setAttribute('aria-pressed', (!!(an&&an>=2018)&&!v.trab) ? 'true' : 'false');
+}
 function abrirEditVeh(ch){
   const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
   editing=ch;
@@ -8270,13 +8332,23 @@ function abrirEditVeh(ch){
   $('#evProv').value=v.prov||'';
   $('#evMotor').value=v.motor||''; pintaCilSel('evCilSel','evCil',v.cil||'');
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
-  $('#evSv').setAttribute('aria-pressed', v.sv?'true':'false');
+  evSvActualizar();
+  $('#evTrans').value=(v.zof&&v.zof.trans)||'';
+  evTransTocado=false; evMotorTocado=!!v.motor; evCilTocado=!!v.cil; evPaTocado=!!v.pa;
+  evSugerir();
   if(typeof listasNv==='function') listasNv();
   selOtroPinta();
   openSheet('shEditVeh');
 }
+$('#evTrans').addEventListener('change',()=>{evTransTocado=true});
+$('#evMotor').addEventListener('change',()=>{evMotorTocado=true});
+$('#evCilSel').addEventListener('change',()=>{evCilTocado=true});
+$('#evCil').addEventListener('input',()=>{evCilTocado=true});
+$('#evPa').addEventListener('input',()=>{evPaTocado=true});
+$('#evMo').addEventListener('input',evSugerir);
+$('#evCa').addEventListener('input',evSugerir);
+$('#evAn').addEventListener('input',evSvActualizar);
 $('#evTp').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
-$('#evSv').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#evOk').addEventListener('click',()=>{
   const ch=editing, v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
   const ma=$('#evMa').value.trim().toUpperCase(), mo=$('#evMo').value.trim().toUpperCase();
@@ -8293,7 +8365,9 @@ $('#evOk').addEventListener('click',()=>{
   v.prov=$('#evProv').value.trim().toUpperCase();
   v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil');
   v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
-  v.sv=$('#evSv').getAttribute('aria-pressed')==='true';
+  v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
+  const evTransVal=$('#evTrans').value;
+  if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
   guardaCacheV(); draw();
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
