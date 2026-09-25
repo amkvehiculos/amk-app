@@ -573,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 18:32<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 19:02<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -691,50 +691,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="box"><h3>Depurar vehículos</h3>
       <p>Para cuando tengas vehículos subidos que ya no son parte de tu stock real -- no fue una venta, simplemente ya no los tienes. Se archivan, no se borran: los puedes ver y restaurar cuando quieras desde la pestaña "Archivados" del Stock. No es algo que necesites usar seguido.</p>
       <div class="acts"><button class="btn b-sec" id="irDepurar" style="width:100%">🗄 Depurar vehículos</button></div>
-    </div>
-    <div class="box"><h3>Pasar "Estimado" a Valor mínimo</h3>
-      <p>Copia, una sola vez, el "Estimado" del Excel a "Valor mínimo" en cada vehículo que todavía no tenga uno cargado. No borra el Estimado ni toca el precio de venta.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="migEstBtn" style="width:100%">⚙ Pasar Estimado a Valor mínimo</button></div>
-      <div id="migEstEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Rellenar precio de venta de prueba</h3>
-      <p><b>Solo para pruebas.</b> Pone el precio de venta en "valor mínimo + $300.000" en los vehículos que todavía no tienen uno cargado, para dejar de ver los datos vacíos mientras pruebas la app. No son precios reales — se sincronizan con Vendedores igual que cualquier otro precio, así que corrígelos (o bórralos) antes de usar la app de verdad con clientes.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="rellPventaBtn" style="width:100%">⚙ Rellenar precio de venta de prueba (+$300.000)</button></div>
-      <div id="rellPventaEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Calcular equivalente en dólares en vehículos existentes</h3>
-      <p>Calcula (con el dólar de mercado actual) el equivalente en dólares del precio de venta y del valor mínimo en los vehículos que ya tienen un precio cargado pero todavía no tienen ese equivalente -- por ejemplo, los que se cargaron antes de que existiera esta función. No toca el precio en pesos, y no hace falta repetirlo salvo que aparezcan más vehículos viejos sin este dato.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="migUSDBtn" style="width:100%">⚙ Calcular equivalente en dólares en vehículos existentes</button></div>
-      <div id="migUSDEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Recuperar precios borrados (23-09-2026)</h3>
-      <p>Restaura el precio de venta y mínimo de los 14 vehículos a los que se les borró por el
-      error de sincronización de hoy, usando el respaldo del 23-09. Uso único: SOLO llena un
-      vehículo si en este aparato su precio está vacío en este momento -- nunca pisa un precio
-      ya cargado (ni el que traiga el respaldo, ni uno más nuevo).</p>
-      <div class="acts">
-        <button class="btn b-sec" id="recupPrecios2309Btn" style="width:100%">⚙ Recuperar precios borrados (23-09-2026)</button></div>
-      <div id="recupPrecios2309Estado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Borrar cascarones del BL (24-09-2026)</h3>
-      <p>Borra por completo (local y de la nube) los 30 chasis del BL de hoy que quedaron como
-      "cascarón" (sin marca/modelo) por el bug de sincronización. Solo borra los que TODAVÍA se
-      ven rotos ahora mismo -- si ya completaste alguno a mano, ese no se toca. Después puedes
-      pegar el código del BL de nuevo y van a entrar como vehículos nuevos, limpios.</p>
-      <div class="acts">
-        <button class="btn b-sec" id="borraCascaronesBlBtn" style="width:100%">🧹 Borrar cascarones del BL (24-09-2026)</button></div>
-      <div id="borraCascaronesBlEstado" class="mtr" style="margin-top:9px"></div>
-    </div>
-    <div class="box"><h3>Volver a "en creación" (BL 24-09-2026)</h3>
-      <p>Los 29 vehículos del BL de hoy que se confirmaron ANTES del arreglo de sincronización
-      quedaron "en camino" en vez de "en creación". Este botón los vuelve a poner "en creación"
-      (solo esos 29 chasis puntuales, y solo si todavía existen y no están vendidos/dados de
-      baja) para que queden junto con el resto del BL mientras lo sigues armando.</p>
-      <button class="btn b-sec" id="restauraEnCreacionBlBtn" style="width:100%">↺ Volver "en creación" los 29 del BL (24-09-2026)</button>
-      <p id="restauraEnCreacionBlEstado" style="font-size:12.5px;color:var(--mute);margin-top:8px"></p>
     </div>
     <div class="box"><h3>Historial · volver a como estaba</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
@@ -2349,143 +2305,6 @@ async function costoCorrige(archivo){
   }catch(e){ console.error('costoCorrige',e); pinta('✗ '+(e.message||e),'var(--red)'); }
 }
 
-/* Copia, una sola vez, v.vev ("Estimado", cargado en su momento desde el Excel) al
-   Valor mínimo (S[ch].pmin) de cada vehículo que todavía no tenga uno cargado.
-   No borra v.vev ni toca el precio de venta -- solo llena pmin donde falta. */
-function migraUSDPrecios(){
-  const el=document.getElementById('migUSDEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const candidatos=V.filter(v=>{ const t=st(v.ch); return (t.pventa&&!t.pventaUSD)||(t.pmin&&!t.pminUSD); });
-  if(!candidatos.length){ pinta('Nada que calcular: todos los precios cargados ya tienen su equivalente en dólares.','var(--green)'); return; }
-  const muestra=candidatos.slice(0,5).map(v=>v.ch).join(', ');
-  if(!confirm('Se va a calcular el equivalente en dólares (con el dólar de mercado de hoy) del precio de venta y/o valor mínimo en '+candidatos.length+' vehículo(s):\n\n'
-    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
-    +'\n\nNo se toca el precio en pesos.\n\n¿Calcular?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  for(const v of candidatos){
-    const t=st(v.ch);
-    if(t.pventa && !t.pventaUSD) t.pventaUSD=calcPventaUSD(t.pventa);
-    if(t.pmin && !t.pminUSD) t.pminUSD=calcPventaUSD(t.pmin);
-  }
-  save(); draw();
-  if(typeof fbSchedulePush==='function') fbSchedulePush();
-  pinta('✓ Calculado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
-  toast('Equivalente en dólares calculado');
-}
-const RECUP_PRECIOS_2309={'AA012941':[5400000,5200000],'EC282505':[9600000,9300000],'EF706197':[7400000,7100000],'EU842923':[4600000,4300000],'FW600736':[7900000,7700000],'FW641759':[7700000,7400000],'GK021203':[7700000,7400000],'GU295795':[6000000,5700000],'HB098077':[7200000,6900000],'KU048955':[13900000,13500000],'KU104839':[13800000,13400000],'LU132655':[18900000,18500000],'MS026561':[17000000,16700000],'5W634052':[3900000,3600000]};
-function recupPrecios2309(){
-  const el=document.getElementById('recupPrecios2309Estado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const candidatos=Object.keys(RECUP_PRECIOS_2309).filter(ch=>{
-    const v=IDX[ch]; if(!v) return false;
-    const t=st(ch);
-    return !t.pventa && !t.pmin;
-  });
-  if(!candidatos.length){ pinta('Nada que recuperar: ninguno de los 14 vehículos está vacío en este aparato ahora mismo.','var(--green)'); return; }
-  if(!confirm('Se va a rellenar el precio de venta y mínimo de '+candidatos.length+' vehículo(s) con el respaldo del 23-09:\n\n'
-    +candidatos.join(', ')+'\n\nSolo se llenan los que estén vacíos ahora mismo. ¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  for(const ch of candidatos){
-    const t=st(ch), [pv,pm]=RECUP_PRECIOS_2309[ch];
-    t.pventa=pv; t.pmin=pm;
-    t.pventaUSD=calcPventaUSD(pv); t.pminUSD=calcPventaUSD(pm);
-  }
-  save(); draw();
-  if(typeof fbSchedulePush==='function') fbSchedulePush();
-  pinta('✓ Recuperado en '+candidatos.length+' vehículo(s). Se están subiendo a la nube.','var(--green)');
-  toast('Precios recuperados');
-}
-const CHASIS_ROTOS_BL_2409=['HK280997','BA141392','CK224983','KS470685','GK006852','JU500967','HU357043','DU096613','KS544114','GU255940','BK021998','EA493481','EK573617','FU395308','EK533744','GK084184','FA081004','FU432757','GU259761','DK794013','GK041454','FU495654','EU748137','FU461455','FU954258','GU224807','HU349016','KU618405','HU419129','BA122938'];
-async function borraCascaronesBl2409(){
-  const el=document.getElementById('borraCascaronesBlEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const rotos=CHASIS_ROTOS_BL_2409.filter(ch=>{
-    const v=IDX[ch]; if(!v) return false;
-    return !v.ma && !v.mo;
-  });
-  if(!rotos.length){ pinta('Nada que borrar: ninguno de esos chasis se ve como cascarón roto ahora mismo en este aparato.','var(--green)'); return; }
-  if(!confirm('Se van a borrar por completo (este aparato y la nube) '+rotos.length+' vehículo(s) rotos:\n\n'
-    +rotos.join(', ')+'\n\nDespués los puedes volver a cargar pegando el código del BL de nuevo. Esto NO se puede deshacer. ¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  let enNube=0, fallosNube=0;
-  for(const ch of rotos){
-    const j=V.findIndex(v=>v.ch===ch);
-    if(j>-1) V.splice(j,1);
-    delete IDX[ch]; delete S[ch]; delete fbLastPush[ch]; delete fbPend[ch];
-    if(typeof fbReady!=='undefined' && fbReady && fbDb){
-      try{
-        await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('costos').delete().catch(()=>{});
-        await fbDb.collection(FB_COL).doc(ch).delete();
-        await fbDb.collection(WEB_COL).doc(ch).delete().catch(()=>{});
-        enNube++;
-      }catch(e){ fallosNube++; console.error('borraCascaronesBl2409',ch,e); }
-    }
-  }
-  const e=E();
-  if(e && Array.isArray(e.veh)){
-    const antes=e.veh.length;
-    e.veh=e.veh.filter(x=>!rotos.includes(x.ch));
-    if(e.veh.length!==antes) await guardaEmb();
-  }
-  guardaCacheV(true); draw(); pintaEmb();
-  pinta('✓ Borrados '+rotos.length+' vehículo(s)'+(enNube?(' ('+enNube+' también de la nube)'):'')
-    +(fallosNube?(' · '+fallosNube+' no se pudieron borrar de la nube (revisa tu conexión)'):'')
-    +'. Ya puedes pegar el código del BL de nuevo.','var(--green)');
-  toast('Cascarones borrados');
-}
-const CHASIS_EN_CREACION_BL_2409=['HK280997','BA141392','CK224983','KS470685','GK006852','JU500967','HU357043','DU096613','KS544114','GU255940','BK021998','EA493481','EK573617','FU395308','EK533744','GK084184','FA081004','FU432757','GU259761','DK794013','GK041454','FU495654','EU748137','FU461455','FU954258','GU224807','HU349016','KU618405','HU419129'];
-async function restauraEnCreacionBl2409(){
-  const el=document.getElementById('restauraEnCreacionBlEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const cand=CHASIS_EN_CREACION_BL_2409.filter(ch=>{
-    const v=IDX[ch]; if(!v) return false;
-    return !v.creando && !v.baja && !(S[ch]&&S[ch].sold);
-  });
-  if(!cand.length){ pinta('Nada que cambiar: ninguno de esos 29 sigue pendiente de volver a "en creación" en este aparato.','var(--green)'); return; }
-  if(!confirm('Se van a volver a poner "en creación" '+cand.length+' vehículo(s):\n\n'
-    +cand.join(', ')+'\n\n¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  cand.forEach(ch=>{ IDX[ch].creando=true; });
-  guardaCacheV(); draw();
-  if(typeof fbSchedulePush==='function') fbSchedulePush();
-  if(typeof webSyncPronto==='function') webSyncPronto();
-  pinta('✓ '+cand.length+' vehículo(s) de vuelta en "en creación".','var(--green)');
-  toast('Vuelven a "en creación"');
-}
-function migraEstimadoAMinimo(){
-  const el=document.getElementById('migEstEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const candidatos=V.filter(v=>v.vev && !st(v.ch).pmin);
-  if(!candidatos.length){ pinta('Nada que migrar: no hay vehículos con "Estimado" sin Valor mínimo.','var(--green)'); return; }
-  const muestra=candidatos.slice(0,5).map(v=>v.ch+': '+clp(v.vev)).join('\n');
-  if(!confirm('Se va a copiar el "Estimado" como Valor mínimo en '+candidatos.length+' vehículo(s):\n\n'
-    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
-    +'\n\nNo se borra el Estimado ni se toca el precio de venta.\n\n¿Migrar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  for(const v of candidatos) st(v.ch).pmin=v.vev;
-  save(); draw();
-  pinta('✓ Migrados '+candidatos.length+' vehículo(s) a Valor mínimo.','var(--green)');
-  toast('Valor mínimo cargado desde Estimado');
-}
-
-/* SOLO PRUEBAS: pone pventa en "pmin + $300.000" en los no vendidos que tengan
-   valor mínimo cargado y no tengan precio de venta -- para dejar de ver tarjetas
-   vacías mientras se prueba la app. Nunca sobreescribe un precio de venta ya cargado. */
-function rellenaPventaPrueba(){
-  const el=document.getElementById('rellPventaEstado');
-  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
-  const noVendidos=V.filter(v=>!sold(v.ch));
-  const sinMinimo=noVendidos.filter(v=>!st(v.ch).pmin).length;
-  const candidatos=noVendidos.filter(v=>st(v.ch).pmin&&!st(v.ch).pventa);
-  if(!candidatos.length){
-    pinta('Nada que rellenar'+(sinMinimo?(' · hay '+sinMinimo+' sin valor mínimo, no se pudo calcular'):'')+'.','var(--green)');
-    return;
-  }
-  const muestra=candidatos.slice(0,5).map(v=>v.ch+': '+clp(st(v.ch).pmin+300000)).join('\n');
-  if(!confirm('SOLO DE PRUEBA: se va a poner el precio de venta en "valor mínimo + $300.000" en '+candidatos.length+' vehículo(s) sin precio de venta:\n\n'
-    +muestra+(candidatos.length>5?('\n…y '+(candidatos.length-5)+' más'):'')
-    +'\n\nNo son precios reales -- esto se sincroniza con Vendedores.\n\n¿Continuar?')) { pinta('Cancelado. No se tocó nada.'); return; }
-  for(const v of candidatos){ const t=st(v.ch); t.pventa=t.pmin+300000; }
-  save(); draw();
-  pinta('✓ Precio de venta de prueba puesto en '+candidatos.length+' vehículo(s)'
-    +(sinMinimo?(' · '+sinMinimo+' sin valor mínimo quedaron sin tocar'):'')+'.','var(--green)');
-  toast('Precio de venta de prueba cargado');
-}
 
 function resExtrae(paquete){
   /* acepta el archivo de originales ({vehiculos:[...]}) o el respaldo completo ({datos:{...}}) */
@@ -2651,18 +2470,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(ccx) ccx.addEventListener('click',()=>document.getElementById('ccxFile').click());
   const ccxf=document.getElementById('ccxFile');
   if(ccxf) ccxf.addEventListener('change',e=>{ const f=e.target.files&&e.target.files[0]; if(f) costoCorrige(f); e.target.value=''; });
-  const me=document.getElementById('migEstBtn');
-  if(me) me.addEventListener('click',migraEstimadoAMinimo);
-  const rp2309=document.getElementById('recupPrecios2309Btn');
-  if(rp2309) rp2309.addEventListener('click',recupPrecios2309);
-  const bcbl=document.getElementById('borraCascaronesBlBtn');
-  if(bcbl) bcbl.addEventListener('click',borraCascaronesBl2409);
-  const recb=document.getElementById('restauraEnCreacionBlBtn');
-  if(recb) recb.addEventListener('click',restauraEnCreacionBl2409);
-  const mu=document.getElementById('migUSDBtn');
-  if(mu) mu.addEventListener('click',migraUSDPrecios);
-  const rp=document.getElementById('rellPventaBtn');
-  if(rp) rp.addEventListener('click',rellenaPventaPrueba);
   const hv=document.getElementById('histVolver');
   if(hv) hv.addEventListener('click',histVolver);
   const ha=document.getElementById('histArch');
