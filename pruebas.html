@@ -440,7 +440,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         </div>
         <div class="mtr" style="margin:0 0 10px">El redondeo del costo hasta Chile es automático (al múltiplo de 100.000 más 100.000, igual que en el Excel).</div>
         <div class="acts"><button class="btn b-sec" id="emNuevo">Nuevo</button>
-          <button class="btn b-sec" id="emLista">Abrir otro</button></div>
+          <button class="btn b-sec" id="emLista">Abrir otro</button>
+          <button class="btn b-sec" id="emBorrar">Borrar este embarque</button></div>
       </div>
 
       <div class="box"><h3>Vehículos del embarque</h3>
@@ -573,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 17:01 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 18:32 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1062,6 +1063,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div id="secCorea" hidden>
     <p style="color:var(--mute);font-size:13.5px;margin:0 0 12px">Lo que se compró o reparó en Corea, en wones. Si tu mamá no lo cargó desde su app, anótalo acá.</p>
     <p id="scCoreaBloq" hidden style="color:var(--amber);font-size:12.5px;margin:0 0 12px">Este vehículo ya se ingresó por Zofri: queda solo para consultar lo que se anotó antes, no se puede agregar ni cambiar nada más.</p>
+    <button class="btn b-sec" id="scCoreaDeshacer" hidden style="margin:0 0 13px">↺ Deshacer "Aplicar costos"</button>
     <div id="scCoreaValorWrap" hidden style="margin-bottom:13px"><div class="fld"><label for="scCoreaValor">Valor de compra</label>
       <span style="display:flex;align-items:center;gap:6px"><input id="scCoreaValor" inputmode="numeric" placeholder="0" style="flex:1"> ₩</span></div></div>
     <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Este vehículo no está vinculado a ningún embarque, así que el valor de compra no se puede editar desde acá -- se agrega al crear o cargar el embarque.</p>
@@ -3358,6 +3360,18 @@ $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');i
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
 $('#scCoreaValor').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
 $('#scCoreaGuardar').addEventListener('click',guardaScCorea);
+$('#scCoreaDeshacer').addEventListener('click',async()=>{
+  const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
+  if(!confirm('¿Deshacer "Aplicar costos" de '+v.ma+' '+v.mo+' ('+ch+')?\n\nSe vacían costo hasta Chile, CIF y FOB Zeta -- quedan en blanco, no se intenta recuperar el valor que traían antes de aplicar (si tenía uno del Excel, ya se perdió al aplicar). El vehículo vuelve a quedar editable.\n\nNo se toca nada más: ni los costos de taller en Corea, ni el embarque, ni el resto de la ficha.')) return;
+  v.ct=null; v.cifusd=null; v.fob=null;
+  let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
+  const idxP=prev.findIndex(p=>p.ch===ch);
+  if(idxP>=0){ prev[idxP].ct=null; prev[idxP].cifusd=null; prev[idxP].fob=null; try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){} }
+  guardaCacheV(true);
+  if(typeof fbSchedulePush==='function') fbSchedulePush();
+  if(typeof webSyncPronto==='function') webSyncPronto();
+  pintaCorea(); draw(); toast('"Aplicar costos" deshecho · vehículo editable de nuevo');
+});
 $('#scOk').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value, ac=pnum($('#scA').value);
   if(!ac){toast('Ingresa el precio acordado');return}
@@ -7954,6 +7968,15 @@ document.addEventListener('click',async e=>{
     await cp(texto,'Datos SRF copiados'); return}
 });
 $('#emNuevo').addEventListener('click',async()=>{embNuevo(); await guardaEmb(); pintaEmb(); toast('Embarque nuevo')});
+$('#emBorrar').addEventListener('click',async()=>{
+  const e=E(); if(!e) return;
+  const nVeh=(e.veh||[]).length;
+  if(!confirm('¿Borrar el embarque "'+(e.nom||e.id)+'"'+(nVeh?(' ('+nVeh+' vehículo'+(nVeh===1?'':'s')+' vinculado'+(nVeh===1?'':'s')+')'):'')+'?\n\nSolo se borra el embarque: sus costos, remesas vinculadas y la lista de qué vehículos le pertenecen. Los vehículos SIGUEN en Stock tal cual están -- si alguno fue inventado solo para probar, descártalo aparte desde su ficha.\n\nEsto no se puede deshacer.')) return;
+  delete EMB[embId];
+  const ids=Object.keys(EMB);
+  if(ids.length){ embId=ids[0]; } else { embNuevo(); }
+  await guardaEmb(); pintaEmb(); toast('Embarque borrado');
+});
 $('#emLista').addEventListener('click',async()=>{
   const ids=Object.keys(EMB);
   if(ids.length<2){toast('Solo hay un embarque');return}
@@ -7992,6 +8015,7 @@ function pintaCorea(){
   v.cc=v.cc||{};
   const bloq=!!v.ct;   /* ya se aplicaron los costos de Zofri a este vehículo ("Aplicar costos" en Embarque) */
   $('#scCoreaBloq').hidden=!bloq;
+  const btnDesh=$('#scCoreaDeshacer'); if(btnDesh) btnDesh.hidden=!bloq;
   const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
   const vwrap=$('#scCoreaValorWrap'); const sinEmb=$('#scCoreaSinEmb');
   if(veV){
