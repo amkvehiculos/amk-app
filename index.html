@@ -564,7 +564,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </details>
 
       <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
-        <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada vehículo en el "Detalle de Items" de Zofri, con las reglas ya confirmadas. Puertas, Asientos, Cabina y Tracción se calculan solos; el resto (VIN completo, Motor, Cilindrada, Tipo de vehículo, Encendido, Transmisión, Peso) hay que completarlo una vez por vehículo — todavía no hay de dónde sacarlo automático.</p>
+        <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
         <div id="emZof"></div>
       </details>
 
@@ -573,7 +573,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->25-09-2026 19:58<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 15:39<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -985,6 +985,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <div class="sheet" id="shCost">
   <h3 id="scT">Costos del vehículo</h3><div class="sb" id="scC"></div>
   <div class="fld" id="scVwrap"><label for="scV">Vehículo</label><select id="scV"></select></div>
+  <div id="scIqWrap" style="margin-bottom:13px">
+    <div class="money" id="scIqReal" style="margin-bottom:6px"></div>
+    <div class="xrow" style="align-items:center;margin-bottom:5px">
+      <span style="font-family:var(--body);font-size:12.5px">Costo estimado 1 <span style="color:var(--mute);font-size:11px">(al crear el embarque)</span></span>
+      <input id="scEst1" inputmode="numeric" placeholder="$0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
+    </div>
+    <div class="xrow" style="align-items:center">
+      <span style="font-family:var(--body);font-size:12.5px">Costo estimado 2 <span style="color:var(--mute);font-size:11px">(al llegar el vehículo)</span></span>
+      <input id="scEst2" inputmode="numeric" placeholder="$0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
+    </div>
+  </div>
   <div class="segs" id="scSegs">
     <button data-cseg="est" aria-pressed="false">Estimado</button>
     <button data-cseg="real" aria-pressed="true">Costo real</button>
@@ -1387,7 +1398,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2972,6 +2983,15 @@ document.addEventListener('click',e=>{
   const s2=e.target.closest('[data-sug2]');if(s2)$('#spP').value=clp(+s2.dataset.sug2);
 });
 
+function pintaScIq(){
+  const wrap=$('#scIqWrap'); if(!wrap) return;
+  const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null;
+  if(!v){ wrap.hidden=true; return }
+  wrap.hidden=false;
+  $('#scIqReal').innerHTML='<div>Costo real <b style="color:'+(v.ct?'var(--plata)':'var(--mute)')+'">'+(v.ct?clp(v.ct):'Pendiente')+'</b></div>';
+  if(document.activeElement!==$('#scEst1')) $('#scEst1').value=v.est1?Math.round(v.est1).toLocaleString('es-CL'):'';
+  if(document.activeElement!==$('#scEst2')) $('#scEst2').value=v.est2?Math.round(v.est2).toLocaleString('es-CL'):'';
+}
 function openCost(ch,pcat,pamt,seg){
   editing=ch||null;
   const w=$('#scVwrap');
@@ -2981,7 +3001,7 @@ function openCost(ch,pcat,pamt,seg){
     $('#scV').innerHTML=V.filter(v=>!sold(v.ch)).map(v=>`<option value="${v.ch}">${v.ma} ${v.mo} ${v.an||''} · ${v.ch}</option>`).join('');
     editing=$('#scV').value||null}
   tkCh=editing; tkCat='PINTURA'; $('#tkNota').value=''; $('#tkEst').value='';
-  drawTaskSheet(); sugEst(); cseg(seg||'real');
+  drawTaskSheet(); sugEst(); cseg(seg||'real'); pintaScIq();
   scCat=pcat||'OBLIG';
   $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value='';
@@ -3066,6 +3086,20 @@ $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');i
   scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'));
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
 $('#scCoreaValor').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
+$('#scEst1').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
+$('#scEst2').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
+$('#scEst1').addEventListener('change',()=>{
+  const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null; if(!v) return;
+  v.est1=pnum($('#scEst1').value)||null;
+  guardaCacheV(true); if(typeof fbSchedulePush==='function') fbSchedulePush(); if(typeof webSyncPronto==='function') webSyncPronto();
+  draw(); toast('Costo estimado 1 guardado');
+});
+$('#scEst2').addEventListener('change',()=>{
+  const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null; if(!v) return;
+  v.est2=pnum($('#scEst2').value)||null;
+  guardaCacheV(true); if(typeof fbSchedulePush==='function') fbSchedulePush(); if(typeof webSyncPronto==='function') webSyncPronto();
+  draw(); toast('Costo estimado 2 guardado');
+});
 $('#scCoreaGuardar').addEventListener('click',guardaScCorea);
 $('#scCoreaDeshacer').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
@@ -4961,6 +4995,11 @@ document.addEventListener('change',async e=>{
     const val=contcod.value.trim().toUpperCase();
     if(val) em.contCod[cn]=val; else delete em.contCod[cn];
     await guardaEmb(); pintaEmb(); return}
+  const zofdoc=e.target.closest('[data-zofdoc]');
+  if(zofdoc){const em=E(); if(!em)return; const k=zofdoc.dataset.zofdoc; let val=zofdoc.value.trim();
+    if(k==='pesoBL') val=parseFloat(val.replace(/\./g,'').replace(',','.'))||0;
+    else if(['buque','naviera','proveedor','manifiesto','agencia'].includes(k)) val=val.toUpperCase();
+    if(val) em[k]=val; else delete em[k]; await guardaEmb(); pintaEmZofri(); return}
   const zof=e.target.closest('[data-zof]');
   if(zof){const [ch,key]=zof.dataset.zof.split('|');
     let val=zof.value.trim();
@@ -5541,7 +5580,7 @@ $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
 $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
-$('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst()});
+$('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
   $('#tkCat').innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
   if(!tkCh){$('#tkList').innerHTML='';return}
@@ -6862,15 +6901,19 @@ document.addEventListener('change',async e=>{
   pintaEmb(); draw(); toast('Costo de taller guardado');
 });
 let emEstCat='PINTURA';
-// emEstDraft/emEstSaved viven por embarque (embId) para no mezclar el progreso de uno con otro.
+// emEstDraft vive por embarque (embId) para no mezclar el progreso de uno con otro.
 let emEstDraft={};   // {embId:{categoria:{chasis:'texto tal cual se tipeó'}}}
-let emEstSaved={};   // {embId:Set(categorías con al menos un "Guardar estimados" hecho)}
 function emEstDraftCat(){ const d=emEstDraft[embId]||(emEstDraft[embId]={}); return d[emEstCat]||(d[emEstCat]={}); }
-function emEstSavedSet(){ return emEstSaved[embId]||(emEstSaved[embId]=new Set()); }
+/* El verde de cada categoría se calcula de los datos reales (no de una bandera de sesión que se
+   perdía al refrescar): queda en verde si algún vehículo de este embarque ya tiene guardada una
+   Tarea de esa categoría, sin importar cuándo se guardó. */
+function emEstCatGuardada(k){
+  const e=E(); if(!e||!e.veh) return false;
+  return e.veh.some(x=>{ const t=S[x.ch]; return t&&t.tasks&&t.tasks.some(ta=>ta.cat===k); });
+}
 function pintaEmEst(){
   const catBox=$('#emEstCat'); if(!catBox) return;
-  const savedSet=emEstSavedSet();
-  catBox.innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${savedSet.has(k)?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${savedSet.has(k)?' ✓':''}</button>`).join('');
+  catBox.innerHTML=TCAT.map(([k,n])=>{const ok=emEstCatGuardada(k); return `<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${ok?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${ok?' ✓':''}</button>`}).join('');
   const e=E(); const lista=$('#emEstLista'); if(!lista) return;
   if(!e||!e.veh.length){ lista.innerHTML='<p style="color:var(--mute);font-size:13px;margin:8px 0 0">Sin vehículos en este embarque.</p>'; return; }
   const draft=emEstDraftCat();
@@ -6920,7 +6963,6 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     n++;
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}
-  emEstSavedSet().add(emEstCat);
   await save(); pintaEmEst(); draw();
   const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat];
   toast(msgOk);
@@ -6931,32 +6973,312 @@ const ZOF_TVEH=[['AUTOMOVIL','Automóvil'],['CAMIONETA','Camioneta'],['STATION W
 const ZOF_CAB=[['REGULAR','Regular (cabina y media)'],['DOBLE','Doble']];
 const ZOF_ENC=[['COMPRESION','Compresión (diésel)'],['CHISPA','Chispa (bencina)']];
 const ZOF_TRANS=[['AUTOMATICA','Automática'],['MECANICA','Mecánica']];
-function zofPuertas(v){
-  const z=v.zof||{}, tv=z.tveh||'';
-  if(tv==='CAMIONETA'){ if(z.cab==='REGULAR') return 2; if(z.cab==='DOBLE') return 4; return null; }
-  if(tv==='AUTOMOVIL') return 4;
-  if(tv==='STATION WAGON') return 5;
-  return null;
+/* ---- Datos de Zofri que se deducen solos de la ficha del vehículo (2026-09-28) ----
+   Todo lo "auto" se puede pisar a mano en la Vista previa; si se borra lo escrito, vuelve a lo automático. */
+const zofSinTilde=s=>String(s??'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();
+const zofMoKey=v=>zofSinTilde(v.mo).replace(/\s+/g,'');
+const ZOF_CAM_MOD=['PORTER','BONGO','ACTYONSPORTS','KORANDOSPORTS','REXTONSPORTS'];
+const ZOF_AUTO_MOD=['AVANTE','VELOSTER','ELANTRA','ACCENT','SONATA','GRANDEUR','AZERA','I30','I40','K3','K5','K7','FORTE','CERATO','OPTIMA','MORNING','PICANTO','RAY','PRIDE','RIO'];
+const ZOF_MODELO_NOMBRE={SANTAFE:'SANTA FE'};
+function zofTvehAuto(v){
+  const mo=zofMoKey(v), cat=zofSinTilde(v.cat);
+  if(ZOF_CAM_MOD.some(k=>mo.includes(k))||cat==='CAMIONETA'||v.trab) return 'CAMIONETA';
+  if(cat.includes('SEDAN')||cat.includes('HATCH')||ZOF_AUTO_MOD.some(k=>mo.startsWith(k))) return 'AUTOMOVIL';
+  return 'STATION WAGON';
 }
-function zofAsientos(v){
-  const z=v.zof||{}, tv=z.tveh||'', mo=String(v.mo||'').toUpperCase(), pa=+v.pa||0;
-  if(mo.includes('STAREX')) return pa||null;
-  if(mo.includes('CARNIVAL')) return 7;
-  if(tv==='CAMIONETA'){ if(z.cab==='REGULAR') return 2; if(z.cab==='DOBLE') return 3; return null; }
-  if(!pa) return null;
-  if(pa<=2) return 2;
-  return 2+Math.ceil((pa-2)/3);
+function zofCabAuto(v){ const pa=+v.pa||0; if(pa>=5) return 'DOBLE'; if(pa>=2) return 'REGULAR'; return ''; }
+function zofEncAuto(v){
+  const m=zofSinTilde(v.motor);
+  if(m.includes('DIESEL')) return 'COMPRESION';
+  if(m.includes('BENCINA')||m.includes('GASOLINA')||m.includes('NAFTA')) return 'CHISPA';
+  return '';
 }
-function zofCabina(v){ const z=v.zof||{}; return (z.tveh||'')==='CAMIONETA'?(z.cab||''):'OTRAS'; }
-function zofTraccion(v){ const tr=String(v.tr||'').toUpperCase(); return (tr.includes('4X4')||tr.includes('DOBLE'))?'DOBLE':'SIMPLE'; }
-const ZOF_PESO_MOD={'SPORTAGE':2330,'TUCSON':2330,'SORENTO':2390,'SANTA FE':2390,'VELOSTER':1600,'AVANTE':1700,'CARNIVAL':2650,'STAREX':2650};
-const ZOF_PESO_CAM={'PORTER':{peso:2750,cargaMax:1000},'BONGO':{peso:2750,cargaMax:1000},'KORANDO SPORTS':{peso:2390,cargaMax:400},'ACTYON SPORTS':{peso:2390,cargaMax:400}};
+function zofCilAuto(v){
+  const x=parseFloat(String(v.cil??'').replace(',','.'));
+  if(!(x>0)) return '';
+  return x<10?Math.round(x*10)*100:Math.round(x);
+}
+/* Código de motor: primero lo ya declarado para un VIN del mismo tipo (los 8 primeros caracteres
+   del VIN Hyundai/Kia dicen modelo, carrocería y motor), después una tabla por modelo y cilindrada.
+   Siempre queda como "sugerido" hasta que se confirme escribiéndolo. */
+const ZOF_MOTOR_VIN={KNAP6815:'D4FD',KNAKU815:'D4HA',KNAPE813:'D4HA',KNAME81A:'D4HB',KNAPN813:'D4HA',KMHD841U:'D4FB',KMHTE61E:'G4FD',
+  KNAMC81A:'D4HB',KMHTC61D:'G4FD',KNAPB813:'D4HA',KNAKW815:'D4HA',KMHSW81U:'D4HA',KNFSTZ76:'D4CB',KNAPS81A:'D4HA',
+  KMFZCY7K:'D4CB',KNCWJZ76:'D4CB',KMHSW81X:'D4HA',KMHJU81V:'D4HA',KMFZCZ7K:'D4CB',KMFZBY7K:'D4CB'};
+const ZOF_MOTOR_MOD=[['PORTER',0,'D4CB'],['BONGO',0,'D4CB'],['STAREX',0,'D4CB'],['CARNIVAL',2.2,'D4HB'],['VELOSTER',0,'G4FD','CHISPA'],
+  ['AVANTE',1.6,'D4FB','COMPRESION'],['SPORTAGE',1.7,'D4FD'],['TUCSON',1.7,'D4FD'],['SPORTAGE',2.0,'D4HA'],['TUCSON',2.0,'D4HA'],
+  ['SORENTO',2.0,'D4HA'],['SANTAFE',2.0,'D4HA'],['SORENTO',2.2,'D4HB'],['SANTAFE',2.2,'D4HB']];
+function zofMotorAuto(v,cilind,enc){
+  const vin=String((v.zof||{}).vin||v.vin||'').toUpperCase(), l=(+cilind||0)/1000;
+  if(vin.length>=8){
+    const pre=vin.slice(0,8);
+    const otro=V.find(o=>o!==v&&o.zof&&o.zof.motor&&String(o.zof.vin||'').toUpperCase().startsWith(pre));
+    if(otro) return {code:String(otro.zof.motor).split('-')[0],src:'mismo tipo de VIN que '+otro.ch};
+    /* La tabla de VIN no distingue 1.7 de 2.0 en Sportage/Tucson 2016+: si la ficha dice 1.7, manda el modelo. */
+    if(ZOF_MOTOR_VIN[pre]&&!(l&&Math.abs(l-1.7)<0.05)) return {code:ZOF_MOTOR_VIN[pre],src:'VIN ya declarado antes'};
+  }
+  const mo=zofMoKey(v);
+  const f=ZOF_MOTOR_MOD.find(([m,c,,e])=>mo.includes(m)&&(!c||!l||Math.abs(c-l)<0.05)&&(!e||!enc||e===enc));
+  return f?{code:f[2],src:'por modelo y cilindrada'}:null;
+}
+const ZOF_PESO_MOD={'SPORTAGE':2330,'TUCSON':2330,'SORENTO':2390,'SANTAFE':2390,'VELOSTER':1600,'AVANTE':1700,'CARNIVAL':2650,'STAREX':2650};
+const ZOF_PESO_CAM={'PORTER':{peso:2750,util:1000},'BONGO':{peso:2750,util:1000},'KORANDOSPORTS':{peso:2390,util:400},'ACTYONSPORTS':{peso:2390,util:400}};
 function zofPesoSugerido(v){
-  const mo=String(v.mo||'').toUpperCase();
+  const mo=zofMoKey(v);
   for(const k in ZOF_PESO_CAM){ if(mo.includes(k)) return ZOF_PESO_CAM[k]; }
   for(const k in ZOF_PESO_MOD){ if(mo.includes(k)) return {peso:ZOF_PESO_MOD[k]}; }
   return null;
 }
+function zofEf(v){
+  const z=v.zof||{}, A={};
+  const pick=(k,auto)=>{ if(z[k]!==undefined&&z[k]!==null&&z[k]!=='') return z[k]; if(auto!==''&&auto!=null){A[k]=1; return auto} return ''; };
+  const tveh=pick('tveh',zofTvehAuto(v)), esCam=tveh==='CAMIONETA';
+  const cab=esCam?pick('cab',zofCabAuto(v)):'OTRAS';
+  const encendido=pick('encendido',zofEncAuto(v));
+  const cilind=pick('cilind',zofCilAuto(v));
+  const ps=zofPesoSugerido(v)||{};
+  const peso=pick('peso',ps.peso||'');
+  const pesoCargaMax=esCam?pick('pesoCargaMax',ps.util?ps.peso:''):'';
+  const capCargaUtil=esCam?pick('capCargaUtil',ps.util||''):'';
+  const trans=pick('trans',v.trans||transSugerida(esCam));
+  const m=zofMotorAuto(v,cilind,encendido);
+  const motor=pick('motor',m?m.code+'-':'');
+  return {vin:String(z.vin||v.vin||'').toUpperCase(),motor,motorSrc:A.motor&&m?m.src:'',cilind,tveh,esCam,cab,encendido,peso,pesoCargaMax,capCargaUtil,trans,
+    combustible:encendido==='COMPRESION'?'DIESEL O SEMIDIESEL':(encendido==='CHISPA'?'GASOLINA':''),
+    traccion:zofTraccion(v),color:zofSinTilde(v.ce),anio:v.an||'',pa:v.pa||'',
+    modelo:ZOF_MODELO_NOMBRE[zofMoKey(v)]||zofSinTilde(v.mo),marca:zofSinTilde(v.ma),auto:A};
+}
+function zofPuertas(v,ef){
+  ef=ef||zofEf(v); const tv=ef.tveh;
+  if(tv==='CAMIONETA'){ if(ef.cab==='REGULAR') return 2; if(ef.cab==='DOBLE') return 4; return null; }
+  if(tv==='AUTOMOVIL') return 4;
+  if(tv==='STATION WAGON') return 5;
+  return null;
+}
+function zofAsientos(v,ef){
+  ef=ef||zofEf(v); const tv=ef.tveh, mo=zofMoKey(v), pa=+v.pa||0;
+  if(mo.includes('STAREX')) return pa||null;
+  if(mo.includes('CARNIVAL')) return 7;
+  if(tv==='CAMIONETA'){ if(ef.cab==='REGULAR') return 2; if(ef.cab==='DOBLE') return 3; return null; }
+  if(!pa) return null;
+  if(pa<=2) return 2;
+  return 2+Math.ceil((pa-2)/3);
+}
+function zofCabina(v){ return zofEf(v).cab; }
+function zofTraccion(v){ const tr=String(v.tr||'').toUpperCase(); return (tr.includes('4X4')||tr.includes('DOBLE'))?'DOBLE':'SIMPLE'; }
+function zofAnioVin(vin){
+  const c=String(vin||'').toUpperCase()[9]; if(!c) return null;
+  const L='ABCDEFGHJKLMNPRSTVWXY'; let y=null;
+  if(L.includes(c)) y=2010+L.indexOf(c); else if(/[1-9]/.test(c)) y=2000+(+c);
+  if(y&&y>new Date().getFullYear()+1) y-=30;
+  return y;
+}
+function zofCodigoArancel(ef){ return ef.tveh==='CAMIONETA'?'87042121':(ef.encendido==='CHISPA'?'87032399':'87033299'); }
+/* Qué falta (no se puede declarar) y qué conviene revisar (no bloquea) para este vehículo. */
+function zofRevisar(v,ef){
+  ef=ef||zofEf(v); const z=v.zof||{}, falta=[], rev=[];
+  if(!ef.vin) falta.push('VIN completo');
+  else{
+    if(ef.vin.length!==17) rev.push('El VIN tiene '+ef.vin.length+' caracteres (deben ser 17)');
+    if(v.ch&&!ef.vin.endsWith(String(v.ch).toUpperCase())) rev.push('El VIN no termina en el chasis '+v.ch);
+  }
+  { const y=ef.vin.length===17?zofAnioVin(ef.vin):zofAnioVin('XXXXXXXXX'+String(v.ch||'')[0]);
+    if(y&&v.an&&y!==+v.an) rev.push('Según el '+(ef.vin.length===17?'VIN':'chasis')+' el año es '+y+' (la ficha dice '+v.an+')'); }
+  if(!ef.motor) falta.push('Motor'); else if(ef.auto.motor) rev.push('Motor sugerido ('+ef.motorSrc+'): confírmalo');
+  if(!ef.cilind) falta.push('Cilindrada');
+  const cilF=zofCilAuto(v); if(z.cilind&&cilF&&+z.cilind!==+cilF) rev.push('Cilindrada '+z.cilind+' distinta a la ficha ('+cilF+')');
+  if(!ef.encendido) falta.push('Encendido');
+  if(ef.esCam&&!ef.cab) falta.push('Cabina (falta N° de pasajeros)');
+  if(!ef.pa) falta.push('N° de pasajeros');
+  if(!ef.color) falta.push('Color');
+  if(!ef.anio) falta.push('Año');
+  if(!ef.peso) falta.push('Peso bruto');
+  if(ef.esCam&&!ef.pesoCargaMax) falta.push('Peso carga máx.');
+  if(ef.esCam&&!ef.capCargaUtil) falta.push('Cap. carga útil');
+  return {falta,rev};
+}
+function zofDescriptor(v){
+  const ef=zofEf(v);
+  const partes=[['Nombre','VEHICULO USADO'],['Modelo',ef.modelo],['Tipo','VEHICULO'],['Marca',ef.marca],
+    ['Año del modelo',ef.anio],['Encend',ef.encendido],['N° Serie','S/N'],['Chassis',ef.vin],
+    ['Motor',ef.motor],['Cilind',ef.cilind]];
+  if(ef.esCam) partes.push(['Peso.Tot.Carg.Max.',ef.pesoCargaMax]);
+  partes.push(['Asientos',zofAsientos(v,ef)??'']);
+  partes.push(['Cabina',ef.cab]);
+  if(ef.esCam) partes.push(['Cap.Carg.Util.Kg.',ef.capCargaUtil]);
+  partes.push(['Tracción',ef.traccion]);
+  partes.push(['T.Vehic',ef.tveh]);
+  partes.push(['Color',ef.color]);
+  partes.push(['Color Marca',ef.color]);
+  partes.push(['Inf.Adic.',ef.trans?'TRANSMISION: '+ef.trans:'']);
+  partes.push(['Año',ef.anio]);
+  partes.push(['Tipo de Combustible',ef.combustible]);
+  partes.push(['Puertas',zofPuertas(v,ef)??'']);
+  partes.push(['Nuevo o Usado','U']);
+  partes.push(['Número de Pasajeros',ef.pa]);
+  partes.push(['Peso Bruto Vehicular',ef.peso?ef.peso+'KG':'']);
+  return partes;
+}
+/* Descriptores con el código interno que usa el formulario de Zofri (attr-descriptorcodigo). */
+function zofDescCodigos(v,ef){
+  ef=ef||zofEf(v);
+  const d={1:'VEHICULO USADO',2:ef.modelo,3:'VEHICULO',4:ef.marca,5:ef.anio,6:ef.encendido,7:'S/N',8:ef.vin,9:ef.motor,10:ef.cilind,
+    12:zofAsientos(v,ef)??'',13:ef.cab,16:ef.traccion,18:ef.tveh,19:ef.color,20:ef.color,24:ef.trans?'TRANSMISION: '+ef.trans:'',
+    35:ef.anio,50:ef.combustible,57:zofPuertas(v,ef)??'',60:'U',61:ef.pa,62:ef.peso?ef.peso+'KG':''};
+  if(ef.esCam){ d[11]=ef.pesoCargaMax; d[14]=ef.capCargaUtil; }
+  for(const k in d) d[k]=String(d[k]??'');
+  return d;
+}
+const r2z=x=>Math.round((+x||0)*100)/100;
+/* Totales del encabezado del Zeta: FOB y CIF = suma de los FOB/CIF Zeta de cada vehículo;
+   Seguro = 2% del FOB (requisito de Zofri, no costo real); Flete = CIF − FOB − Seguro. */
+function zofDocCalc(e,r){
+  const filas=(r&&r.filas)||[], por={};
+  let fob=0,cif=0,sinCompra=0;
+  filas.forEach(f=>{ if(f.fobUSD){ por[f.ch]={fob:r2z(f.fobZetaReaj),cif:r2z(f.cifZetaReaj)}; fob+=f.fobZetaReaj; cif+=f.cifZetaReaj; } else sinCompra++; });
+  fob=r2z(fob); cif=r2z(cif);
+  const seguro=r2z(fob*0.02), flete=Math.max(0,r2z(cif-fob-seguro));
+  const cont=Object.keys(e.contCod||{}).map(Number).sort((a,b)=>a-b).map(k=>e.contCod[k]);
+  const bl=e.nom||'', naviera=e.naviera||zofNavieraDeBL(bl);
+  const proveedor=zofSinTilde(e.proveedor||'AMKKOREA').replace(/\s+/g,'');
+  const glosa=e.buque?(zofSinTilde(e.buque)+' '+e.veh.length+'VEH '+proveedor+' '+(naviera.split(' ')[0]||'')).trim():'';
+  const ff=e.fechaFactura||zofFacturaAuto(e.fechaBL), m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(ff);
+  const adj=[];
+  if(m) adj.push({tipo:'FACTURAS',num:'AMK-'+m[3]+m[2]+m[1].slice(2),fecha:ff,emisor:ZOF_EMPRESA_COREA});
+  if(bl) adj.push({tipo:'CONOCIMIENTO DE EMBARQUE',num:bl,fecha:e.fechaBL||'',emisor:naviera});
+  /* Manifiesto: N° de programación, fecha de arribo y agente de naves de la consulta pública de Aduana (Manifestación Marítima, puerto Iquique). */
+  /* Zofri no acepta fechas posteriores al día en que se hace el documento, y el Zeta se hace antes de que llegue
+     la nave: se usa el arribo estimado, pero nunca después de hoy (André, 2026-09-28). */
+  if(e.manifiesto){ const hoyZ=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const fm=e.fechaManifiesto&&e.fechaManifiesto>hoyZ?hoyZ:(e.fechaManifiesto||'');
+    adj.push({tipo:'MANIFIESTO',num:e.manifiesto,fecha:fm,emisor:e.agencia||''}); }
+  if(ff) adj.push({tipo:'CONSIGNANTE',num:ZOF_DIR_COREA,fecha:ff,emisor:ZOF_EMPRESA_COREA});
+  return {fob,flete,seguro,cif,por,sinCompra,bultos:e.veh.length,peso:e.pesoBL||'',cont,bl,naviera,glosa,adj,proveedor,fechaFactura:ff};
+}
+/* Fecha de la factura de AMK Corea: André la pone unos días antes del BL (ej. BL 28-08 → factura 25-08).
+   Si no se escribe, se sugiere 3 días antes de la fecha del BL. */
+function zofFacturaAuto(fbl){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(fbl||''); if(!m) return ''; const d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]-3)); return d.toISOString().slice(0,10); }
+/* Datos fijos del exportador en Corea (siempre los mismos en Facturas y Consignante). */
+const ZOF_EMPRESA_COREA='AMK KOREA & GLOBAL CO., LTD';
+const ZOF_DIR_COREA='187 NEUNGHEODAE-RO, YEONSU-GU, INCHEON, KOREA';
+/* Naviera según el prefijo del BL (código SCAC). Se puede corregir a mano en el encabezado. */
+const ZOF_NAVIERAS={HLCU:'HAPAG LLOYD',HLXU:'HAPAG LLOYD',MEDU:'MSC',MSCU:'MSC',MAEU:'MAERSK',CMDU:'CMA CGM',ONEY:'ONE',EGLV:'EVERGREEN',HDMU:'HMM',COSU:'COSCO',ZIMU:'ZIM',SMLM:'SM LINE',KMTU:'KMTC',SKLU:'SINOKOR',YMLU:'YANG MING',PCIU:'PIL',WHLC:'WAN HAI'};
+function zofNavieraDeBL(bl){ return ZOF_NAVIERAS[String(bl||'').trim().toUpperCase().slice(0,4)]||''; }
+function zofPayload(e){
+  const r=embCalc(), doc=zofDocCalc(e,r);
+  const items=e.veh.map(x=>{ const v=IDX[x.ch]; if(!v) return null; const ef=zofEf(v);
+    return {ch:v.ch,vin:ef.vin,cod:zofCodigoArancel(ef),fob:(doc.por[v.ch]||{}).fob||0,cif:(doc.por[v.ch]||{}).cif||0,d:zofDescCodigos(v,ef)}; }).filter(Boolean);
+  return {amkZeta:1,creado:new Date().toISOString(),doc:{bl:doc.bl,glosa:doc.glosa,fob:doc.fob,flete:doc.flete,seguro:doc.seguro,bultos:doc.bultos,peso:doc.peso,cont:doc.cont,adj:doc.adj},items};
+}
+/* Marcador "Rellenar Zeta": este código NO corre en la app -- se guarda como favorito del navegador y
+   corre dentro de la página de Zofri, así que no usa nada de la app (todo va adentro).
+   Nunca aprieta Guardar ni Enviar a Visar, y nunca toca la Garantía. */
+function zofMarcador(){
+  const CORE=async(P,aplicar,avance)=>{
+    const J=window.jQuery, sl=ms=>new Promise(r=>setTimeout(r,ms));
+    const norm=s=>String(s??'').trim().toUpperCase();
+    const NOM={1:'Nombre',2:'Modelo',3:'Tipo',4:'Marca',5:'Año del modelo',6:'Encendido',7:'N° Serie',8:'Chassis',9:'Motor',10:'Cilindrada',11:'Peso Tot. Carga Máx.',12:'Asientos',13:'Cabina',14:'Cap. Carga Útil',16:'Tracción',18:'T.Vehic',19:'Color',20:'Color Marca',24:'Inf. Adicional',35:'Año Fab.',50:'Combustible',57:'Puertas',60:'Nuevo/Usado',61:'Pasajeros',62:'Peso Bruto'};
+    const fmt=n=>{ if(window.numeral) return numeral(+n).format('0,0.00'); const [a,b]=(+n).toFixed(2).split('.'); return a.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+','+b; };
+    const num=s=>{ s=String(s??'').trim(); if(!s) return 0; return +s.replace(/\./g,'').replace(',','.')||0; };
+    const cur=el=>el.tagName==='SELECT'?norm((el.options[el.selectedIndex]||{}).text||'').replace(/^\[[^\]]*\]\s*/,''):norm(el.value);
+    const vis=el=>!!el&&el.getClientRects().length>0; /* la página tiene filas-molde ocultas: esas no cuentan */
+    const rows=[...document.querySelectorAll('tr[attr=fila_item]')].filter(vis);
+    const chOf=tr=>{ const i=tr.querySelector('[attr=descriptores] [attr-descriptorcodigo="8"]'); return i?norm(i.value):''; };
+    const usados=new Set();
+    const asig=P.items.map(it=>{ const k=rows.findIndex((tr,j)=>!usados.has(j)&&chOf(tr)&&(chOf(tr)===norm(it.vin)||chOf(tr).endsWith(norm(it.ch)))); if(k>=0){usados.add(k); return [it,rows[k]]} return [it,null]; });
+    const libres=rows.map((t,j)=>j).filter(j=>!usados.has(j));
+    asig.forEach(a=>{ if(!a[1]&&libres.length){ const j=libres.shift(); a[1]=rows[j]; a[2]=chOf(rows[j]); } });
+    const cambios=[], ops=[], avisos=[];
+    const sinFila=asig.filter(a=>!a[1]).map(a=>a[0].ch);
+    if(sinFila.length) avisos.push('Faltan '+sinFila.length+' ítems en Zofri para: '+sinFila.join(', ')+'. Agrégalos con el botón + de "Detalle de Items" y vuelve a tocar el favorito.');
+    if(libres.length) avisos.push('Sobran '+libres.length+' ítems en Zofri que no están en AMK: '+libres.map(j=>chOf(rows[j])||('fila '+(j+1))).join(', ')+'. No se tocaron: quítalos tú si corresponde.');
+    const reus=asig.filter(a=>a[2]!==undefined).map(a=>a[0].ch+' ← fila que tenía '+(a[2]||'(vacía)'));
+    if(reus.length) avisos.push('Vehículos puestos en filas de otro vehículo (se reescriben completas): '+reus.join('; '));
+    const setNum=(inp,val)=>{ J(inp).trigger('focus'); inp.value=fmt(val); J(inp).trigger('change').trigger('blur'); };
+    const setTxt=(inp,val)=>{ inp.value=val; J(inp).trigger('change').trigger('blur'); };
+    const setDesc=async(tr,c,val)=>{
+      const dd=tr.querySelector('[attr=descriptores]');
+      let el=dd.querySelector('[attr-descriptorcodigo="'+c+'"]');
+      if(!el){
+        const d=tr.querySelector('.div_agregar_desc'), btn=d.querySelector('[attr=btn_agregar_desc]');
+        if(btn&&btn.style.display!=='none'){ btn.click(); await sl(300); }
+        const sel=d.querySelector('select'); J(sel).val(String(c)); try{J(sel).selectpicker('refresh')}catch(_){} J(sel).trigger('change'); await sl(150);
+        const ok=d.querySelector('.fa-check'); if(ok) ok.closest('button').click(); await sl(400);
+        el=dd.querySelector('[attr-descriptorcodigo="'+c+'"]'); if(!el) throw new Error('No se pudo agregar '+(NOM[c]||c));
+      }
+      if(el.tagName==='SELECT'){
+        for(let k=0;k<20&&el.options.length<2;k++) await sl(150);
+        const o=[...el.options].find(o=>norm(o.text).replace(/^\[[^\]]*\]\s*/,'')===norm(val));
+        if(!o) throw new Error('Zofri no tiene la opción "'+val+'" en '+(NOM[c]||c));
+        J(el).val(o.value); try{J(el).selectpicker('refresh')}catch(_){} J(el).trigger('change');
+      } else setTxt(el,val);
+    };
+    asig.forEach(([it,tr],n)=>{
+      if(!tr) return;
+      const tag='Ítem '+(n+1)+' ('+it.ch+')', dd=tr.querySelector('[attr=descriptores]');
+      const ca=tr.querySelector('td[attr=item_coar] input');
+      if(ca&&it.cod&&norm(ca.value)!==it.cod){ cambios.push(tag+' Código: '+(ca.value||'(vacío)')+' → '+it.cod); ops.push(()=>setTxt(ca,it.cod)); }
+      ['fob','cif'].forEach(k=>{ const inp=tr.querySelector('td[attr=item_'+k+'] input');
+        if(inp&&it[k]>0&&Math.abs(num(inp.value)-it[k])>0.004){ cambios.push(tag+' '+k.toUpperCase()+': '+(inp.value||'(vacío)')+' → '+fmt(it[k])); ops.push(()=>setNum(inp,it[k])); } });
+      for(const [c,val] of Object.entries(it.d)){
+        if(val==='') continue;
+        const el=dd.querySelector('[attr-descriptorcodigo="'+c+'"]'), a=el?cur(el):null;
+        if(a!==norm(val)){ cambios.push(tag+' '+(NOM[c]||c)+': '+(a===null?'(falta)':(a||'(vacío)'))+' → '+val); ops.push(()=>setDesc(tr,c,val)); }
+      }
+      dd.querySelectorAll('[attr-descriptorcodigo]').forEach(el=>{ const c=el.getAttribute('attr-descriptorcodigo');
+        if(!(c in it.d)){ const g=el.closest('.input-group'), b=g&&g.querySelector('.input-group-addon button');
+          if(b){ cambios.push(tag+' quitar '+(NOM[c]||('descriptor '+c))+' ('+(cur(el)||'vacío')+')'); ops.push(async()=>{ b.click(); await sl(250); }); } } });
+    });
+    const D=P.doc||{}, hv=a=>document.querySelector('input[attr='+a+']');
+    [['valorFob','Valor Fob','fob'],['valorFlete','Valor Flete','flete'],['valorSeguro','Valor Seguro','seguro']].forEach(([a,l,k])=>{ const inp=hv(a);
+      if(inp&&D[k]>0&&Math.abs(num(inp.value)-D[k])>0.004){ cambios.push(l+': '+(inp.value||'(vacío)')+' → '+fmt(D[k])); ops.push(()=>setNum(inp,D[k])); } });
+    const gl=hv('glosa');
+    if(gl&&D.glosa&&norm(gl.value)!==norm(D.glosa)){ cambios.push('Glosa: '+(gl.value||'(vacío)')+' → '+D.glosa); ops.push(()=>setTxt(gl,D.glosa)); }
+    const adjRows=[...document.querySelectorAll('td[attr=adju_tipo]')].map(td=>td.closest('tr')).filter(vis);
+    (D.adj||[]).forEach(a=>{
+      const tr=adjRows.find(r=>{ const s=r.querySelector('td[attr=adju_tipo] select'); return s&&norm((s.options[s.selectedIndex]||{}).text).includes(a.tipo); });
+      if(!tr){ avisos.push('No hay fila de "'+a.tipo+'" en Documentos Adjuntos: agrégala y vuelve a tocar el favorito.'); return; }
+      [['adju_numero','N°',a.num],['adju_fecha','fecha',a.fecha],['adju_emisNombre','emisor',a.emisor]].forEach(([at,l,val])=>{
+        const inp=tr.querySelector('td[attr='+at+'] input'); if(!inp||!val) return;
+        if(norm(inp.value)!==norm(val)){ cambios.push(a.tipo+' '+l+': '+(inp.value||'(vacío)')+' → '+val); ops.push(()=>setTxt(inp,val)); } }); });
+    const nIn=hv('numeroInternoUsuario');
+    if(nIn&&D.bl&&norm(nIn.value)!==norm(D.bl)){ cambios.push('N° Interno usuario: '+(nIn.value||'(vacío)')+' → '+D.bl); ops.push(()=>setTxt(nIn,D.bl)); }
+    const bc=[...document.querySelectorAll('td[attr=cantidadBulto] input')].find(vis), bp=[...document.querySelectorAll('td[attr=pesoBulto] input')].find(vis);
+    if(bc&&D.bultos&&num(bc.value)!==+D.bultos){ cambios.push('Bultos: '+(bc.value||'(vacío)')+' → '+D.bultos); ops.push(()=>setNum(bc,D.bultos)); }
+    if(bp&&+D.peso>0&&Math.abs(num(bp.value)-D.peso)>0.004){ cambios.push('Peso bulto: '+(bp.value||'(vacío)')+' → '+fmt(D.peso)); ops.push(()=>setNum(bp,D.peso)); }
+    const ci=[...document.querySelectorAll('td[attr=contenedorNumero] input')].filter(vis);
+    if(D.cont&&D.cont.length){
+      if(ci.length!==D.cont.length) avisos.push('En Zofri hay '+ci.length+' contenedores y en AMK '+D.cont.length+': ajusta la cantidad de filas a mano.');
+      D.cont.forEach((c,i)=>{ const inp=ci[i]; if(inp&&norm(inp.value)!==norm(c)){ cambios.push('Contenedor '+(i+1)+': '+(inp.value||'(vacío)')+' → '+c); ops.push(()=>setTxt(inp,c)); } });
+    }
+    const sinFob=P.items.filter(i=>!(i.fob>0)).map(i=>i.ch);
+    if(sinFob.length) avisos.push('Sin FOB/CIF todavía (faltan costos en AMK): '+sinFob.join(', '));
+    const vacios=P.items.filter(i=>Object.values(i.d).some(x=>x==='')).map(i=>i.ch);
+    if(vacios.length) avisos.push('Con datos incompletos en AMK (esos campos quedan como estaban en Zofri): '+vacios.join(', '));
+    if(!aplicar) return {cambios,avisos,hechos:0,errores:[]};
+    const errores=[]; let hechos=0;
+    for(let i=0;i<ops.length;i++){ if(avance) avance(i,ops.length); try{ await ops[i](); hechos++; }catch(err){ errores.push(err.message||String(err)); } await sl(40); }
+    return {cambios,avisos,hechos,errores};
+  };
+  if(window.__amkZetaPrueba){ return CORE(window.__amkZetaPrueba,false).then(r=>{ window.__amkZetaR=r; }); }
+  (async()=>{
+    if(!window.jQuery||![...document.querySelectorAll('tr[attr=fila_item]')].some(el=>el.getClientRects().length>0)){ alert('Abre primero el Documento de Ingreso en Zofri (con "Detalle de Items" a la vista) y vuelve a tocar el favorito.'); return; }
+    let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
+    if(!t||t.indexOf('amkZeta')<0) t=prompt('Pega aquí los datos copiados desde AMK (Vista previa de Zofri → "Copiar datos para Rellenar Zeta"):')||'';
+    if(!t) return;
+    let P; try{ P=JSON.parse(t.slice(t.indexOf('{'))); }catch(_){ alert('Los datos pegados no son válidos. Vuelve a copiarlos desde AMK.'); return; }
+    if(!P||!P.amkZeta||!Array.isArray(P.items)){ alert('Estos datos no vienen de AMK.'); return; }
+    const r=await CORE(P,false);
+    const av=r.avisos.length?'\n\nAvisos:\n- '+r.avisos.join('\n- '):'';
+    if(!r.cambios.length){ alert('Nada que cambiar: el Zeta ya coincide con AMK.'+av); return; }
+    if(!confirm(r.cambios.length+' cambios para aplicar:\n\n'+r.cambios.slice(0,30).join('\n')+(r.cambios.length>30?'\n… y '+(r.cambios.length-30)+' más':'')+av+'\n\n¿Aplicarlos? No se guarda ni se envía nada: después revisa y aprieta Guardar tú.')) return;
+    const box=document.createElement('div'); box.style.cssText='position:fixed;top:12px;right:12px;z-index:99999;background:#12343b;color:#fff;padding:12px 16px;border-radius:10px;font:14px sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+    document.body.appendChild(box);
+    const r2=await CORE(P,true,(i,n)=>{ box.textContent='AMK · rellenando Zeta… '+(i+1)+' de '+n; });
+    box.remove();
+    alert('Listo: '+r2.hechos+' de '+r2.cambios.length+' cambios aplicados.'+(r2.errores.length?'\n\nNo se pudo:\n- '+r2.errores.join('\n- '):'')+av+'\n\nRevisa el documento y aprieta Guardar tú.');
+  })();
+}
+function zofMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+zofMarcador.toString()+')())'); }
 async function setZof(ch,key,val){
   const v=IDX[ch]; if(!v) return;
   v.zof=v.zof||{};
@@ -6965,82 +7287,111 @@ async function setZof(ch,key,val){
   const iPrevZ=prevZ.findIndex(x=>x.ch===ch);
   if(iPrevZ>=0){prevZ[iPrevZ].zof=v.zof} else {prevZ.push({ch,zof:v.zof,soloZof:true})}
   try{await window.storage.set(EXK,JSON.stringify(prevZ))}catch(_){}
+  if(typeof guardaCacheV==='function') guardaCacheV();
   pintaEmZofri();
 }
-function zofDescriptor(v){
-  const z=v.zof||{}, tv=z.tveh||'', esCam=tv==='CAMIONETA';
-  const partes=[['Nombre','VEHICULO USADO'],['Modelo',v.mo||''],['Tipo','VEHICULO'],['Marca',v.ma||''],
-    ['Año del modelo',v.an||''],['Encend',z.encendido||''],['N° Serie','S/N'],['Chassis',z.vin||''],
-    ['Motor',z.motor||''],['Cilind',z.cilind||'']];
-  if(esCam) partes.push(['Peso.Tot.Carg.Max.',z.pesoCargaMax||'']);
-  partes.push(['Asientos',zofAsientos(v)??'']);
-  partes.push(['Cabina',zofCabina(v)]);
-  if(esCam) partes.push(['Cap.Carg.Util.Kg.',z.capCargaUtil||'']);
-  partes.push(['Tracción',zofTraccion(v)]);
-  partes.push(['T.Vehic',tv]);
-  partes.push(['Color',v.ce||'']);
-  partes.push(['Color Marca',v.ce||'']);
-  partes.push(['Transmisión',z.trans||'']);
-  partes.push(['Tipo de Combustible',z.encendido==='COMPRESION'?'DIESEL O SEMIDIESEL':(z.encendido==='CHISPA'?'BENCINA':'')]);
-  partes.push(['Puertas',zofPuertas(v)??'']);
-  partes.push(['Nuevo o Usado','U']);
-  partes.push(['Número de Pasajeros',v.pa||'']);
-  partes.push(['Peso Bruto Vehicular',z.peso?z.peso+'KG':'']);
-  return partes;
+/* Pega varios VIN de una vez: cada VIN de 17 caracteres se asigna al vehículo del embarque cuyo chasis (últimos 8) coincide. */
+async function zofGuardarVins(texto){
+  const e=E(); if(!e) return 0;
+  const vins=(String(texto||'').toUpperCase().match(/[A-HJ-NPR-Z0-9]{17}/g)||[]);
+  let n=0; const cambios={};
+  for(const vin of vins){ const x=e.veh.find(x=>vin.endsWith(String(x.ch).toUpperCase())); const v=x&&IDX[x.ch]; if(!v) continue;
+    v.zof=v.zof||{}; if(v.zof.vin!==vin){ v.zof.vin=vin; cambios[v.ch]=v.zof; n++; } }
+  if(n){
+    let prevZ=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prevZ=JSON.parse(r.value)}catch(_){}
+    for(const ch in cambios){ const i=prevZ.findIndex(x=>x.ch===ch); if(i>=0) prevZ[i].zof=cambios[ch]; else prevZ.push({ch,zof:cambios[ch],soloZof:true}); }
+    try{await window.storage.set(EXK,JSON.stringify(prevZ))}catch(_){}
+    if(typeof guardaCacheV==='function') guardaCacheV();
+  }
+  pintaEmZofri();
+  return {n,total:vins.length};
 }
 function pintaEmZofri(){
   const e=E(); const box=$('#emZof'); if(!box) return;
   if(!e||!e.veh.length){ box.innerHTML='<p class="mtr" style="margin:0">Sin vehículos en este embarque.</p>'; return; }
-  box.innerHTML=e.veh.map(x=>{
+  const r=embCalc(), doc=zofDocCalc(e,r);
+  const est='border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)';
+  const autoTag=' <span style="color:var(--mute);font-weight:400">· auto</span>';
+  let nListos=0,nFalta=0,nRev=0;
+  const nSinVin=e.veh.filter(x=>IDX[x.ch]&&String((IDX[x.ch].zof||{}).vin||'').length!==17).length;
+  const tarjetas=e.veh.map(x=>{
     const v=IDX[x.ch]; if(!v) return '';
-    v.zof=v.zof||{};
-    const z=v.zof, tv=z.tveh||'', esCam=tv==='CAMIONETA';
-    const pesoSug=zofPesoSugerido(v);
-    const faltan=[];
-    if(!z.vin||z.vin.length!==17) faltan.push('VIN completo');
-    if(!z.motor) faltan.push('Motor');
-    if(!z.cilind) faltan.push('Cilindrada');
-    if(!tv) faltan.push('Tipo de vehículo');
-    if(esCam && !z.cab) faltan.push('Cabina');
-    if(!z.encendido) faltan.push('Encendido');
-    if(!z.trans) faltan.push('Transmisión');
-    if(!z.peso) faltan.push('Peso bruto');
-    if(esCam && !z.pesoCargaMax) faltan.push('Peso carga máx.');
-    if(esCam && !z.capCargaUtil) faltan.push('Cap. carga útil');
+    const ef=zofEf(v), A=ef.auto, rv=zofRevisar(v,ef), falta=rv.falta, rev=rv.rev;
+    if(falta.length) nFalta++; else if(rev.length) nRev++; else nListos++;
+    const pf=doc.por[v.ch];
+    const inp=(key,lab,val,extra)=>`<div class="fld" style="margin:0"><label style="font-size:11px">${lab}${A[key]?autoTag:''}</label>
+          <input data-zof="${v.ch}|${key}" value="${val??''}" ${extra||''} style="${est}"></div>`;
+    const sel=(key,lab,opts,val)=>`<div class="fld" style="margin:0"><label style="font-size:11px">${lab}${A[key]?autoTag:''}</label>
+          <select data-zof="${v.ch}|${key}" style="${est}"><option value="">Automático</option>${opts.map(([k,n])=>`<option value="${k}" ${k===val?'selected':''}>${n}</option>`).join('')}</select></div>`;
+    const estado=falta.length?`<span style="color:var(--amber)">Falta: ${falta.join(', ')}</span>`:(rev.length?'<span style="color:var(--amber)">Revisar</span>':'<span style="color:var(--green)">✓ Listo</span>');
     return `<div class="card plain" style="padding:11px;margin-bottom:10px">
       <div class="r1"><div><div class="tt" style="font-size:14.5px">${v.ma||''} ${v.mo||''} ${v.an||''}</div>
-        <div class="ch">${v.ch}</div></div>
-        <div style="font-size:11px;color:${faltan.length?'var(--amber)':'var(--green)'};text-align:right;max-width:160px">${faltan.length?'Falta: '+faltan.join(', '):'✓ Completo'}</div>
+        <div class="ch">${v.ch}${pf?` · FOB ${obs2(pf.fob)} · CIF ${obs2(pf.cif)}`:' · sin FOB/CIF (faltan costos)'}</div></div>
+        <div style="font-size:11px;text-align:right;max-width:170px">${estado}</div>
       </div>
+      ${rev.length?`<ul style="margin:6px 0 0;padding-left:18px;font-size:11.5px;color:var(--amber)">${rev.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-        <div class="fld" style="margin:0"><label style="font-size:11px">VIN completo (17)</label>
-          <input data-zof="${v.ch}|vin" maxlength="17" value="${z.vin||''}" placeholder="KNANB81BBMS026561" style="font-family:var(--mono);text-transform:uppercase;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Motor</label>
-          <input data-zof="${v.ch}|motor" value="${z.motor||''}" placeholder="D4HE-LH625675" style="text-transform:uppercase;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Cilindrada</label>
-          <input data-zof="${v.ch}|cilind" inputmode="numeric" value="${z.cilind||''}" placeholder="2200" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Peso bruto vehicular (kg)${(!z.peso&&pesoSug&&pesoSug.peso)?` <span style="color:var(--mute);font-weight:400">≈ ${pesoSug.peso}</span> <button class="b-und" style="padding:6px 10px;font-size:12px" data-zofuse="${v.ch}|peso|${pesoSug.peso}">usar</button>`:''}</label>
-          <input data-zof="${v.ch}|peso" inputmode="numeric" value="${z.peso||''}" placeholder="${pesoSug&&pesoSug.peso?pesoSug.peso:'2650'}" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Tipo de vehículo (T.Vehic)</label>
-          <select data-zof="${v.ch}|tveh" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"><option value="">Seleccione…</option>${ZOF_TVEH.map(([k,n])=>`<option value="${k}" ${k===tv?'selected':''}>${n}</option>`).join('')}</select></div>
-        ${esCam?`<div class="fld" style="margin:0"><label style="font-size:11px">Cabina</label>
-          <select data-zof="${v.ch}|cab" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"><option value="">Seleccione…</option>${ZOF_CAB.map(([k,n])=>`<option value="${k}" ${k===z.cab?'selected':''}>${n}</option>`).join('')}</select></div>`:''}
-        <div class="fld" style="margin:0"><label style="font-size:11px">Encendido</label>
-          <select data-zof="${v.ch}|encendido" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"><option value="">Seleccione…</option>${ZOF_ENC.map(([k,n])=>`<option value="${k}" ${k===z.encendido?'selected':''}>${n}</option>`).join('')}</select></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Transmisión</label>
-          <select data-zof="${v.ch}|trans" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"><option value="">Seleccione…</option>${ZOF_TRANS.map(([k,n])=>`<option value="${k}" ${k===z.trans?'selected':''}>${n}</option>`).join('')}</select></div>
-        ${esCam?`<div class="fld" style="margin:0"><label style="font-size:11px">Peso Total Carga Máx. (kg)${(!z.pesoCargaMax&&pesoSug&&pesoSug.cargaMax)?` <span style="color:var(--mute);font-weight:400">≈ ${pesoSug.cargaMax}</span> <button class="b-und" style="padding:6px 10px;font-size:12px" data-zofuse="${v.ch}|pesoCargaMax|${pesoSug.cargaMax}">usar</button>`:''}</label>
-          <input data-zof="${v.ch}|pesoCargaMax" inputmode="numeric" value="${z.pesoCargaMax||''}" placeholder="${pesoSug&&pesoSug.cargaMax?pesoSug.cargaMax:'2750'}" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-        <div class="fld" style="margin:0"><label style="font-size:11px">Cap. Carga Útil (kg)${(!z.capCargaUtil&&pesoSug&&pesoSug.cargaMax)?` <span style="color:var(--mute);font-weight:400">≈ ${pesoSug.cargaMax}</span> <button class="b-und" style="padding:6px 10px;font-size:12px" data-zofuse="${v.ch}|capCargaUtil|${pesoSug.cargaMax}">usar</button>`:''}</label>
-          <input data-zof="${v.ch}|capCargaUtil" inputmode="numeric" value="${z.capCargaUtil||''}" placeholder="1000" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>`:''}
+        ${inp('vin','VIN completo (17)',ef.vin,'maxlength="17" placeholder="KNANB81BBMS026561" ')}
+        ${inp('motor','Motor'+(A.motor?' (sugerido)':''),ef.motor,'placeholder="D4HA-"')}
       </div>
-      <div class="xrow" style="margin-top:8px;font-size:12px;color:var(--mute)"><span>Puertas (calculado)</span><b style="color:var(--ink)">${zofPuertas(v)??'—'}</b></div>
-      <div class="xrow" style="font-size:12px;color:var(--mute)"><span>Asientos (calculado)</span><b style="color:var(--ink)">${zofAsientos(v)??'—'}</b></div>
-      <div class="xrow" style="font-size:12px;color:var(--mute)"><span>Cabina (para Zofri)</span><b style="color:var(--ink)">${zofCabina(v)||'—'}</b></div>
-      <div class="xrow" style="font-size:12px;color:var(--mute)"><span>Tracción (para Zofri)</span><b style="color:var(--ink)">${zofTraccion(v)}</b></div>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-size:12px;color:var(--mute)">Corregir datos automáticos</summary>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        ${inp('cilind','Cilindrada',ef.cilind,'inputmode="numeric" placeholder="2000"')}
+        ${inp('peso','Peso bruto vehicular (kg)',ef.peso,'inputmode="numeric" placeholder="2390"')}
+        ${sel('tveh','Tipo de vehículo',ZOF_TVEH,ef.tveh)}
+        ${ef.esCam?sel('cab','Cabina',ZOF_CAB,ef.cab):''}
+        ${sel('encendido','Encendido',ZOF_ENC,ef.encendido)}
+        ${sel('trans','Transmisión',ZOF_TRANS,ef.trans)}
+        ${ef.esCam?inp('pesoCargaMax','Peso Total Carga Máx. (kg)',ef.pesoCargaMax,'inputmode="numeric" placeholder="2750"')+inp('capCargaUtil','Cap. Carga Útil (kg)',ef.capCargaUtil,'inputmode="numeric" placeholder="1000"'):''}
+      </div></details>
+      <div class="xrow" style="margin-top:8px;font-size:12px;color:var(--mute)"><span>Puertas · Asientos · Pasajeros</span><b style="color:var(--ink)">${zofPuertas(v,ef)??'—'} · ${zofAsientos(v,ef)??'—'} · ${ef.pa||'—'}</b></div>
+      <div class="xrow" style="font-size:12px;color:var(--mute)"><span>Cabina · Tracción · Combustible</span><b style="color:var(--ink)">${ef.cab||'—'} · ${ef.traccion} · ${ef.combustible||'—'}</b></div>
+      <div class="xrow" style="font-size:12px;color:var(--mute)"><span>Color · Año · Código arancelario</span><b style="color:var(--ink)">${ef.color||'—'} · ${ef.anio||'—'} · ${zofCodigoArancel(ef)}</b></div>
       <button class="btn b-sec" data-zofcp="${v.ch}" style="width:100%;margin-top:8px;font-size:12px">Copiar descriptores</button>
     </div>`;
   }).join('');
+  const fila=(k,val)=>`<div class="xrow" style="font-size:13px"><span>${k}</span><b>${val}</b></div>`;
+  const din=(k,lab,val,extra)=>`<div class="fld" style="margin:0"><label style="font-size:11px">${lab}</label><input data-zofdoc="${k}" value="${val||''}" ${extra||''} style="${est}"></div>`;
+  const resumen=`<div class="card plain" style="padding:12px;margin-bottom:12px">
+      <div class="tt" style="font-size:14.5px;margin-bottom:6px">Encabezado del Zeta</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        ${din('buque','Buque (para la Glosa)',e.buque,'placeholder="MONTEVIDEO"')}
+        ${din('naviera','Naviera'+(e.naviera?'':(doc.naviera?' · auto':'')),e.naviera||doc.naviera,'placeholder="HAPAG LLOYD"')}
+        ${din('proveedor','Proveedor (Glosa)'+(e.proveedor?'':' · auto'),e.proveedor||'AMKKOREA','')}
+        ${din('fechaFactura','Fecha factura Corea'+(e.fechaFactura?'':(doc.fechaFactura?' · auto (BL − 3 días)':'')),e.fechaFactura||doc.fechaFactura,'type="date"')}
+        ${din('fechaBL','Fecha del BL',e.fechaBL,'type="date"')}
+        ${din('manifiesto','N° Manifiesto (Aduana)',e.manifiesto,'placeholder="274834"')}
+        ${din('fechaManifiesto','Fecha arribo (manifiesto)',e.fechaManifiesto,'type="date"')}
+        <div style="grid-column:1/-1">${din('agencia','Agencia de naves',e.agencia,'placeholder="ULTRAMAR AGENCIA MARITIMA LIMITADA"')}</div>
+      </div>
+      ${fila('Glosa',doc.glosa||'— (falta el buque)')}
+      ${fila('N° Interno usuario (BL)',doc.bl||'—')}
+      ${fila('Valor Fob',doc.fob?obs2(doc.fob):'—')}
+      ${fila('Valor Flete',doc.fob?obs2(doc.flete):'—')}
+      ${fila('Valor Seguro (2% del FOB)',doc.fob?obs2(doc.seguro):'—')}
+      ${fila('Valor Cif',doc.fob?obs2(doc.cif):'—')}
+      ${fila('Bultos (vehículos)',doc.bultos)}
+      ${fila('Contenedores',doc.cont.length?doc.cont.join(', '):'— (sin códigos)')}
+      ${doc.adj.length?doc.adj.map(a=>fila(a.tipo.charAt(0)+a.tipo.slice(1).toLowerCase(),[a.num,a.fecha,a.emisor].filter(Boolean).join(' · '))).join(''):'<p style="font-size:12px;color:var(--mute);margin:4px 0 0">Pon la fecha de la factura de Corea para armar Factura y Consignante.</p>'}
+      <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Peso total del BL (kg)</label>
+        <input data-zofdoc="pesoBL" inputmode="decimal" value="${e.pesoBL||''}" placeholder="55499" style="${est}"></div>
+      ${doc.sinCompra?`<p style="font-size:12px;color:var(--amber);margin:8px 0 0">${doc.sinCompra} vehículo${doc.sinCompra===1?'':'s'} sin FOB/CIF todavía: completa sus costos para que los totales queden bien.</p>`:''}
+      ${nSinVin?`<div class="fld" style="margin:10px 0 0"><label style="font-size:11px">${nSinVin} vehículo${nSinVin===1?'':'s'} sin VIN completo: pega aquí los VIN (de la factura, el BL o un Zeta anterior), en cualquier orden — cada uno se asigna solo al vehículo cuyo chasis coincide</label>
+        <textarea id="zofVins" rows="3" placeholder="KMHSW81UBFU432757&#10;KMFZCY7KAGU259761" style="${est};width:100%;font-family:var(--mono);text-transform:uppercase"></textarea>
+        <button class="btn b-sec" id="zofVinsBtn" style="width:100%;margin-top:6px;font-size:12px">Guardar VINs</button></div>`:''}
+      <p style="font-size:12px;margin:8px 0 0">${nListos} listo${nListos===1?'':'s'} · ${nRev} para revisar · ${nFalta} con datos faltantes</p>
+      <button class="btn b-pri" id="zofPayloadCp" style="width:100%;margin-top:10px">➦ Copiar datos para Rellenar Zeta</button>
+      <details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Cómo rellenar el Zeta en Zofri con un clic</summary>
+        <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
+          <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos del navegador → <a href="${zofMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">Rellenar Zeta</a></li>
+          <li>Toca "Copiar datos para Rellenar Zeta" (arriba).</li>
+          <li>En Zofri abre el Documento de Ingreso (puedes duplicar uno anterior) y toca el favorito "Rellenar Zeta".</li>
+          <li>Primero te muestra la lista de cambios; si aceptas, los escribe. No guarda, no envía y no toca la Garantía: revisa y aprieta Guardar tú.</li>
+        </ol>
+        <p class="mtr" style="margin:0">Si faltan filas en "Detalle de Items", agrégalas con el + de Zofri y vuelve a tocar el favorito. Cuando se actualice la app, vuelve a arrastrar el botón por si cambió.</p>
+      </details>
+    </div>`;
+  box.innerHTML=resumen+tarjetas;
 }
 function embCalc(){
   const e=E(); if(!e) return null;
@@ -7112,6 +7463,8 @@ function embCalc(){
   return {n,tCont,tIgual,comBanco,comFlete,sumVal,total:tCont+tIgual+comBanco,filas,
           repartido:filas.reduce((a,f)=>a+f.asignado,0)};
 }
+let emAccPrev={};   // {embId:{okVeh,okCt,acumOk}} -- último estado visto, para solo abrir/cerrar en
+                    // un avance real y no pisar un <details> que el usuario abrió a mano.
 function emAccAbre(){
   const e=E(); if(!e) return;
   const nVeh=(e.veh||[]).length;
@@ -7127,16 +7480,31 @@ function emAccAbre(){
   const dVeh=document.getElementById('emAccVeh'), dEst=document.getElementById('emAccEst'),
         dCt=document.getElementById('emAccCt'), dAcum=document.getElementById('boxAcum'),
         dFob=document.getElementById('emAccFob'), dZof=document.getElementById('emAccZof');
-  if(dVeh) dVeh.open=!okVeh;
-  if(dEst) dEst.open=okVeh && !okCt;
-  if(dCt) dCt.open=okVeh && !okCt;
-  if(dAcum) dAcum.open=okVeh && okCt && !acumOk;
-  const listo=okVeh && okCt && acumOk;
-  if(dFob) dFob.open=listo;
-  if(dZof) dZof.open=listo;
+  const prev=emAccPrev[embId];
+  if(!prev){
+    // primera vez que se pinta este embarque (recién abierto o recién cambiado de otro):
+    // se fija el estado inicial completo, de una vez.
+    if(dVeh) dVeh.open=!okVeh;
+    if(dEst) dEst.open=okVeh && !okCt;
+    if(dCt) dCt.open=okVeh && !okCt;
+    if(dAcum) dAcum.open=okVeh && okCt && !acumOk;
+    const listo=okVeh && okCt && acumOk;
+    if(dFob) dFob.open=listo;
+    if(dZof) dZof.open=listo;
+  }else{
+    // ya se había pintado este embarque antes: solo tocar lo que realmente avanzó.
+    if(okVeh && !prev.okVeh){ if(dVeh) dVeh.open=false; if(dEst) dEst.open=true; if(dCt) dCt.open=true; }
+    if(okCt && !prev.okCt){ if(dEst) dEst.open=false; if(dCt) dCt.open=false; if(dAcum) dAcum.open=true; }
+    if(acumOk && !prev.acumOk){ if(dAcum) dAcum.open=false; if(dFob) dFob.open=true; if(dZof) dZof.open=true; }
+  }
+  emAccPrev[embId]={okVeh,okCt,acumOk};
 }
 function pintaEmb(){
   const e=E(); if(!e) return;
+  /* Si hay vehículos asignados a un contenedor mayor que la cantidad declarada (o códigos de
+     contenedor de más), la cantidad se corrige sola — si no, los costos por contenedor se cobran de menos. */
+  const maxCnE=Math.max(0,...e.veh.map(v=>+v.cn||0),...Object.keys(e.contCod||{}).map(k=>+k||0));
+  if(maxCnE>(e.cont||0)){ e.cont=maxCnE; guardaEmb(); }
   $('#emNom').value=e.nom||''; $('#emCont').value=e.cont||'';
   const contN=Math.max(1,e.cont||1);
   const cnSel=$('#emVcn');
@@ -7424,7 +7792,10 @@ emVNCaVis();
 $('#emVNVin').addEventListener('input',()=>{
   const vin=$('#emVNVin').value.trim().toUpperCase();
   if(vin.length===17){ $('#emVNCh').value=vin.slice(-8); $('#emVNCh').dispatchEvent(new Event('input')); }
+  autoAnio('emVN');
 });
+$('#emVNCh').addEventListener('input',()=>autoAnio('emVN'));
+$('#emVNMo').addEventListener('input',()=>autoPorModelo('emVN'));
 $('#emVNCh').addEventListener('input',()=>{
   const c=$('#emVNCh').value.trim().toUpperCase(); const el=$('#emVNChT');
   if(!c){el.textContent='';return}
@@ -7473,6 +7844,8 @@ $('#emVNAdd').addEventListener('click',async()=>{
 });
 let emBlPreview=null;
 let emBlNum=null;
+let emBlPeso=0;
+let emBlCab={};
 /* Si el chasis ya tiene un valor de compra guardado en algún embarque (por ejemplo, cargado a
    mano desde ＄Costos > Corea), se usa ese como punto de partida en la vista previa del BL, para
    no mostrarla vacía como si faltara -- y para que si no se toca, no se pierda ni se duplique. */
@@ -7503,6 +7876,9 @@ $('#emBlBtn').addEventListener('click',()=>{
   const vistos=new Set();
   emBlPreview=[];
   emBlNum=(!Array.isArray(d)&&d.bl)?String(d.bl):(e.nom||'');
+  emBlPeso=(!Array.isArray(d)&&d.peso)?(parseFloat(String(d.peso).replace(',','.'))||0):0;
+  /* Datos del BL que Claude saca del documento y vienen en el mismo código (2026-09-28). */
+  emBlCab={}; if(!Array.isArray(d)) ['fechaBL','naviera','buque','proveedor','fechaFactura','manifiesto','fechaManifiesto','agencia'].forEach(k=>{ if(d[k]) emBlCab[k]=String(d[k]).trim(); });
   for(const x of vehArr){
     if(!x.ch || vistos.has(x.ch)) continue;
     vistos.add(x.ch);
@@ -7512,7 +7888,7 @@ $('#emBlBtn').addEventListener('click',()=>{
       pa:x.pa||null, ca:x.ca||'S/N', prov:x.prov||'', km:x.km||null, krw:x.krw||null,
       fe:x.fe||'', nota:x.nota||'', cc:Object.assign(ccYaGuardado(x.ch), x.cc||{}),
       valor:pnum(x.valor)||valorYaGuardado(x.ch), cn:pnum(x.cn)||null, pv:pnum(x.pv)||0, cod:(x.cod||'').toUpperCase(),
-      motor:x.motor||'', cil:x.cil||'', trans:x.trans||'',
+      motor:x.motor||'', cil:x.cil||'', trans:x.trans||'', vin:String(x.vin||'').trim().toUpperCase(),
     });
   }
   if(!emBlPreview.length){toast('El código no trae chasis válidos');emBlPreview=null;emBlNum=null;return}
@@ -7649,6 +8025,7 @@ document.addEventListener('click',async e=>{
           fe:x.fe||iso(),nota:x.nota||'',prov:(x.prov||'').trim().toUpperCase(),cc:x.cc||{},creando:true};
         const transBl=x.trans||transSugerida(trabBl);
         if(transBl) nv.zof={trans:transBl};
+        if(x.vin&&x.vin.length===17){ nv.zof=nv.zof||{}; nv.zof.vin=x.vin; }
         nuevos.push(nv); have.add(ch);
       }
       const pv=pnum(x.pv)||0;
@@ -7658,22 +8035,26 @@ document.addEventListener('click',async e=>{
       else { e.veh.push({ch,valor,cif:0,cn:x.cn||1,pv}); agregados++ }
       /* costos de taller en Corea: para un vehículo que ya existía en Stock, `nv` no se crea
          (no pasa por el bloque de arriba), así que hay que guardarlos aparte en el vehículo real. */
+      if(x.vin && x.vin.length===17){ const vR=IDX[ch]; if(vR){ vR.zof=vR.zof||{}; if(!vR.zof.vin) vR.zof.vin=x.vin; } }
       if(x.cc && Object.keys(x.cc).length){
         const vReal=IDX[ch];
         if(vReal){ vReal.cc=vReal.cc||{}; Object.assign(vReal.cc, x.cc); }
       }
-      if(x.cn && x.cod){ e.contCod=e.contCod||{}; if(!e.contCod[x.cn]) e.contCod[x.cn]=x.cod }
     }
-    if(!e.cont){
-      const maxCn=Math.max(0,...emBlPreview.map(x=>pnum(x.cn)||0));
-      if(maxCn) e.cont=maxCn;
-    }
+    /* El BL manda: la cantidad de contenedores y sus códigos se toman del BL y reemplazan lo que
+       hubiera antes (p. ej. los 2 de prueba que trae un embarque nuevo por defecto). */
+    const maxCn=Math.max(0,...emBlPreview.map(x=>pnum(x.cn)||0));
+    if(maxCn) e.cont=maxCn;
+    const codBl={}; emBlPreview.forEach(x=>{ if(x.cn && x.cod) codBl[x.cn]=x.cod });
+    if(Object.keys(codBl).length) e.contCod=codBl;
     if(nuevos.length){
       let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
       try{await window.storage.set(EXK,JSON.stringify(prev.concat(nuevos)))}catch(err){toast('No se pudo guardar en Stock');return}
       V=V.concat(nuevos); nuevos.forEach(v=>IDX[v.ch]=v);
     }
     if(emBlNum && emBlNum.trim()) e.nom = emBlNum.trim();
+    if(emBlPeso) e.pesoBL = emBlPeso;
+    Object.entries(emBlCab||{}).forEach(([k,val])=>{ e[k]=/^fecha/.test(k)?val:val.toUpperCase(); });
     await guardaEmb(); pintaEmb(); draw(); drawPick();
     /* Único lugar de la app que cambiaba vehículos sin avisar a la nube -- se agrega el mismo
        aviso que usa el resto (confirmar/descartar/restaurar/llegó a patio, etc.). */
@@ -7690,6 +8071,11 @@ document.addEventListener('click',async e=>{
   if(cd){E().costos.splice(+cd.dataset.emcdel,1); await guardaEmb(); pintaEmb(); return}
   const vd=e.target.closest('[data-emvdel]');
   if(vd){E().veh.splice(+vd.dataset.emvdel,1); await guardaEmb(); pintaEmb(); return}
+  if(e.target.closest('[data-zofmarcador]')){e.preventDefault(); toast('Arrástralo a la barra de favoritos del navegador; se usa en la página de Zofri'); return}
+  if(e.target.closest('#zofVinsBtn')){const ta=$('#zofVins'); const r=await zofGuardarVins(ta?ta.value:'');
+    toast(r&&r.total?(r.n+' VIN guardado'+(r.n===1?'':'s')+(r.total>r.n?' ('+(r.total-r.n)+' ya estaban o no son de este embarque)':'')):'No encontré VINs de 17 caracteres'); return}
+  if(e.target.closest('#zofPayloadCp')){const em=E(); if(!em||!em.veh.length){toast('Sin vehículos en este embarque');return}
+    const P=zofPayload(em); await cp(JSON.stringify(P),'Datos del Zeta copiados ('+P.items.length+' vehículos) — ahora toca el favorito "Rellenar Zeta" en Zofri'); return}
   const zofcp=e.target.closest('[data-zofcp]');
   if(zofcp){const ch=zofcp.dataset.zofcp; const v=IDX[ch]; if(!v)return;
     const texto=zofDescriptor(v).map(([k,val])=>`${k}: ${val}`).join('\n');
@@ -7993,9 +8379,35 @@ function normalizaModelo(mo){
 }
 function esTrabajoPorCaMo(mo,ca){ return !!CARROC_TRABAJO[String(ca||'').trim().toUpperCase()]||esModeloTrabajo(mo); }
 const MOTOR_GASOLINA_MODELOS=['VELOSTER'];   /* salvo estos, todo parte en diésel -- son muy pocos los que son a gasolina (André) */
-function motorSugerido(mo){ return MOTOR_GASOLINA_MODELOS.includes(String(mo||'').trim().toUpperCase())?'BENCINA':'DIESEL'; }
-function cilSugerida(mo){ return esModeloTrabajo(mo)?'2.5':''; }
-function paxSugeridos(mo){ mo=String(mo||'').trim().toUpperCase(); return (mo.startsWith('SORENTO')||mo.includes('SANTA FE'))?'7':''; }
+/* Datos típicos por modelo (2026-09-28): [categoría, pasajeros, motor, cilindrada, transmisión].
+   Solo sugieren -- todo queda editable. Sportage/Tucson sin cilindrada: 2016+ vienen en 1.7 o 2.0 (André), hay que elegir. */
+const MOD_DEF={'PORTER':['CAMIONETA',3,'DIESEL','2.5','MECANICA'],'BONGO':['CAMIONETA',3,'DIESEL','2.5','MECANICA'],
+  'CARNIVAL':['SUV',9,'DIESEL','2.2','AUTOMATICA'],'SORENTO':['SUV',7,'DIESEL','2.0','AUTOMATICA'],'SANTA FE':['SUV',7,'DIESEL','2.0','AUTOMATICA'],
+  'SANTAFE':['SUV',7,'DIESEL','2.0','AUTOMATICA'],'PALISADE':['SUV',7,'DIESEL','2.2','AUTOMATICA'],'SPORTAGE':['SUV',5,'DIESEL','','AUTOMATICA'],
+  'TUCSON':['SUV',5,'DIESEL','','AUTOMATICA'],'AVANTE':['SEDÁN',5,'DIESEL','1.6','AUTOMATICA'],'VELOSTER':['HATCHBACK',5,'BENCINA','1.6','AUTOMATICA'],
+  'STAREX':['FURGÓN','','DIESEL','2.5',''],'KORANDO SPORTS':['CAMIONETA',5,'DIESEL','2.0',''],'ACTYON SPORTS':['CAMIONETA',5,'DIESEL','2.0',''],
+  'KORANDO':['SUV',5,'DIESEL','2.0','AUTOMATICA']};
+function modDef(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOD_DEF){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOD_DEF[k]:null; }
+function motorSugerido(mo){ const d=modDef(mo); if(d&&d[2]) return d[2]; return MOTOR_GASOLINA_MODELOS.includes(String(mo||'').trim().toUpperCase())?'BENCINA':'DIESEL'; }
+function cilSugerida(mo){ const d=modDef(mo); if(d) return d[3]||''; return esModeloTrabajo(mo)?'2.5':''; }
+function paxSugeridos(mo){ const d=modDef(mo); return d&&d[1]?String(d[1]):''; }
+function catSugerida(mo){ const d=modDef(mo); return d?d[0]:''; }
+/* Año del modelo desde el VIN (10° carácter) o desde el chasis de 8 (su 1er carácter es ese mismo 10° del VIN). */
+function anioDeChasis(c){ c=String(c||'').trim().toUpperCase(); const k=c.length===17?c[9]:(c.length===8?c[0]:''); if(!k) return null;
+  const L='ABCDEFGHJKLMNPRSTVWXY'; let y=null; if(L.includes(k)) y=2010+L.indexOf(k); else if(/[1-9]/.test(k)) y=2000+(+k);
+  if(y&&y>new Date().getFullYear()+1) y-=30; return y; }
+/* Rellena categoría/pasajeros/año de un formulario de alta ('nv' o 'emVN') sin pisar lo que el usuario escribió:
+   solo cambia un campo si está vacío o si todavía tiene el valor que puso la app. */
+function autoPorModelo(pfx){
+  const mo=($('#'+pfx+'Mo')||{}).value; const d=modDef(mo);
+  const pon=(el,val,pinta)=>{ if(!el||val===''||val==null) return; if(el.value===''||el.value===el.dataset.auto){ el.value=String(val); el.dataset.auto=String(val); if(pinta) selOtroPinta(); } };
+  if(d){ pon($('#'+pfx+'Cat'),d[0],true); if(pfx==='emVN') pon($('#'+pfx+'Pa'),d[1]); }
+}
+function autoAnio(pfx){
+  const vin=(($('#'+pfx+'Vin')||{}).value||'').trim(), ch=(($('#'+pfx+'Ch')||{}).value||'').trim();
+  const y=anioDeChasis(vin.length===17?vin:ch); const el=$('#'+pfx+'An');
+  if(y&&el&&(el.value===''||el.value===el.dataset.auto)){ el.value=String(y); el.dataset.auto=String(y); }
+}
 function transSugerida(trab){ return trab?'MECANICA':'AUTOMATICA'; }
 
 let nvWarn=false;
@@ -8029,7 +8441,10 @@ nvSugerirExtra();
 $('#nvVin').addEventListener('input',()=>{
   const vin=$('#nvVin').value.trim().toUpperCase();
   if(vin.length===17){ $('#nvCh').value=vin.slice(-8); $('#nvCh').dispatchEvent(new Event('input')); }
+  autoAnio('nv');
 });
+$('#nvCh').addEventListener('input',()=>autoAnio('nv'));
+$('#nvMo').addEventListener('input',()=>autoPorModelo('nv'));
 $('#nvCh').addEventListener('input',()=>{
   const c=$('#nvCh').value.trim().toUpperCase(); const el=$('#nvChT');
   if(!c){el.textContent='';return}

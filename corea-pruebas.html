@@ -231,7 +231,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button role="tab" id="stTabA" data-step="A" aria-selected="true">1 · Vehículo</button>
     <button role="tab" id="stTabB" data-step="B" aria-selected="false">2 · Compra y gastos</button></div>
   <div class="sbody" id="fBody"><div id="stA">
-  <div class="fld" id="wCh"><label for="fCh">Chasis</label>
+  <div class="fld" id="wVin"><label for="fVin">VIN completo (17) <span class="mtr">(del padrón; el chasis y el año se completan solos)</span></label>
+    <input id="fVin" autocapitalize="characters" autocomplete="off" maxlength="17" placeholder="Ej: KMHSW81UBFU432757" style="font-family:monospace">
+    <div class="err" id="eVin"></div></div>
+  <div class="fld" id="wCh"><label for="fCh">Chasis <span class="mtr">(últimos 8 del VIN)</span></label>
     <input id="fCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: BA123290">
     <div class="err" id="eCh"></div>
     <button class="cg" id="fSinCh" aria-pressed="false" style="width:100%;margin-top:8px;padding:11px">
@@ -486,6 +489,9 @@ const F360_VEND_COL='pruebas_f360Vend';
 let fbRecoreaEscuchando=false;
 let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
 const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
+/* Viajan a Sistema solo si tienen valor (2026-09-28). Solo el VIN cuenta para la firma, para no reenviar de golpe
+   todos los vehículos ya cargados (y pisar en la nube correcciones hechas en Sistema). */
+const FB_GEN_EXTRA=['vin','motor','cil','trans'];
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
 /* Estado real de cada vehículo en la nube. v.nube guarda la "firma" de lo último que la nube confirmó (ver fbFirma):
    si coincide con la firma actual => "En Chile ✓". null => cargado/editado y todavía sin confirmar.
@@ -509,6 +515,7 @@ function fbFirma(v){
   let s='';
   try{ s=JSON.stringify([FB_GEN.map(k=>v[k]===undefined?null:v[k]), v.krw===undefined?null:v.krw, v.cc===undefined?null:v.cc, v.senia===undefined?null:v.senia]); }
   catch(e){ return ''; }
+  if(v.vin) s+='|'+v.vin;
   let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0;
   return (h>>>0).toString(36)+'.'+s.length;
 }
@@ -557,6 +564,7 @@ async function fbEnvia(){
     for(const v of pend){
       const firma=fbFirma(v);
       const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
+      FB_GEN_EXTRA.forEach(k=>{ if(v[k]) gen[k]=v[k]; });
       if(v._primerEnvio) gen.st='ORIGEN';   /* recién comprado en Corea: arranca 'En camino' en Sistema, solo la primera vez */
       gen._ts=firebase.firestore.FieldValue.serverTimestamp();
       try{
@@ -960,7 +968,7 @@ $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 /* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
 let snap0='', step='A';
 function formSnap(){
-  try{ return JSON.stringify([$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fSenia').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value,$('#fCont').value]); }
+  try{ return JSON.stringify([$('#fVin').value,$('#fCh').value,sinCh,sel,$('#fMaNew').value,$('#fMoNew').value,$('#fAn').value,$('#fKm').value,$('#fPa').value,esTrab,$('#fPr').value,$('#fKrw').value,$('#fSenia').value,$('#fFe').value,CC.map(([k])=>$('#c'+k).value),$('#fNo').value,$('#fCont').value]); }
   catch(e){ return ''; }
 }
 function setStep(s){
@@ -1039,7 +1047,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b
 function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:''};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
-  ['fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
+  ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
+  tocado={}; anAuto=''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts();
@@ -1051,8 +1060,57 @@ document.addEventListener('click',e=>{
     if(!i.hidden){sel.ma='';sel.mo='';$('#fMoNew').value='';opts();i.focus()}}
   if(e.target.id==='fMoAdd'){const i=$('#fMoNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
 });
-$('#fTrabNo').addEventListener('click',()=>setTrab(false));
-$('#fTrabSi').addEventListener('click',()=>setTrab(true));
+$('#fTrabNo').addEventListener('click',()=>{tocado.trab=1;setTrab(false)});
+$('#fTrabSi').addEventListener('click',()=>{tocado.trab=1;setTrab(true)});
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(!b) return;
+  const k=b.dataset.k; if(['cat','motor','trans'].includes(k)) tocado[k]=1; if(k==='mo') aplicaModelo(); });
+$('#fMoNew').addEventListener('input',aplicaModelo);
+$('#fPa').addEventListener('input',()=>{tocado.pa=1});
+$('#fCil').addEventListener('input',()=>{tocado.cil=1});
+$('#fVin').addEventListener('input',()=>{
+  const el=$('#fVin'), v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(el.value!==v) el.value=v;
+  const er=$('#eVin'); $('#wVin').classList.remove('bad'); er.textContent='';
+  if(/[IOQ]/.test(v)){ $('#wVin').classList.add('bad'); er.textContent='Un VIN nunca lleva las letras I, O ni Q: revisa si es 1 o 0.'; }
+  else if(v&&v.length<17) er.textContent='Faltan '+(17-v.length)+' caracteres.';
+  if(v.length===17&&!sinCh){ $('#fCh').value=v.slice(-8); }
+  autoAnio();
+});
+$('#fCh').addEventListener('input',()=>{
+  const el=$('#fCh'); const v=el.value.trim().toUpperCase();
+  if(v.length===17){ $('#fVin').value=v; el.value=v.slice(-8); $('#fVin').dispatchEvent(new Event('input')); return; }
+  autoAnio();
+});
+/* Datos típicos por modelo: [categoría, pasajeros, motor, cilindrada, transmisión, ¿de trabajo?].
+   Se rellenan solos al elegir el modelo; lo que mamá toque a mano ya no se pisa. Sportage/Tucson sin
+   cilindrada a propósito: desde 2016 vienen en 1.7 o 2.0, hay que elegir. */
+const MOD_DEF={'PORTER':['CAMIONETA',3,'DIESEL','2.5','MECANICA',1],'BONGO':['CAMIONETA',3,'DIESEL','2.5','MECANICA',1],
+  'CARNIVAL':['SUV',9,'DIESEL','2.2','AUTOMATICA',0],'SORENTO':['SUV',7,'DIESEL','2.0','AUTOMATICA',0],'SANTA FE':['SUV',7,'DIESEL','2.0','AUTOMATICA',0],
+  'SANTAFE':['SUV',7,'DIESEL','2.0','AUTOMATICA',0],'PALISADE':['SUV',7,'DIESEL','2.2','AUTOMATICA',0],'SPORTAGE':['SUV',5,'DIESEL','','AUTOMATICA',0],
+  'TUCSON':['SUV',5,'DIESEL','','AUTOMATICA',0],'AVANTE':['SEDÁN',5,'DIESEL','1.6','AUTOMATICA',0],'VELOSTER':['HATCHBACK',5,'BENCINA','1.6','AUTOMATICA',0],
+  'STAREX':['FURGÓN','','DIESEL','2.5','',0],'KORANDO SPORTS':['CAMIONETA',5,'DIESEL','2.0','',0],'ACTYON SPORTS':['CAMIONETA',5,'DIESEL','2.0','',0],
+  'KORANDO':['SUV',5,'DIESEL','2.0','AUTOMATICA',0]};
+function modDef(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOD_DEF){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOD_DEF[k]:null; }
+/* Año desde el VIN (10° carácter) o desde el chasis de 8 (su primer carácter es ese mismo). */
+function anioDeChasis(c){ c=String(c||'').trim().toUpperCase(); const k=c.length===17?c[9]:(c.length===8?c[0]:''); if(!k) return null;
+  const L='ABCDEFGHJKLMNPRSTVWXY'; let y=null; if(L.includes(k)) y=2010+L.indexOf(k); else if(/[1-9]/.test(k)) y=2000+(+k);
+  if(y&&y>new Date().getFullYear()+1) y-=30; return y; }
+let tocado={}, anAuto='';
+function aplicaModelo(){
+  const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
+  const d=modDef(mo); if(!d) return;
+  if(!tocado.cat&&d[0]) sel.cat=d[0];
+  if(!tocado.pa&&d[1]) $('#fPa').value=d[1];
+  if(!tocado.motor&&d[2]) sel.motor=d[2];
+  if(!tocado.cil) { $('#fCil').value=d[3]||''; $('#fCil').placeholder=d[3]?'Ej: 2.5':'¿1.7 o 2.0?'; }
+  if(!tocado.trans&&d[4]) sel.trans=d[4];
+  if(!tocado.trab) setTrab(!!d[5]);
+  opts();
+}
+function autoAnio(){
+  const vin=$('#fVin').value.trim(), ch=$('#fCh').value.trim();
+  const y=anioDeChasis(vin.length===17?vin:ch), el=$('#fAn');
+  if(y&&(el.value===''||el.value===anAuto)){ el.value=String(y); anAuto=String(y); }
+}
 function setTrab(v){
   esTrab=v;
   $('#fTrabNo').setAttribute('aria-pressed',v?'false':'true');
@@ -1067,7 +1125,7 @@ $('#fSinCh').addEventListener('click',()=>{
   if(sinCh){$('#fCh').value='';$('#wCh').classList.remove('bad')}
 });
 $('#q').addEventListener('input',e=>{q=e.target.value;draw()});
-$('#addV').addEventListener('click',()=>{limpia();$('#fmT').textContent='Nuevo vehículo';openSheet('shForm');setTimeout(()=>$('#fCh').focus(),240)});
+$('#addV').addEventListener('click',()=>{limpia();$('#fmT').textContent='Nuevo vehículo';openSheet('shForm');setTimeout(()=>$('#fVin').focus(),240)});
 
 $('#fmOk').addEventListener('click',async()=>{
   let ch=$('#fCh').value.trim().toUpperCase();
@@ -1087,6 +1145,11 @@ $('#fmOk').addEventListener('click',async()=>{
     }
   }
   w.classList.remove('bad');
+  const vin=$('#fVin').value.trim().toUpperCase();
+  if(vin){
+    if(vin.length!==17||/[IOQ]/.test(vin)){irA();$('#wVin').classList.add('bad');$('#eVin').textContent='El VIN debe tener 17 caracteres (sin I, O ni Q). Corrígelo o bórralo.';return}
+    if(!sinCh&&ch!==vin.slice(-8)){irA();w.classList.add('bad');er.textContent='El chasis no coincide con los últimos 8 del VIN ('+vin.slice(-8)+'). Revisa cuál está bien.';return}
+  }
   const maNew=$('#fMaNew').value.trim().toUpperCase();
   if(maNew&&!$('#fMaNew').hidden){
     if(!EXTRA.marcas.includes(maNew)&&!OPT.marcas.includes(maNew)){EXTRA.marcas.push(maNew);await guardaExtra()}
@@ -1101,6 +1164,7 @@ $('#fmOk').addEventListener('click',async()=>{
     await guardaExtra();
   }
   const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){irA();toast('Revisa el año');return}
+  { const yv=anioDeChasis(vin||ch); if(yv&&yv!==an&&!warnOnce){ warnOnce=true; irA(); toast('Según el '+(vin?'VIN':'chasis')+' el año sería '+yv+'. Si '+an+' está bien, toca Guardar otra vez.'); return; } }
   const cc={}; for(const[k]of CC){const n=pnum($('#c'+k).value); if(n) cc[k]=n}
   const prov=$('#fPr').value.trim().toUpperCase();
   if(prov&&!PROV.includes(prov)){PROV.push(prov);PROV.sort();
@@ -1112,7 +1176,7 @@ $('#fmOk').addEventListener('click',async()=>{
     dlCont();}
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
-    motor:sel.motor||'',cil:$('#fCil').value.trim(),trans:sel.trans||'',
+    motor:sel.motor||'',cil:$('#fCil').value.trim(),trans:sel.trans||'',vin:vin||'',
     krw:pnum($('#fKrw').value)||null,senia:pnum($('#fSenia').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
@@ -1474,6 +1538,7 @@ document.addEventListener('click',async e=>{
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
+  $('#fVin').value=v.vin||''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); tocado={cat:1,pa:1,motor:1,cil:1,trans:1,trab:1}; anAuto='';
   $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||'';$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
   $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
