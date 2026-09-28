@@ -575,7 +575,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 21:53 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 22:04 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1919,6 +1919,8 @@ async function fbContarNube(){
    (embarques/todos, remesas/todas) para no romper nada existente. */
 const NUBE_DOCS={'amk_remesas':{col:'pruebas_remesas',doc:'todas',tipo:'lista',clave:'ts',nom:'remesas'},
                  'amk_embarques':{col:'pruebas_embarques',doc:'todos',tipo:'items',nom:'embarques'}};
+/* Las navieras guardadas (plantillas de costos) también viajan entre aparatos, en el mismo lugar que los embarques. */
+NUBE_DOCS['amk_navieras']={col:NUBE_DOCS['amk_embarques'].col,doc:'navieras',tipo:'mapa',nom:'navieras'};
 const NUBE_MAX=900000;
 const nubeUlt={}, nubeMod={}, nubeBorr={}, nubeTimers={}, nubePend={}, nubeListo={};
 /* Hasta que este aparato no se haya puesto al día con la nube, lo que se guarde NO se sella con hora:
@@ -1930,11 +1932,13 @@ const nubeSinMod=x=>{ if(!x||typeof x!=='object') return JSON.stringify(x); cons
 function nubeItems(k,obj){
   const d=NUBE_DOCS[k];
   if(d.tipo==='items') return Object.assign({},(obj&&obj.items)||{});
+  if(d.tipo==='mapa') return Object.assign({},(obj&&typeof obj==='object'&&!Array.isArray(obj))?obj:{});
   const m={}; (Array.isArray(obj)?obj:[]).forEach(x=>{ if(x&&x[d.clave]!=null) m[String(x[d.clave])]=x; }); return m;
 }
 function nubeArma(k,items,base){
   const d=NUBE_DOCS[k];
   if(d.tipo==='items') return Object.assign({},(base&&typeof base==='object'&&!Array.isArray(base))?base:{},{items});
+  if(d.tipo==='mapa') return items;
   return Object.values(items).sort((a,b)=>(+a[d.clave]||0)-(+b[d.clave]||0));
 }
 const nubeParse=t=>{ try{ return t?JSON.parse(t):null; }catch(_){ return null; } };
@@ -2041,6 +2045,8 @@ function nubeRefresca(k){
     (async()=>{ try{ const r=await window.storage.get(k); const o=nubeParse(r&&r.value)||{}; EMB=o.items||{};
       if(!embId||!EMB[embId]){ const ids=Object.keys(EMB); embId=ids.length?ids[0]:null; }
       if(!embId) embNuevo(); pintaEmb(); if(typeof draw==='function') draw(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_navieras'){
+    (async()=>{ try{ const r=await window.storage.get(k); const o=nubeParse(r&&r.value); if(o) NAVIERAS=o; pintaNaviera(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_remesas'){
     (async()=>{ try{ const r=await window.storage.get(k); RM=nubeParse(r&&r.value)||[]; pintaRM(); }catch(e){ console.error('nubeRefresca',e); } })();
   }
@@ -7930,14 +7936,21 @@ $('#emNaviera').addEventListener('change',async()=>{
   const nom=$('#emNaviera').value; if(!nom||!NAVIERAS[nom]) return;
   const e=E(); if(!e) return;
   const datos=NAVIERAS[nom];
+  /* Formato nuevo {_v:2, conceptos:{nombre:{monto,moneda,modo}}, noAplica:[]} o el viejo {nombre: monto en $}.
+     Solo rellena lo que está vacío en este embarque: nunca pisa un monto ya escrito. */
+  const conceptos=datos._v===2?datos.conceptos:Object.fromEntries(Object.entries(datos).filter(([k,v])=>!k.startsWith('_')&&typeof v==='number').map(([k,v])=>[k,{monto:v,moneda:'CLP'}]));
   let n=0;
-  Object.keys(datos).forEach(concepto=>{
-    const val=datos[concepto]; if(!val) return;
-    if(concepto==='Porteo') return;   /* el porteo no es de la naviera: no lo cargan las cotizaciones de navieras */
-    if(e.costos.some(c=>c.n===concepto&&c.tipo==='contenedor')) return;
-    e.costos.push({n:concepto,monto:val,tipo:'contenedor',moneda:'CLP'});
+  Object.entries(conceptos||{}).forEach(([concepto,d])=>{
+    if(!d||!d.monto) return;
+    if(concepto==='Porteo'||concepto==='Flete marítimo') return;   /* no son de la naviera */
+    const ya=e.costos.find(c=>c.n===concepto&&c.tipo==='contenedor');
+    if(ya&&ya.monto>0) return;
+    const nuevo={n:concepto,monto:d.monto,tipo:'contenedor',moneda:d.moneda||'CLP'}; if(d.modo) nuevo.modo=d.modo;
+    if(ya) Object.assign(ya,nuevo); else e.costos.push(nuevo);
     n++;
   });
+  if(datos._v===2&&Array.isArray(datos.noAplica)){ e.noAplica=[...new Set([...(e.noAplica||[]),...datos.noAplica])]; }
+  e.naviera=e.naviera||nom.toUpperCase();
   await guardaEmb(); pintaEmb();
   toast(n?('Valores sugeridos de '+nom+' cargados'):('Ya tenías esos costos puestos'));
 });
@@ -7945,14 +7958,18 @@ $('#emNavGuardar').addEventListener('click',async()=>{
   const nom=$('#emNavNombre').value.trim();
   if(!nom){toast('Escribe el nombre de la naviera');return}
   const e=E(); if(!e) return;
-  const datos={};
-  e.costos.filter(c=>c.tipo==='contenedor'&&NAV_CONCEPTOS.has(c.n)).forEach(c=>{ datos[c.n]=montoCLP(c,e.id); });
-  if(!Object.keys(datos).length){toast('No hay costos por contenedor puestos para guardar');return}
-  NAVIERAS[nom]=Object.assign({},NAVIERAS[nom]||{},datos);
+  /* Plantilla completa de la naviera (2026-09-28): todos sus conceptos (también los agregados a mano), con su
+     monto, moneda y si es total o c/u, más los que "no aplican". No guarda el Flete ni el Porteo (no son de la naviera). */
+  const conceptos={};
+  e.costos.filter(c=>c.tipo==='contenedor'&&c.monto>0&&c.n!=='Flete marítimo'&&!esPorteo(c)).forEach(c=>{ conceptos[c.n]={monto:c.monto,moneda:c.moneda||'CLP',modo:costoModo(c)}; });
+  if(!Object.keys(conceptos).length){toast('No hay costos de la naviera puestos para guardar');return}
+  const noAplica=(e.noAplica||[]).filter(n=>n!=='Porteo'&&n!=='Flete marítimo'&&!conceptos[n]);
+  const habia=!!NAVIERAS[nom];
+  NAVIERAS[nom]={_v:2,conceptos,noAplica};
   await guardaNavieras();
   $('#emNavNombre').value='';
-  pintaNaviera();
-  toast('Naviera "'+nom+'" guardada');
+  pintaNaviera(); $('#emNaviera').value=nom;
+  toast('Naviera "'+nom+'" '+(habia?'actualizada':'guardada')+' · '+Object.keys(conceptos).length+' conceptos');
 });
 $('#acumAdd').addEventListener('click',async()=>{
   const m=pnum($('#acumM').value)||0;
