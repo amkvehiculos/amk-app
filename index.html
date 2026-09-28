@@ -520,6 +520,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
           <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
         </div>
+        <div id="emEstDup"></div>
         <div id="emEstLista"></div>
         <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
         <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
@@ -573,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 15:39<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 16:18<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5620,10 +5621,17 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-sest]');
   if(b) $('#tkEst').value=clp(+b.dataset.sest)});
 $('#tkAdd').addEventListener('click',async()=>{
   if(!tkCh){toast('Elige un vehículo');return}
-  tasks(tkCh).push({ts:Date.now(),cat:tkCat,nota:$('#tkNota').value.trim(),
-    est:pnum($('#tkEst').value)||0,hecho:false});
+  /* Regla (André, 2026-09-28): un vehículo no puede tener dos estimados pendientes de la misma categoría
+     -- se sumaban dos veces al costo. Si ya hay uno, se actualiza ese en vez de agregar otro. */
+  const nota=$('#tkNota').value.trim(), est=pnum($('#tkEst').value)||0;
+  const ya=tasks(tkCh).find(x=>x.cat===tkCat&&!x.hecho);
+  if(ya){
+    if(est) ya.est=est;
+    if(nota&&nota!==(ya.nota||'')) ya.nota=ya.nota?(ya.nota+' · '+nota):nota;
+    ya.ts=Date.now();
+  } else tasks(tkCh).push({ts:Date.now(),cat:tkCat,nota,est,hecho:false});
   $('#tkNota').value=''; $('#tkEst').value=''; await save(); drawTaskSheet(); draw();
-  toast('Anotado en '+(IDX[tkCh]?IDX[tkCh].mo:'el vehículo'));
+  toast(ya?('Ya había '+(TN[tkCat]||tkCat)+' pendiente: se actualizó ese (no se duplica)'):('Anotado en '+(IDX[tkCh]?IDX[tkCh].mo:'el vehículo')));
 });
 
 function drawTaller(){
@@ -6907,6 +6915,21 @@ function emEstDraftCat(){ const d=emEstDraft[embId]||(emEstDraft[embId]={}); ret
 /* El verde de cada categoría se calcula de los datos reales (no de una bandera de sesión que se
    perdía al refrescar): queda en verde si algún vehículo de este embarque ya tiene guardada una
    Tarea de esa categoría, sin importar cuándo se guardó. */
+/* Estimados ya guardados (2026-09-28): son las Tareas pendientes de esa categoría sin nota -- así las crea
+   este cuadro. Antes el cuadro no las mostraba (solo la mediana sugerida) y al volver a guardar se creaban
+   duplicadas, sumando el costo dos veces. Ahora se muestran y al guardar se reemplazan en vez de agregarse. */
+const emEstEsSuya=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&!(ta.nota||'').trim();
+/* Pendiente de esa categoría, con o sin nota: al guardar desde este cuadro se actualiza esa en vez de crear otra. */
+const emEstPend=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&ta.origen!=='vendedor';
+function emEstGuardado(ch,k){ const l=((S[ch]||{}).tasks||[]).filter(ta=>emEstPend(ta,k)&&ta.est); return l.length?l[l.length-1].est||0:null; }
+function emEstDuplicados(){
+  const e=E(); if(!e) return [];
+  const out=[];
+  e.veh.forEach(x=>{ const t=(S[x.ch]||{}).tasks||[]; const por={};
+    t.forEach(ta=>{ if(emEstEsSuya(ta,ta.cat)) (por[ta.cat]=por[ta.cat]||[]).push(ta.est||0); });
+    Object.entries(por).forEach(([k,l])=>{ if(l.length>1) out.push({ch:x.ch,cat:k,l}); }); });
+  return out;
+}
 function emEstCatGuardada(k){
   const e=E(); if(!e||!e.veh) return false;
   return e.veh.some(x=>{ const t=S[x.ch]; return t&&t.tasks&&t.tasks.some(ta=>ta.cat===k); });
@@ -6917,23 +6940,36 @@ function pintaEmEst(){
   const e=E(); const lista=$('#emEstLista'); if(!lista) return;
   if(!e||!e.veh.length){ lista.innerHTML='<p style="color:var(--mute);font-size:13px;margin:8px 0 0">Sin vehículos en este embarque.</p>'; return; }
   const draft=emEstDraftCat();
+  const dups=emEstDuplicados(), dBox=$('#emEstDup');
+  if(dBox) dBox.innerHTML=dups.length?`<div class="card plain" style="padding:10px;margin:8px 0;border-color:var(--amber)">
+      <div style="font-size:13px;color:var(--amber);font-weight:600">⚠ Estimados repetidos: se están sumando dos veces</div>
+      <div style="font-size:12px;margin-top:4px">${dups.map(d=>`${d.ch} · ${TN[d.cat]||d.cat}: ${d.l.map(n=>clp(n)).join(' + ')}`).join('<br>')}</div>
+      <button class="btn b-sec" id="emEstDupFix" style="width:100%;margin-top:8px;font-size:12.5px">Dejar solo el último guardado de cada uno</button></div>`:'';
   lista.innerHTML=e.veh.map(x=>{
     const v=IDX[x.ch]||{};
     const md=medianaHist(emEstCat,v.mo);
     const dv=draft[x.ch]; // lo que se tipeó para esta categoría, aunque no se haya guardado todavía
-    const shown=dv!==undefined?dv:(md?Math.round(md).toLocaleString('es-CL'):'');
+    const gd=emEstGuardado(x.ch,emEstCat); // lo que ya está guardado (manda sobre la sugerencia)
+    const shown=dv!==undefined?dv:(gd!=null?Math.round(gd).toLocaleString('es-CL'):(md?Math.round(md).toLocaleString('es-CL'):''));
     return `<div class="xrow" style="align-items:center;padding:6px 0">
       <label style="display:flex;align-items:center;gap:8px;font-family:var(--body);font-size:13.5px">
         <input type="checkbox" data-emestchk="${x.ch}" checked>
         <span>${v.ma||''} ${v.mo||''} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-size:11px">· ${x.ch}</span></span>
       </label>
       <span style="display:inline-flex;align-items:center;gap:6px">
-        ${md?`<span style="font-size:11px;color:var(--mute)">≈${clp(md)}</span>`:''}
+        ${gd!=null?'<span style="font-size:11px;color:var(--green)">guardado</span>':(md?`<span style="font-size:11px;color:var(--mute)">sugerido ≈${clp(md)}</span>`:'')}
         <input data-emestmonto="${x.ch}" inputmode="numeric" value="${shown}" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)">
       </span>
     </div>`;
   }).join('');
 }
+$('#emEstDup').addEventListener('click',async e=>{
+  if(!e.target.closest('#emEstDupFix')) return;
+  const dups=emEstDuplicados(); let n=0;
+  dups.forEach(d=>{ const tl=tasks(d.ch); let visto=false;
+    for(let i=tl.length-1;i>=0;i--){ if(emEstEsSuya(tl[i],d.cat)){ if(visto){ tl.splice(i,1); n++; } else visto=true; } } });
+  await save(); pintaEmEst(); draw(); toast(n+' estimado'+(n===1?'':'s')+' repetido'+(n===1?'':'s')+' quitado'+(n===1?'':'s'));
+});
 $('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]');if(!b)return; emEstCat=b.dataset.ec; $('#emEstTodos').value=''; pintaEmEst();});
 // Cada monto tipeado queda guardado en el "borrador" de su categoría al tiro — así no se
 // pierde si cambias de categoría (Pintura → Mecánica) sin apretar "Guardar estimados".
@@ -6959,10 +6995,14 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     const inp=$(`[data-emestmonto="${x.ch}"]`);
     const est=pnum(inp?inp.value:'')||0;
     if(!est) continue;
-    tasks(x.ch).push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false});
+    const tl=tasks(x.ch);
+    const ya=tl.find(ta=>emEstPend(ta,emEstCat));
+    if(ya){ ya.est=est; ya.ts=Date.now(); for(let i=tl.length-1;i>=0;i--) if(tl[i]!==ya&&emEstEsSuya(tl[i],emEstCat)) tl.splice(i,1); }   /* reemplaza, no suma */
+    else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false});
     n++;
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}
+  delete (emEstDraft[embId]||{})[emEstCat];
   await save(); pintaEmEst(); draw();
   const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat];
   toast(msgOk);
