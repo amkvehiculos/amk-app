@@ -574,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 22:04<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 22:14<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -4022,7 +4022,25 @@ document.addEventListener('input',e=>{
       const dv=+info.dataset.div||1;
       info.textContent=(SIMB[mo]||'')+(mo==='CLP'?'':(' ≈ '+clp(u)))+(mult>1?(' × '+mult+' = '+clp(u*mult)):(dv>1?(' ÷ '+dv+' = '+clp(u/dv)+' c/u'):'')); }
   }
+  /* 2026-09-28: los totales del embarque (por contenedor, partes iguales, total a repartir) también se
+     recalculan mientras se escribe, sin esperar a salir del campo. Se guarda igual al salir del campo. */
+  if(e.target.matches('[data-emcedit],[data-emcm]')){ clearTimeout(emTotVivoT); const t=e.target; emTotVivoT=setTimeout(()=>emTotVivo(t),350); }
 });
+let emTotVivoT=null;
+function emTotVivo(t){
+  const em=E(); if(!em||!document.body.contains(t)) return;
+  const m=pnum(t.value)||0;
+  if(t.matches('[data-emcedit]')){ const co=em.costos[+t.dataset.emcedit]; if(!co) return; if(m>0) co.monto=m; }
+  else{
+    const nom=t.dataset.emcm, box=t.parentElement;
+    const moSel=box&&box.querySelector(`[data-emcmo="${nom}"]`), mdSel=box&&box.querySelector(`[data-emcmmodo="${nom}"]`);
+    let co=em.costos.find(c=>c.n===nom&&c.tipo===emTipo);
+    if(!co&&m>0){ co=Object.assign({n:nom,monto:0,tipo:emTipo,moneda:'CLP'},nom==='Porteo'?{grupo:'porteo'}:{}); em.costos.push(co); }
+    if(co){ co.monto=m; if(moSel) co.moneda=moSel.value; if(mdSel) co.modo=mdSel.value; }
+    if(co&&m<=0) em.costos.splice(em.costos.indexOf(co),1);
+  }
+  try{ pintaEmTot(); }catch(err){ console.error('emTotVivo',err); }
+}
 /* Mismo separador de miles en vivo, pero para el único campo de dinero con decimales
    (CIF Zofri a declarar, en US$): la parte entera lleva punto cada tres cifras, la parte
    decimal (después de una coma) se deja tal cual se está escribiendo -- estilo chileno,
@@ -7784,13 +7802,7 @@ function pintaEmb(){
   pintaEmEst();
   pintaEmZofri();
   pintaEmGastos();
-  const r=embCalc();
-  $('#emTot').innerHTML=r?`<div>Por contenedor (30/70) <b>${clp(r.tCont)}</b></div>
-    ${r.comFlete?`<div style="padding-left:12px;font-size:12px;color:var(--mute)">incluye comisión de remesas de flete: ${clp(r.comFlete)}</div>`:''}
-    <div>Partes iguales <b>${clp(r.tIgual)}</b></div>
-    ${r.comBanco?`<div>Comisión bancaria (remesas) <b>${clp(r.comBanco)}</b></div>`:''}
-    <div>Total a repartir <b>${clp(r.total)}</b></div>
-    ${r.n?`<div>Control <b style="color:${Math.abs(r.repartido-r.total)<=r.n?'var(--green)':'var(--amber)'}">${Math.abs(r.repartido-r.total)<=r.n?'Cuadra':'Dif '+clp(r.repartido-r.total)}</b></div>`:''}`:'';
+  const r=pintaEmTot();
   const nPuestos=lista.filter(nom=>e.costos.some(c=>c.n===nom&&c.tipo===emTipo)).length;
   const acumKRW=Object.values(FJK).reduce((a,b)=>a+(b||0),0);
   const meses=mesesDesde(PER.saldoDesde);
@@ -7901,6 +7913,17 @@ $('#emCt').addEventListener('click',e=>{const b=e.target.closest('[data-emt]');i
   $$('#emCt button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.emt===emTipo?'true':'false'));
   pintaEmb();
 });
+/* Totales del embarque (se llama también mientras se escribe un monto, sin repintar todo). */
+function pintaEmTot(){
+  const r=embCalc();
+  $('#emTot').innerHTML=r?`<div>Por contenedor (30/70) <b>${clp(r.tCont)}</b></div>
+    ${r.comFlete?`<div style="padding-left:12px;font-size:12px;color:var(--mute)">incluye comisión de remesas de flete: ${clp(r.comFlete)}</div>`:''}
+    <div>Partes iguales <b>${clp(r.tIgual)}</b></div>
+    ${r.comBanco?`<div>Comisión bancaria (remesas) <b>${clp(r.comBanco)}</b></div>`:''}
+    <div>Total a repartir <b>${clp(r.total)}</b></div>
+    ${r.n?`<div>Control <b style="color:${Math.abs(r.repartido-r.total)<=r.n?'var(--green)':'var(--amber)'}">${Math.abs(r.repartido-r.total)<=r.n?'Cuadra':'Dif '+clp(r.repartido-r.total)}</b></div>`:''}`:'';
+  return r;
+}
 function mesesDesde(m){
   if(!m) return 0;
   const [a,b]=m.split('-').map(Number), hoy=new Date();
@@ -7925,6 +7948,7 @@ document.addEventListener('change',async e=>{
   const moSel=el.parentElement&&el.parentElement.querySelector(`[data-emcmo="${el.dataset.emcm}"]`);
   const moneda=moSel?moSel.value:'CLP';
   const mdSel=el.parentElement&&el.parentElement.querySelector(`[data-emcmmodo="${el.dataset.emcm}"]`);
+  if(E().noAplica) E().noAplica=E().noAplica.filter(x=>x!==el.dataset.emcm);
   const ya=E().costos.find(c=>c.n===el.dataset.emcm&&c.tipo===emTipo);
   if(ya){ ya.monto=m; ya.moneda=moneda; if(mdSel) ya.modo=mdSel.value; }
   else if(mdSel){ E().costos.push(Object.assign({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda,modo:mdSel.value},el.dataset.emcm==='Porteo'?{grupo:'porteo'}:{})); }
