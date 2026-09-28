@@ -574,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 18:50<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 21:46<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -4007,6 +4007,15 @@ document.addEventListener('input',async e=>{
 document.addEventListener('input',e=>{
   if(!e.target.matches('[data-emcc],[data-emcedit],[data-emcm],[data-emvvalset],[data-cck2],[data-cck]')) return;
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'));
+  /* 2026-09-28: el "× 8 = total" de al lado se recalcula mientras se escribe (antes solo al salir del campo,
+     y parecía que el monto nuevo no se tomaba). Se guarda igual que siempre, al salir del campo. */
+  if(e.target.matches('[data-emcedit]')){
+    const idx=+e.target.dataset.emcedit, em=E(), co=em&&em.costos[idx], info=document.querySelector(`[data-emcinfo="${idx}"]`);
+    if(co&&info){ const sel=document.querySelector(`[data-emceditmo="${idx}"]`); const mo=sel?sel.value:(co.moneda||'CLP');
+      const u=montoCLP(Object.assign({},co,{monto:+n||0,moneda:mo}),em.id), mult=+info.dataset.mult||1, SIMB={CLP:'$',USD:'US$',KRW:'₩'};
+      const dv=+info.dataset.div||1;
+      info.textContent=(SIMB[mo]||'')+(mo==='CLP'?'':(' ≈ '+clp(u)))+(mult>1?(' × '+mult+' = '+clp(u*mult)):(dv>1?(' ÷ '+dv+' = '+clp(u/dv)+' c/u'):'')); }
+  }
 });
 /* Mismo separador de miles en vivo, pero para el único campo de dinero con decimales
    (CIF Zofri a declarar, en US$): la parte entera lleva punto cada tres cifras, la parte
@@ -4265,7 +4274,7 @@ function reacondPendienteTotal(){
 }
 function fleteTotalUSD(e){
   const c=(e.costos||[]).find(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor');
-  return c?(c.monto||0)*(e.cont||1):0;
+  return c?(c.monto||0)*costoMult(c,e):0;   /* antes multiplicaba siempre por contenedores, aunque el reparto lo tomaba como total */
 }
 function fleteRemesadoUSD(embId){
   return RM.filter(r=>r.tipo==='flete'&&r.embId===embId).reduce((a,r)=>a+(r.u||0),0);
@@ -6906,13 +6915,29 @@ const CONCEPTOS=[
  ['Honorario por vehículo','vehiculo','porveh','KRW',150000]];
 const PORCONT=new Set(CONCEPTOS.filter(c=>c[2]==='porcont').map(c=>c[0]));
 const PORVEH=new Set(CONCEPTOS.filter(c=>c[2]==='porveh').map(c=>c[0]));
+/* Modo de cada costo (2026-09-28, André): cada naviera cobra distinto, así que cada costo puede cargarse como
+   'unidad' (lo que cuesta UN contenedor / UN vehículo → se multiplica) o 'total' (lo que se pagó en total →
+   se divide para ver cuánto sale por cada uno). Si un costo no dice nada, se usa lo de siempre: los de la
+   lista marcados por contenedor/vehículo = 'unidad', el resto = 'total'. */
+function costoModo(c){ return c.modo||((PORCONT.has(c.n)||PORVEH.has(c.n))?'unidad':'total'); }
+function costoMult(c,e){ if(costoModo(c)!=='unidad') return 1; if(c.tipo==='contenedor') return Math.max(1,e.cont||0); if(c.tipo==='vehiculo') return (e.veh||[]).length||0; return 1; }
+function costoTotalCLP(c,e){ return montoCLP(c,e.id)*costoMult(c,e); }
 const ESENCIALES=['Flete marítimo','Emisión BL','Gate in','Porteo','Garantía'];
-const NAV_CONCEPTOS=new Set(['Carta de responsabilidad','Collect','Emisión BL','Garantía','Gate in','Porteo','THC','Seguro','EDS']);
+/* Porteo NO es de la naviera (André, 2026-09-28): lo cobra la empresa porteadora que lleva los contenedores del
+   puerto al cerro de Zofri, los desconsolida y los traslada al local o al almacén. Va en su propio bloque. */
+const NAV_CONCEPTOS=new Set(['Carta de responsabilidad','Collect','Emisión BL','Garantía','Gate in','THC','Seguro','EDS']);
+const esPorteo=c=>!!c&&(c.n==='Porteo'||c.grupo==='porteo');
+const PORTEO_DEF=250000;   /* lo que se paga hoy por contenedor (antes 170.000) */
+function porteoSugerido(){
+  const ids=Object.keys(EMB).filter(id=>id!==embId).sort().reverse();
+  for(const id of ids){ const c=(EMB[id].costos||[]).find(c=>c.n==='Porteo'&&c.monto>0); if(c) return costoModo(c)==='unidad'?c.monto:Math.round(c.monto/Math.max(1,EMB[id].cont||1)); }
+  return PORTEO_DEF;
+}
 /* Valores de referencia por naviera, tomados de tus cotizaciones (hoja NAVIERAS de AMK_costeo.xlsx).
    Los que no aparecen acá es porque esa naviera no los tenía cotizados — no se sugiere $0, se deja en blanco para que lo pongas tú. */
 const NAVIERAS_BASE={
-  "MSC":{"Carta de responsabilidad":127816,"Collect":265112,"Emisión BL":74486,"Garantía":111728,"Gate in":199920,"Porteo":250000,"THC":132556,"Seguro":175636},
-  "Hapag Lloyd":{"Collect":137000,"Emisión BL":54000,"Garantía":119000,"Gate in":133875,"Porteo":170000,"EDS":119000}
+  "MSC":{"Carta de responsabilidad":127816,"Collect":265112,"Emisión BL":74486,"Garantía":111728,"Gate in":199920,"THC":132556,"Seguro":175636},
+  "Hapag Lloyd":{"Collect":137000,"Emisión BL":54000,"Garantía":119000,"Gate in":133875,"EDS":119000}
 };
 let NAVIERAS=JSON.parse(JSON.stringify(NAVIERAS_BASE));
 const montoCLP=(c,embIdCtx)=>{
@@ -6928,6 +6953,7 @@ const montoCLP=(c,embIdCtx)=>{
   return c.monto||0;
 };
 let PER={saldoDesde:''};
+let emVerNoAplica=false;
 function embNuevo(){
   const id='E'+Date.now();
   EMB[id]={id,nom:'',cont:2,costos:[],veh:[]};
@@ -7553,10 +7579,10 @@ function embCalc(){
   const e=E(); if(!e) return null;
   const n=e.veh.length||0;
   const cont=Math.max(1,e.cont||0);
-  const tContCostos=e.costos.filter(c=>c.tipo==='contenedor').reduce((a,c)=>a+(PORCONT.has(c.n)?montoCLP(c,e.id)*cont:montoCLP(c,e.id)),0);
+  const tContCostos=e.costos.filter(c=>c.tipo==='contenedor').reduce((a,c)=>a+costoTotalCLP(c,e),0);
   const comFlete=(typeof comisionFleteEmb==='function')?comisionFleteEmb(e.id):0;
   const tCont=tContCostos+comFlete;
-  const tIgual=e.costos.filter(c=>c.tipo!=='contenedor').reduce((a,c)=>a+(PORVEH.has(c.n)?montoCLP(c,e.id)*n:montoCLP(c,e.id)),0);
+  const tIgual=e.costos.filter(c=>c.tipo!=='contenedor').reduce((a,c)=>a+costoTotalCLP(c,e),0);
   const sumVal=e.veh.reduce((a,v)=>a+(v.valor||0),0);
   const pVal=0.30, pCont=0.70;
   const arriba=(x)=>Math.round(x/100000)*100000+100000;
@@ -7574,7 +7600,7 @@ function embCalc(){
   // gate in, porteo, THC, EDS, trámites, comisión bancaria) quedan FUERA: son gasto posterior
   // a la compra, no forman parte del valor que se declara. El CIF suma el 2% de seguro sobre
   // el FOB más la parte de flete que le toca a cada vehículo (mismo reparto 30/70).
-  const fleteCLP=e.costos.filter(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor').reduce((a,c)=>a+montoCLP(c,e.id),0);
+  const fleteCLP=e.costos.filter(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor').reduce((a,c)=>a+costoTotalCLP(c,e),0);
   const poolCnFlete=(fleteCLP*pCont)/contsConVeh;
   const tcUSD=(typeof TC!=='undefined'&&TC.medio)?TC.medio:0;
   const filas=e.veh.map(x=>{
@@ -7671,27 +7697,35 @@ function pintaEmb(){
   }
   const navBox=$('#emNavBox'); if(navBox) navBox.hidden=(emTipo!=='contenedor');
   const delTipo=CONCEPTOS.filter(c=>c[1]===emTipo).map(c=>c[0]);
-  const extras=e.costos.filter(c=>c.tipo===emTipo && !delTipo.includes(c.n)).map(c=>c.n);
-  const lista=[...delTipo,...extras];
+  const extras=[...new Set(e.costos.filter(c=>c.tipo===emTipo && !delTipo.includes(c.n)).map(c=>c.n))];
+  /* Conceptos que esta naviera no cobra: se marcan "no aplica" y dejan de aparecer (se pueden volver a mostrar). */
+  const noAp=new Set(e.noAplica||[]);
+  const tienePuesto=nom=>e.costos.some(c=>c.n===nom&&c.tipo===emTipo&&c.monto>0);
+  const ocultos=[...delTipo,...extras].filter(nom=>noAp.has(nom)&&!tienePuesto(nom));
+  const lista=[...delTipo,...extras].filter(nom=>!ocultos.includes(nom)||emVerNoAplica);
   const filaCosto=(nom)=>{
-    const idx=e.costos.findIndex(c=>c.n===nom && c.tipo===emTipo);
+    let idx=e.costos.findIndex(c=>c.n===nom && c.tipo===emTipo && c.monto>0); if(idx<0) idx=e.costos.findIndex(c=>c.n===nom && c.tipo===emTipo);
     const puesto=idx>=0 && e.costos[idx].monto>0;
     const col=puesto?'var(--green)':'var(--red)';
-    const porC=PORCONT.has(nom);
-    const porV=PORVEH.has(nom);
+    const coM=idx>=0?e.costos[idx]:{n:nom,tipo:emTipo};
+    const modo=costoModo(coM);
+    const porC=emTipo==='contenedor'&&modo==='unidad';
+    const porV=emTipo==='vehiculo'&&modo==='unidad';
     const contN=Math.max(1,e.cont||0);
     const vehN=Math.max(1,e.veh.length||0);
+    const divN=emTipo==='contenedor'?contN:(emTipo==='vehiculo'?vehN:1);
     const fleteNota=(nom==='Flete marítimo')?(tcRealFleteEmb(e.id)>0?' <span style="font-size:12px;color:var(--green)">(cambio real vinculado)</span>':' <span style="font-size:12px">(dólar referencial, sin compras vinculadas)</span>'):'';
-    const etiqueta=nom+fleteNota+(porC?` <span style="font-size:12px">(precio por contenedor, × ${contN})</span>`:'')+(porV?` <span style="font-size:12px">(precio por vehículo, × ${vehN})</span>`:'');
+    const etiqueta=nom+fleteNota;
     const conceptoDef=CONCEPTOS.find(c=>c[0]===nom);
     const defMoneda=(conceptoDef&&conceptoDef[3])||'CLP';
     const SIMB={CLP:'$',USD:'US$',KRW:'₩'};
     let cuerpo;
     if(puesto){
       const co=e.costos[idx], moCo=co.moneda||'CLP';
-      const totalCLP=porC?montoCLP(co,e.id)*contN:porV?montoCLP(co,e.id)*vehN:montoCLP(co,e.id);
+      const totalCLP=costoTotalCLP(co,e);
       const equivTxt=moCo==='CLP'?'':(' ≈ '+clp(montoCLP(co,e.id)));
-      const multTxt=(porC||porV)?(' × '+(porC?contN:vehN)+' = '+clp(totalCLP)):'';
+      const multTxt=(porC||porV)?(' × '+(porC?contN:vehN)+' = '+clp(totalCLP)):((divN>1)?(' ÷ '+divN+' = '+clp(montoCLP(co,e.id)/divN)+' c/u'):'');
+      const unidadTxt=emTipo==='contenedor'?'c/u contenedor':'c/u vehículo';
       cuerpo=`<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
         <select data-emceditmo="${idx}" style="border:1px solid var(--line);border-radius:8px;padding:5px 3px;font-size:11.5px;background:var(--paper);color:var(--ink)">
           <option value="CLP" ${moCo==='CLP'?'selected':''}>CLP</option>
@@ -7699,7 +7733,9 @@ function pintaEmb(){
           <option value="KRW" ${moCo==='KRW'?'selected':''}>KRW</option>
         </select>
         <input data-emcedit="${idx}" inputmode="numeric" value="${Math.round(co.monto).toLocaleString('es-CL')}" style="width:90px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)">
-        <span style="font-size:11.5px;color:var(--mute)">${SIMB[moCo]||''}${equivTxt}${multTxt}</span>
+        ${divN>1?`<select data-emcmodo="${idx}" title="¿Este monto es lo que cuesta cada uno, o lo que se pagó en total?" style="border:1px solid var(--line);border-radius:8px;padding:5px 3px;font-size:11.5px;background:var(--paper);color:var(--ink)">
+          <option value="total" ${modo==='total'?'selected':''}>total</option><option value="unidad" ${modo==='unidad'?'selected':''}>${unidadTxt}</option></select>`:''}
+        <span data-emcinfo="${idx}" data-mult="${porC?contN:(porV?vehN:1)}" data-div="${(porC||porV)?1:divN}" style="font-size:11.5px;color:var(--mute)">${SIMB[moCo]||''}${equivTxt}${multTxt}</span>
         <button class="b-und" style="padding:4px 8px" data-emcdel="${idx}">✕</button></span>`;
     }else{
       cuerpo=`<span style="display:inline-flex;gap:6px;align-items:center">
@@ -7708,7 +7744,9 @@ function pintaEmb(){
           <option value="USD" ${defMoneda==='USD'?'selected':''}>USD</option>
           <option value="KRW" ${defMoneda==='KRW'?'selected':''}>KRW</option>
         </select>
-        <input data-emcm="${nom}" inputmode="numeric" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)"></span>`;
+        <input data-emcm="${nom}" inputmode="numeric" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)">
+        ${nom==='Porteo'?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcuse="${porteoSugerido()}">usar ${clp(porteoSugerido())} c/u</button>`:''}
+        ${noAp.has(nom)?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcsi="${nom}">sí aplica</button>`:`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcna="${nom}" title="Esta naviera no cobra este concepto">no aplica</button>`}</span>`;
     }
     return `<div class="xrow" style="align-items:center">
       <span style="font-family:var(--body);display:flex;align-items:center;gap:8px">
@@ -7718,11 +7756,21 @@ function pintaEmb(){
   const fleteBox=$('#emFlete');
   if(emTipo==='contenedor' && lista.includes('Flete marítimo')){
     if(fleteBox){ fleteBox.hidden=false; fleteBox.innerHTML=filaCosto('Flete marítimo'); }
-    $('#emCostos').innerHTML=lista.filter(nom=>nom!=='Flete marítimo').map(filaCosto).join('');
+    const esPorteoNom=nom=>nom==='Porteo'||e.costos.some(c=>c.n===nom&&c.tipo==='contenedor'&&c.grupo==='porteo');
+    const navL=lista.filter(nom=>nom!=='Flete marítimo'&&!esPorteoNom(nom)), porL=lista.filter(esPorteoNom);
+    const porTot=e.costos.filter(c=>c.tipo==='contenedor'&&esPorteo(c)).reduce((a,c)=>a+costoTotalCLP(c,e),0);
+    $('#emCostos').innerHTML='<div class="mtr" style="margin:10px 0 2px;font-weight:600">Naviera · liberación del BL en Chile</div>'+navL.map(filaCosto).join('')
+      +`<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)">
+         <div class="mtr" style="margin:0 0 2px;font-weight:600">Porteo · empresa porteadora (puerto → Zofri, desconsolidación y traslado al local o almacén)${porTot?' · total '+clp(porTot):''}</div>
+         ${porL.map(filaCosto).join('')}
+         <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px">
+           <input id="emCnP" placeholder="Otro cobro de la porteadora" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-size:13.5px;background:var(--paper);color:var(--ink)">
+           <button class="btn b-sec" id="emCaddP" style="flex:0 0 auto;padding:9px 12px">Agregar</button></div></div>`;
   }else{
     if(fleteBox){ fleteBox.hidden=true; fleteBox.innerHTML=''; }
     $('#emCostos').innerHTML=lista.map(filaCosto).join('');
   }
+  if(ocultos.length) $('#emCostos').insertAdjacentHTML('beforeend',`<div style="margin-top:6px"><button class="b-und" style="font-size:12px;padding:4px 8px" data-emverna="1">${emVerNoAplica?'Ocultar':'Mostrar'} ${ocultos.length} concepto${ocultos.length===1?'':'s'} que no aplica${ocultos.length===1?'':'n'} (${ocultos.join(', ')})</button></div>`);
   pintaEmCC();
   pintaEmEst();
   pintaEmZofri();
@@ -7850,6 +7898,8 @@ function mesesDesde(m){
   return Math.max(0,(hoy.getFullYear()-a)*12+(hoy.getMonth()+1-b));
 }
 document.addEventListener('change',async e=>{
+  const emodo=e.target.closest('[data-emcmodo]');
+  if(emodo){ const co=E()&&E().costos[+emodo.dataset.emcmodo]; if(!co) return; co.modo=emodo.value; await guardaEmb(); pintaEmb(); return; }
   const eced=e.target.closest('[data-emcedit]'), ecedmo=e.target.closest('[data-emceditmo]');
   if(eced||ecedmo){
     const idx=+(eced?eced.dataset.emcedit:ecedmo.dataset.emceditmo);
@@ -7865,7 +7915,8 @@ document.addEventListener('change',async e=>{
   const m=pnum(el.value)||0; if(!m)return;
   const moSel=el.parentElement&&el.parentElement.querySelector(`[data-emcmo="${el.dataset.emcm}"]`);
   const moneda=moSel?moSel.value:'CLP';
-  E().costos.push({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda});
+  const ya=E().costos.find(c=>c.n===el.dataset.emcm&&c.tipo===emTipo);
+  if(ya){ ya.monto=m; ya.moneda=moneda; } else E().costos.push(Object.assign({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda},el.dataset.emcm==='Porteo'?{grupo:'porteo'}:{}));
   await guardaEmb(); pintaEmb(); toast(el.dataset.emcm+' cargado');
 });
 $('#emNaviera').addEventListener('change',async()=>{
@@ -7875,6 +7926,7 @@ $('#emNaviera').addEventListener('change',async()=>{
   let n=0;
   Object.keys(datos).forEach(concepto=>{
     const val=datos[concepto]; if(!val) return;
+    if(concepto==='Porteo') return;   /* el porteo no es de la naviera: no lo cargan las cotizaciones de navieras */
     if(e.costos.some(c=>c.n===concepto&&c.tipo==='contenedor')) return;
     e.costos.push({n:concepto,monto:val,tipo:'contenedor',moneda:'CLP'});
     n++;
@@ -8223,6 +8275,19 @@ document.addEventListener('click',async e=>{
   }
 });
 document.addEventListener('click',async e=>{
+  const na=e.target.closest('[data-emcna]'), si=e.target.closest('[data-emcsi]'), vna=e.target.closest('[data-emverna]');
+  if(na||si){ const em=E(); if(!em) return; const nom=(na||si).dataset[na?'emcna':'emcsi'];
+    em.noAplica=(em.noAplica||[]).filter(x=>x!==nom); if(na) em.noAplica.push(nom);
+    await guardaEmb(); pintaEmb(); toast(na?(nom+': no aplica en este embarque'):(nom+' vuelve a la lista')); return; }
+  if(vna){ emVerNoAplica=!emVerNoAplica; pintaEmb(); return; }
+  const use=e.target.closest('[data-emcuse]');
+  if(use){ const em=E(); if(!em) return; const m=+use.dataset.emcuse||0; if(!m) return;
+    const ya=em.costos.find(c=>c.n==='Porteo'&&c.tipo==='contenedor');
+    if(ya){ ya.monto=m; ya.modo='unidad'; ya.moneda='CLP'; } else em.costos.push({n:'Porteo',monto:m,tipo:'contenedor',moneda:'CLP',modo:'unidad',grupo:'porteo'});
+    await guardaEmb(); pintaEmb(); toast('Porteo: '+clp(m)+' por contenedor'); return; }
+  if(e.target.closest('#emCaddP')){ const em=E(); const inp=$('#emCnP'); const n=inp?inp.value.trim():''; if(!em||!n){toast('Escribe el cobro');return}
+    if(em.costos.some(c=>c.n===n&&c.tipo==='contenedor')){toast('Ese concepto ya está');return}
+    em.costos.push({n,monto:0,tipo:'contenedor',grupo:'porteo'}); await guardaEmb(); pintaEmb(); toast('Agregado · ponle el monto'); return; }
   const cd=e.target.closest('[data-emcdel]');
   if(cd){E().costos.splice(+cd.dataset.emcdel,1); await guardaEmb(); pintaEmb(); return}
   const vd=e.target.closest('[data-emvdel]');
