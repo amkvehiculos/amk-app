@@ -574,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 21:46<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 21:53<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -7744,6 +7744,8 @@ function pintaEmb(){
           <option value="USD" ${defMoneda==='USD'?'selected':''}>USD</option>
           <option value="KRW" ${defMoneda==='KRW'?'selected':''}>KRW</option>
         </select>
+        ${divN>1?`<select data-emcmmodo="${nom}" title="¿Este monto es lo que cuesta cada uno, o lo que se pagó en total?" style="border:1px solid var(--line);border-radius:8px;padding:5px 3px;font-size:11.5px;background:var(--paper);color:var(--ink)">
+          <option value="total" ${modo==='total'?'selected':''}>total</option><option value="unidad" ${modo==='unidad'?'selected':''}>${emTipo==='contenedor'?'c/u contenedor':'c/u vehículo'}</option></select>`:''}
         <input data-emcm="${nom}" inputmode="numeric" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)">
         ${nom==='Porteo'?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcuse="${porteoSugerido()}">usar ${clp(porteoSugerido())} c/u</button>`:''}
         ${noAp.has(nom)?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcsi="${nom}">sí aplica</button>`:`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcna="${nom}" title="Esta naviera no cobra este concepto">no aplica</button>`}</span>`;
@@ -7760,17 +7762,18 @@ function pintaEmb(){
     const navL=lista.filter(nom=>nom!=='Flete marítimo'&&!esPorteoNom(nom)), porL=lista.filter(esPorteoNom);
     const porTot=e.costos.filter(c=>c.tipo==='contenedor'&&esPorteo(c)).reduce((a,c)=>a+costoTotalCLP(c,e),0);
     $('#emCostos').innerHTML='<div class="mtr" style="margin:10px 0 2px;font-weight:600">Naviera · liberación del BL en Chile</div>'+navL.map(filaCosto).join('')
+      +`<div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px">
+           <input id="emCnN" placeholder="Otro concepto de la naviera" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-size:13.5px;background:var(--paper);color:var(--ink)">
+           <button class="btn b-sec" id="emCaddN" style="flex:0 0 auto;padding:9px 12px">Agregar</button></div>`
       +`<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line)">
          <div class="mtr" style="margin:0 0 2px;font-weight:600">Porteo · empresa porteadora (puerto → Zofri, desconsolidación y traslado al local o almacén)${porTot?' · total '+clp(porTot):''}</div>
-         ${porL.map(filaCosto).join('')}
-         <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px">
-           <input id="emCnP" placeholder="Otro cobro de la porteadora" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-size:13.5px;background:var(--paper);color:var(--ink)">
-           <button class="btn b-sec" id="emCaddP" style="flex:0 0 auto;padding:9px 12px">Agregar</button></div></div>`;
+         ${porL.map(filaCosto).join('')}</div>`;
   }else{
     if(fleteBox){ fleteBox.hidden=true; fleteBox.innerHTML=''; }
     $('#emCostos').innerHTML=lista.map(filaCosto).join('');
   }
   if(ocultos.length) $('#emCostos').insertAdjacentHTML('beforeend',`<div style="margin-top:6px"><button class="b-und" style="font-size:12px;padding:4px 8px" data-emverna="1">${emVerNoAplica?'Ocultar':'Mostrar'} ${ocultos.length} concepto${ocultos.length===1?'':'s'} que no aplica${ocultos.length===1?'':'n'} (${ocultos.join(', ')})</button></div>`);
+  { const g=$('#emCn'); if(g&&g.parentElement) g.parentElement.style.display=(emTipo==='contenedor')?'none':'grid'; }
   pintaEmCC();
   pintaEmEst();
   pintaEmZofri();
@@ -7915,8 +7918,11 @@ document.addEventListener('change',async e=>{
   const m=pnum(el.value)||0; if(!m)return;
   const moSel=el.parentElement&&el.parentElement.querySelector(`[data-emcmo="${el.dataset.emcm}"]`);
   const moneda=moSel?moSel.value:'CLP';
+  const mdSel=el.parentElement&&el.parentElement.querySelector(`[data-emcmmodo="${el.dataset.emcm}"]`);
   const ya=E().costos.find(c=>c.n===el.dataset.emcm&&c.tipo===emTipo);
-  if(ya){ ya.monto=m; ya.moneda=moneda; } else E().costos.push(Object.assign({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda},el.dataset.emcm==='Porteo'?{grupo:'porteo'}:{}));
+  if(ya){ ya.monto=m; ya.moneda=moneda; if(mdSel) ya.modo=mdSel.value; }
+  else if(mdSel){ E().costos.push(Object.assign({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda,modo:mdSel.value},el.dataset.emcm==='Porteo'?{grupo:'porteo'}:{})); }
+  else E().costos.push(Object.assign({n:el.dataset.emcm,monto:m,tipo:emTipo,moneda},el.dataset.emcm==='Porteo'?{grupo:'porteo'}:{}));
   await guardaEmb(); pintaEmb(); toast(el.dataset.emcm+' cargado');
 });
 $('#emNaviera').addEventListener('change',async()=>{
@@ -8285,9 +8291,9 @@ document.addEventListener('click',async e=>{
     const ya=em.costos.find(c=>c.n==='Porteo'&&c.tipo==='contenedor');
     if(ya){ ya.monto=m; ya.modo='unidad'; ya.moneda='CLP'; } else em.costos.push({n:'Porteo',monto:m,tipo:'contenedor',moneda:'CLP',modo:'unidad',grupo:'porteo'});
     await guardaEmb(); pintaEmb(); toast('Porteo: '+clp(m)+' por contenedor'); return; }
-  if(e.target.closest('#emCaddP')){ const em=E(); const inp=$('#emCnP'); const n=inp?inp.value.trim():''; if(!em||!n){toast('Escribe el cobro');return}
+  if(e.target.closest('#emCaddN')){ const em=E(); const inp=$('#emCnN'); const n=inp?inp.value.trim():''; if(!em||!n){toast('Escribe el concepto');return}
     if(em.costos.some(c=>c.n===n&&c.tipo==='contenedor')){toast('Ese concepto ya está');return}
-    em.costos.push({n,monto:0,tipo:'contenedor',grupo:'porteo'}); await guardaEmb(); pintaEmb(); toast('Agregado · ponle el monto'); return; }
+    em.costos.push({n,monto:0,tipo:'contenedor'}); await guardaEmb(); pintaEmb(); toast('Agregado · ponle el monto'); return; }
   const cd=e.target.closest('[data-emcdel]');
   if(cd){E().costos.splice(+cd.dataset.emcdel,1); await guardaEmb(); pintaEmb(); return}
   const vd=e.target.closest('[data-emvdel]');
