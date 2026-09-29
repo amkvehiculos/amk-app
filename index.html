@@ -564,14 +564,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
         <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
       </details>
-      <div class="box" id="emAccRes"><h3>Resumen de costos y precios</h3>
+      <details class="box" id="emAccRes"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Resumen de costos y precios</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Por vehículo: costo hasta Chile redondeado como en el Excel (al múltiplo de $100.000 más cercano + $100.000), más los costos estimados pendientes y los reales ya anotados — se va actualizando solo a medida que anotas en cada vehículo. Al lado, precio de venta (lo que ofrecen Víctor y Bryan) y valor mínimo.</p>
         <div id="emRes"></div>
         <p>"Aplicar costos" guarda en cada vehículo el costo hasta Chile, el CIF y el FOB Zeta, y los precios escritos arriba — y lo sube a la nube. Los precios también se guardan solos al salir de cada campo.</p>
-        <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
+        <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 16:10<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 16:52<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -7373,7 +7373,8 @@ function zofDocCalc(e,r){
   let fob=0,cif=0,sinCompra=0;
   filas.forEach(f=>{ if(f.fobUSD){ por[f.ch]={fob:r2z(f.fobZetaReaj),cif:r2z(f.cifZetaReaj)}; fob+=f.fobZetaReaj; cif+=f.cifZetaReaj; } else sinCompra++; });
   fob=r2z(fob); cif=r2z(cif);
-  const seguro=r2z(fob*0.02), flete=Math.max(0,r2z(cif-fob-seguro));
+  const H=r&&r.zetaHdr; if(H&&!sinCompra){ fob=H.fob; cif=H.cif; }
+  const seguro=H&&!sinCompra?H.seguro:r2z(fob*0.02), flete=H&&!sinCompra?H.flete:Math.max(0,r2z(cif-fob-seguro));
   const cont=Object.keys(e.contCod||{}).map(Number).sort((a,b)=>a-b).map(k=>e.contCod[k]);
   const bl=e.nom||'', naviera=e.naviera||zofNavieraDeBL(bl);
   const proveedor=zofSinTilde(e.proveedor||'AMKKOREA').replace(/\s+/g,'');
@@ -7424,13 +7425,14 @@ function zofMarcador(){
     const asig=P.items.map(it=>{ const k=rows.findIndex((tr,j)=>!usados.has(j)&&chOf(tr)&&(chOf(tr)===norm(it.vin)||chOf(tr).endsWith(norm(it.ch)))); if(k>=0){usados.add(k); return [it,rows[k]]} return [it,null]; });
     const libres=rows.map((t,j)=>j).filter(j=>!usados.has(j));
     asig.forEach(a=>{ if(!a[1]&&libres.length){ const j=libres.shift(); a[1]=rows[j]; a[2]=chOf(rows[j]); } });
-    const cambios=[], ops=[], avisos=[];
+    const cambios=[], ops=[], avisos=[], itemOps=[], hdrOps=[];
     const sinFila=asig.filter(a=>!a[1]).map(a=>a[0].ch);
     if(sinFila.length) avisos.push('Faltan '+sinFila.length+' ítems en Zofri para: '+sinFila.join(', ')+'. Agrégalos con el botón + de "Detalle de Items" y vuelve a tocar el favorito.');
     if(libres.length) avisos.push('Sobran '+libres.length+' ítems en Zofri que no están en AMK: '+libres.map(j=>chOf(rows[j])||('fila '+(j+1))).join(', ')+'. No se tocaron: quítalos tú si corresponde.');
     const reus=asig.filter(a=>a[2]!==undefined).map(a=>a[0].ch+' ← fila que tenía '+(a[2]||'(vacía)'));
     if(reus.length) avisos.push('Vehículos puestos en filas de otro vehículo (se reescriben completas): '+reus.join('; '));
-    const setNum=(inp,val)=>{ J(inp).trigger('focus'); inp.value=fmt(val); J(inp).trigger('change').trigger('blur'); };
+    /* Valor sin formato (ej. 39999.98): el blur de Zofri lo formatea y recalcula (CIF de cabecera, CIF del ítem). */
+    const setNum=(inp,val)=>{ J(inp).trigger('focus'); inp.value=(Math.round(+val*100)/100).toFixed(2); J(inp).trigger('change').trigger('blur'); };
     const setTxt=(inp,val)=>{ inp.value=val; J(inp).trigger('change').trigger('blur'); };
     const setDesc=async(tr,c,val)=>{
       const dd=tr.querySelector('[attr=descriptores]');
@@ -7454,8 +7456,13 @@ function zofMarcador(){
       const tag='Ítem '+(n+1)+' ('+it.ch+')', dd=tr.querySelector('[attr=descriptores]');
       const ca=tr.querySelector('td[attr=item_coar] input');
       if(ca&&it.cod&&norm(ca.value)!==it.cod){ cambios.push(tag+' Código: '+(ca.value||'(vacío)')+' → '+it.cod); ops.push(()=>setTxt(ca,it.cod)); }
-      ['fob','cif'].forEach(k=>{ const inp=tr.querySelector('td[attr=item_'+k+'] input');
-        if(inp&&it[k]>0&&Math.abs(num(inp.value)-it[k])>0.004){ cambios.push(tag+' '+k.toUpperCase()+': '+(inp.value||'(vacío)')+' → '+fmt(it[k])); ops.push(()=>setNum(inp,it[k])); } });
+      /* 2026-09-29: en Zofri, por ítem se escribe solo el FOB y el CIF lo calcula Zofri (FOB × múltiplo de la cabecera).
+         Se pone el FOB; si el CIF que calcula Zofri difiere en centavos del de AMK (redondeo), se deja el de AMK
+         para que la suma de los CIF cuadre exacto con el CIF de la cabecera. */
+      const fi=tr.querySelector('td[attr=item_fob] input'), ci=tr.querySelector('td[attr=item_cif] input');
+      if(fi&&it.fob>0&&(Math.abs(num(fi.value)-it.fob)>0.004||(ci&&it.cif>0&&Math.abs(num(ci.value)-it.cif)>0.004))){
+        cambios.push(tag+' FOB: '+(fi.value||'(vacío)')+' → '+fmt(it.fob)+(it.cif>0?' (CIF '+fmt(it.cif)+')':''));
+        itemOps.push(async()=>{ setNum(fi,it.fob); await sl(80); if(ci&&it.cif>0&&Math.abs(num(ci.value)-it.cif)>0.004) setNum(ci,it.cif); }); }
       for(const [c,val] of Object.entries(it.d)){
         if(val==='') continue;
         const el=dd.querySelector('[attr-descriptorcodigo="'+c+'"]'), a=el?cur(el):null;
@@ -7467,7 +7474,7 @@ function zofMarcador(){
     });
     const D=P.doc||{}, hv=a=>document.querySelector('input[attr='+a+']');
     [['valorFob','Valor Fob','fob'],['valorFlete','Valor Flete','flete'],['valorSeguro','Valor Seguro','seguro']].forEach(([a,l,k])=>{ const inp=hv(a);
-      if(inp&&D[k]>0&&Math.abs(num(inp.value)-D[k])>0.004){ cambios.push(l+': '+(inp.value||'(vacío)')+' → '+fmt(D[k])); ops.push(()=>setNum(inp,D[k])); } });
+      if(inp&&D[k]>0&&Math.abs(num(inp.value)-D[k])>0.004){ cambios.push(l+': '+(inp.value||'(vacío)')+' → '+fmt(D[k])); hdrOps.push(async()=>{ setNum(inp,D[k]); await sl(150); }); } });
     const gl=hv('glosa');
     if(gl&&D.glosa&&norm(gl.value)!==norm(D.glosa)){ cambios.push('Glosa: '+(gl.value||'(vacío)')+' → '+D.glosa); ops.push(()=>setTxt(gl,D.glosa)); }
     const adjRows=[...document.querySelectorAll('td[attr=adju_tipo]')].map(td=>td.closest('tr')).filter(vis);
@@ -7491,6 +7498,8 @@ function zofMarcador(){
     if(sinFob.length) avisos.push('Sin FOB/CIF todavía (faltan costos en AMK): '+sinFob.join(', '));
     const vacios=P.items.filter(i=>Object.values(i.d).some(x=>x==='')).map(i=>i.ch);
     if(vacios.length) avisos.push('Con datos incompletos en AMK (esos campos quedan como estaban en Zofri): '+vacios.join(', '));
+    /* Orden: primero FOB/flete/seguro de la cabecera (Zofri recalcula el CIF total y el múltiplo), después los ítems. */
+    ops.unshift(...hdrOps); ops.push(...itemOps);
     if(!aplicar) return {cambios,avisos,hechos:0,errores:[]};
     const errores=[]; let hechos=0;
     for(let i=0;i<ops.length;i++){ if(avance) avance(i,ops.length); try{ await ops[i](); hechos++; }catch(err){ errores.push(err.message||String(err)); } await sl(40); }
@@ -7699,10 +7708,26 @@ function embCalc(){
   const driftZ=Math.round((filas.reduce((a,f)=>a+f.fobZeta,0)-Ftot)*100)/100;
   filas.forEach((f,i)=>{
     f.fobZetaReaj=i===0?Math.round((f.fobZeta-driftZ)*100)/100:f.fobZeta;
-    f.cifZetaReaj=ratioZ?Math.round((f.fobZetaReaj/ratioZ)*100)/100:0;
   });
+  /* 2026-09-29: cabecera y CIF por ítem como los calcula Zofri. Flete = el flete real en US$ (ej. 5.000 × 8 = 40.000,00,
+     no "CIF − FOB − seguro", que por redondeo daba 39.999,98); seguro = 2% del FOB; CIF = FOB + flete + seguro.
+     CIF de cada ítem = FOB × (CIF/FOB), como el múltiplo de Zofri; el redondeo se deja entero en el PRIMER ítem
+     (lo que Andre siempre hizo a mano), así la suma cuadra exacto con el CIF de la cabecera. */
+  const r2=x=>Math.round(x*100)/100;
+  const hFob=r2(filas.reduce((a,f)=>a+(f.fobZetaReaj||0),0)), hFlete=r2(Gtot), hSeg=r2(hFob*0.02), hCif=r2(hFob+hFlete+hSeg);
+  const mult=hFob?hCif/hFob:0;
+  /* Los centavos que sobran/faltan se reparten de a 1 centavo en los ítems cuyo CIF exacto quedó más lejos
+     al redondear (método del mayor resto): así cuadra la suma y cada ítem queda a menos de 1 centavo de su
+     valor exacto (FOB × múltiplo), que es lo que Zofri revisa. Normalmente son 1 o 2 ítems. */
+  filas.forEach(f=>{ f.cifExacto=mult?f.fobZetaReaj*mult:0; f.cifZetaReaj=r2(f.cifExacto); });
+  if(filas.length&&mult){
+    let cent=Math.round((hCif-filas.reduce((a,f)=>a+f.cifZetaReaj,0))*100);
+    const orden=filas.slice().sort((a,b)=>cent>0?((b.cifExacto-b.cifZetaReaj)-(a.cifExacto-a.cifZetaReaj)):((a.cifExacto-a.cifZetaReaj)-(b.cifExacto-b.cifZetaReaj)));
+    for(let i=0;cent!==0&&orden.length;i=(i+1)%orden.length){ const d=cent>0?1:-1; orden[i].cifZetaReaj=r2(orden[i].cifZetaReaj+d/100); cent-=d; }
+  }
+  const zetaHdr={fob:hFob,flete:hFlete,seguro:hSeg,cif:hCif};
   const comBanco=filas.reduce((a,f)=>a+f.comisionBanco,0);
-  return {n,tCont,tIgual,comBanco,comFlete,sumVal,total:tCont+tIgual+comBanco,filas,
+  return {n,tCont,tIgual,comBanco,comFlete,sumVal,total:tCont+tIgual+comBanco,filas,zetaHdr,
           repartido:filas.reduce((a,f)=>a+f.asignado,0)};
 }
 let emAccPrev={};   // {embId:{okVeh,okCt,acumOk}} -- último estado visto, para solo abrir/cerrar en
@@ -8428,6 +8453,38 @@ $('#emFobCp').addEventListener('click',async()=>{
       después lo que Andre anota vehículo por vehículo cuando lo ve en persona -- reemplaza al anterior de la misma categoría);
    3) costos REALES ya anotados (Costos del vehículo, lo acordado);
    total = 1 + 2 + 3. Precio de venta (lo que ofrecen) y mínimo: los mismos campos que ven Víctor y Bryan. */
+/* Características principales para poner precio sin abrir cada ficha: techo panorámico, pasajeros, motor, etc. */
+function emResCarac(v){
+  const z=v.zof||{}, low=x=>String(x||'').toLowerCase();
+  const cil=v.cil?String(v.cil).replace('.',','):'', mot=v.motor?low(v.motor).replace('diesel','diésel'):'';
+  const tr=v.trans||z.trans;
+  const p=[v.ce?low(v.ce):'', v.pa?v.pa+' pas.':'', [cil,mot].filter(Boolean).join(' '), v.tr||'', tr?low(tr).replace('automatica','automática').replace('mecanica','mecánica'):'',
+    v.ca&&v.ca!=='S/N'?low(v.ca):'', v.km?(+v.km).toLocaleString('es-CL')+' km':''];
+  let trab='';
+  try{ const ef=zofEf(v); if(ef.esCam){ const cab=ef.cab==='DOBLE'?'doble cabina':(ef.cab==='REGULAR'?((+v.pa||0)>3?'cabina y media':'cabina simple'):'');
+    trab=' · <b style="color:var(--amber)">'+[v.ca&&v.ca!=='S/N'?low(v.ca):'',cab].filter(Boolean).join(' · ')+'</b>'; } }catch(_){}
+  return p.filter(x=>x&&!(trab&&x===low(v.ca))).join(' · ')+trab+(v.tp?' · <b style="color:var(--green)">techo panorámico</b>':'');
+}
+/* Precio sugerido (2026-09-29): mediana de lo que se vendieron autos parecidos (mismo modelo, año ±1; en
+   camionetas misma carrocería y cabina; en el resto mismos pasajeros y techo panorámico). Si no hay, afloja
+   el filtro por pasos y lo dice. Se va "grabando" solo: cada venta registrada entra a la base. */
+function emSimil(v){
+  const mk=x=>String(x.mo||'').toUpperCase().replace(/[^A-Z0-9]/g,''), m=mk(v), an=+v.an||0;
+  let esCam=false, cab=''; try{ const ef=zofEf(v); esCam=ef.esCam; cab=ef.cab; }catch(_){}
+  const vend=V.filter(x=>x.ch!==v.ch&&sold(x.ch)&&mk(x)===m&&enCLP(S[x.ch]||{})>0);
+  const cabDe=x=>{ try{return zofEf(x).cab}catch(_){return ''} };
+  const pasos=esCam?[
+      [x=>Math.abs((+x.an||0)-an)<=1&&(x.ca||'')===(v.ca||'')&&cabDe(x)===cab,'mismo año ±1, carrocería y cabina'],
+      [x=>Math.abs((+x.an||0)-an)<=2&&(x.ca||'')===(v.ca||''),'año ±2, misma carrocería'],
+      [x=>Math.abs((+x.an||0)-an)<=2,'año ±2, cualquier carrocería']]
+    :[[x=>Math.abs((+x.an||0)-an)<=1&&!!x.tp===!!v.tp&&(+x.pa||0)===(+v.pa||0),'mismo año ±1, pasajeros y techo'],
+      [x=>Math.abs((+x.an||0)-an)<=1,'año ±1'],
+      [x=>Math.abs((+x.an||0)-an)<=2,'año ±2']];
+  for(const [f,txt] of pasos){ const L=vend.filter(f).map(x=>enCLP(S[x.ch])).sort((a,b)=>a-b);
+    if(L.length){ const med=L.length%2?L[(L.length-1)/2]:Math.round((L[L.length/2-1]+L[L.length/2])/2);
+      return {precio:Math.round(med/100000)*100000,n:L.length,txt,min:L[0],max:L[L.length-1]}; } }
+  return null;
+}
 const emEstSuma=ch=>((S[ch]||{}).tasks||[]).filter(ta=>ta&&!ta.hecho&&+ta.est>0).reduce((a,ta)=>a+(+ta.est||0),0);
 const emRealSuma=ch=>((S[ch]||{}).costs||[]).reduce((a,x)=>a+acor(x),0);
 function emResTot(f){ return f.lleg+emEstSuma(f.ch)+emRealSuma(f.ch); }
@@ -8437,12 +8494,12 @@ function pintaEmRes(r){
   const est='width:104px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)';
   let tB=0,tL=0,tC=0,tE=0,tR=0,tV=0,nV=0;
   const filas=r.filas.map(f=>{ const v=IDX[f.ch]||{}, t=S[f.ch]||{}; const cc=f.ccCLPveh||0, e=emEstSuma(f.ch), re=emRealSuma(f.ch), tot=f.lleg+e+re;
-    const pv=+t.pventa||0, pm=+t.pmin||0;
+    const pv=+t.pventa||0, pm=+t.pmin||0, sg=emSimil(v);
     tB+=f.bruto; tL+=f.lleg; tC+=cc; tE+=e; tR+=re; if(pv){tV+=pv;nV++;}
     const mg=pv?pv-tot:null;
     const det=[`${clp(f.bruto)}${cc?` (incl. taller Corea ${clp(cc)})`:''} → <b>${clp(f.lleg)}</b>`, e?`estimados ${clp(e)}`:'', re?`reales ${clp(re)}`:''].filter(Boolean).join(' + ');
     return `<div class="xrow" style="align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="flex:1 1 180px"><b>${f.ch}</b> · ${(v.mo||'')} ${v.an||''}<br><span style="font-size:11.5px;color:var(--mute)">${det} = <b style="color:var(--ink)">${clp(tot)}</b></span></span>
+      <span style="flex:1 1 180px"><b>${(v.ma||'')} ${(v.mo||'')} ${v.an||''}</b> <span style="font-size:11.5px;color:var(--mute)">${f.ch}</span><br><span style="font-size:12px">${emResCarac(v)}</span><br>${sg?`<span style="font-size:11.5px;color:var(--mute)">Sugerido <b style="color:var(--ink)">${clp(sg.precio)}</b> · ${sg.n} venta${sg.n===1?'':'s'} parecida${sg.n===1?'':'s'} (${sg.txt}${sg.n>1?`; ${clp(sg.min)}–${clp(sg.max)}`:''})</span><br>`:''}<span style="font-size:11.5px;color:var(--mute)">${det} = <b style="color:var(--ink)">${clp(tot)}</b></span></span>
       <span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
         <input data-emres="pventa|${f.ch}" inputmode="numeric" placeholder="Venta${v.vev?' ('+clp(v.vev)+')':''}" title="Precio de venta: lo que ofrecen Víctor y Bryan" value="${pv?pv.toLocaleString('es-CL'):''}" style="${est}">
         <input data-emres="pmin|${f.ch}" inputmode="numeric" placeholder="Mínimo" title="Valor mínimo" value="${pm?pm.toLocaleString('es-CL'):''}" style="${est}">
