@@ -512,20 +512,23 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div id="emGastosList"></div>
       </details>
 
-      <details class="box" id="emAccEst"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos estimados (este embarque)</h3></summary>
-        <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
-        <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
-        <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
-        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0">
-          <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
-          <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
+      <details class="box" id="boxAcum"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos de período acumulados</h3> <span id="emAccAcumStat" class="mtr"></span></summary>
+        <p id="acumT"></p>
+        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <input id="acumM" inputmode="numeric" placeholder="₩0" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:15px;background:var(--paper);color:var(--ink)">
+          <button class="btn b-pri" id="acumAdd" style="flex:0 0 auto;padding:10px 14px">Traer</button>
         </div>
-        <div id="emEstDup"></div>
-        <div id="emEstLista"></div>
-        <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
-        <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
+        <div class="mtr" style="margin-top:8px">Si un mes no hubo embarque, estos costos siguen corriendo y se imputan al siguiente.</div>
       </details>
-
+      <details class="box" id="emAccFob"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">FOB Zeta</h3></summary>
+        <p class="mtr" style="margin:0 0 10px">Se calcula solo, a partir del FOB y el flete de cada vehículo — igual que en el Excel. No hay nada que escribir a mano acá.</p>
+        <div id="emFob"></div>
+        <button class="btn b-pri" id="emFobCp" style="width:100%;margin-top:11px">➦ Copiar lista para Zofri</button>
+      </details>
+      <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
+        <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
+        <div id="emZof"></div>
+      </details>
       <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
         <div class="segs" id="emCt">
           <button data-emt="contenedor" aria-pressed="true">Por contenedor</button>
@@ -548,33 +551,27 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         </div>
         <div class="money" id="emTot" style="margin-top:12px"></div>
       </details>
-
-      <details class="box" id="boxAcum"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos de período acumulados</h3> <span id="emAccAcumStat" class="mtr"></span></summary>
-        <p id="acumT"></p>
-        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px">
-          <input id="acumM" inputmode="numeric" placeholder="₩0" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:15px;background:var(--paper);color:var(--ink)">
-          <button class="btn b-pri" id="acumAdd" style="flex:0 0 auto;padding:10px 14px">Traer</button>
+      <details class="box" id="emAccEst"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos estimados (este embarque)</h3></summary>
+        <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
+        <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
+        <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
+        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0">
+          <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
+          <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
         </div>
-        <div class="mtr" style="margin-top:8px">Si un mes no hubo embarque, estos costos siguen corriendo y se imputan al siguiente.</div>
+        <div id="emEstDup"></div>
+        <div id="emEstLista"></div>
+        <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
+        <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
       </details>
-
-      <details class="box" id="emAccFob"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">FOB Zeta</h3></summary>
-        <p class="mtr" style="margin:0 0 10px">Se calcula solo, a partir del FOB y el flete de cada vehículo — igual que en el Excel. No hay nada que escribir a mano acá.</p>
-        <div id="emFob"></div>
-        <button class="btn b-pri" id="emFobCp" style="width:100%;margin-top:11px">➦ Copiar lista para Zofri</button>
-      </details>
-
-      <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
-        <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
-        <div id="emZof"></div>
-      </details>
-
-      <div class="box"><h3>Aplicar al stock</h3>
-        <p>Guarda el costo hasta Chile calculado en cada vehículo. Reemplaza el valor que traían del Excel.</p>
+      <div class="box" id="emAccRes"><h3>Resumen de costos y precios</h3>
+        <p class="mtr" style="margin:0 0 10px">Por vehículo: costo hasta Chile redondeado como en el Excel (al múltiplo de $100.000 más cercano + $100.000), más los costos estimados pendientes y los reales ya anotados — se va actualizando solo a medida que anotas en cada vehículo. Al lado, precio de venta (lo que ofrecen Víctor y Bryan) y valor mínimo.</p>
+        <div id="emRes"></div>
+        <p>"Aplicar costos" guarda en cada vehículo el costo hasta Chile, el CIF y el FOB Zeta, y los precios escritos arriba — y lo sube a la nube. Los precios también se guardan solos al salir de cada campo.</p>
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 15:00<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 15:40<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -2566,7 +2563,9 @@ async function boot(){
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
 }
-async function save(){try{await window.storage.set(KEY,JSON.stringify(S))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
+async function save(){try{await window.storage.set(KEY,JSON.stringify(S))}catch(e){console.error('save',e); toast('No se pudo guardar')}
+  /* 2026-09-29: costos, tareas y precios se suben a la nube al guardar (antes esperaban a que se cerrara/ocultara la app). */
+  if(typeof fbSchedulePush==='function') fbSchedulePush();}
 /* El aviso dura según lo largo que sea (2 s mínimo, 4,5 s máximo) y cada aviso nuevo reinicia el reloj: antes todos duraban 1,7 s y
    el temporizador de un aviso anterior apagaba al siguiente. */
 let toastT=null;
@@ -3127,7 +3126,7 @@ function openCost(ch,pcat,pamt,seg){
   drawTaskSheet(); sugEst(); cseg(seg||'real'); pintaScIq();
   scCat=pcat||'OBLIG';
   $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
-  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value='';
+  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value=''; llenaProv();
   $('#scA').value=pamt?clp(pamt):'';$('#scD').value=iso();
   scParcial=false; $('#scPagoTodo').setAttribute('aria-pressed','true');
   $('#scPagoParte').setAttribute('aria-pressed','false');
@@ -3140,14 +3139,23 @@ function openCost(ch,pcat,pamt,seg){
 let scParcial=false, TALLERES=[];
 async function cargaTalleres(){
   try{const r=await window.storage.get('amk_talleres'); if(r&&r.value) TALLERES=JSON.parse(r.value)}catch(e){}
-  const d=$('#dlProv'); if(d) d.innerHTML=TALLERES.map(t=>`<option value="${t}">`).join('');
+  llenaProv();
 }
 async function recuerdaTaller(t){
   if(!t||TALLERES.includes(t))return;
   TALLERES.push(t);TALLERES.sort();
   try{await window.storage.set('amk_talleres',JSON.stringify(TALLERES))}catch(e){}
-  const d=$('#dlProv'); if(d) d.innerHTML=TALLERES.map(x=>`<option value="${x}">`).join('');
+  llenaProv();
 }
+/* 2026-09-29: la lista de "Taller o persona" muestra solo a quienes ya trabajaron en ESA categoría
+   (sacado de los costos anotados), los más usados primero -- en Eléctrico no aparece el pintor. */
+function provsDeCat(cat){
+  const n={};
+  for(const c in S) for(const x of ((S[c]||{}).costs||[])) if(x&&x.prov&&x.cat===cat){ const k=x.prov.trim(); if(k) n[k]=(n[k]||0)+1; }
+  return Object.keys(n).sort((a,b)=>n[b]-n[a]||a.localeCompare(b));
+}
+function llenaProv(){ const d=$('#dlProv'); if(!d) return; let c=''; try{ c=scCat; }catch(_){}
+  d.innerHTML=provsDeCat(c).map(x=>`<option value="${x.replace(/"/g,'&quot;')}">`).join(''); }
 $('#scPagoTodo').addEventListener('click',()=>{scParcial=false;
   $('#scPagoTodo').setAttribute('aria-pressed','true');$('#scPagoParte').setAttribute('aria-pressed','false');
   $('#scAbWrap').hidden=true});
@@ -3207,7 +3215,7 @@ function drawCostList(){
 
 $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');if(!b)return;
   scCat=b.dataset.cg;$$('#scCat .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.cg===scCat?'true':'false'));
-  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus()});
+  $('#scCatOtroWrap').hidden=scCat!=='OTRO'; if(scCat==='OTRO') $('#scCatOtro').focus(); llenaProv()});
 $('#scCoreaValor').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
 $('#scEst1').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
 $('#scEst2').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'))});
@@ -3257,7 +3265,10 @@ $('#scOk').addEventListener('click',async()=>{
   ultimo={ch,ts:nuevo.ts};
   $('#scA').value='';$('#scAb').value='';
   toast(pago<ac?'Registrado · saldo '+clp(ac-pago):'Costo registrado ✓');
-  compartirComprobante(ch,nuevo.ts,true);
+  /* 2026-09-29: el comprobante se envía solo cuando queda saldo (abono parcial). Si se pagó todo, no se abre
+     el menú de compartir -- se puede mandar igual desde la lista de costos si hace falta. */
+  if(pago<ac) compartirComprobante(ch,nuevo.ts,true);
+  llenaProv();
   /* categoría escrita a mano: preguntar si de ahora en adelante queda como botón fijo, igual */
   /* que las demás -- solo se pregunta si de verdad es nueva (no una que ya existía con ese nombre) */
   if(nombreOtro&&!CATS_CUSTOM.some(([k])=>k===catFinal)&&!CATS.some(([k])=>k===catFinal)){
@@ -5737,13 +5748,14 @@ function drawTaskSheet(){
   $('#tkCat').innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
   if(!tkCh){$('#tkList').innerHTML='';return}
   const L=tasks(tkCh);
-  $('#tkList').innerHTML=L.length?L.map(x=>`<div class="card plain" style="padding:11px;${x.hecho?'background:var(--greenBg);border-color:#2F5A48':''}">
-    <div class="r1"><div><div class="tt" style="font-size:15px">${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute)">≈${clp(x.est)}</span>`:''}</div>
+  $('#tkList').innerHTML=L.length?L.map(x=>`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
+    <div class="r1"><div><div class="tt" style="font-size:15px">${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}</div>
     ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}
     ${x.reportadoPor?`<div class="ch" style="color:var(--mute)">Reportado por ${nomPersona(vendedorKey(x.reportadoPor)||x.reportadoPor)}</div>`:''}</div>
-    <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':'Pendiente'}</span></div>
+    <span class="tag ${x.noAplica?'':(x.hecho?'t-sold':'t-or')}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':'Pendiente')}</span></div>
     <div class="acts"><button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>
-    <button class="btn b-pri" data-tcost="${x.ts}">＄ Registrar costo</button>
+    ${x.hecho?'':`<button class="btn b-sec" data-tnoap="${x.ts}" title="Al verlo en persona o al trabajarlo, este gasto no hizo falta: el estimado deja de contar en el costo (queda en el historial)">No se necesitó</button>`}
+    ${x.noAplica?'':`<button class="btn b-pri" data-tcost="${x.ts}">＄ Registrar costo</button>`}
     <button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}">✕</button></div></div>`).join('')
    :'<div class="empty" style="padding:22px">Sin trabajos anotados.</div>';
 }
@@ -5833,8 +5845,14 @@ $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
 
 document.addEventListener('click',async e=>{
   const d1=e.target.closest('[data-tdone]');
+  /* 2026-09-29: "No se necesitó" -- se estimó un gasto que al final no hizo falta. Queda en el historial (tachado),
+     su estimado deja de sumar al costo, y un nuevo estimado por embarque no lo vuelve a crear. Se deshace con "Reabrir". */
+  const na=e.target.closest('[data-tnoap]');
+  if(na){const x=tasks(tkCh).find(y=>String(y.ts)===na.dataset.tnoap);
+    if(x){x.hecho=true; x.noAplica=true; x.fechaNoAp=iso(); await save(); drawTaskSheet(); draw();
+      if(typeof pintaEmb==='function'&&E()) pintaEmb(); toast((TN[x.cat]||x.cat)+': no se necesitó · el estimado ya no cuenta en el costo')} return}
   if(d1){const x=tasks(tkCh).find(y=>String(y.ts)===d1.dataset.tdone);
-    if(x){x.hecho=!x.hecho; await save(); drawTaskSheet(); draw();
+    if(x){x.hecho=!x.hecho; if(!x.hecho){ delete x.noAplica; delete x.fechaNoAp; } await save(); drawTaskSheet(); draw();
       if(x.hecho) toast('Listo · anótalo como costo si corresponde')} return}
   const tc=e.target.closest('[data-tcost]');
   if(tc){const x=tasks(tkCh).find(y=>String(y.ts)===tc.dataset.tcost);
@@ -5843,7 +5861,7 @@ document.addEventListener('click',async e=>{
       $('#scCatOtroWrap').hidden=true;
       $('#scA').value=x.est?clp(x.est):'';
       $('#scSug').innerHTML=x.est?`Estimado del taller ${clp(x.est)}`:'';
-      cseg('real');}
+      llenaProv(); cseg('real');}
     return}
   const dd=e.target.closest('[data-tdel]');
   if(dd){const t=st(tkCh); const x=t.tasks.find(y=>String(y.ts)===dd.dataset.tdel);
@@ -7160,7 +7178,7 @@ $('#emEstTodosBtn').addEventListener('click',()=>{
 });
 $('#emEstGuardar').addEventListener('click',async()=>{
   const e=E(); if(!e||!e.veh.length){toast('Sin vehículos en este embarque');return}
-  let n=0;
+  let n=0; const saltados=[];
   for(const x of e.veh){
     const chk=$(`[data-emestchk="${x.ch}"]`);
     if(!chk||!chk.checked) continue;
@@ -7168,6 +7186,7 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     const est=pnum(inp?inp.value:'')||0;
     if(!est) continue;
     const tl=tasks(x.ch);
+    if(tl.some(ta=>ta&&ta.cat===emEstCat&&ta.noAplica)){ saltados.push(x.ch); continue; }   /* ya se vio en persona que no hacía falta */
     const ya=tl.find(ta=>emEstPend(ta,emEstCat));
     if(ya){ ya.est=est; ya.ts=Date.now(); for(let i=tl.length-1;i>=0;i--) if(tl[i]!==ya&&emEstEsSuya(tl[i],emEstCat)) tl.splice(i,1); }   /* reemplaza, no suma */
     else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false});
@@ -7176,7 +7195,7 @@ $('#emEstGuardar').addEventListener('click',async()=>{
   if(!n){toast('Nada para guardar — completa algún monto');return}
   delete (emEstDraft[embId]||{})[emEstCat];
   await save(); pintaEmEst(); draw();
-  const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat];
+  const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat]+(saltados.length?' · '+saltados.length+' sin tocar porque ya se marcó "no se necesitó" ('+saltados.join(', ')+')':'');
   toast(msgOk);
   const st=$('#emEstStatus');
   if(st){ st.textContent='✓ '+msgOk; clearTimeout(window.__emEstStT); window.__emEstStT=setTimeout(()=>{st.textContent=''},5000); }
@@ -7824,6 +7843,7 @@ function pintaEmb(){
     : 'Sin meses acumulados desde el último embarque.';
   const am=$('#acumM'); if(am && !am.value) am.value=acumKRWTotal?Math.round(acumKRWTotal).toLocaleString('es-CL'):'';
   emAccAbre();
+  try{ pintaEmRes(r); }catch(err){ console.error('pintaEmRes',err); }
   {
     const grupos2={};
     (r?r.filas:[]).forEach((f,i)=>{const cn=f.cn||1; (grupos2[cn]=grupos2[cn]||[]).push({...f,_i:i})});
@@ -8392,6 +8412,55 @@ $('#emFobCp').addEventListener('click',async()=>{
   const head=['CHASIS','VEHÍCULO','AÑO','CIF USD','FOB ZETA'].join('\t');
   await cp(head+'\n'+filas.join('\n'), con.length+' vehículos copiados para Zofri');
 });
+/* 2026-09-29: Resumen al final del Embarque, vehículo por vehículo. Se va actualizando solo a medida que avanza:
+   1) costo hasta Chile (antes y después del redondeo del Excel: ROUND(-5)+100.000) + taller en Corea;
+   2) costos estimados PENDIENTES (tareas no hechas con monto estimado: primero el estimado general del embarque,
+      después lo que Andre anota vehículo por vehículo cuando lo ve en persona -- reemplaza al anterior de la misma categoría);
+   3) costos REALES ya anotados (Costos del vehículo, lo acordado);
+   total = 1 + 2 + 3. Precio de venta (lo que ofrecen) y mínimo: los mismos campos que ven Víctor y Bryan. */
+const emEstSuma=ch=>((S[ch]||{}).tasks||[]).filter(ta=>ta&&!ta.hecho&&+ta.est>0).reduce((a,ta)=>a+(+ta.est||0),0);
+const emRealSuma=ch=>((S[ch]||{}).costs||[]).reduce((a,x)=>a+acor(x),0);
+function emResTot(f){ const v=IDX[f.ch]||{}; return f.lleg+ccCLP(v)+emEstSuma(f.ch)+emRealSuma(f.ch); }
+function pintaEmRes(r){
+  const box=document.getElementById('emRes'); if(!box) return;
+  if(!r||!r.filas.length){ box.innerHTML='<p class="mtr">Sin vehículos.</p>'; return; }
+  const est='width:104px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)';
+  let tB=0,tL=0,tC=0,tE=0,tR=0,tV=0,nV=0;
+  const filas=r.filas.map(f=>{ const v=IDX[f.ch]||{}, t=S[f.ch]||{}; const cc=ccCLP(v), e=emEstSuma(f.ch), re=emRealSuma(f.ch), tot=f.lleg+cc+e+re;
+    const pv=+t.pventa||0, pm=+t.pmin||0;
+    tB+=f.bruto; tL+=f.lleg; tC+=cc; tE+=e; tR+=re; if(pv){tV+=pv;nV++;}
+    const mg=pv?pv-tot:null;
+    const det=[`${clp(f.bruto)} → <b>${clp(f.lleg)}</b>`, cc?`taller Corea ${clp(cc)}`:'', e?`estimados ${clp(e)}`:'', re?`reales ${clp(re)}`:''].filter(Boolean).join(' + ');
+    return `<div class="xrow" style="align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="flex:1 1 180px"><b>${f.ch}</b> · ${(v.mo||'')} ${v.an||''}<br><span style="font-size:11.5px;color:var(--mute)">${det} = <b style="color:var(--ink)">${clp(tot)}</b></span></span>
+      <span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <input data-emres="pventa|${f.ch}" inputmode="numeric" placeholder="Venta${v.vev?' ('+clp(v.vev)+')':''}" title="Precio de venta: lo que ofrecen Víctor y Bryan" value="${pv?pv.toLocaleString('es-CL'):''}" style="${est}">
+        <input data-emres="pmin|${f.ch}" inputmode="numeric" placeholder="Mínimo" title="Valor mínimo" value="${pm?pm.toLocaleString('es-CL'):''}" style="${est}">
+        <span data-emmg="${f.ch}" style="font-size:11.5px;min-width:90px;color:${mg==null?'var(--mute)':(mg>=0?'var(--green)':'var(--red)')}">${mg==null?'':('margen '+clp(mg))}</span></span></div>`; });
+  box.innerHTML=filas.join('')+`<div class="money" style="margin-top:10px">
+    <div>Costo hasta Chile (sin redondear) <b>${clp(tB)}</b></div>
+    <div>Costo hasta Chile (redondeado) <b>${clp(tL)}</b></div>
+    ${tC?`<div>Taller en Corea <b>${clp(tC)}</b></div>`:''}
+    <div>Costos estimados pendientes <b>${clp(tE)}</b></div>
+    <div>Costos reales anotados <b>${clp(tR)}</b></div>
+    <div>Costo total <b>${clp(tL+tC+tE+tR)}</b></div>
+    ${nV?`<div>Precio de venta (${nV} de ${r.filas.length}) <b>${clp(tV)}</b></div>`:''}</div>`;
+}
+document.addEventListener('input',e=>{
+  if(!e.target.matches('[data-emres]')) return;
+  const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'));
+  const [k,ch]=e.target.dataset.emres.split('|'); if(k!=='pventa') return;
+  const r=embCalc(), f=r&&r.filas.find(x=>x.ch===ch), mg=document.querySelector(`[data-emmg="${ch}"]`);
+  if(f&&mg){ const tot=emResTot(f); if(+n>0){ mg.textContent='margen '+clp(n-tot); mg.style.color=(n-tot)>=0?'var(--green)':'var(--red)'; } else mg.textContent=''; }
+});
+async function emResGuarda(inp){
+  const [k,ch]=inp.dataset.emres.split('|'); if(!IDX[ch]) return;
+  const n=pnum(inp.value)||0, t=st(ch);
+  if(k==='pventa'){ if(n>0){ t.pventa=n; t.pventaUSD=calcPventaUSD(n); } else { delete t.pventa; delete t.pventaUSD; } }
+  else { if(n>0){ t.pmin=n; t.pminUSD=calcPventaUSD(n); } else { delete t.pmin; delete t.pminUSD; } }
+  await save(); if(typeof fbSchedulePush==='function') fbSchedulePush();
+}
+document.addEventListener('change',e=>{ if(e.target.matches('[data-emres]')) emResGuarda(e.target); });
 $('#emAplicar').addEventListener('click',async()=>{
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
@@ -8400,14 +8469,16 @@ $('#emAplicar').addEventListener('click',async()=>{
   const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
   for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].cifusd=f.cif||f.cifSugerido; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
   try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
-  draw(); toast(n+' vehículo'+(n===1?'':'s')+' con costo, CIF y FOB Zeta actualizado'+(n===1?'':'s'));
+  for(const inp of document.querySelectorAll('[data-emres]')) await emResGuarda(inp);
+  if(typeof fbSchedulePush==='function') fbSchedulePush(); guardaCacheV(true);
+  draw(); pintaEmb(); toast(n+' vehículo'+(n===1?'':'s')+' con costo, CIF, FOB Zeta y precios guardados — subiendo a la nube');
 });
 
 /* ---------- GASTOS EN COREA ---------- */
 const CCAT=[['BATERIA','Batería'],['ASIENTOS','Asiento'],['CROMADO','Cromado'],
             ['PISADERA','Pisadera'],['PARABRISAS','Parabrisas'],['OTRO','Otro']];
 const ccKRW=v=>v&&v.cc?Object.values(v.cc).reduce((a,b)=>a+(b||0),0):0;
-const ccCLP=v=>Math.round(ccKRW(v)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
+const ccCLP=v=>{ const e=v&&v.ch?embDeVeh(v.ch):null; return Math.round(ccKRW(v)*tcKRWEmb(e&&e.id)); };
 function embDeVeh(ch){ return Object.values(EMB).find(e=>(e.veh||[]).some(x=>x.ch===ch)); }
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
