@@ -568,11 +568,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <details class="box" id="emAccRes"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Resumen de costos y precios</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Por vehículo: costo hasta Chile redondeado como en el Excel (al múltiplo de $100.000 más cercano + $100.000), más los costos estimados pendientes y los reales ya anotados — se va actualizando solo a medida que anotas en cada vehículo. Al lado, precio de venta (lo que ofrecen Víctor y Bryan) y valor mínimo.</p>
         <div id="emRes"></div>
-        <p>"Aplicar costos" guarda en cada vehículo el costo hasta Chile, el CIF y el FOB Zeta, y los precios escritos arriba — y lo sube a la nube. Los precios también se guardan solos al salir de cada campo.</p>
+        <p>"Aplicar costos" guarda en cada vehículo el costo hasta Chile, el CIF y el FOB Zeta, y los precios escritos arriba, pasa los que estaban "en creación" a Stock como En camino (para que los vean Víctor y Bryan), y lo sube a la nube. Los precios también se guardan solos al salir de cada campo.</p>
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 20:54 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 21:18 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -8562,6 +8562,11 @@ window.addEventListener('pagehide',emResFlush);
 $('#emAplicar').addEventListener('click',async()=>{
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
+  /* 2026-09-29 (lo acordado con Andre): "Aplicar costos" también saca los vehículos de "en creación" y los deja
+     en Stock como "En camino" (st ORIGEN), para que Víctor y Bryan los vean y ofrezcan. Los que ya estaban en
+     patio o vendidos no cambian de estado. */
+  let nConf=0;
+  for(const f of r.filas){ const v=IDX[f.ch]; if(v&&v.creando){ v.creando=false; if(!v.st) v.st='ORIGEN'; nConf++; } }
   for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.ctIncCC=true; v.cifusd=f.cif||f.cifSugerido; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
   let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
   const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
@@ -8569,7 +8574,7 @@ $('#emAplicar').addEventListener('click',async()=>{
   try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
   for(const inp of document.querySelectorAll('[data-emres]')) await emResGuarda(inp);
   if(typeof fbSchedulePush==='function') fbSchedulePush(); guardaCacheV(true);
-  draw(); pintaEmb(); toast(n+' vehículo'+(n===1?'':'s')+' con costo, CIF, FOB Zeta y precios guardados — subiendo a la nube');
+  draw(); pintaEmb(); toast(n+' vehículo'+(n===1?'':'s')+' con costo, CIF, FOB Zeta y precios guardados'+(nConf?' · '+nConf+' pasaron a Stock (En camino)':'')+' — subiendo a la nube'); if(typeof webSyncPronto==='function') webSyncPronto();
 });
 
 /* ---------- GASTOS EN COREA ---------- */
