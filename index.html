@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 15:40<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 16:10<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1383,7 +1383,8 @@ const imp18=v=>{
   const u=v.cifusd||0, da=(typeof dolAd!=='undefined'?dolAd:0), t=(typeof t18!=='undefined'?t18:0);
   return Math.round(u*da*t/100);
 };
-const ctot=v=>(v.ct||((v.cif||0)+xls(v)))+app(v.ch)+imp18(v)+ccCLP(v);
+/* ctIncCC: el costo hasta Chile (ct) ya trae el taller en Corea adentro (aplicado desde Embarque desde 2026-09-29); los aplicados antes no. */
+const ctot=v=>(v.ct?v.ct+(v.ctIncCC?0:ccCLP(v)):((v.cif||0)+xls(v))+ccCLP(v))+app(v.ch)+imp18(v);
 
 /* ---------- Sincronización en la nube (Firebase / Firestore) — APP REAL ----------
    Usa las colecciones reales ("vehiculos"). Nada se sube solo: al abrir la app se
@@ -1398,7 +1399,7 @@ let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
-const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
+const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
    NO se sincroniza n360 (cantidad de tomas 360°, un contador nada más) porque las tomas mismas
@@ -4050,6 +4051,11 @@ function emTotVivo(t){
     if(!co&&m>0){ co=Object.assign({n:nom,monto:0,tipo:emTipo,moneda:'CLP'},nom==='Porteo'?{grupo:'porteo'}:{}); em.costos.push(co); }
     if(co){ co.monto=m; if(moSel) co.moneda=moSel.value; if(mdSel) co.modo=mdSel.value; }
     if(co&&m<=0) em.costos.splice(em.costos.indexOf(co),1);
+    /* 2026-09-29: la fila vacía también muestra en vivo cuánto suma (antes solo se veía el total de abajo). */
+    const inf=box&&box.querySelector(`[data-emcminfo="${nom}"]`);
+    if(inf){ const nn=+inf.dataset.n||1, uni=mdSel&&mdSel.value==='unidad', mo=moSel?moSel.value:'CLP';
+      const u=co&&m>0?montoCLP(co,em.id):0;
+      inf.textContent=!(m>0)?'':(nn>1?(uni?(' × '+nn+' = '+clp(u*nn)):(' ÷ '+nn+' = '+clp(u/nn)+' c/u')):(mo!=='CLP'?' ≈ '+clp(u):''))+' · se guarda al salir del campo'; }
   }
   try{ pintaEmTot(); }catch(err){ console.error('emTotVivo',err); }
 }
@@ -7666,16 +7672,19 @@ function embCalc(){
     const porFijo=porContVol+porIgual;
     const comisionBanco=(typeof comisionBancoVeh==='function')?comisionBancoVeh(x.ch):0;
     const asignado=porValor+porFijo+comisionBanco;
-    const bruto=compraCLP+asignado;
-    const lleg=arriba(bruto);
+    /* 2026-09-29 (corregido): el taller en Corea es plata ya enviada y gastada allá -- va ANTES del redondeo,
+       igual que en el Excel ("4. DDU EQ": COSTOS COREA entra al FOB → CIF → DDU EQ → ROUND(-5)+100.000).
+       Antes se sumaba después del redondeo, en el costo final del vehículo. */
     const ccCLPveh=(typeof ccCLP==='function')?ccCLP(IDX[x.ch]||{}):0;
+    const bruto=compraCLP+asignado+ccCLPveh;
+    const lleg=arriba(bruto);
     const fobCLP=compraCLP+porIgual+comisionBanco+ccCLPveh;
     const fobUSD=tcUSD?fobCLP/tcUSD:0;
     const fleteValorCLP=pct*fleteCLP*pVal;
     const fleteVolCLP=shareVol*poolCnFlete;
     const fleteVehUSD=tcUSD?(fleteValorCLP+fleteVolCLP)/tcUSD:0;
     const cifSugerido=Math.round((fobUSD*1.02+fleteVehUSD)*100)/100;
-    return {...x, compraCLP, pct, porValor, porContVol, porIgual, porFijo, comisionBanco, asignado, bruto, lleg, sube:lleg-bruto, fobUSD, fleteVehUSD, cifSugerido};
+    return {...x, compraCLP, pct, porValor, porContVol, porIgual, porFijo, comisionBanco, asignado, ccCLPveh, bruto, lleg, sube:lleg-bruto, fobUSD, fleteVehUSD, cifSugerido};
   });
   // FOB Zeta: se calcula solo, igual que la hoja "5. FOB ZETA" del Excel — sin
   // totales que haya que escribir a mano. El FOB Zeta de cada vehículo es su
@@ -7801,6 +7810,7 @@ function pintaEmb(){
         ${divN>1?`<select data-emcmmodo="${nom}" title="¿Este monto es lo que cuesta cada uno, o lo que se pagó en total?" style="border:1px solid var(--line);border-radius:8px;padding:5px 3px;font-size:11.5px;background:var(--paper);color:var(--ink)">
           <option value="total" ${modo==='total'?'selected':''}>total</option><option value="unidad" ${modo==='unidad'?'selected':''}>${emTipo==='contenedor'?'c/u contenedor':'c/u vehículo'}</option></select>`:''}
         <input data-emcm="${nom}" inputmode="numeric" placeholder="0" style="width:100px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13.5px;text-align:right;background:var(--paper);color:var(--ink)">
+        <span data-emcminfo="${nom}" data-n="${divN}" style="font-size:11.5px;color:var(--mute)"></span>
         ${nom==='Porteo'?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcuse="${porteoSugerido()}">usar ${clp(porteoSugerido())} c/u</button>`:''}
         ${noAp.has(nom)?`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcsi="${nom}">sí aplica</button>`:`<button class="b-und" style="padding:4px 8px;font-size:11.5px" data-emcna="${nom}" title="Esta naviera no cobra este concepto">no aplica</button>`}</span>`;
     }
@@ -8420,17 +8430,17 @@ $('#emFobCp').addEventListener('click',async()=>{
    total = 1 + 2 + 3. Precio de venta (lo que ofrecen) y mínimo: los mismos campos que ven Víctor y Bryan. */
 const emEstSuma=ch=>((S[ch]||{}).tasks||[]).filter(ta=>ta&&!ta.hecho&&+ta.est>0).reduce((a,ta)=>a+(+ta.est||0),0);
 const emRealSuma=ch=>((S[ch]||{}).costs||[]).reduce((a,x)=>a+acor(x),0);
-function emResTot(f){ const v=IDX[f.ch]||{}; return f.lleg+ccCLP(v)+emEstSuma(f.ch)+emRealSuma(f.ch); }
+function emResTot(f){ return f.lleg+emEstSuma(f.ch)+emRealSuma(f.ch); }
 function pintaEmRes(r){
   const box=document.getElementById('emRes'); if(!box) return;
   if(!r||!r.filas.length){ box.innerHTML='<p class="mtr">Sin vehículos.</p>'; return; }
   const est='width:104px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px;text-align:right;background:var(--paper);color:var(--ink)';
   let tB=0,tL=0,tC=0,tE=0,tR=0,tV=0,nV=0;
-  const filas=r.filas.map(f=>{ const v=IDX[f.ch]||{}, t=S[f.ch]||{}; const cc=ccCLP(v), e=emEstSuma(f.ch), re=emRealSuma(f.ch), tot=f.lleg+cc+e+re;
+  const filas=r.filas.map(f=>{ const v=IDX[f.ch]||{}, t=S[f.ch]||{}; const cc=f.ccCLPveh||0, e=emEstSuma(f.ch), re=emRealSuma(f.ch), tot=f.lleg+e+re;
     const pv=+t.pventa||0, pm=+t.pmin||0;
     tB+=f.bruto; tL+=f.lleg; tC+=cc; tE+=e; tR+=re; if(pv){tV+=pv;nV++;}
     const mg=pv?pv-tot:null;
-    const det=[`${clp(f.bruto)} → <b>${clp(f.lleg)}</b>`, cc?`taller Corea ${clp(cc)}`:'', e?`estimados ${clp(e)}`:'', re?`reales ${clp(re)}`:''].filter(Boolean).join(' + ');
+    const det=[`${clp(f.bruto)}${cc?` (incl. taller Corea ${clp(cc)})`:''} → <b>${clp(f.lleg)}</b>`, e?`estimados ${clp(e)}`:'', re?`reales ${clp(re)}`:''].filter(Boolean).join(' + ');
     return `<div class="xrow" style="align-items:center;gap:8px;flex-wrap:wrap">
       <span style="flex:1 1 180px"><b>${f.ch}</b> · ${(v.mo||'')} ${v.an||''}<br><span style="font-size:11.5px;color:var(--mute)">${det} = <b style="color:var(--ink)">${clp(tot)}</b></span></span>
       <span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -8440,10 +8450,10 @@ function pintaEmRes(r){
   box.innerHTML=filas.join('')+`<div class="money" style="margin-top:10px">
     <div>Costo hasta Chile (sin redondear) <b>${clp(tB)}</b></div>
     <div>Costo hasta Chile (redondeado) <b>${clp(tL)}</b></div>
-    ${tC?`<div>Taller en Corea <b>${clp(tC)}</b></div>`:''}
+    ${tC?`<div style="padding-left:12px;font-size:12px;color:var(--mute)">incluye taller en Corea: ${clp(tC)}</div>`:''}
     <div>Costos estimados pendientes <b>${clp(tE)}</b></div>
     <div>Costos reales anotados <b>${clp(tR)}</b></div>
-    <div>Costo total <b>${clp(tL+tC+tE+tR)}</b></div>
+    <div>Costo total <b>${clp(tL+tE+tR)}</b></div>
     ${nV?`<div>Precio de venta (${nV} de ${r.filas.length}) <b>${clp(tV)}</b></div>`:''}</div>`;
 }
 document.addEventListener('input',e=>{
@@ -8464,10 +8474,10 @@ document.addEventListener('change',e=>{ if(e.target.matches('[data-emres]')) emR
 $('#emAplicar').addEventListener('click',async()=>{
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
-  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.cifusd=f.cif||f.cifSugerido; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
+  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.ctIncCC=true; v.cifusd=f.cif||f.cifSugerido; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
   let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
   const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
-  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].cifusd=f.cif||f.cifSugerido; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
+  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].ctIncCC=true; mapa[f.ch].cifusd=f.cif||f.cifSugerido; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
   try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
   for(const inp of document.querySelectorAll('[data-emres]')) await emResGuarda(inp);
   if(typeof fbSchedulePush==='function') fbSchedulePush(); guardaCacheV(true);
