@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 21:18<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 21:45<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1400,7 +1400,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans'];  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta'];  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -5178,7 +5178,7 @@ document.addEventListener('change',async e=>{
     if(k==='pesoBL') val=parseFloat(val.replace(/\./g,'').replace(',','.'))||0;
     else if(k==='tcKRW') val=parseFloat(val.replace(',','.'))||0;
     else if(['buque','naviera','proveedor','manifiesto','agencia'].includes(k)) val=val.toUpperCase();
-    if(val) em[k]=val; else delete em[k]; await guardaEmb(); pintaEmZofri(); return}
+    if(val) em[k]=val; else delete em[k]; await guardaEmb(); if(k==='fechaManifiesto') etaSync(em); pintaEmZofri(); return}
   const zof=e.target.closest('[data-zof]');
   if(zof){const [ch,key]=zof.dataset.zof.split('|');
     let val=zof.value.trim();
@@ -7778,6 +7778,7 @@ function emAccAbre(){
 }
 function pintaEmb(){
   const e=E(); if(!e) return;
+  etaSync(e);
   /* Si hay vehículos asignados a un contenedor mayor que la cantidad declarada (o códigos de
      contenedor de más), la cantidad se corrige sola — si no, los costos por contenedor se cobran de menos. */
   const maxCnE=Math.max(0,...e.veh.map(v=>+v.cn||0),...Object.keys(e.contCod||{}).map(k=>+k||0));
@@ -8581,6 +8582,14 @@ const CCAT=[['BATERIA','Batería'],['ASIENTOS','Asiento'],['CROMADO','Cromado'],
             ['PISADERA','Pisadera'],['PARABRISAS','Parabrisas'],['OTRO','Otro']];
 const ccKRW=v=>v&&v.cc?Object.values(v.cc).reduce((a,b)=>a+(b||0),0):0;
 const ccCLP=v=>{ const e=v&&v.ch?embDeVeh(v.ch):null; return Math.round(ccKRW(v)*tcKRWEmb(e&&e.id)); };
+/* Lleva la fecha de arribo del embarque a cada vehículo que sigue 'En camino' (st ORIGEN), para que Vendedores
+   muestre 'En puerto de Iquique desde …' o 'llega ~…'. Solo toca los que cambian. */
+function etaSync(em){
+  if(!em) return; const f=em.fechaManifiesto||''; let n=0;
+  for(const x of (em.veh||[])){ const v=IDX[x.ch]; if(!v||v.st!=='ORIGEN') continue;
+    if((v.eta||'')!==f){ if(f) v.eta=f; else v.eta=null; n++; } }
+  if(n){ try{ save(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); }catch(_){} }
+}
 function embDeVeh(ch){ return Object.values(EMB).find(e=>(e.veh||[]).some(x=>x.ch===ch)); }
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;

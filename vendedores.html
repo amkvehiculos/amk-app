@@ -69,6 +69,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .videobox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .videobox button{flex:0 0 auto;background:var(--azul);color:#0B1C23;border:none;border-radius:7px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
 .minbox b{font-family:var(--mono);font-size:15px}
+.e-pto{background:rgba(214,168,28,.15);color:#E3BE4E;border-color:rgba(214,168,28,.45)}
+.nuevo{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#0B1C23;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.sinprecio{margin-top:10px;border:1px dashed var(--line);border-radius:9px;padding:8px 12px;font-size:12.5px;color:var(--ink2)}
+.cmp{display:flex;align-items:center;gap:10px;padding:9px 11px 9px 15px;margin-bottom:6px}
+.cmp img.cover{width:46px;height:46px}
+.cmp .cm-t{flex:1;min-width:0}.cmp .cm-t .tt{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp .cm-s{font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp .cm-p{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green);white-space:nowrap}
+.stSel{border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:13px;background:var(--card);color:var(--ink)}
 .acts{display:flex;gap:8px;margin-top:11px}
 .acts+.acts{margin-top:8px}
 .card .acts .btn{min-width:0;min-height:46px;padding:12px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -184,6 +193,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button class="chip" data-f="trab" aria-selected="false">De trabajo</button>
       <button class="chip" data-f="mias" aria-selected="false">Con mis fotos</button>
     </div>
+    <div class="chips" id="estChips" role="tablist" style="margin-top:6px">
+      <button class="chip" data-fe="todos" aria-selected="true">Todos</button>
+      <button class="chip" data-fe="patio" aria-selected="false">En patio</button>
+      <button class="chip" data-fe="camino" aria-selected="false">En camino</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-top:6px">
+      <select id="tipoStock" class="stSel" aria-label="Tipo de vehículo"><option value="todos">Todos los tipos</option></select>
+      <button id="vistaStock" class="stSel" type="button" aria-label="Cambiar vista">☰ Lista compacta</button>
+      <select id="ordenStock" style="border:1px solid var(--line);border-radius:9px;padding:7px 9px;font-size:13px;background:var(--card);color:var(--ink)">
+        <option value="rec">Más recientes primero</option>
+        <option value="pmen">Precio: menor a mayor</option>
+        <option value="pmay">Precio: mayor a menor</option>
+        <option value="anio">Año: más nuevo primero</option>
+        <option value="marca">Marca y modelo (A–Z)</option>
+      </select></div>
     <p class="cnt" id="cnt"></p>
     <div id="list"></div>
   </section>
@@ -493,8 +517,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='sueldosVend';
@@ -996,6 +1020,9 @@ const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=20,CAP=9e6;  /* 2026-09-29: antes 10
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
 let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
+/* 2026-09-29: filtro por estado (En patio / En camino) y orden de la lista, pedidos por Andre. Se recuerdan en el teléfono. */
+let fE='todos', ordenStock='rec', fT='todos', compacto=false; const EXP=new Set();
+try{ fE=localStorage.getItem('amkv_fE')||'todos'; ordenStock=localStorage.getItem('amkv_orden')||'rec'; fT=localStorage.getItem('amkv_tipo')||'todos'; compacto=localStorage.getItem('amkv_compacto')==='1'; }catch(_){}
 let phCh=null, phArr=[], phSel=new Set();
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
@@ -1432,6 +1459,8 @@ async function shareVehicle(ch,idxs){const v=IDX[ch];let a=await loadPhotos(ch);
 
 /* --- listas --- */
 function pass(v){const t=fst(v.ch);
+ if(fE==='camino'&&v.st!=='ORIGEN') return false; if(fE==='patio'&&v.st==='ORIGEN') return false;
+ if(fT==='7p'&&!(+v.pa>=7)) return false; if(fT.startsWith('ca:')&&!(v.trab&&v.ca===fT.slice(3))) return false;
  if(fS==='autos')return !v.trab; if(fS==='trab')return v.trab; if(fS==='mias')return (t.nf||0)>0; return true}
 function diasEnPatioTexto(v){
  if(!v.llp) return '';
@@ -1444,7 +1473,33 @@ function diasEnPatioTexto(v){
 const COLP_U=Object.fromEntries(Object.entries({'Blanco':'#E9EAE6','Negro':'#20262A','Gris':'#8A9296','Plateado':'#B9C0C3','Azul':'#1F4E86','Rojo':'#9B2A28',
    'Beige':'#C9B79A','Amarillo':'#D6A81C','Naranja':'#C4661F','Dorado':'#B29246','Burdeo':'#6B2231','Verde':'#2C5B41','Marrón':'#6A4C38'}).map(([k,c])=>[k.toUpperCase(),c]));
 const colorDe=ce=>COLP_U[String(ce||'').trim().toUpperCase()]||'#8A9296';   /* 'Verde', 'verde' y 'VERDE' se ven igual */
+/* Fecha corta dd/mm */
+const ddmm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
+const hoyISO=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+/* En camino: si la fecha de arribo (eta, viene del embarque en Sistema) ya pasó, está en el puerto esperando desconsolidar. */
+function chipEstado(v,corto){
+ if(v.st==='ORIGEN'){
+  if(v.eta&&v.eta<=hoyISO()) return '<span class="est e-pto">'+(corto?'En puerto':'En puerto · desde '+ddmm(v.eta))+'</span>';
+  if(v.eta) return '<span class="est e-cam">'+(corto?'Llega ~'+ddmm(v.eta):'En camino · llega ~'+ddmm(v.eta))+'</span>';
+  return '<span class="est e-cam">En camino</span>';
+ }
+ const dp=diasEnPatioTexto(v).replace(/ en patio$/,'');
+ return '<span class="est e-pat">En patio'+(dp&&!corto?' · '+dp:'')+'</span>';
+}
+const esNuevo=v=>v.st!=='ORIGEN'&&v.llp&&(Date.now()-new Date(v.llp+'T00:00:00').getTime())<7*86400000;
+function llenaTipos(){
+ const sel=document.getElementById('tipoStock'); if(!sel) return;
+ const cas=[...new Set(V.filter(v=>v.trab&&v.ca&&v.ca!=='S/N').map(v=>v.ca))].sort();
+ const n7=V.filter(v=>+v.pa>=7).length;
+ const ops=[['todos','Todos los tipos']].concat(n7?[['7p','7 o más pasajeros ('+n7+')']]:[]).concat(cas.map(c=>['ca:'+c,(CARN[c]?CARN[c][0].toUpperCase()+CARN[c].slice(1):c.charAt(0)+c.slice(1).toLowerCase())+' ('+V.filter(v=>v.trab&&v.ca===c).length+')']));
+ if(!ops.some(o=>o[0]===fT)) fT='todos';
+ const html=ops.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');
+ if(sel.dataset.h!==html){ sel.innerHTML=html; sel.dataset.h=html; }
+ sel.value=fT;
+ const b=document.getElementById('vistaStock'); if(b) b.textContent=compacto?'▦ Vista completa':'☰ Lista compacta';
+}
 function draw(){
+ llenaTipos();
  const s=q.trim().toLowerCase();
  const toks=s?s.split(/\s+/):[];
  const L=V.filter(v=>{
@@ -1453,6 +1508,14 @@ function draw(){
   const hay=(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase();
   return toks.every(tk=>hay.includes(tk));
  });
+ const precio=v=>+v.pventa||0, fe=v=>String(v.llp||v.fe||'');
+ if(ordenStock==='pmen') L.sort((a,b)=>(precio(a)||9e12)-(precio(b)||9e12));
+ else if(ordenStock==='pmay') L.sort((a,b)=>precio(b)-precio(a));
+ else if(ordenStock==='anio') L.sort((a,b)=>(+b.an||0)-(+a.an||0));
+ else if(ordenStock==='marca') L.sort((a,b)=>(a.ma+' '+a.mo).localeCompare(b.ma+' '+b.mo)||(+b.an||0)-(+a.an||0));
+ else L.sort((a,b)=>fe(b).localeCompare(fe(a)));
+ { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
+   document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':'En camino ('+nCam+')'); b.setAttribute('aria-selected',String(k===fE)); }); }
  cntN=L.length; $('#cnt').textContent=textoCnt(cntN);
  $('#list').innerHTML=L.length?L.map(v=>{const t=fst(v.ch),nf=t.nf||0;
   const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
@@ -1460,22 +1523,31 @@ function draw(){
   const enCam=v.st==='ORIGEN';
   const estado=enCam?'var(--fAzul)':'var(--fVerde)';
   const dp=enCam?'':diasEnPatioTexto(v).replace(/ en patio$/,'');   /* 'En patio · 12 días' en vez de 'En patio · 12 días en patio' (no cabía) */
-  const chip=enCam?'<span class="est e-cam">En camino</span>':'<span class="est e-pat">En patio'+(dp?' · '+dp:'')+'</span>';
+  const chip=chipEstado(v);
+  const nuevo=esNuevo(v)?'<span class="nuevo">Nuevo</span>':'';
+  if(compacto&&!EXP.has(v.ch)){
+   const cm=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
+   return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
+    <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
+    <div class="cm-s">${v.ce||''}${v.trab&&v.ca&&v.ca!=='S/N'?' · '+(CARN[v.ca]||String(v.ca).toLowerCase()):''}${+v.pa>=7?' · '+v.pa+' pas.':''}</div></div>
+    <div style="text-align:right">${v.pventa?`<div class="cm-p">${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
+  }
   const cars=[];
-  if(v.trab&&CARN[v.ca]) cars.push(CARN[v.ca]);
+  if(v.trab&&v.ca&&v.ca!=='S/N') cars.push(CARN[v.ca]||String(v.ca).toLowerCase());   /* antes solo 3 nombres exactos: "BARANDA BAJA" no salía */
   if(!v.trab&&v.tp) cars.push('T. panorámico');
   if(v.tr) cars.push(v.tr);
   if(v.pa&&v.pa>=7) cars.push(v.pa+' pasajeros');
   if(v.sv) cars.push('Sello verde');
   const sp=cars.map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${x}</span>`).join('');
-  return `<div class="card"><span class="strip" style="background:${estado}"></span>
+  return `<div class="card"${compacto?` data-exp="${v.ch}"`:''}><span class="strip" style="background:${estado}"></span>
    <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
-    <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
+    <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
     <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${cp}"></span>${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
    ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${!v.pventa?'<div class="sinprecio">Sin precio todavía · consulta a André antes de dar un valor</div>':''}
    ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
    <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos${nf?' ('+nf+')':''}</button>
@@ -1748,9 +1820,18 @@ $('#q').addEventListener('input',e=>{q=e.target.value;draw()});
 $('#qc').addEventListener('input',e=>{qc=e.target.value;drawPick()});
 $('#genVar').addEventListener('click',()=>{gvar++;drawGen()});
 $('#genBack').addEventListener('click',()=>{gv=null;gvar=0;drawGen();drawPick()});
-$$('#pStock .chip').forEach(ch=>ch.addEventListener('click',()=>{
- $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
+$$('#pStock .chip[data-f]').forEach(ch=>ch.addEventListener('click',()=>{
+ $$('#pStock .chip[data-f]').forEach(x=>x.setAttribute('aria-selected','false'));
  ch.setAttribute('aria-selected','true');fS=ch.dataset.f;draw()}));
+document.querySelectorAll('#estChips [data-fe]').forEach(b=>b.addEventListener('click',()=>{ fE=b.dataset.fe; try{localStorage.setItem('amkv_fE',fE)}catch(_){} draw(); }));
+(()=>{ const t=document.getElementById('tipoStock'); if(t) t.addEventListener('change',()=>{ fT=t.value; try{localStorage.setItem('amkv_tipo',fT)}catch(_){} draw(); });
+ const b=document.getElementById('vistaStock'); if(b) b.addEventListener('click',()=>{ compacto=!compacto; EXP.clear(); try{localStorage.setItem('amkv_compacto',compacto?'1':'0')}catch(_){} draw(); });
+ /* Vista compacta: tocar una fila la abre como tarjeta completa; tocar el título de la tarjeta abierta la vuelve a cerrar */
+ document.getElementById('list').addEventListener('click',e=>{ if(!compacto) return; const c=e.target.closest('[data-exp]'); if(!c) return;
+   if(e.target.closest('button,a,input,select')) return; const ch=c.dataset.exp;
+   if(c.classList.contains('cmp')) EXP.add(ch); else if(e.target.closest('.r1')) EXP.delete(ch); else return; draw(); });
+})();
+(()=>{ const o=document.getElementById('ordenStock'); if(!o) return; o.value=ordenStock; o.addEventListener('change',()=>{ ordenStock=o.value; try{localStorage.setItem('amkv_orden',ordenStock)}catch(_){} draw(); }); })();
 $('#chWho').addEventListener('click',()=>{$('#whoPin').value='';$('#whoSel').value=(PINES[ST.vend]?ST.vend:'Víctor');openSheet('shWho')});
 $('#whoOk').addEventListener('click',async()=>{
   const nombre=$('#whoSel').value, pin=$('#whoPin').value.trim();
