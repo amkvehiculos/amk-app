@@ -575,7 +575,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-09-2026 22:14 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 15:00 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -4021,7 +4021,8 @@ document.addEventListener('input',e=>{
     if(co&&info){ const sel=document.querySelector(`[data-emceditmo="${idx}"]`); const mo=sel?sel.value:(co.moneda||'CLP');
       const u=montoCLP(Object.assign({},co,{monto:+n||0,moneda:mo}),em.id), mult=+info.dataset.mult||1, SIMB={CLP:'$',USD:'US$',KRW:'₩'};
       const dv=+info.dataset.div||1;
-      info.textContent=(SIMB[mo]||'')+(mo==='CLP'?'':(' ≈ '+clp(u)))+(mult>1?(' × '+mult+' = '+clp(u*mult)):(dv>1?(' ÷ '+dv+' = '+clp(u/dv)+' c/u'):'')); }
+      const nn=+n||0, fm=x=>(SIMB[mo]||'')+' '+Math.round(x).toLocaleString('es-CL');
+      info.textContent=(SIMB[mo]||'')+(mo==='CLP'?'':((mult>1?' c/u ≈ ':' ≈ ')+clp(u)))+(mult>1?(' × '+mult+' = '+(mo==='CLP'?clp(u*mult):(fm(nn*mult)+' (≈ '+clp(u*mult)+')'))):(dv>1?(' ÷ '+dv+' = '+(mo==='CLP'?clp(u/dv):(fm(nn/dv)+' (≈ '+clp(u/dv)+')'))+' c/u'):'')); }
   }
   /* 2026-09-28: los totales del embarque (por contenedor, partes iguales, total a repartir) también se
      recalculan mientras se escribe, sin esperar a salir del campo. Se guarda igual al salir del campo. */
@@ -5149,6 +5150,7 @@ document.addEventListener('change',async e=>{
   const zofdoc=e.target.closest('[data-zofdoc]');
   if(zofdoc){const em=E(); if(!em)return; const k=zofdoc.dataset.zofdoc; let val=zofdoc.value.trim();
     if(k==='pesoBL') val=parseFloat(val.replace(/\./g,'').replace(',','.'))||0;
+    else if(k==='tcKRW') val=parseFloat(val.replace(',','.'))||0;
     else if(['buque','naviera','proveedor','manifiesto','agencia'].includes(k)) val=val.toUpperCase();
     if(val) em[k]=val; else delete em[k]; await guardaEmb(); pintaEmZofri(); return}
   const zof=e.target.closest('[data-zof]');
@@ -6974,9 +6976,13 @@ const montoCLP=(c,embIdCtx)=>{
     }
     return Math.round((c.monto||0)*(TC.medio||0));
   }
-  if(mo==='KRW') return Math.round((c.monto||0)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
+  if(mo==='KRW') return Math.round((c.monto||0)*tcKRWEmb(embIdCtx));
   return c.monto||0;
 };
+/* 2026-09-29: cada embarque puede tener su propio cambio pesos por won (e.tcKRW): los autos se compraron con
+   dólares comprados en su momento, no al cambio de hoy. Viaja con el embarque (se sincroniza entre aparatos).
+   Si el embarque no lo tiene, se usa el general de Negocio → Datos. */
+function tcKRWEmb(embIdCtx){ const e=embIdCtx&&typeof EMB!=='undefined'&&EMB[embIdCtx]; if(e&&+e.tcKRW>0) return +e.tcKRW; return (typeof tcKRW!=='undefined'&&tcKRW)?tcKRW:0.685; }
 let PER={saldoDesde:''};
 let emVerNoAplica=false;
 function embNuevo(){
@@ -7582,6 +7588,8 @@ function pintaEmZofri(){
       ${doc.adj.length?doc.adj.map(a=>fila(a.tipo.charAt(0)+a.tipo.slice(1).toLowerCase(),[a.num,a.fecha,a.emisor].filter(Boolean).join(' · '))).join(''):'<p style="font-size:12px;color:var(--mute);margin:4px 0 0">Pon la fecha de la factura de Corea para armar Factura y Consignante.</p>'}
       <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Peso total del BL (kg)</label>
         <input data-zofdoc="pesoBL" inputmode="decimal" value="${e.pesoBL||''}" placeholder="55499" style="${est}"></div>
+      <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Pesos por won de este embarque (cambio al que se compraron los autos; vacío = el general, ${String(tcKRW).replace('.',',')})</label>
+        <input data-zofdoc="tcKRW" inputmode="decimal" value="${e.tcKRW?String(e.tcKRW).replace('.',','):''}" placeholder="${String(tcKRW).replace('.',',')}" style="${est}"></div>
       ${doc.sinCompra?`<p style="font-size:12px;color:var(--amber);margin:8px 0 0">${doc.sinCompra} vehículo${doc.sinCompra===1?'':'s'} sin FOB/CIF todavía: completa sus costos para que los totales queden bien.</p>`:''}
       ${nSinVin?`<div class="fld" style="margin:10px 0 0"><label style="font-size:11px">${nSinVin} vehículo${nSinVin===1?'':'s'} sin VIN completo: pega aquí los VIN (de la factura, el BL o un Zeta anterior), en cualquier orden — cada uno se asigna solo al vehículo cuyo chasis coincide</label>
         <textarea id="zofVins" rows="3" placeholder="KMHSW81UBFU432757&#10;KMFZCY7KAGU259761" style="${est};width:100%;font-family:var(--mono);text-transform:uppercase"></textarea>
@@ -7629,7 +7637,7 @@ function embCalc(){
   const poolCnFlete=(fleteCLP*pCont)/contsConVeh;
   const tcUSD=(typeof TC!=='undefined'&&TC.medio)?TC.medio:0;
   const filas=e.veh.map(x=>{
-    const compraCLP=Math.round((x.valor||0)*(typeof tcKRW!=='undefined'?tcKRW:0.685));
+    const compraCLP=Math.round((x.valor||0)*tcKRWEmb(e.id));
     const pct=sumVal?(x.valor||0)/sumVal:0;
     const porValor=Math.round(pct*tCont*pVal);
     const cn=x.cn||1;
@@ -7748,8 +7756,11 @@ function pintaEmb(){
     if(puesto){
       const co=e.costos[idx], moCo=co.moneda||'CLP';
       const totalCLP=costoTotalCLP(co,e);
-      const equivTxt=moCo==='CLP'?'':(' ≈ '+clp(montoCLP(co,e.id)));
-      const multTxt=(porC||porV)?(' × '+(porC?contN:vehN)+' = '+clp(totalCLP)):((divN>1)?(' ÷ '+divN+' = '+clp(montoCLP(co,e.id)/divN)+' c/u'):'');
+      const equivTxt=moCo==='CLP'?'':(((porC||porV)?' c/u ≈ ':' ≈ ')+clp(montoCLP(co,e.id)));
+      /* 2026-09-29: en dólares/wones se muestra primero el total en SU moneda (US$ 5.000 × 8 = US$ 40.000) y después
+         el equivalente en pesos -- antes solo salían pesos ("≈ $4.845.000") y parecía que los dólares se estaban convirtiendo mal. */
+      const fmtMo=n=>moCo==='CLP'?clp(n):((SIMB[moCo]||'')+' '+Math.round(n).toLocaleString('es-CL'));
+      const multTxt=(porC||porV)?(' × '+(porC?contN:vehN)+' = '+(moCo==='CLP'?clp(totalCLP):(fmtMo(co.monto*(porC?contN:vehN))+' (≈ '+clp(totalCLP)+')'))):((divN>1)?(' ÷ '+divN+' = '+(moCo==='CLP'?clp(montoCLP(co,e.id)/divN):(fmtMo(co.monto/divN)+' (≈ '+clp(montoCLP(co,e.id)/divN)+')'))+' c/u'):'');
       const unidadTxt=emTipo==='contenedor'?'c/u contenedor':'c/u vehículo';
       cuerpo=`<span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
         <select data-emceditmo="${idx}" style="border:1px solid var(--line);border-radius:8px;padding:5px 3px;font-size:11.5px;background:var(--paper);color:var(--ink)">
