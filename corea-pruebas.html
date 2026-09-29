@@ -364,6 +364,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
 <script>
+/* 2026-09-29: la app abre y guarda aunque no haya internet (sw.js), y Firebase guarda en el aparato lo que no alcanzó a subir. */
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(_){} }
+
 
 /* ---------- Almacenamiento local (IndexedDB) ----------
    Reemplaza el window.storage que solo existia en el entorno de artifacts de Claude.ai.
@@ -636,11 +639,20 @@ async function fbSyncRemesasPend(){
   }
   for(const x of RE.filter(y=>y.nube!==undefined && y.nube!==remFirma(y))){ await fbSyncRemesa(x); }
 }
-async function fbDeleteRemesa(ts){
-  if(!fbReady) return;
-  try{ await fbDb.collection(RECOREA_COL).doc(String(ts)).delete(); }
-  catch(e){ console.error('fbDeleteRemesa',e); }
+/* 2026-09-29: los borrados también esperan en el aparato si no hay internet (antes se perdían). */
+const BORR_KEY='amkc_borrar_pend';
+function borrPend(){ try{ return JSON.parse(localStorage.getItem(BORR_KEY)||'[]'); }catch(_){ return []; } }
+function borrGuarda(l){ try{ localStorage.setItem(BORR_KEY,JSON.stringify(l)); }catch(_){} }
+async function fbBorrarDoc(col,id){
+  if(fbReady&&navigator.onLine!==false){ try{ await fbDb.collection(col).doc(String(id)).delete(); return true; }catch(e){ console.error('fbBorrarDoc',col,id,e); } }
+  const l=borrPend(); if(!l.some(x=>x.col===col&&x.id===String(id))){ l.push({col,id:String(id)}); borrGuarda(l); } return false;
 }
+async function fbBorrarPend(){
+  if(!fbReady) return; const l=borrPend(); if(!l.length) return; const quedan=[];
+  for(const x of l){ try{ await fbDb.collection(x.col).doc(x.id).delete(); }catch(e){ quedan.push(x); } }
+  borrGuarda(quedan);
+}
+async function fbDeleteRemesa(ts){ await fbBorrarDoc(RECOREA_COL,ts); }
 
 /* ---------- Gastos generales (compras que no son de un vehículo en particular) ---------- */
 async function guardaGEN(){ try{ await window.storage.set('amkc_gastos',JSON.stringify(GEN)); }catch(e){ console.error('guardaGEN',e); } }
@@ -665,11 +677,7 @@ async function fbSyncGastosPend(){
   if(!fbReady) return;
   for(const g of GEN.filter(y=>y.nube===undefined || y.nube!==genFirma(y))){ await fbSyncGasto(g); }
 }
-async function fbDeleteGasto(id){
-  if(!fbReady) return;
-  try{ await fbDb.collection(GASTOS_COL).doc(id).delete(); }
-  catch(e){ console.error('fbDeleteGasto',e); }
-}
+async function fbDeleteGasto(id){ await fbBorrarDoc(GASTOS_COL,id); }
 /* Sistema escribe 'prorrateo' cuando reparte, en el Embarque, el saldo sin asignar de un gasto
    entre los vehículos de ese embarque -- acá solo se refleja para que quede claro que ya se
    repartió (no se puede volver a asignar a mano un gasto que ya se prorrateó). */
@@ -907,6 +915,7 @@ async function fbInit(){
     if(typeof firebase==='undefined') throw new Error('sin internet');
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     fbAuth.onAuthStateChanged(u=>{
       if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } }
       else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
@@ -1644,6 +1653,25 @@ $('#ctToggle').addEventListener('click',()=>{
   const b=$('#ctToggle'), abre=b.getAttribute('aria-expanded')!=='true';
   alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#contBody').hidden=!abre; });
 });
+/* 2026-09-29: lo anotado sin internet queda guardado en el teléfono y se sube SOLO apenas vuelve la conexión:
+   al volver internet, al volver a abrir la app y cada 30 s si quedó algo pendiente. */
+function corePendientes(){
+  const v=L.filter(x=>x.ch&&!x.soloReferencia&&x.nube!==undefined&&x.nube!==fbFirma(x)).length;
+  const r=RE.filter(y=>y.nube!==undefined&&y.nube!==remFirma(y)).length;
+  const g=(typeof GEN!=='undefined'?GEN:[]).filter(y=>y.nube===undefined||y.nube!==genFirma(y)).length;
+  return v+r+g+borrPend().length;
+}
+function coreaReintenta(){
+  const n=corePendientes();
+  if(navigator.onLine===false){ if(n) fbEstado('Sin internet · '+n+' cambio(s) guardados en el teléfono, se envían solos al volver la conexión','#B5533C'); return; }
+  if(!fbReady){ if(typeof firebase==='undefined'&&n) fbEstado(n+' cambio(s) guardados en el teléfono · cierra y vuelve a abrir la app con internet para enviarlos','#B5533C'); return; }
+  if(!n) return;
+  fbEnviaPronto(); fbSyncRemesasPend(); if(typeof fbSyncGastosPend==='function') fbSyncGastosPend(); fbBorrarPend();
+}
+window.addEventListener('online',()=>setTimeout(coreaReintenta,1500));
+window.addEventListener('offline',()=>{ const n=corePendientes(); fbEstado('Sin internet · lo que anotes queda guardado en el teléfono'+(n?' ('+n+' pendiente'+(n===1?'':'s')+')':''),'#B5533C'); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') coreaReintenta(); });
+setInterval(coreaReintenta,30000);
 fbInit();
 boot();
 </script></body></html>

@@ -422,6 +422,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
 <script>
+/* 2026-09-29: la app abre y guarda aunque no haya internet (sw.js), y Firebase guarda en el aparato lo que no alcanzó a subir. */
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(_){} }
+
 
 /* ---------- Almacenamiento local (IndexedDB) ----------
    Reemplaza el window.storage que solo existia en el entorno de artifacts de Claude.ai.
@@ -934,6 +937,7 @@ async function fbInit(){
     fbEstado('Conectando…');
     if(!(firebase.apps&&firebase.apps.length)) firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     clearTimeout(fbEsperaT); fbEsperaLarga=false;
     fbEsperaT=setTimeout(()=>{ if(!fbSnapOk){ fbEsperaLarga=true; pintaSync(); } },15000);   /* si en 15 s no llegó el stock, se avisa */
     fbAuth.onAuthStateChanged(u=>{
@@ -2132,4 +2136,41 @@ $('#syncChip').addEventListener('click',()=>reconecta(true));
 $('#syncReint').addEventListener('click',()=>reconecta(true));
 
 boot();
+
+/* 2026-09-29 (pedido de Andre): en las pestañas con muchas secciones, arriba aparece una fila de botones con TODAS
+   las secciones de esa pestaña (como Dinero · Mes · Embarque arriba). Tocar una muestra solo esa sección; "Todas"
+   las muestra todas como antes. No cambia nada de cómo funciona cada sección: solo se ocultan (clase .secOff). */
+(function(){
+  const st=document.createElement('style');
+  st.textContent='.secOff{display:none!important}.secBar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.secBar button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}.secBar button[aria-pressed="true"]{background:var(--btn2,#2a4b55);color:#EAF0F1;border-color:transparent}';
+  document.head.appendChild(st);
+})();
+function secBarArma(pane){
+  if(!pane||pane.querySelector(':scope > .secBar')) return;
+  const cajas=()=>[...pane.querySelectorAll('.box')].filter(b=>!b.parentElement.closest('.box')&&b.closest('[id]')&&(b.closest('.secPane')===pane));
+  pane.classList.add('secPane');
+  /* En Embarque la primera caja (elegir el BL) queda siempre a la vista: es el contexto de todo lo demás. */
+  const fijas=pane.id==='ngEmbarque'?1:0;
+  const cajas0=cajas; const cajasTodas=()=>cajas0(); 
+  const lista=cajas(); if(lista.length<2+fijas) return;
+  const tit=b=>{ const h=b.querySelector('h3,h2'); let t=(h?h.textContent:'').replace(/\s+/g,' ').trim(); t=t.replace(/\s*\(.*$/,'').replace(/\s*·.*$/,''); return t||'Sección'; };
+  const bar=document.createElement('div'); bar.className='secBar'; pane.insertBefore(bar,pane.firstChild);
+  const clave='amk_sec_'+pane.id; let sel='';
+  try{ sel=localStorage.getItem(clave)||''; }catch(_){}
+  const pinta=()=>{
+    const L=cajasTodas().slice(fijas); L.forEach((b,i)=>{ if(!b.dataset.secId) b.dataset.secId=pane.id+'_'+i; });
+    const visibles=L.filter(b=>!b.hidden&&b.style.display!=='none');
+    if(sel&&!visibles.some(b=>b.dataset.secId===sel)) sel='';
+    bar.innerHTML=`<button type="button" data-secsel="" aria-pressed="${!sel}">Todas</button>`+visibles.map(b=>`<button type="button" data-secsel="${b.dataset.secId}" aria-pressed="${sel===b.dataset.secId}">${tit(b).replace(/</g,'&lt;')}</button>`).join('');
+    L.forEach(b=>b.classList.toggle('secOff',!!sel&&b.dataset.secId!==sel));
+    if(sel){ const b=L.find(x=>x.dataset.secId===sel); if(b&&b.tagName==='DETAILS') b.open=true; }
+  };
+  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center'}); });
+  pinta();
+  /* Si la app muestra u oculta una sección sola (ej. "Gastos generales de Corea"), la fila se actualiza. */
+  try{ new MutationObserver(()=>{ clearTimeout(pane._secT); pane._secT=setTimeout(pinta,120); }).observe(pane,{subtree:true,attributes:true,attributeFilter:['hidden']}); }catch(_){}
+}
+function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ajVender', 'ajReportar', 'ajCuenta', 'ajAyuda'])); else secBarsInit(['ajVender', 'ajReportar', 'ajCuenta', 'ajAyuda']);
 </script></body></html>

@@ -572,7 +572,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 18:20 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 18:57 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1233,6 +1233,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
 <script>
+/* 2026-09-29: la app abre y guarda aunque no haya internet (sw.js), y Firebase guarda en el aparato lo que no alcanzó a subir. */
+if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(_){} }
+
 
 /* ---------- Almacenamiento local (IndexedDB) ----------
    Reemplaza el window.storage que solo existia en el entorno de artifacts de Claude.ai.
@@ -1468,6 +1471,7 @@ async function fbInit(){
     fbPintaEstado('Conectando…');
     firebase.initializeApp(FB_CONFIG);
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     fbAuth.onAuthStateChanged(u=>{
       if(u){
         fbReady=true;
@@ -8507,7 +8511,8 @@ function pintaEmRes(r){
         <input data-emres="pventa|${f.ch}" inputmode="numeric" placeholder="Venta${v.vev?' ('+clp(v.vev)+')':''}" title="Precio de venta: lo que ofrecen Víctor y Bryan" value="${pv?pv.toLocaleString('es-CL'):''}" style="${est}">
         <span data-emmg="pventa|${f.ch}" style="font-size:11.5px;min-width:130px;justify-self:start">${emMgTxt(pv,tot,'venta')}</span>
         <input data-emres="pmin|${f.ch}" inputmode="numeric" placeholder="Mínimo" title="Valor mínimo" value="${pm?pm.toLocaleString('es-CL'):''}" style="${est}">
-        <span data-emmg="pmin|${f.ch}" style="font-size:11.5px;min-width:130px;justify-self:start">${emMgTxt(pm,tot,'mínimo')}</span></span></div>`; });
+        <span data-emmg="pmin|${f.ch}" style="font-size:11.5px;min-width:130px;justify-self:start">${emMgTxt(pm,tot,'mínimo')}</span>
+        <span data-emresest="${f.ch}" style="grid-column:1 / -1;font-size:11px;color:var(--mute);justify-self:end"></span></span></div>`; });
   box.innerHTML=filas.join('')+`<div class="money" style="margin-top:10px">
     <div>Costo hasta Chile (sin redondear) <b>${clp(tB)}</b></div>
     <div>Costo hasta Chile (redondeado) <b>${clp(tL)}</b></div>
@@ -8526,11 +8531,28 @@ document.addEventListener('input',e=>{
 async function emResGuarda(inp){
   const [k,ch]=inp.dataset.emres.split('|'); if(!IDX[ch]) return;
   const n=pnum(inp.value)||0, t=st(ch);
-  if(k==='pventa'){ if(n>0){ t.pventa=n; t.pventaUSD=calcPventaUSD(n); } else { delete t.pventa; delete t.pventaUSD; } }
-  else { if(n>0){ t.pmin=n; t.pminUSD=calcPventaUSD(n); } else { delete t.pmin; delete t.pminUSD; } }
-  await save(); if(typeof fbSchedulePush==='function') fbSchedulePush();
+  /* Borrar un precio se manda como null (no se quita el campo): así la nube también lo borra para Víctor y Bryan. */
+  const antes=k==='pventa'?(+t.pventa||0):(+t.pmin||0); if(antes===n) return;
+  if(k==='pventa'){ if(n>0){ t.pventa=n; t.pventaUSD=calcPventaUSD(n); } else { t.pventa=null; t.pventaUSD=null; } }
+  else { if(n>0){ t.pmin=n; t.pminUSD=calcPventaUSD(n); } else { t.pmin=null; t.pminUSD=null; } }
+  await save(); emResEstado(ch,'guardado');
+  if(typeof fbDetectaCambios==='function') fbDetectaCambios();
+  if(typeof fbPushChanges==='function'&&typeof fbReady!=='undefined'&&fbReady) fbPushChanges(); else if(typeof fbSchedulePush==='function') fbSchedulePush();
+  clearTimeout(emResEstT[ch]); emResEstT[ch]=setTimeout(()=>emResEstado(ch,(typeof fbPend!=='undefined'&&fbPend[ch])?'pendiente':'nube'),2500);
 }
-document.addEventListener('change',e=>{ if(e.target.matches('[data-emres]')) emResGuarda(e.target); });
+/* 2026-09-29 (regla de Andre): el precio de venta y el mínimo se guardan y suben a la nube MIENTRAS se escriben
+   (0,7 s después de dejar de escribir), no solo al salir del campo: si el aparato se duerme, se queda sin
+   batería o la app se recarga a mitad de camino, lo escrito no se pierde. Al ocultarse la app se guarda lo pendiente. */
+const emResT={}, emResEstT={};
+function emResEstado(ch,est){ const el=document.querySelector(`[data-emresest="${ch}"]`); if(!el) return;
+  el.textContent=est==='guardado'?'guardado · subiendo…':(est==='nube'?'✓ en la nube':(est==='pendiente'?'⚠ guardado aquí, se sube al volver internet':''));
+  el.style.color=est==='nube'?'var(--green)':(est==='pendiente'?'var(--amber)':'var(--mute)'); }
+document.addEventListener('input',e=>{ if(!e.target.matches('[data-emres]')) return; const inp=e.target, key=inp.dataset.emres;
+  clearTimeout(emResT[key]); emResT[key]=setTimeout(()=>{ delete emResT[key]; emResGuarda(inp); },700); });
+document.addEventListener('change',e=>{ if(e.target.matches('[data-emres]')){ clearTimeout(emResT[e.target.dataset.emres]); delete emResT[e.target.dataset.emres]; emResGuarda(e.target); } });
+function emResFlush(){ for(const key in emResT){ clearTimeout(emResT[key]); delete emResT[key]; const inp=document.querySelector(`[data-emres="${key}"]`); if(inp) emResGuarda(inp); } }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) emResFlush(); });
+window.addEventListener('pagehide',emResFlush);
 $('#emAplicar').addEventListener('click',async()=>{
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
@@ -9241,6 +9263,43 @@ document.getElementById('syncChip').addEventListener('click',async()=>{
 fbInit();
 
 boot();
+
+/* 2026-09-29 (pedido de Andre): en las pestañas con muchas secciones, arriba aparece una fila de botones con TODAS
+   las secciones de esa pestaña (como Dinero · Mes · Embarque arriba). Tocar una muestra solo esa sección; "Todas"
+   las muestra todas como antes. No cambia nada de cómo funciona cada sección: solo se ocultan (clase .secOff). */
+(function(){
+  const st=document.createElement('style');
+  st.textContent='.secOff{display:none!important}.secBar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.secBar button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}.secBar button[aria-pressed="true"]{background:var(--btn2,#2a4b55);color:#EAF0F1;border-color:transparent}';
+  document.head.appendChild(st);
+})();
+function secBarArma(pane){
+  if(!pane||pane.querySelector(':scope > .secBar')) return;
+  const cajas=()=>[...pane.querySelectorAll('.box')].filter(b=>!b.parentElement.closest('.box')&&b.closest('[id]')&&(b.closest('.secPane')===pane));
+  pane.classList.add('secPane');
+  /* En Embarque la primera caja (elegir el BL) queda siempre a la vista: es el contexto de todo lo demás. */
+  const fijas=pane.id==='ngEmbarque'?1:0;
+  const cajas0=cajas; const cajasTodas=()=>cajas0(); 
+  const lista=cajas(); if(lista.length<2+fijas) return;
+  const tit=b=>{ const h=b.querySelector('h3,h2'); let t=(h?h.textContent:'').replace(/\s+/g,' ').trim(); t=t.replace(/\s*\(.*$/,'').replace(/\s*·.*$/,''); return t||'Sección'; };
+  const bar=document.createElement('div'); bar.className='secBar'; pane.insertBefore(bar,pane.firstChild);
+  const clave='amk_sec_'+pane.id; let sel='';
+  try{ sel=localStorage.getItem(clave)||''; }catch(_){}
+  const pinta=()=>{
+    const L=cajasTodas().slice(fijas); L.forEach((b,i)=>{ if(!b.dataset.secId) b.dataset.secId=pane.id+'_'+i; });
+    const visibles=L.filter(b=>!b.hidden&&b.style.display!=='none');
+    if(sel&&!visibles.some(b=>b.dataset.secId===sel)) sel='';
+    bar.innerHTML=`<button type="button" data-secsel="" aria-pressed="${!sel}">Todas</button>`+visibles.map(b=>`<button type="button" data-secsel="${b.dataset.secId}" aria-pressed="${sel===b.dataset.secId}">${tit(b).replace(/</g,'&lt;')}</button>`).join('');
+    L.forEach(b=>b.classList.toggle('secOff',!!sel&&b.dataset.secId!==sel));
+    if(sel){ const b=L.find(x=>x.dataset.secId===sel); if(b&&b.tagName==='DETAILS') b.open=true; }
+  };
+  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center'}); });
+  pinta();
+  /* Si la app muestra u oculta una sección sola (ej. "Gastos generales de Corea"), la fila se actualiza. */
+  try{ new MutationObserver(()=>{ clearTimeout(pane._secT); pane._secT=setTimeout(pinta,120); }).observe(pane,{subtree:true,attributes:true,attributeFilter:['hidden']}); }catch(_){}
+}
+function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso']);
 </script>
 </body>
 </html>
