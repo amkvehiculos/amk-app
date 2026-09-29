@@ -421,7 +421,7 @@ window.storage = (function(){
 
 const OPT={"marcas":["BMW","CHEVROLET","HYUNDAI","JAGUAR","JEEP","KIA","MERC.BENZ","SSANGYONG"],"modelos":{"KIA":["BONGO III","CARNIVAL","SORENTO","SPORTAGE"],"HYUNDAI":["AVANTE","PALISADE","PORTER II","SANTA FE","STAREX","TUCSON","VELOSTER","i30"],"SSANGYONG":["KORANDO","KORANDO SPORTS"],"BMW":["320D","X6"],"JEEP":["CHEROKEE","G CHEROKEE"],"CHEVROLET":["TRAX"],"MERC.BENZ":["E220"],"JAGUAR":["XE"]},"cats":["SUV","CAMIONETA","SEDÁN","HATCHBACK","FURGÓN"],"colores":["BLANCO","NEGRO","GRIS","PLATEADO","AZUL","ROJO","BEIGE","VERDE","NARANJA","AMARILLO","DORADO","BURDEO","MARRÓN"],"tracc":["4X2","4X4"],"motores":[["DIESEL","Diésel"],["BENCINA","Bencina"]],"trans":[["AUTOMATICA","Automática"],["MECANICA","Mecánica"]],"carr":["CAJÓN SIMPLE","BARANDA BAJA","GAVIOTA","FREEZER","POWER GATE"],"chasis":["7U243999","AA001982","AA003398","AA006709","AA010359","AA012941","AA017418","AA027418","AA030139","AA067859","AA076900","AA098425","AA103893","AU580981","BA123290","BA148330","BA152745","BA170814","BA203956","BA228323","BK028291","BK056007","BK098617","BK109695","CA255607","CA263680","CA283790","CA287051","CA312083","CA320818","CK134844","CK163065","CK322436","CK324227","CK44844","CU005350","CU021219","CU038770","CU477090","CU608750","CU773941","CU826429","DK410737","DK504125","DP121905","DU033580","DU536181","DU682394","E0B42949","EA796913","EA842557","EC282505","EF706197","EK527135","EK554658","EK568968","EP183068","EU051132","EU183092","EU193226","EU217513","EU258357","EU263984","EU596814","EU842557","EU842923","EU987768","FA110858","FK961974","FK985159","FP5488","FS056766","FU086134","FU090558","FU104724","FU119443","FU138229","FU216854","FU369755","FU373842","FU407879","FU419670","FU946531","FW533746","FW600736","FW641759","FW719219","GK014872","GK021203","GK067445","GK074898","GK084924","GK828801","GP268501","GS176426","GS232774","GU218601","GU223794","GU295795","GU303420","GU590752","GU615419","HA944230","HB098077","HK127486","HK144620","HK161203","HS252155","HU321353","HU350222","JK","JK184556","JK212184","JK216336","JK249988","JS434274","JU447272","JU447983","JU578958","JU850270","KK288125","KK309932","KK392511","KS461008","KSZ00002","KU048955","KU104839","KU622508","LU132655","MS026561"]};
 const KEY='amkc_vehiculos', PK=c=>'amkc_fotos_'+c;
-const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=12,CAP=4.2e6;
+const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=12,CAP=6e6;  /* 2026-09-29: antes 1080 px / 55% */
 const RX=/^[A-Z]{2}\d{6}$/;
 let sinCh=false, warnOnce=false;
 const CC=[['BAT','Batería'],['ASI','Asiento'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
@@ -1316,6 +1316,27 @@ function shrinkDataURI(d,w,q){return new Promise(res=>{const im=new Image();
   const cv=document.createElement('canvas');cv.width=Math.round((im.width||w)*sc);cv.height=Math.round((im.height||w)*sc);
   cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',q))};
  im.onerror=()=>res('');im.src=d})}
+
+/* 2026-09-29: fotos nítidas en la web. Antes TODAS las fotos de un vehículo iban juntas en un solo documento de
+   Firestore (límite 1 MB), así que se achicaban a 640 px / 58%. Ahora, además de esa versión chica (se sigue usando
+   para listas y como respaldo), cada foto se sube en ALTA (1600 px, 80%) en su propio documento: <docId>__hd<i>.
+   Esos documentos no tienen campo "fuente", así que las apps que escuchan la colección no los descargan; la web
+   los pide solo al abrir el detalle de un vehículo. */
+const HDW=1600, HDQ=.8, HDMAXB=900000;
+async function subirHD(col,docId,ch,fu,fotosOrig,prevN,limite){
+  const ids=[];
+  for(let i=0;i<fotosOrig.length;i++){
+    let q=HDQ, x=await shrinkDataURI(fotosOrig[i],HDW,q);
+    while(x&&x.length>HDMAXB&&q>.45){ q=Math.round((q-.1)*100)/100; x=await shrinkDataURI(fotosOrig[i],HDW,q); }
+    if(!x) { ids.push(''); continue; }
+    const id=docId+'__hd'+i;
+    const p=fbDb.collection(col).doc(id).set({ch,hd:true,src:fu,i,d:x,ts:firebase.firestore.FieldValue.serverTimestamp()});
+    await (limite?limite(p,40000):p);
+    ids.push(id);
+  }
+  for(let j=fotosOrig.length;j<Math.max(prevN||0,fotosOrig.length);j++){ try{ await fbDb.collection(col).doc(docId+'__hd'+j).delete(); }catch(_){} }
+  return ids;
+}
 let subiendoWeb=false;
 async function subirFotosWeb(){
  if(subiendoWeb) return;
@@ -1329,16 +1350,18 @@ async function subirFotosWeb(){
    toast('No hay fotos que subir');
    return;
   }
-  const urls=[]; let peso=0;
+  const urls=[], orig=[]; let peso=0;
   for(let i=0;i<Math.min(phArr.length,WEBMAXN);i++){
    const chica=await shrinkDataURI(phArr[i],WEBW,WEBQ);
    if(!chica) continue;
    if(peso+chica.length>WEBCAP) break;
-   urls.push(chica); peso+=chica.length;
+   urls.push(chica); orig.push(phArr[i]); peso+=chica.length;
   }
   if(!urls.length){toast('No se pudo procesar ninguna foto');return}
+  btn.textContent='Subiendo fotos en alta…';
+  const hd=await subirHD(FOTOSVEND_COL,docId,ch,'corea',orig,WEBMAXN,null);
   await fbDb.collection(FOTOSVEND_COL).doc(docId).set({
-   ch, fuente:'corea', nombre:'Corea', fotos:urls,
+   ch, fuente:'corea', nombre:'Corea', fotos:urls, hd,
    ts:firebase.firestore.FieldValue.serverTimestamp()
   });
   toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');

@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 18:57<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 20:54<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1690,9 +1690,10 @@ const fotosVendCache={};  /* {chasis: {fuente: {nombre, fotos:[...]}}} */
 const FUENTE_VEND_ORDEN_BASE=['victor','bryan'];
 function fbFotosVendListen(){
   if(!fbReady) return;
-  fbDb.collection(FB_FOTOS_COL).onSnapshot(snap=>{
+  const alRecibir=snap=>{   /* sin las fotos en alta (<id>__hd<i>, no tienen "fuente"): esas las pide la web al abrir un vehículo */
     snap.docChanges().forEach(chg=>{
       if(chg.type==='removed'){
+        if((chg.doc.id||'').split('__').length>2) return;
         const [ch0,fu0]=(chg.doc.id||'').split('__');
         if(ch0 && fotosVendCache[ch0]) delete fotosVendCache[ch0][fu0];
         return;
@@ -1700,13 +1701,15 @@ function fbFotosVendListen(){
       const d=chg.doc.data()||{};
       const ch=d.ch; if(!ch || !d.fuente) return;
       if(!fotosVendCache[ch]) fotosVendCache[ch]={};
-      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
+      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], hd:Array.isArray(d.hd)?d.hd:[], pendiente:!!d.pendiente};
     });
     webSyncPronto();
     fbDibujaPronto();
     if(typeof podaAuto==='function') podaAuto();  /* por si llega recien la cache de un vehiculo vendido hace rato */
     if(typeof pintaPendientes==='function') pintaPendientes();
-  }, e=>console.error('fbFotosVendListen', e));
+  };
+  /* Si la consulta filtrada fallara (índice/permiso), se vuelve a escuchar todo como antes: nunca quedarse sin fotos. */
+  let unsub=fbDb.collection(FB_FOTOS_COL).where('fuente','!=','').onSnapshot(alRecibir, e=>{ console.error('fbFotosVendListen filtro',e); try{unsub&&unsub()}catch(_){} fbDb.collection(FB_FOTOS_COL).onSnapshot(alRecibir, e2=>console.error('fbFotosVendListen', e2)); });
 }
 /* Ordena las claves de un cache {fuente:{nombre,fotos,pendiente}} según la prioridad Víctor >
    Bryan > (cualquier otro vendedor futuro, alfabético) > Corea — reutilizable para fotos
@@ -1737,14 +1740,14 @@ function fotosEfectivas(v){
       if(Array.isArray(v.fotos) && v.fotos.length) return {fotos:v.fotos, fuente:'sistema', nombre:''};
     }else{
       const c=cache[t.fuentePref];
-      if(c && c.fotos.length) return {fotos:c.fotos, fuente:t.fuentePref, nombre:c.nombre||t.fuentePref};
+      if(c && c.fotos.length) return {fotos:c.fotos, hd:c.hd||[], fuente:t.fuentePref, nombre:c.nombre||t.fuentePref};
     }
   }
   if(Array.isArray(v.fotos) && v.fotos.length) return {fotos:v.fotos, fuente:'sistema', nombre:''};
   const orden=fuentesOrdenadas(v.ch);
   for(const f of orden){
     const c=cache[f];
-    if(c && c.fotos.length) return {fotos:c.fotos, fuente:f, nombre:c.nombre||f};
+    if(c && c.fotos.length) return {fotos:c.fotos, hd:c.hd||[], fuente:f, nombre:c.nombre||f};
   }
   return {fotos:[], fuente:null, nombre:''};
 }
@@ -2105,6 +2108,7 @@ function webDoc(v){
     precio: t.of ? (t.pprice||v.vev||null) : null,
     foto: fe.fotos[0] || '',
     fotos: fe.fotos.slice(0,20),  /* propias si hay; si no, las de Víctor/Bryan/Corea (ver fotosEfectivas) */
+    hd: (fe.hd||[]).slice(0,20), hdCol: FB_FOTOS_COL,  /* ids de las mismas fotos en alta (la web las pide al abrir el detalle) */
     f360: fe3.fotos.slice(0,24),  /* vista 360° completa, misma prioridad (ver fotosEfectivas360) */
     video: v.video || ''  /* link del video editado (YouTube, Vimeo, Instagram o archivo directo), opcional */
   };
@@ -3372,7 +3376,9 @@ async function podaVendCoreaNube(ch){
       if(!c || !Array.isArray(c.fotos) || c.fotos.length<=KEEP) continue;
       try{
         const recorte=c.fotos.slice(0,KEEP);
-        await fbDb.collection(col).doc(ch+'__'+fu).set({fotos:recorte},{merge:true});
+        const upd={fotos:recorte};
+        if(Array.isArray(c.hd)&&c.hd.length>KEEP){ for(const id of c.hd.slice(KEEP)){ if(id) try{ await fbDb.collection(col).doc(id).delete(); }catch(_){} } upd.hd=c.hd.slice(0,KEEP); c.hd=upd.hd; }
+        await fbDb.collection(col).doc(ch+'__'+fu).set(upd,{merge:true});
         c.fotos=recorte;
         podado=true;
       }catch(e){ console.error('podaVendCoreaNube',col,ch,fu,e); }
@@ -7168,7 +7174,7 @@ $('#emEstDup').addEventListener('click',async e=>{
   const dups=emEstDuplicados(); let n=0;
   dups.forEach(d=>{ const tl=tasks(d.ch); let visto=false;
     for(let i=tl.length-1;i>=0;i--){ if(emEstEsSuya(tl[i],d.cat)){ if(visto){ tl.splice(i,1); n++; } else visto=true; } } });
-  await save(); pintaEmEst(); draw(); toast(n+' estimado'+(n===1?'':'s')+' repetido'+(n===1?'':'s')+' quitado'+(n===1?'':'s'));
+  await save(); pintaEmb(); draw(); toast(n+' estimado'+(n===1?'':'s')+' repetido'+(n===1?'':'s')+' quitado'+(n===1?'':'s'));
 });
 $('#emEstCat').addEventListener('click',e=>{const b=e.target.closest('[data-ec]');if(!b)return; emEstCat=b.dataset.ec; $('#emEstTodos').value=''; pintaEmEst();});
 // Cada monto tipeado queda guardado en el "borrador" de su categoría al tiro — así no se
@@ -7204,7 +7210,7 @@ $('#emEstGuardar').addEventListener('click',async()=>{
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}
   delete (emEstDraft[embId]||{})[emEstCat];
-  await save(); pintaEmEst(); draw();
+  await save(); pintaEmb(); draw();   /* pintaEmb (no solo pintaEmEst): así el Resumen de costos y precios también se actualiza */
   const msgOk=n+' estimado'+(n===1?'':'s')+' guardado'+(n===1?'':'s')+' en '+TN[emEstCat]+(saltados.length?' · '+saltados.length+' sin tocar porque ya se marcó "no se necesitó" ('+saltados.join(', ')+')':'');
   toast(msgOk);
   const st=$('#emEstStatus');

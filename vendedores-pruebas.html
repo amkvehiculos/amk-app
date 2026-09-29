@@ -508,9 +508,10 @@ const F360_VEND_COL='pruebas_f360Vend';
 const fotosVendCache={}, f360VendCache={};
 function fbFotosVendListen(){
   if(!fbReady) return;
-  fbDb.collection(FB_FOTOS_COL).onSnapshot(snap=>{
+  const alRecibir=snap=>{   /* sin las fotos en alta (no tienen "fuente") */
     snap.docChanges().forEach(chg=>{
       if(chg.type==='removed'){
+        if((chg.doc.id||'').split('__').length>2) return;
         const [ch0,fu0]=(chg.doc.id||'').split('__');
         if(ch0 && fotosVendCache[ch0]) delete fotosVendCache[ch0][fu0];
         return;
@@ -518,9 +519,11 @@ function fbFotosVendListen(){
       const d=chg.doc.data()||{};
       const ch=d.ch; if(!ch || !d.fuente) return;
       if(!fotosVendCache[ch]) fotosVendCache[ch]={};
-      fotosVendCache[ch][d.fuente]={fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente};
+      fotosVendCache[ch][d.fuente]={fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente, nhd:Array.isArray(d.hd)?d.hd.length:0};
     });
-  }, e=>console.error('fbFotosVendListen', e));
+  };
+  /* Si la consulta filtrada fallara (índice/permiso), se vuelve a escuchar todo como antes: nunca quedarse sin fotos. */
+  let unsub=fbDb.collection(FB_FOTOS_COL).where('fuente','!=','').onSnapshot(alRecibir, e=>{ console.error('fbFotosVendListen filtro',e); try{unsub&&unsub()}catch(_){} fbDb.collection(FB_FOTOS_COL).onSnapshot(alRecibir, e2=>console.error('fbFotosVendListen', e2)); });
 }
 function fbF360VendListen(){
   if(!fbReady) return;
@@ -990,7 +993,7 @@ async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
  if(navigator.share){try{await navigator.share({url:link,text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}
   catch(e){if(e&&e.name==='AbortError')return}}
  try{await navigator.clipboard.writeText(txt);toast('Link copiado')}catch(_){toast('No se pudo copiar el link')}}
-const MAXW=1080,Q=.55,COVW=220,COVQ=.45,MAXN=20,CAP=4.2e6;
+const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=20,CAP=9e6;  /* 2026-09-29: antes 1080 px / 55% (se veían borrosas) */
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
 let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
@@ -1318,6 +1321,27 @@ function shrinkDataURI(d,w,q){return new Promise(res=>{const im=new Image();
   cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',q))};
  im.onerror=()=>res('');im.src=d})}
 function slugFuente(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').trim()}
+
+/* 2026-09-29: fotos nítidas en la web. Antes TODAS las fotos de un vehículo iban juntas en un solo documento de
+   Firestore (límite 1 MB), así que se achicaban a 640 px / 58%. Ahora, además de esa versión chica (se sigue usando
+   para listas y como respaldo), cada foto se sube en ALTA (1600 px, 80%) en su propio documento: <docId>__hd<i>.
+   Esos documentos no tienen campo "fuente", así que las apps que escuchan la colección no los descargan; la web
+   los pide solo al abrir el detalle de un vehículo. */
+const HDW=1600, HDQ=.8, HDMAXB=900000;
+async function subirHD(col,docId,ch,fu,fotosOrig,prevN,limite){
+  const ids=[];
+  for(let i=0;i<fotosOrig.length;i++){
+    let q=HDQ, x=await shrinkDataURI(fotosOrig[i],HDW,q);
+    while(x&&x.length>HDMAXB&&q>.45){ q=Math.round((q-.1)*100)/100; x=await shrinkDataURI(fotosOrig[i],HDW,q); }
+    if(!x) { ids.push(''); continue; }
+    const id=docId+'__hd'+i;
+    const p=fbDb.collection(col).doc(id).set({ch,hd:true,src:fu,i,d:x,ts:firebase.firestore.FieldValue.serverTimestamp()});
+    await (limite?limite(p,40000):p);
+    ids.push(id);
+  }
+  for(let j=fotosOrig.length;j<Math.max(prevN||0,fotosOrig.length);j++){ try{ await fbDb.collection(col).doc(docId+'__hd'+j).delete(); }catch(_){} }
+  return ids;
+}
 let subiendoWeb=false;
 async function subirFotosWeb(){
  if(subiendoWeb) return;
@@ -1333,17 +1357,20 @@ async function subirFotosWeb(){
    toast('No hay fotos que subir');
    return;
   }
-  const urls=[]; let peso=0;
+  const urls=[], orig=[]; let peso=0;
   for(let i=0;i<Math.min(phArr.length,WEBMAXN);i++){
    const chica=await shrinkDataURI(phArr[i],WEBW,WEBQ);
    if(!chica) continue;
    if(peso+chica.length>WEBCAP) break;
-   urls.push(chica); peso+=chica.length;
+   urls.push(chica); orig.push(phArr[i]); peso+=chica.length;
   }
   if(!urls.length){toast('No se pudo procesar ninguna foto');return}
   const pend=hayOtrasFotos(ch,fu);
+  const prevN=((fotosVendCache[ch]||{})[fu]||{}).nhd||WEBMAXN;
+  btn.textContent='Subiendo fotos en alta…';
+  const hd=await subirHD(FB_FOTOS_COL,docId,ch,fu,orig,prevN,outLimite);
   await outLimite(fbDb.collection(FB_FOTOS_COL).doc(docId).set({
-   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls, pendiente:pend,
+   ch, fuente:fu, nombre:(ST.vend||'').trim(), fotos:urls, hd, pendiente:pend,
    ts:firebase.firestore.FieldValue.serverTimestamp()
   }),40000);
   if(pend){
