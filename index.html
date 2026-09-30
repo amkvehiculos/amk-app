@@ -571,7 +571,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->29-09-2026 21:45<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->30-09-2026 18:15<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -589,9 +589,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="ctaShare" style="width:100%;margin-top:9px">🖼️ Enviar imagen + datos al cliente</button></div>
     <div class="box" id="boxModeracion"><h3>Categorías nuevas por revisar</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
-      <div id="modList"></div></div>
+      <div id="modList"></div>
+      <details id="fixBox" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">Editar botones fijos</summary>
+        <p style="font-size:12.5px;color:var(--mute);margin:6px 0 8px">Cambia el nombre (se guarda al salir del campo) o quita el botón con ✕. Lo que ya se reportó antes no cambia.</p>
+        <div id="fixList"></div></details></div>
     <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
-      <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). No tiene costo asociado ni afecta el reacondicionamiento.</p>
+      <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). Al tocar "Ya compré" anotas cuánto costó y queda como gasto general (Insumos de aseo/taller). No afecta el costo de ningún vehículo.</p>
       <div id="insumosList"></div></div>
     <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
       <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
@@ -4619,7 +4622,7 @@ function fbAvisosVendListen(){
         const d=chg.doc.data()||{};
         AVISOSVEND.push({ts:Number(ts)||ts, tipo:d.tipo||'', ch:d.ch||'', precio:d.precio||0,
           monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido,
-          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo});
+          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo, montoCompra:d.montoCompra||0, compradoFe:d.compradoFe||''});
         if(d.tipo==='pendiente') procesaPendienteVend({ts:Number(ts)||ts, ch:d.ch||'', nota:d.nota||'', cat:d.cat||'', vendedor:d.vendedor||''});
       }
     });
@@ -4760,19 +4763,44 @@ async function abrirAvisoFoto(av){
   await openPhotos(av.ch);
   segShow(av.cat==='f360'?'v360':'fotos');
 }
+let insEdit=null;   /* ts del insumo que se está anotando/editando ahora */
 function pintaInsumos(){
   const el=$('#insumosList'); if(!el) return;
-  const L=AVISOSVEND.filter(x=>x.tipo==='insumo').sort((a,b)=>b.ts-a.ts);
-  el.innerHTML=L.length?L.map(x=>`<div class="xrow">
-      <span style="font-family:var(--body)">${(x.item||x.nota||'—').replace(/</g,'&lt;')}
-        <br><span style="color:var(--mute);font-size:12px">${x.vendedor?nomPersona(vendedorKey(x.vendedor)||x.vendedor):'—'} · ${fd(isoDe(x.ts))}</span></span>
-      <span>${x.atendido?'<span style="color:var(--green)">✓ comprado</span>':`<button class="btn b-sec" data-insok="${x.ts}">Ya compré</button>`}</span></div>`).join('')
+  const L=AVISOSVEND.filter(x=>x.tipo==='insumo').sort((a,b)=>(a.atendido-b.atendido)||(b.ts-a.ts));
+  el.innerHTML=L.length?L.map(x=>{
+    const nom=(x.item||x.nota||'—').replace(/</g,'&lt;'), ed=String(insEdit)===String(x.ts);
+    let der;
+    if(ed) der=`<span style="display:flex;gap:6px;align-items:center"><input data-insmonto="${x.ts}" inputmode="numeric" placeholder="$ monto" value="${x.montoCompra?Number(x.montoCompra).toLocaleString('es-CL'):''}" style="width:108px;padding:7px 8px">
+        <button class="btn b-pri" data-insguarda="${x.ts}" style="padding:7px 10px">Guardar</button><button class="b-und" data-inscancel="1">✕</button></span>`;
+    else if(x.atendido) der=`<span style="text-align:right"><span style="color:var(--green)">✓ comprado${x.montoCompra?' '+clp(x.montoCompra):''}</span>${x.compradoFe?'<br><span style="color:var(--mute);font-size:12px">'+fd(x.compradoFe)+'</span>':''}
+        <br><button class="b-und" data-insok="${x.ts}" style="font-size:12px">${x.montoCompra?'Editar valor':'Anotar valor'}</button></span>`;
+    else der=`<button class="btn b-sec" data-insok="${x.ts}">Ya compré</button>`;
+    return `<div class="xrow" style="align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)">
+      <span style="font-family:var(--body)">${nom}
+        <br><span style="color:var(--mute);font-size:12px">${x.vendedor?nomPersona(vendedorKey(x.vendedor)||x.vendedor):'—'} · ${fd(isoDe(x.ts))}</span></span>${der}</div>`}).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin insumos avisados.</p>';
+  if(insEdit){ const i=el.querySelector('[data-insmonto]'); if(i) i.focus(); }
+}
+/* Guarda el valor de la compra: marca el aviso como comprado (Vendedores ve "✓ comprado") y lo deja
+   como gasto general "Insumos de aseo/taller" (uno por aviso; si se edita, se corrige el mismo gasto). */
+async function guardaCompraInsumo(ts,monto){
+  const av=AVISOSVEND.find(x=>String(x.ts)===String(ts)); if(!av) return;
+  const fe=av.compradoFe||iso();
+  av.atendido=true; av.montoCompra=monto||0; av.compradoFe=fe;
+  try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
+  const g=GEN.find(y=>String(y.refIns)===String(ts));
+  if(monto){ if(g) g.monto=monto; else GEN.push({ts:Date.now(),cat:'INSUMOS',monto,fecha:fe,nota:'Insumo: '+(av.item||av.nota||''),refIns:av.ts}); }
+  else if(g) GEN=GEN.filter(y=>y!==g);
+  await guardaGen(); try{ pintaGen(); drawResumen(); pintaFlujo(); }catch(_){}
+  insEdit=null; pintaInsumos(); pintaPendientes();
+  if(fbReady){ try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({atendido:true, montoCompra:monto||0, compradoFe:fe},{merge:true}); }
+    catch(e){ console.error('guardaCompraInsumo',e); toast('Guardado aquí; se sube cuando haya conexión'); return; } }
+  toast(monto?'Compra anotada · '+clp(monto)+' en gastos generales':'Marcado como comprado');
 }
 function pintaModeracion(){
   const el=$('#modList'); if(!el) return;
   el.innerHTML=PEND_CANDIDATOS.length?PEND_CANDIDATOS.map((c,i)=>`<div class="card plain" style="padding:11px;margin-bottom:8px">
-      <div class="tt" style="font-size:14px">"${String(c.label||'').replace(/</g,'&lt;')}"</div>
+      <div class="fld" style="margin:0"><label>Nombre del botón (puedes corregirlo antes de aprobar)</label><input data-modlbl="${i}" value="${String(c.label||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}"></div>
       <div class="ch">${c.tipo==='insumo'?'Insumo general':'Pendiente de vehículo'} · anotado por ${c.vendedor?nomPersona(vendedorKey(c.vendedor)||c.vendedor):'—'}</div>
       ${c.tipo==='pendiente'?`<div class="fld" style="margin-top:8px"><label>Categoría</label>
         <select data-modcat="${i}">${TCAT.map(([k,n])=>`<option value="${k}" ${k===(c.cat||'OTRO')?'selected':''}>${n}</option>`).join('')}</select></div>`:''}
@@ -4780,17 +4808,45 @@ function pintaModeracion(){
         <button class="btn b-pri" data-modok="${i}">Aprobar como botón fijo</button>
         <button class="b-und" data-modno="${i}">Descartar</button></div></div>`).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin categorías nuevas por revisar.</p>';
+  pintaFijos();
 }
+function pintaFijos(){
+  const el=$('#fixList'); if(!el) return;
+  const esc=t=>String(t||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const fila=(t,i,p)=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <input data-fixlbl="${t}|${i}" value="${esc(p[1])}" style="flex:1;min-width:0;padding:7px 9px">
+      ${t==='p'?`<select data-fixcat="${i}" style="width:118px;padding:7px 4px">${TCAT.map(([k,n])=>`<option value="${k}" ${k===(p[2]||'OTRO')?'selected':''}>${n}</option>`).join('')}</select>`:''}
+      <button class="b-und" data-fixdel="${t}|${i}" aria-label="Quitar botón">✕</button></div>`;
+  el.innerHTML=`<div style="font-weight:700;font-size:13px;margin:4px 0 6px">Insumos (${INSUMO_PRESETS.length})</div>`+INSUMO_PRESETS.map((p,i)=>fila('i',i,p)).join('')
+    +`<div style="font-weight:700;font-size:13px;margin:12px 0 6px">Pendientes de vehículo (${PEND_PRESETS.length})</div>`+PEND_PRESETS.map((p,i)=>fila('p',i,p)).join('');
+}
+document.addEventListener('change',async e=>{
+  const l=e.target.closest&&e.target.closest('[data-fixlbl]'), c=e.target.closest&&e.target.closest('[data-fixcat]');
+  if(l){ const [t,i]=l.dataset.fixlbl.split('|'), v=l.value.trim(); if(!v){ pintaFijos(); return; }
+    const A=t==='i'?INSUMO_PRESETS:PEND_PRESETS; if(!A[+i]) return; A[+i]=A[+i].slice(); A[+i][1]=v;
+    await guardaConfigPend(); toast('Botón actualizado'); }
+  else if(c){ const i=+c.dataset.fixcat; if(!PEND_PRESETS[i]) return; PEND_PRESETS[i]=PEND_PRESETS[i].slice(); PEND_PRESETS[i][2]=c.value;
+    await guardaConfigPend(); toast('Categoría actualizada'); }
+});
 async function guardaConfigPend(){
   try{await fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:presetsAObjs(PEND_PRESETS), insumos:insumosAObjs(INSUMO_PRESETS), candidatos:PEND_CANDIDATOS}, {merge:true});}
   catch(e){console.error('guardaConfigPend',e); toast('No se pudo guardar en la nube'+(e&&e.code?' ('+e.code+')':(e&&e.message?': '+e.message:'')));}
 }
 document.addEventListener('click',async e=>{
   const insok=e.target.closest('[data-insok]');
-  if(insok){ marcarAvisoAtendido(insok.dataset.insok); return; }
+  if(insok){ insEdit=insok.dataset.insok; pintaInsumos(); return; }
+  if(e.target.closest('[data-inscancel]')){ insEdit=null; pintaInsumos(); return; }
+  const insg=e.target.closest('[data-insguarda]');
+  if(insg){ const i=document.querySelector(`[data-insmonto="${insg.dataset.insguarda}"]`); await guardaCompraInsumo(insg.dataset.insguarda, pnum(i?i.value:'')||0); return; }
+  const fdel=e.target.closest('[data-fixdel]');
+  if(fdel){ const [t,i]=fdel.dataset.fixdel.split('|'); const A=t==='i'?INSUMO_PRESETS:PEND_PRESETS; const p=A[+i]; if(!p) return;
+    if(!confirm('¿Quitar el botón "'+p[1]+'"? Lo ya reportado no cambia.')) return;
+    if(t==='i') INSUMO_PRESETS=INSUMO_PRESETS.filter((_,ix)=>ix!==+i); else PEND_PRESETS=PEND_PRESETS.filter((_,ix)=>ix!==+i);
+    await guardaConfigPend(); pintaFijos(); toast('Botón quitado'); return; }
   const modok=e.target.closest('[data-modok]');
   if(modok){
-    const i=+modok.dataset.modok, cand=PEND_CANDIDATOS[i]; if(!cand) return;
+    const i=+modok.dataset.modok, cand0=PEND_CANDIDATOS[i]; if(!cand0) return;
+    const lb=document.querySelector(`[data-modlbl="${i}"]`), cand=Object.assign({},cand0,{label:(lb&&lb.value.trim())||cand0.label});
     if(cand.tipo==='insumo'){ INSUMO_PRESETS=INSUMO_PRESETS.concat([[cand.key,cand.label]]); }
     else{ const sel=document.querySelector(`[data-modcat="${i}"]`); const cat=sel?sel.value:(cand.cat||'OTRO');
       PEND_PRESETS=PEND_PRESETS.concat([[cand.key,cand.label,cat]]); }

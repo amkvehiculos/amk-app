@@ -302,7 +302,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div id="ajReportar" hidden>
     <div class="box"><h3>Insumos del taller</h3>
       <p>Avisa cuando se esté acabando algo de uso general (combustible, desengrasante, renovador de gomas, silicona, etc). No es por vehículo.</p>
-      <button class="btn b-pri" data-insumo="1" style="width:100%">Insumo bajo</button></div>
+      <button class="btn b-pri" data-insumo="1" style="width:100%">Insumo bajo</button>
+      <div id="insMios" style="margin-top:12px"></div></div>
     <div class="box"><h3>Demanda de clientes</h3>
       <p>Cuando un cliente busca algo que no tenemos, anótalo aquí para tenerlo en cuenta al comprar. Se comparte con Andre y con Corea, y lo ves aquí abajo también.</p>
       <div class="fld"><label for="dcMarca">Marca</label>
@@ -626,6 +627,29 @@ function pintaSueldo(){
    "atendido" localmente para mostrar el visto bueno en Ajustes. */
 const AVISOSVEND_COL='pruebas_avisosVend';
 let fbAvisosEscuchando=false;
+/* Insumos pedidos (de todos): para que cada vendedor vea su lista y no pida dos veces lo mismo */
+let INS={}, tocaIns=false;
+try{ Promise.resolve(window.storage.get('amkv_ins')).then(r=>{ if(r&&r.value){ INS=Object.assign(JSON.parse(r.value),INS); pintaInsMios(); } }).catch(()=>{}); }catch(_){}
+function insLista(){
+  const m=Object.assign({},INS);
+  (typeof OUT!=='undefined'?OUT:[]).forEach(o=>{ if(o.col===AVISOSVEND_COL&&o.data&&o.data.tipo==='insumo'&&!o.okDoc){ const t=Number(o.doc); if(!m[t]) m[t]={ts:t,item:o.data.item,vendedor:o.data.vendedor,atendido:false,sinEnviar:true}; } });
+  return Object.values(m);
+}
+const insPendItems=()=>new Set(insLista().filter(x=>!x.atendido).map(x=>String(x.item||'').trim().toLowerCase()));
+function pintaInsMios(){
+  const el=document.getElementById('insMios'); if(!el) return;
+  const yo=(ST.vend||'').trim().toLowerCase();
+  const hace=Date.now()-45*864e5;
+  const L=insLista().filter(x=>(!yo||String(x.vendedor||'').trim().toLowerCase()===yo)&&(!x.atendido||x.ts>hace))
+    .sort((a,b)=>(a.atendido-b.atendido)||(b.ts-a.ts));
+  const otros=insLista().filter(x=>!x.atendido&&yo&&String(x.vendedor||'').trim().toLowerCase()!==yo);
+  const f=t=>{ const d=new Date(+t); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); };
+  const fila=(x,quien)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px">
+     <span>${String(x.item||'—').replace(/</g,'&lt;')}<br><span style="color:var(--mute);font-size:12px">${quien?x.vendedor+' · ':''}pedido ${f(x.ts)}</span></span>
+     <span style="white-space:nowrap;font-size:12.5px;font-weight:700;color:${x.atendido?'var(--green)':(x.sinEnviar?'var(--amber)':'var(--ink2)')}">${x.atendido?'✓ comprado'+(x.compradoFe?' '+x.compradoFe.slice(8,10)+'/'+x.compradoFe.slice(5,7):''):(x.sinEnviar?'sin enviar aún':'por comprar')}</span></div>`;
+  el.innerHTML=(L.length?`<div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Lo que has pedido${yo?'':' (todos)'}</div>`+L.map(x=>fila(x,!yo)).join(''):'<p style="color:var(--mute);font-size:13px;margin:0">Todavía no has pedido insumos.</p>')
+    +(otros.length?`<div style="font-weight:700;font-size:13.5px;margin:12px 0 4px">Pedido por otros, por comprar</div>`+otros.map(x=>fila(x,true)).join(''):'');
+}
 function fbAvisosVendListen(){
   if(fbAvisosEscuchando||!fbReady) return;
   fbAvisosEscuchando=true;
@@ -634,11 +658,13 @@ function fbAvisosVendListen(){
     snap.docChanges().forEach(chg=>{
       if(chg.type==='removed') return;
       const d=chg.doc.data()||{}; const ts=Number(chg.doc.id);
+      if(d.tipo==='insumo'){ INS[ts]={ts, item:d.item||'', vendedor:d.vendedor||'', atendido:!!d.atendido, compradoFe:d.compradoFe||''}; tocaIns=true; }
       if(!d.atendido) return;
       if(d.tipo==='venta'&&ST.ventas){ const it=ST.ventas.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
       if(d.tipo==='adelanto'&&ST.adel){ const it=ST.adel.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
     });
     if(tocado){ save(); pintaAV(); pintaVT(); }
+    if(tocaIns){ tocaIns=false; try{window.storage.set('amkv_ins',JSON.stringify(INS))}catch(_){} pintaInsMios(); }
   }, e=>console.error('fbAvisosVendListen',e));
 }
 
@@ -747,7 +773,8 @@ $('#pdOk').addEventListener('click',()=>{
 let inCat=null;
 function pintaInCat(){
   const el=$('#inCat'); if(!el) return;
-  el.innerHTML=INSUMO_PRESETS.map(([k,label])=>`<button class="chip" data-ink="${k}" aria-selected="${k===inCat}">${label}</button>`).join('')
+  const ya=insPendItems();
+  el.innerHTML=INSUMO_PRESETS.map(([k,label])=>`<button class="chip" data-ink="${k}" aria-selected="${k===inCat}">${label}${ya.has(String(label).trim().toLowerCase())?' · ya pedido':''}</button>`).join('')
     +`<button class="chip" data-ink="_otro" aria-selected="${inCat==='_otro'}">Otro</button>`;
   $('#inOtroWrap').hidden = inCat!=='_otro';
 }
@@ -765,13 +792,14 @@ $('#inOk').addEventListener('click',()=>{
     item=preset?preset[1]:inCat;
   }
   if(pideQuien('avisar un insumo')) return;
+  if(insPendItems().has(item.trim().toLowerCase())&&!confirm('"'+item+'" ya está pedido y todavía no se compra. ¿Avisar de nuevo igual?')) return;
   if(rebote()) return;
   const ts=Date.now(), vend=(ST.vend||'').trim();
   outEncola({col:AVISOSVEND_COL, doc:String(ts), unico:true, lbl:'insumo',
     data:{tipo:'insumo', item, key, esNuevo, vendedor:vend, ts, atendido:false},
     cand:esNuevo?{tipo:'insumo', key, label:item, ts, vendedor:vend}:null});
   toast(msgEnvio('Avisado · se envía a Andre'));
-  $('#inOtro').value=''; inCat=null; closeAll();
+  $('#inOtro').value=''; inCat=null; closeAll(); pintaInsMios();
 });
 document.addEventListener('click',e=>{
   const p=e.target.closest('[data-pend]');
@@ -1217,7 +1245,7 @@ function estadoSync(){
     : {c:'sy-env',t:'↻ Conectando…',tip:'Conectando con la nube…'};
   return {c:'sy-ok',t:'✓ Stock al día',tip:'Stock actualizado '+cuandoLargo(fbUltimaAct)+' · nada pendiente de enviar'};
 }
-function pintaSync(){
+function pintaSync(){ try{pintaInsMios()}catch(_){}
   const e=estadoSync();
   const chip=document.getElementById('syncChip');
   if(chip){ chip.textContent=e.t; chip.className='sync '+e.c; chip.title=e.tip; chip.setAttribute('aria-label','Estado de la nube: '+e.t.replace(/^\S+\s/,'')+'. '+e.tip); }
@@ -1837,7 +1865,7 @@ $('#chWho').addEventListener('click',()=>{$('#whoPin').value='';$('#whoSel').val
 $('#whoOk').addEventListener('click',async()=>{
   const nombre=$('#whoSel').value, pin=$('#whoPin').value.trim();
   if(PINES[nombre]!==pin){toast('PIN incorrecto');return}
-  ST.vend=nombre;
+  ST.vend=nombre; try{pintaInsMios()}catch(_){}
   $('#who').textContent=ST.vend||'sin nombre';await save();closeAll();toast('Guardado');pintaAV();
   pintaVT();
   if(fbReady){ fbSueldosListen(); reintenta(); }
