@@ -69,6 +69,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .videobox span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .videobox button{flex:0 0 auto;background:var(--azul);color:#0B1C23;border:none;border-radius:7px;padding:6px 11px;font-weight:700;font-size:12px;cursor:pointer}
 .minbox b{font-family:var(--mono);font-size:15px}
+.e-res{background:rgba(176,132,232,.15);color:#C3A2F0;border-color:rgba(176,132,232,.42)}
 .e-pto{background:rgba(214,168,28,.15);color:#E3BE4E;border-color:rgba(214,168,28,.45)}
 .nuevo{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#0B1C23;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:2px}
 .sinprecio{margin-top:10px;border:1px dashed var(--line);border-radius:9px;padding:8px 12px;font-size:12.5px;color:var(--ink2)}
@@ -947,6 +948,7 @@ function fbAplica(ch, d){
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
   FB_LIMPIABLES.forEach(k=>{ if(d[k]===null) delete v[k]; });
   v.oferta = !!d.of;
+  if(d.res!==undefined){ if(d.res&&d.res.est==='activa') v.res={vence:d.res.vence||'',fecha:d.res.fecha||''}; else delete v.res; }
   if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin; else if(d.pmin===null) delete v.pmin;
   if(d.pventa!==undefined && d.pventa!==null) v.pventa=d.pventa; else if(d.pventa===null) delete v.pventa;
   if(d.pventaUSD!==undefined && d.pventaUSD!==null) v.pventaUSD=d.pventaUSD; else if(d.pventaUSD===null) delete v.pventaUSD;
@@ -1507,6 +1509,7 @@ const ddmm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return 
 const hoyISO=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 /* En camino: si la fecha de arribo (eta, viene del embarque en Sistema) ya pasó, está en el puerto esperando desconsolidar. */
 function chipEstado(v,corto){
+ if(v.res) return '<span class="est e-res">'+(corto?'Reservado':'Reservado · hasta '+ddmm(v.res.vence))+'</span>';
  if(v.st==='ORIGEN'){
   if(v.eta&&v.eta<=hoyISO()) return '<span class="est e-pto">'+(corto?'En puerto':'En puerto · desde '+ddmm(v.eta))+'</span>';
   if(v.eta) return '<span class="est e-cam">'+(corto?'Llega ~'+ddmm(v.eta):'En camino · llega ~'+ddmm(v.eta))+'</span>';

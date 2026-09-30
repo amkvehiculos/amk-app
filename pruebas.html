@@ -72,6 +72,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .e-pat{background:rgba(70,201,125,.15);color:var(--green);border-color:rgba(70,201,125,.4)}
 .e-cam{background:rgba(106,169,224,.14);color:var(--azul);border-color:rgba(106,169,224,.36)}
 .e-deu{background:rgba(232,176,75,.15);color:var(--amber);border-color:rgba(232,176,75,.38)}
+.e-res{background:rgba(176,132,232,.15);color:#C3A2F0;border-color:rgba(176,132,232,.42)}
+.e-resv{background:rgba(224,96,96,.15);color:var(--red);border-color:rgba(224,96,96,.42)}
 .e-ven{background:rgba(200,210,212,.14);color:var(--plata);border-color:rgba(200,210,212,.35)}
 .specs{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
 .sp{font-size:11px;font-weight:600;background:var(--seaL);border:1px solid var(--line);
@@ -572,7 +574,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->30-09-2026 18:15 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->30-09-2026 21:46 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -593,7 +595,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="modList"></div>
       <details id="fixBox" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">Editar botones fijos</summary>
         <p style="font-size:12.5px;color:var(--mute);margin:6px 0 8px">Cambia el nombre (se guarda al salir del campo) o quita el botón con ✕. Lo que ya se reportó antes no cambia.</p>
-        <div id="fixList"></div></details></div>
+        <div id="fixList"></div>
+        <div style="border-top:1px solid var(--line);margin-top:10px;padding-top:10px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">Agregar botón fijo</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <select id="fixNTipo" style="padding:7px 6px"><option value="i">Insumo</option><option value="p">Pendiente de vehículo</option></select>
+            <select id="fixNCat" hidden style="padding:7px 4px"></select>
+            <input id="fixNLbl" placeholder="Ej: Trapos exteriores" style="flex:1;min-width:140px;padding:7px 9px">
+            <button class="btn b-pri" id="fixNOk" style="padding:7px 12px">Agregar</button></div></div></details></div>
     <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
       <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). Al tocar "Ya compré" anotas cuánto costó y queda como gasto general (Insumos de aseo/taller). No afecta el costo de ningún vehículo.</p>
       <div id="insumosList"></div></div>
@@ -1047,6 +1056,33 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
 </div>
 
+<div class="sheet" id="shReserva">
+  <h3 id="rvT"></h3><div class="sb" id="rvC"></div>
+  <div class="fld"><label for="rvCli">Cliente</label><input id="rvCli" placeholder="Nombre" autocomplete="off"></div>
+  <div class="fld"><label for="rvTel">Teléfono (opcional)</label><input id="rvTel" inputmode="tel" placeholder="+56 9 ..."></div>
+  <div class="fld"><label for="rvPrecio">Precio acordado</label><input id="rvPrecio" inputmode="numeric" placeholder="$0"></div>
+  <div id="rvNueva">
+    <div style="display:flex;gap:8px"><div class="fld" style="flex:1"><label for="rvFecha">Fecha de reserva</label><input id="rvFecha" type="date"></div>
+      <div class="fld" style="width:110px"><label for="rvDias">Días</label><input id="rvDias" inputmode="numeric" value="7"></div></div>
+    <div class="fld"><label for="rvAbono">Abono de reserva</label><input id="rvAbono" inputmode="numeric" placeholder="$200.000"><div class="sug" id="rvMinAv"></div></div>
+  </div>
+  <div id="rvActiva">
+    <div class="money" id="rvRes" style="margin-bottom:10px"></div>
+    <div id="rvPagos" style="margin-bottom:10px"></div>
+    <div class="note" id="rvPlan" style="margin-bottom:12px"></div>
+    <div class="fld"><label for="rvPm">Registrar otro pago</label>
+      <div style="display:flex;gap:6px"><input id="rvPm" inputmode="numeric" placeholder="$ monto" style="flex:1"><input id="rvPf" type="date" style="width:150px"></div></div>
+  </div>
+  <div class="fld"><label>Medio de pago</label><div class="opt" style="display:flex;gap:6px;flex-wrap:wrap" id="rvMed">
+    <button class="chip" data-rvmed="transf" aria-pressed="true">Transferencia</button><button class="chip" data-rvmed="efectivo" aria-pressed="false">Efectivo</button><button class="chip" data-rvmed="otro" aria-pressed="false">Otro</button></div></div>
+  <div id="rvAcc" class="acts" style="flex-wrap:wrap;margin-bottom:10px">
+    <button class="btn b-pri" id="rvVender" style="flex:1 1 100%">✓ Pago completo · Marcar vendido</button>
+    <button class="btn b-sec" id="rvExt">+7 días</button>
+    <button class="btn b-sec" id="rvAnuDev">Anular · devolver abono</button>
+    <button class="btn b-sec" id="rvAnuRet">Anular · se queda el abono</button></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="rvOk">Guardar reserva</button></div>
+</div>
+
 <div class="sheet" id="shEditVeh">
   <h3 id="evT"></h3><div class="sb" id="evC"></div>
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1405,7 +1441,7 @@ const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta'];  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360'];  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -2109,6 +2145,7 @@ function webDoc(v){
     cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp, km:v.km||null,
     trab:!!v.trab, sv:!!v.sv,
     oferta:!!t.of,
+    reservado: !!resAct(v.ch),
     precio: t.of ? (t.pprice||v.vev||null) : null,
     foto: fe.fotos[0] || '',
     fotos: fe.fotos.slice(0,20),  /* propias si hay; si no, las de Víctor/Bryan/Corea (ver fotosEfectivas) */
@@ -2701,6 +2738,7 @@ function cardS(v){
 
   let estado, chip;
   if(isS){estado='var(--fPlata)'; chip='<span class="est e-ven">Vendido</span>';}
+  else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;}
   else if(v.st==='ORIGEN'){estado='var(--fAzul)'; chip='<span class="est e-cam">En camino</span>';}
   else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
   else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):'')+'</span>';}
@@ -2726,6 +2764,7 @@ function cardS(v){
   const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
     +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · Seña ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
+    +(resAct(v.ch)?(()=>{const r=resAct(v.ch);return `<div class="xlist" style="font-size:12.5px;color:#C3A2F0">🔒 Reserva: <b>${String(r.cli||'—').replace(/</g,'&lt;')}</b> · pagado ${clp(resPag(r))} de ${clp(r.precio||0)} · <b>saldo ${clp(resSaldo(r))}</b></div>`})():'')
     +(v.nota?`<div class="xlist" style="font-size:13px;color:var(--ink2)">${String(v.nota).replace(/</g,'&lt;')}</div>`:'')
     +(xr?`<div class="xlist">${xr}</div>`:'');
 
@@ -2746,7 +2785,8 @@ function cardS(v){
            ? `<button class="btn b-sec" data-und="${v.ch}">Volver a patio</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
            : (v.st==='ORIGEN'
              ? `<button class="btn b-pri" data-lleg="${v.ch}" style="flex:1 1 100%">🚚 Llegó a patio</button><button class="btn b-sec" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`
-             : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`);
+             : `<button class="btn b-pri" data-sell="${v.ch}">Vendí este</button><button class="btn b-sec" data-cost="${v.ch}">＄ Costos ${pend(v.ch)?'· '+pend(v.ch):''}</button>`)
+           + (resAct(v.ch)?`<button class="btn b-pri" data-reserva="${v.ch}" style="flex:1 1 100%;background:#8E6BC4;border-color:#8E6BC4">🔒 Reserva · saldo ${clp(resSaldo(resAct(v.ch)))}</button>`:`<button class="btn b-sec" data-reserva="${v.ch}" style="flex:1 1 100%">🔒 Reservar</button>`);
          if(!depurando) return normal;
          if(depModo==='lleg') return (!isS && v.st==='ORIGEN')
            ? `<label class="btn b-sec" style="display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 100%"><input type="checkbox" class="depChk" data-lleg2="${v.ch}" ${depSel.has(v.ch)?'checked':''}> Marcar para enviar a patio</label>`
@@ -3327,6 +3367,7 @@ $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   t.moneda=moneda; t.tc=moneda==='USD'?(pnum($('#ssTC').value)||0):0;
   t.cambiado=false;
   if(moneda==='USD'&&!t.tc){toast('Falta el tipo de cambio');return}
+  if(t.res&&t.res.est==='activa'){ t.res=Object.assign({},t.res,{est:'completa',fin:t.date}); }
   t.cliente=leerCliente(); recuerdaComuna(t.cliente.c);
   t.vendedor=ssQ; t.comision=(ssQ==='bryan')?COMB:0;
   if(TC.obs) t.dolarObs=Number(TC.obs);
@@ -3337,6 +3378,91 @@ $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   else toast('Marcado como vendido ✓');
   if(avTsVenta) marcarAvisoAtendido(avTsVenta);
   draw();closeAll();});
+
+/* ---------- Reservas (30/09/2026, pedido de Andre) ----------
+   El cliente deja un abono (mínimo $200.000, una semana) y paga el resto en 1–3 días. Transferencias:
+   el primer día hasta $250.000 (cuenta nueva para su banco); desde el día siguiente hasta $5.000.000 por día;
+   o retira efectivo en el banco. Se guarda en S[ch].res (sube a la nube con el vehículo). */
+const RES_MIN=200000, RES_DIAS=7, TR_DIA1=250000, TR_DIA=5000000;
+const resAct=ch=>{ const r=S[ch]&&S[ch].res; return (r&&r.est==='activa'&&!sold(ch))?r:null; };
+const resPag=r=>(r.pagos||[]).reduce((a,x)=>a+(+x.m||0),0);
+const resSaldo=r=>Math.max(0,(+r.precio||0)-resPag(r));
+const sumaDias=(f,n)=>{ const d=new Date((f||iso())+'T12:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const MEDN={transf:'transferencia',efectivo:'efectivo',otro:'otro'};
+let rvCh=null, rvMed='transf';
+function resPlan(r){
+  const saldo=resSaldo(r); if(!saldo) return '✓ Pagado completo. Toca <b>Pago completo · Marcar vendido</b>.';
+  const hoy=iso(), trDe=f=>(r.pagos||[]).filter(x=>x.f===f&&x.med==='transf').reduce((a,x)=>a+(+x.m||0),0);
+  const lim=(hoy<=r.fecha?TR_DIA1:TR_DIA)-trDe(hoy);
+  let rest=saldo, d=hoy; const L=[];
+  if(lim>0){ const m=Math.min(rest,lim); L.push(`Hoy (${fd(hoy).slice(0,5)}): hasta ${clp(m)}`); rest-=m; }
+  let i=0; while(rest>0&&i<8){ d=sumaDias(d,1); const lib=TR_DIA-trDe(d); i++; if(lib<=0) continue; const m=Math.min(rest,lib); L.push(`${fd(d).slice(0,5)}: ${clp(m)}`); rest-=m; }
+  const fuera=d>r.vence;
+  return `<b>Saldo ${clp(saldo)}</b> · por transferencia (${hoy<=r.fecha?'hoy máx. $250.000, ':''}después máx. $5.000.000 por día):<br>${L.join(' · ')}`
+    +`<br>O en efectivo retirado en el banco, en un solo pago.`+(fuera?`<br><span style="color:var(--red)">Por transferencia no alcanza antes del vencimiento (${fd(r.vence)}).</span>`:'');
+}
+function rvPintaMed(){ $$('#rvMed [data-rvmed]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rvmed===rvMed))); }
+function abrirReserva(ch){
+  const v=IDX[ch]; if(!v) return; rvCh=ch; const t=st(ch), r=resAct(ch);
+  $('#rvT').textContent=(r?'Reserva · ':'Reservar · ')+v.ma+' '+v.mo+' '+(v.an||''); $('#rvC').textContent=v.ch;
+  $('#rvCli').value=r?r.cli||'':''; $('#rvTel').value=r?r.tel||'':'';
+  $('#rvPrecio').value=(r&&r.precio)||t.pventa?clp((r&&r.precio)||t.pventa):'';
+  $('#rvNueva').hidden=!!r; $('#rvActiva').hidden=!r; $('#rvAcc').hidden=!r;
+  rvMed='transf'; rvPintaMed();
+  if(!r){ $('#rvFecha').value=iso(); $('#rvDias').value=RES_DIAS; $('#rvAbono').value=clp(RES_MIN); $('#rvMinAv').textContent='Mínimo '+clp(RES_MIN)+' por '+RES_DIAS+' días. Por transferencia, el primer día el cliente puede mandar hasta $250.000.'; $('#rvOk').textContent='Guardar reserva'; }
+  else { $('#rvPm').value=''; $('#rvPf').value=iso(); $('#rvOk').textContent='Guardar'; rvPinta(); }
+  openSheet('shReserva');
+}
+function rvPinta(){
+  const r=resAct(rvCh); if(!r) return;
+  $('#rvRes').innerHTML=`<div>Reservado el <b>${fd(r.fecha)}</b> · vence <b style="color:${r.vence<=iso()?'var(--red)':'inherit'}">${fd(r.vence)}</b></div><div>Pagado <b>${clp(resPag(r))}</b> de ${clp(r.precio||0)} · <b>saldo ${clp(resSaldo(r))}</b></div>`;
+  $('#rvPagos').innerHTML=(r.pagos||[]).map((x,i)=>`<div class="xrow"><span>${fd(x.f)} · ${MEDN[x.med]||x.med||''}${i===0?' (abono de reserva)':''}</span><span>${clp(x.m)} <button class="b-und" data-rvpdel="${i}" aria-label="Quitar pago">✕</button></span></div>`).join('');
+  $('#rvPlan').innerHTML=resPlan(r);
+  $('#rvVender').textContent=resSaldo(r)?'Marcar vendido (queda saldo '+clp(resSaldo(r))+')':'✓ Pago completo · Marcar vendido';
+}
+async function rvGuarda(msg){
+  await save(); try{ if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); webSyncPronto(); }catch(_){}
+  draw(); if(msg) toast(msg);
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-reserva]'); if(b){ abrirReserva(b.dataset.reserva); return; }
+  const m=e.target.closest('#rvMed [data-rvmed]'); if(m){ rvMed=m.dataset.rvmed; rvPintaMed(); return; }
+  const pd=e.target.closest('[data-rvpdel]');
+  if(pd){ const r=resAct(rvCh); if(!r) return; const i=+pd.dataset.rvpdel, x=r.pagos[i];
+    if(!confirm('¿Quitar el pago de '+clp(x.m)+' del '+fd(x.f)+'?')) return;
+    S[rvCh].res=Object.assign({},r,{pagos:r.pagos.filter((_,k)=>k!==i)}); await rvGuarda('Pago quitado'); rvPinta(); return; }
+});
+$('#rvOk').addEventListener('click',async()=>{
+  const ch=rvCh, t=st(ch), r=resAct(ch);
+  const cli=$('#rvCli').value.trim(), tel=$('#rvTel').value.trim(), precio=pnum($('#rvPrecio').value)||0;
+  if(!cli){toast('Falta el nombre del cliente');return}
+  if(!r){
+    const ab=pnum($('#rvAbono').value)||0, f=$('#rvFecha').value||iso(), dias=Math.max(1,parseInt($('#rvDias').value)||RES_DIAS);
+    if(!ab){toast('Falta el abono');return}
+    if(ab<RES_MIN&&!confirm('El abono es menor al mínimo de '+clp(RES_MIN)+'. ¿Guardar igual?')) return;
+    if(rvMed==='transf'&&ab>TR_DIA1&&!confirm('Por transferencia el primer día normalmente se puede hasta $250.000. ¿Guardar igual?')) return;
+    t.res={cli,tel,precio,fecha:f,vence:sumaDias(f,dias),pagos:[{m:ab,f,med:rvMed}],est:'activa',ts:Date.now()};
+    await rvGuarda('Reservado hasta '+fd(t.res.vence)); closeAll(); return;
+  }
+  const nr=Object.assign({},r,{cli,tel,precio});
+  const pm=pnum($('#rvPm').value)||0;
+  if(pm){ const f=$('#rvPf').value||iso(); nr.pagos=(r.pagos||[]).concat([{m:pm,f,med:rvMed}]);
+    if(rvMed==='transf'){ const lim=f<=r.fecha?TR_DIA1:TR_DIA, dia=nr.pagos.filter(x=>x.f===f&&x.med==='transf').reduce((a,x)=>a+(+x.m||0),0);
+      if(dia>lim&&!confirm('Ese día suma '+clp(dia)+' por transferencia (lo normal es máx. '+clp(lim)+'). ¿Guardar igual?')) return; } }
+  t.res=nr; await rvGuarda(pm?'Pago de '+clp(pm)+' registrado · saldo '+clp(resSaldo(nr)):'Reserva actualizada');
+  $('#rvPm').value=''; rvPinta();
+});
+$('#rvExt').addEventListener('click',async()=>{ const r=resAct(rvCh); if(!r) return; const base=r.vence<iso()?iso():r.vence;
+  S[rvCh].res=Object.assign({},r,{vence:sumaDias(base,RES_DIAS)}); await rvGuarda('Reserva extendida hasta '+fd(S[rvCh].res.vence)); rvPinta(); });
+async function rvAnula(ret){ const r=resAct(rvCh); if(!r) return;
+  if(!confirm(ret?'¿Anular la reserva quedándose con el abono de '+clp(resPag(r))+'?':'¿Anular la reserva y devolver '+clp(resPag(r))+' al cliente?')) return;
+  S[rvCh].res=Object.assign({},r,{est:'anulada',fin:iso(),retenido:ret?resPag(r):0}); await rvGuarda('Reserva anulada · el vehículo vuelve a estar disponible'); closeAll(); }
+$('#rvAnuDev').addEventListener('click',()=>rvAnula(false));
+$('#rvAnuRet').addEventListener('click',()=>rvAnula(true));
+$('#rvVender').addEventListener('click',()=>{ const r=resAct(rvCh), ch=rvCh; if(!r) return; closeAll();
+  abrirVentaSheet(ch); if(r.precio) $('#ssP').value=clp(r.precio);
+  try{ if(r.cli&&!$('#clN').value) $('#clN').value=r.cli; if(r.tel&&!$('#clT').value) $('#clT').value=r.tel; }catch(_){}
+  openSheet('shSell'); });
 
 const DIAS_PODA=30;
 function diasDesde(f){
@@ -4821,6 +4947,15 @@ function pintaFijos(){
   el.innerHTML=`<div style="font-weight:700;font-size:13px;margin:4px 0 6px">Insumos (${INSUMO_PRESETS.length})</div>`+INSUMO_PRESETS.map((p,i)=>fila('i',i,p)).join('')
     +`<div style="font-weight:700;font-size:13px;margin:12px 0 6px">Pendientes de vehículo (${PEND_PRESETS.length})</div>`+PEND_PRESETS.map((p,i)=>fila('p',i,p)).join('');
 }
+(()=>{ const t=$('#fixNTipo'), c=$('#fixNCat'); if(!t) return;
+  t.addEventListener('change',()=>{ if(!c.options.length) c.innerHTML=TCAT.map(([k,n])=>`<option value="${k}" ${k==='OTRO'?'selected':''}>${n}</option>`).join(''); c.hidden=t.value!=='p'; });
+  $('#fixNOk').addEventListener('click',async()=>{ const lbl=$('#fixNLbl').value.trim(); if(!lbl){toast('Escribe el nombre del botón');return}
+    const A=t.value==='i'?INSUMO_PRESETS:PEND_PRESETS;
+    if(A.some(p=>String(p[1]).trim().toLowerCase()===lbl.toLowerCase())){toast('Ese botón ya existe');return}
+    const key=(t.value==='i'?'i_':'p_')+Date.now();
+    if(t.value==='i') INSUMO_PRESETS=INSUMO_PRESETS.concat([[key,lbl]]); else PEND_PRESETS=PEND_PRESETS.concat([[key,lbl,c.value]]);
+    $('#fixNLbl').value=''; await guardaConfigPend(); pintaFijos(); toast('Botón "'+lbl+'" agregado'); });
+})();
 document.addEventListener('change',async e=>{
   const l=e.target.closest&&e.target.closest('[data-fixlbl]'), c=e.target.closest&&e.target.closest('[data-fixcat]');
   if(l){ const [t,i]=l.dataset.fixlbl.split('|'), v=l.value.trim(); if(!v){ pintaFijos(); return; }
@@ -4998,7 +5133,9 @@ function abrirAvisoAdelanto(av){
 function pendientesGlobales(){
   const p=[];
   const nRec=RECOREA.filter(x=>!x.vinculada).length;
-  if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
+  V.filter(v=>{const r=resAct(v.ch); return r&&r.vence&&r.vence<=iso();}).forEach(v=>{ const r=resAct(v.ch);
+    p.push({texto:(r.vence<iso()?'Reserva vencida':'Reserva vence hoy')+': '+v.ma+' '+v.mo+' ('+(r.cli||'cliente')+', saldo '+clp(resSaldo(r))+')', ir:()=>{show('pStock'); abrirReserva(v.ch);}}); });
   const pendVenta=AVISOSVEND.filter(x=>x.tipo==='venta'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendVenta.length) p.push({texto:pendVenta.length+' venta'+(pendVenta.length===1?'':'s')+' avisada'+(pendVenta.length===1?'':'s')+' por confirmar', ir:()=>abrirAvisoVenta(pendVenta[0])});
   const pendAdel=AVISOSVEND.filter(x=>x.tipo==='adelanto'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
@@ -5006,10 +5143,10 @@ function pendientesGlobales(){
   const pendVeh=AVISOSVEND.filter(x=>x.tipo==='pendiente'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
   const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
-  if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
-  if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b) b.scrollIntoView({behavior:'smooth',block:'start'});},60);}});
+  if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   return p;
 }
 function pintaPendientes(){
@@ -9369,10 +9506,13 @@ function secBarArma(pane){
     if(sel){ const b=L.find(x=>x.dataset.secId===sel); if(b&&b.tagName==='DETAILS') b.open=true; }
   };
   bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center'}); });
+  pane._secVer=id=>{ sel=id; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); };
   pinta();
   /* Si la app muestra u oculta una sección sola (ej. "Gastos generales de Corea"), la fila se actualiza. */
   try{ new MutationObserver(()=>{ clearTimeout(pane._secT); pane._secT=setTimeout(pinta,120); }).observe(pane,{subtree:true,attributes:true,attributeFilter:['hidden']}); }catch(_){}
 }
+/* Si una caja quedó oculta por la fila de secciones (se eligió otra), la muestra. Lo usan los avisos de arriba. */
+function secMuestra(box){ if(!box||!box.classList.contains('secOff')) return; const pane=box.closest('.secPane'); if(pane&&pane._secVer) pane._secVer(box.dataset.secId); }
 function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
 
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso']);
