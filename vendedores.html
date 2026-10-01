@@ -197,6 +197,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="chips" id="estChips" role="tablist" style="margin-top:6px">
       <button class="chip" data-fe="todos" aria-selected="true">Todos</button>
       <button class="chip" data-fe="patio" aria-selected="false">En patio</button>
+      <button class="chip" data-fe="corea" aria-selected="false">En Corea</button>
       <button class="chip" data-fe="camino" aria-selected="false">En camino</button>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-top:6px">
@@ -519,7 +520,7 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
 const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
@@ -1494,7 +1495,7 @@ async function shareVehicle(ch,idxs){const v=IDX[ch];let a=await loadPhotos(ch);
 
 /* --- listas --- */
 function pass(v){const t=fst(v.ch);
- if(fE==='camino'&&v.st!=='ORIGEN') return false; if(fE==='patio'&&v.st==='ORIGEN') return false;
+ if(fE==='camino'&&(v.st!=='ORIGEN'||v.enCorea)) return false; if(fE==='corea'&&!(v.st==='ORIGEN'&&v.enCorea)) return false; if(fE==='patio'&&v.st==='ORIGEN') return false;
  if(fT==='7p'&&!(+v.pa>=7)) return false; if(fT.startsWith('ca:')&&!(v.trab&&v.ca===fT.slice(3))) return false;
  if(fS==='autos')return !v.trab; if(fS==='trab')return v.trab; if(fS==='mias')return (t.nf||0)>0; return true}
 function diasEnPatioTexto(v){
@@ -1514,6 +1515,7 @@ const hoyISO=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMo
 /* En camino: si la fecha de arribo (eta, viene del embarque en Sistema) ya pasó, está en el puerto esperando desconsolidar. */
 function chipEstado(v,corto){
  if(v.res) return '<span class="est e-res">'+(corto?'Reservado':'Reservado · hasta '+ddmm(v.res.vence))+'</span>';
+ if(v.st==='ORIGEN'&&v.enCorea) return '<span class="est e-pto">'+(corto?'En Corea':'En Corea · comprado, aún sin embarcar')+'</span>';
  if(v.st==='ORIGEN'){
   if(v.eta&&v.eta<=hoyISO()) return '<span class="est e-pto">'+(corto?'En puerto':'En puerto · desde '+ddmm(v.eta))+'</span>';
   if(v.eta) return '<span class="est e-cam">'+(corto?'Llega ~'+ddmm(v.eta):'En camino · llega ~'+ddmm(v.eta))+'</span>';
@@ -1551,7 +1553,7 @@ function draw(){
  else if(ordenStock==='marca') L.sort((a,b)=>(a.ma+' '+a.mo).localeCompare(b.ma+' '+b.mo)||(+b.an||0)-(+a.an||0));
  else L.sort((a,b)=>fe(b).localeCompare(fe(a)));
  { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
-   document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':'En camino ('+nCam+')'); b.setAttribute('aria-selected',String(k===fE)); }); }
+   document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':(k==='corea'?'En Corea ('+V.filter(v=>v.st==='ORIGEN'&&v.enCorea).length+')':'En camino ('+V.filter(v=>v.st==='ORIGEN'&&!v.enCorea).length+')')); b.setAttribute('aria-selected',String(k===fE)); }); }
  cntN=L.length; $('#cnt').textContent=textoCnt(cntN);
  $('#list').innerHTML=L.length?L.map(v=>{const t=fst(v.ch),nf=t.nf||0;
   const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';

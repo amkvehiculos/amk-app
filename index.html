@@ -241,12 +241,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <input class="search" id="q" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
     <div class="chips" role="tablist">
       <button class="chip" data-f="patio" aria-selected="true">En patio</button>
+      <button class="chip" data-f="corea" aria-selected="false">En Corea</button>
       <button class="chip" data-f="camino" aria-selected="false">En camino</button>
       <button class="chip" data-f="vend" aria-selected="false">Vendidos</button>
       <button class="chip" data-f="todos" aria-selected="false">Todos</button>
       <button class="chip" data-f="creando" aria-selected="false">En creación</button>
       <button class="chip" data-f="arch" aria-selected="false">Archivados</button>
     </div>
+    <button class="btn b-sec" id="irZarpe" type="button" style="display:none;margin-top:8px;width:100%">🚢 Marcar los de esta lista: se embarcaron</button>
     <button class="btn b-sec" id="irLlegaron" type="button" style="display:none;margin-top:8px;width:100%">🚚 Marcar varios: llegaron a patio</button>
     <div id="stDepBar" style="margin:8px 0 0;display:none;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="stDepCnt" style="font-size:12.5px;color:var(--mute)"></span>
@@ -588,7 +590,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 17:01<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 19:40<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1473,7 +1475,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta'];  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe'];  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2188,6 +2190,8 @@ function webDoc(v){
     cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp, km:v.km||null,
     trab:!!v.trab, sv:!!v.sv,
     oferta:!!t.of,
+    enCorea: !!v.enCorea,
+    eta: v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null,  /* llegada (estimada desde el embarque o la del BL): la web muestra "llega ~dd/mm" / "En puerto" */
     reservado: !!resAct(v.ch),
     precio: t.of ? (t.pprice||v.vev||null) : null,
     foto: fe.fotos[0] || '',
@@ -2747,7 +2751,8 @@ function passS(v){
   if(fS==='creando') return !!v.creando;
   if(v.creando) return false;
   if(fS==='patio') return v.st==='IQQ'&&!sold(v.ch);
-  if(fS==='camino')return v.st==='ORIGEN'&&!sold(v.ch);
+  if(fS==='corea') return v.st==='ORIGEN'&&!!v.enCorea&&!sold(v.ch);
+  if(fS==='camino')return v.st==='ORIGEN'&&!v.enCorea&&!sold(v.ch);
   if(fS==='vend')  return sold(v.ch);
   return true;
 }
@@ -2782,9 +2787,9 @@ function cardS(v){
   let estado, chip;
   if(isS){estado='var(--fPlata)'; chip='<span class="est e-ven">Vendido</span>';}
   else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;}
-  else if(v.st==='ORIGEN'){estado='var(--fAzul)'; chip='<span class="est e-cam">En camino</span>';}
+  else if(v.st==='ORIGEN'){estado=v.enCorea?'#C9A227':'var(--fAzul)'; chip=v.enCorea?'<span class="est e-deu" data-zarpe="'+v.ch+'" style="cursor:pointer" title="Marcar que se embarcó">En Corea · 🚢 ¿se embarcó?</span>':'<span class="est e-cam" data-zarpe="'+v.ch+'" style="cursor:pointer">En camino'+(v.zarpe?' · zarpó '+fd(v.zarpe).slice(0,5):'')+'</span>';}
   else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
-  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):'')+'</span>';}
+  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>';}
 
   const filas=[];
   if(isS&&s.price){
@@ -3055,7 +3060,36 @@ function drawVit(){
     :'<div class="empty">Sin resultados.</div>';
 }
 
+/* 01/10/2026: "En Corea" = comprado (st ORIGEN) pero todavía en ningún embarque. Al agregarlo a un BL pasa solo a "En camino".
+   Se guarda en v.enCorea para que Vendedores y la web lo muestren. */
+/* 01/10 (Andre): pasa a "En camino" cuando se marca que SE EMBARCÓ (v.zarpe), no al llegar el BL (que llega casi al final).
+   Si ya está en un embarque/BL igual cuenta como en camino. Sin BL, la llegada se estima zarpe + 35 días (v.eta "~"). */
+const TRANSITO_DIAS=35;
+function coreaSync(){ if(typeof EMB==='undefined') return; let n=0;
+  for(const v of V){ const em=v.st==='ORIGEN'?embDeVeh(v.ch):null; const c=v.st==='ORIGEN'&&!v.creando&&!v.baja&&!v.zarpe&&!em; if(!!v.enCorea!==c){ v.enCorea=c; n++; }
+    if(v.st==='ORIGEN'&&v.zarpe&&!(em&&em.fechaManifiesto)){ const e2=sumaDias(v.zarpe,TRANSITO_DIAS); if(v.eta!==e2){ v.eta=e2; n++; } } }
+  if(n){ try{ guardaCacheV(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); webSyncPronto(); }catch(_){} } }
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-llpset]'); if(!b) return; e.stopPropagation();
+  const v=IDX[b.dataset.llpset]; if(!v) return; const ini=v.llp?v.llp.slice(8,10)+'/'+v.llp.slice(5,7)+'/'+v.llp.slice(0,4):'';
+  const r=await pedirDato({t:'¿Desde cuándo está en patio?',s:v.ma+' '+v.mo+' '+(v.an||'')+' · '+v.ch,l:'Fecha de llegada (dd/mm/aaaa)',ok:'Guardar',v:ini}); if(!r) return;
+  const m=String(r).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/); if(!m){ toast('Escribe la fecha como 15/09/2026'); return; }
+  const f=(m[3].length===2?'20'+m[3]:m[3])+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); if(f>iso()){ toast('Esa fecha es futura'); return; }
+  v.llp=f; guardaCacheV(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); draw(); toast('Guardado: en patio desde '+fd(f)+' (Víctor y Bryan lo ven)'); },true);
+async function pideFecha(t,s,ini){ const r=await pedirDato({t,s,l:'Fecha (dd/mm/aaaa) · vacío para quitar',ok:'Guardar',v:ini?ini.slice(8,10)+'/'+ini.slice(5,7)+'/'+ini.slice(0,4):''});
+  if(r===null||r===undefined) return undefined; if(!String(r).trim()) return '';
+  const m=String(r).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/); if(!m){ toast('Escribe la fecha como 15/09/2026'); return undefined; }
+  return (m[3].length===2?'20'+m[3]:m[3])+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
+function zarpeGuarda(vs,f){ vs.forEach(v=>{ if(f) v.zarpe=f; else { v.zarpe=null; if(!embDeVeh(v.ch)) v.eta=null; } }); guardaCacheV(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); draw(); }
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-zarpe]'); if(!b) return; e.stopPropagation(); const v=IDX[b.dataset.zarpe]; if(!v) return;
+  const f=await pideFecha('¿Cuándo se embarcó en Corea?',v.ma+' '+v.mo+' '+(v.an||'')+' · '+v.ch,v.zarpe||iso()); if(f===undefined) return;
+  zarpeGuarda([v],f); toast(f?'En camino desde '+fd(f)+' · llega ~'+fd(sumaDias(f,TRANSITO_DIAS)):'Se quitó la fecha de embarque'); },true);
+document.addEventListener('click',async e=>{ if(!e.target.closest('#irZarpe')) return; const L=V.filter(v=>passS(v)&&v.enCorea);
+  if(!L.length){ toast('No hay vehículos en Corea en esta lista'); return; }
+  const f=await pideFecha('Se embarcaron '+L.length+' vehículo'+(L.length===1?'':'s'),'Todos los que se ven en la lista "En Corea" (usa el buscador para dejar solo los que corresponden)',iso()); if(!f) return;
+  if(!confirm('¿Marcar '+L.length+' como embarcados el '+fd(f)+'?\n\n'+L.map(v=>v.ma+' '+v.mo+' '+(v.an||'')+' · '+v.ch).join('\n'))) return;
+  zarpeGuarda(L,f); toast(L.length+' marcados en camino'); });
 function draw(){
+  try{ coreaSync(); }catch(_){}
   const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)&&!v.baja&&!v.creando).length;
   const ven=V.filter(v=>sold(v.ch)&&!v.baja&&!v.creando).length;
   const pub=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando&&st(v.ch).pub).length;
@@ -3622,7 +3656,7 @@ $$('#pStock .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#pStock .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true');fS=c.dataset.f;
   if(fS!=='camino'){depurando=false;depSel.clear();depModo='arch';}
-  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none';
+  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none'; { const z=document.getElementById('irZarpe'); if(z) z.style.display=(fS==='corea'&&!depurando)?'':'none'; }
   pintaDepBar();drawStock()}));
 function pintaDepBar(){
   const n=depSel.size;
@@ -3630,7 +3664,7 @@ function pintaDepBar(){
   $('#stDepCnt').textContent=n+(n===1?' seleccionado':' seleccionados');
   $('#stDepGo').style.display=n?'':'none';
   $('#stDepGo').textContent=depModo==='lleg'?'Enviar seleccionados a patio':'Archivar seleccionados';
-  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none';
+  $('#irLlegaron').style.display=(fS==='camino'&&!depurando)?'':'none'; { const z=document.getElementById('irZarpe'); if(z) z.style.display=(fS==='corea'&&!depurando)?'':'none'; }
 }
 document.addEventListener('change',e=>{
   const c=e.target.closest('.depChk'); if(!c)return;
