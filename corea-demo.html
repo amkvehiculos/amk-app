@@ -1162,25 +1162,38 @@ let tocado={}, anAuto='';
    Color, tracción, kilometraje y carrocería sí los elige ella (cambian de un auto a otro). */
 let autoAbierto=false, codMotor='';
 /* Motores posibles por modelo (Andre, 01/10): Sorento y Santa Fe casi siempre 2.0 D4HA, a veces 2.2 D4HB (como la Carnival). */
-const MOTOR_VAR={'SORENTO':[['2.0','D4HA'],['2.2','D4HB']],'SANTA FE':[['2.0','D4HA'],['2.2','D4HB']],'SANTAFE':[['2.0','D4HA'],['2.2','D4HB']],'CARNIVAL':[['2.2','D4HB']]};
-function motorVar(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOTOR_VAR){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOTOR_VAR[k]:null; }
+/* Opciones por modelo (Andre, 01/10): se muestran como botones con la más común ya marcada.
+   pa = pasajeros posibles (el 1° es el normal); cil = [cilindrada, código de motor] (el 1° es el normal). */
+const MOD_OPC={'SORENTO':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},'SANTA FE':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},'SANTAFE':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},
+  'CARNIVAL':{pa:[9,11,7],cil:[['2.2','D4HB']]},'PALISADE':{pa:[7,8],cil:[['2.2','D4HB']]},'TUCSON':{pa:[5],cil:[['2.0',''],['1.7','']]},'SPORTAGE':{pa:[5],cil:[['2.0',''],['1.7','']]},
+  'PORTER':{pa:[3,6],cil:[['2.5','']]},'BONGO':{pa:[3,6],cil:[['2.5','']]},'AVANTE':{pa:[5],cil:[['1.6','']]},'VELOSTER':{pa:[4],cil:[['1.6','']]},'STAREX':{pa:[12,9,3],cil:[['2.5','']]}};
+function modOpc(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOD_OPC){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOD_OPC[k]:null; }
+function motorVar(mo){ const o=modOpc(mo); return o?o.cil:null; }
 function pintaAuto(){
-  const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, d=modDef(mo), r=$('#autoRes'), w=$('#wAuto'); if(!r||!w) return;
-  const cil=$('#fCil').value.trim(), ok=!!d&&!autoAbierto&&!!cil;
-  r.hidden=!ok; w.hidden=ok;
-  const mv=motorVar(mo);
-  if(mv&&!codMotor){ const x=mv.find(y=>y[0]===cil)||mv[0]; codMotor=x[1]; }
-  if(ok){ const pa=$('#fPa').value;
-    r.innerHTML='<div style="flex:1"><span>✓ Completado según el modelo: <b>'+[sel.cat,pa?pa+' pasajeros':'',[sel.motor,cil,codMotor?'('+codMotor+')':''].filter(Boolean).join(' '),sel.trans,esTrab?'de trabajo':''].filter(Boolean).join(' · ')+'</b></span>'
-      +(mv&&mv.length>1?'<div class="opt" style="margin-top:8px">'+mv.map((x,i)=>`<button type="button" data-mvar="${i}" aria-pressed="${x[0]===cil}">${x[0]} · ${x[1]}${i===0?' (la mayoría)':''}</button>`).join('')+'</div>':'')
-      +'</div><button class="b-und" id="autoEdit" type="button" style="flex:0 0 auto">Corregir</button>'; }
+  const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, d=modDef(mo), o=modOpc(mo), r=$('#autoRes'), w=$('#wAuto'); if(!r||!w) return;
+  const ok=!!d&&!autoAbierto; r.hidden=!ok; w.hidden=ok;
+  if(!ok) return;
+  /* valores por defecto: el primero de cada lista, salvo que ella ya haya elegido */
+  if(o){ if(!tocado.pa&&o.pa&&o.pa.length) $('#fPa').value=o.pa[0];
+    if(!tocado.cil&&o.cil&&o.cil.length){ $('#fCil').value=o.cil[0][0]; codMotor=o.cil[0][1]; } }
+  const pa=$('#fPa').value, cil=$('#fCil').value.trim();
+  const fila=(tit,html)=>`<div style="margin-top:9px"><div class="mtr" style="margin:0 0 4px">${tit}</div><div class="opt">${html}</div></div>`;
+  let h='<div style="flex:1"><span>✓ Según el modelo: <b>'+[sel.cat,sel.motor,sel.trans,esTrab?'de trabajo':''].filter(Boolean).join(' · ')+'</b></span>';
+  if(o&&o.pa&&o.pa.length>1) h+=fila('Pasajeros',o.pa.map((n,i)=>`<button type="button" data-qpa="${n}" aria-pressed="${String(n)===String(pa)}">${n}${i===0?' (lo normal)':''}</button>`).join(''));
+  else if(pa) h+='<div class="mtr" style="margin:6px 0 0">Pasajeros: <b>'+pa+'</b></div>';
+  if(o&&o.cil&&o.cil.length>1) h+=fila('Motor',o.cil.map((x,i)=>`<button type="button" data-mvar="${i}" aria-pressed="${x[0]===cil}">${x[0]}${x[1]?' · '+x[1]:''}${i===0?' (la mayoría)':''}</button>`).join(''));
+  else if(cil) h+='<div class="mtr" style="margin:6px 0 0">Motor: <b>'+cil+(codMotor?' · '+codMotor:'')+'</b></div>';
+  h+='</div><button class="b-und" id="autoEdit" type="button" style="flex:0 0 auto;align-self:flex-start">Corregir</button>';
+  r.innerHTML=h;
 }
-document.addEventListener('click',e=>{ if(e.target.id==='autoEdit'){ autoAbierto=true; pintaAuto(); }
-  const b=e.target.closest('[data-mvar]'); if(b){ const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, mv=motorVar(mo); if(!mv) return;
-    const x=mv[+b.dataset.mvar]; $('#fCil').value=x[0]; codMotor=x[1]; tocado.cil=1; pintaAuto(); } });
+document.addEventListener('click',e=>{ if(e.target.id==='autoEdit'){ autoAbierto=true; pintaAuto(); return; }
+  const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
+  const b=e.target.closest('[data-mvar]'); if(b){ const mv=motorVar(mo); if(!mv) return; const x=mv[+b.dataset.mvar]; $('#fCil').value=x[0]; codMotor=x[1]; tocado.cil=1; pintaAuto(); return; }
+  const q=e.target.closest('[data-qpa]'); if(q){ $('#fPa').value=q.dataset.qpa; tocado.pa=1; pintaAuto(); } });
 const WMI={KNA:'KIA',KNC:'KIA',KND:'KIA',KNE:'KIA',KNF:'KIA',KNG:'KIA',KMH:'HYUNDAI',KMF:'HYUNDAI',KMJ:'HYUNDAI',KMC:'HYUNDAI',KMT:'GENESIS',KPT:'SSANGYONG',KPA:'SSANGYONG',KPB:'SSANGYONG',KL1:'CHEVROLET',KLA:'CHEVROLET',KLY:'CHEVROLET',KNM:'RENAULT SAMSUNG'};
 function marcaDeVin(vin){ vin=String(vin||'').toUpperCase(); return WMI[vin.slice(0,3)]||''; }
 function aplicaModelo(){
+  tocado.pa=0; tocado.cil=0;
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
   const d=modDef(mo); if(!d) return;
   if(!tocado.cat&&d[0]) sel.cat=d[0];

@@ -591,7 +591,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 21:16 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 21:30 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5426,8 +5426,11 @@ function pintaPendientes(){
   const p=pendientesGlobales();
   if(!p.length){ el.hidden=true; el.onclick=null; return; }
   el.hidden=false;
-  el.textContent='⚠ '+p.map(x=>x.texto).join(' · ');
-  el.onclick=()=>p[0].ir();
+  /* 01/10/2026: cada aviso es su propio botón (antes todo el aviso llevaba solo al primero). */
+  if(p.length===1){ el.textContent='⚠ '+p[0].texto; el.onclick=()=>p[0].ir(); return; }
+  el.innerHTML='<div style="font-size:12px;opacity:.85;margin-bottom:5px">⚠ '+p.length+' cosas por revisar · toca la que quieras</div>'
+    +p.map((x,i)=>`<button type="button" data-pendi="${i}" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,.14);color:inherit;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 10px;margin:4px 0;font:inherit;font-weight:700;cursor:pointer">${String(x.texto).replace(/</g,'&lt;')} ›</button>`).join('');
+  el.onclick=e=>{ const b=e.target.closest('[data-pendi]'); if(b&&p[+b.dataset.pendi]) p[+b.dataset.pendi].ir(); };
 }
 function calcRM(){
   const u=pdec($('#rmUSD').value)||0, c=pdec($('#rmCom').value)||0, iv=pdec($('#rmIva').value)||0;
@@ -8358,6 +8361,7 @@ function pintaEmb(){
   const e=E(); if(!e) return;
   etaSync(e);
   try{ pintaEmIti(); }catch(err){ console.error('pintaEmIti',err); }
+  try{ pintaPendientes(); }catch(_){}
   /* Si hay vehículos asignados a un contenedor mayor que la cantidad declarada (o códigos de
      contenedor de más), la cantidad se corrige sola — si no, los costos por contenedor se cobran de menos. */
   const maxCnE=Math.max(0,...e.veh.map(v=>+v.cn||0),...Object.keys(e.contCod||{}).map(k=>+k||0));
