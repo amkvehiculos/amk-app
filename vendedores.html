@@ -651,7 +651,7 @@ function pintaInsMios(){
   const f=t=>{ const d=new Date(+t); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); };
   const fila=(x,quien)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px">
      <span>${String(x.item||'—').replace(/</g,'&lt;')}<br><span style="color:var(--mute);font-size:12px">${quien?x.vendedor+' · ':''}pedido ${f(x.ts)}</span></span>
-     <span style="white-space:nowrap;font-size:12.5px;font-weight:700;color:${x.atendido?'var(--green)':(x.sinEnviar?'var(--amber)':'var(--ink2)')}">${x.atendido?'✓ comprado'+(x.compradoFe?' '+x.compradoFe.slice(8,10)+'/'+x.compradoFe.slice(5,7):''):(x.sinEnviar?'sin enviar aún':'por comprar')}</span></div>`;
+     <span style="white-space:nowrap;font-size:12.5px;font-weight:700;color:${x.atendido?'var(--green)':(x.sinEnviar?'var(--amber)':'var(--ink2)')}">${x.atendido?(x.noNec?'no hacía falta':'✓ comprado'+(x.compradoFe?' '+x.compradoFe.slice(8,10)+'/'+x.compradoFe.slice(5,7):'')):(x.sinEnviar?'sin enviar aún':'por comprar')}</span></div>`;
   el.innerHTML=(L.length?`<div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Lo que has pedido${yo?'':' (todos)'}</div>`+L.map(x=>fila(x,!yo)).join(''):'<p style="color:var(--mute);font-size:13px;margin:0">Todavía no has pedido insumos.</p>')
     +(otros.length?`<div style="font-weight:700;font-size:13.5px;margin:12px 0 4px">Pedido por otros, por comprar</div>`+otros.map(x=>fila(x,true)).join(''):'');
 }
@@ -663,7 +663,7 @@ function fbAvisosVendListen(){
     snap.docChanges().forEach(chg=>{
       if(chg.type==='removed') return;
       const d=chg.doc.data()||{}; const ts=Number(chg.doc.id);
-      if(d.tipo==='insumo'){ INS[ts]={ts, item:d.item||'', vendedor:d.vendedor||'', atendido:!!d.atendido, compradoFe:d.compradoFe||''}; tocaIns=true; }
+      if(d.tipo==='insumo'){ INS[ts]={ts, item:d.item||'', vendedor:d.vendedor||'', atendido:!!d.atendido, compradoFe:d.compradoFe||'', noNec:!!d.noNec}; tocaIns=true; }
       if(!d.atendido) return;
       if(d.tipo==='venta'&&ST.ventas){ const it=ST.ventas.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
       if(d.tipo==='adelanto'&&ST.adel){ const it=ST.adel.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }

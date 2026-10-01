@@ -589,7 +589,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 16:39 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 17:01 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -620,6 +620,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
             <button class="btn b-pri" id="fixNOk" style="padding:7px 12px">Agregar</button></div></div></details></div>
     <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
       <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). Al tocar "Ya compré" anotas cuánto costó y queda como gasto general (Insumos de aseo/taller). No afecta el costo de ningún vehículo.</p>
+      <button class="btn b-sec" id="insSinAviso" style="width:100%;margin-bottom:10px">＋ Anotar compra sin aviso (algo que compraste tú)</button>
       <div id="insumosList"></div></div>
     <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
       <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
@@ -4956,7 +4957,7 @@ function fbAvisosVendListen(){
         const d=chg.doc.data()||{};
         AVISOSVEND.push({ts:Number(ts)||ts, tipo:d.tipo||'', ch:d.ch||'', precio:d.precio||0,
           monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido,
-          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo, montoCompra:d.montoCompra||0, compradoFe:d.compradoFe||''});
+          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo, montoCompra:d.montoCompra||0, compradoFe:d.compradoFe||'', noNec:!!d.noNec});
         if(d.tipo==='pendiente') procesaPendienteVend({ts:Number(ts)||ts, ch:d.ch||'', nota:d.nota||'', cat:d.cat||'', vendedor:d.vendedor||''});
       }
     });
@@ -5106,9 +5107,10 @@ function pintaInsumos(){
     let der;
     if(ed) der=`<span style="display:flex;gap:6px;align-items:center"><input data-insmonto="${x.ts}" inputmode="numeric" placeholder="$ monto" value="${x.montoCompra?Number(x.montoCompra).toLocaleString('es-CL'):''}" style="width:108px;padding:7px 8px">
         <button class="btn b-pri" data-insguarda="${x.ts}" style="padding:7px 10px">Guardar</button><button class="b-und" data-inscancel="1">✕</button></span>`;
+    else if(x.atendido&&x.noNec) der=`<span style="text-align:right"><span style="color:var(--mute)">— no hacía falta</span><br><button class="b-und" data-insreab="${x.ts}" style="font-size:12px">Reabrir</button></span>`;
     else if(x.atendido) der=`<span style="text-align:right"><span style="color:var(--green)">✓ comprado${x.montoCompra?' '+clp(x.montoCompra):''}</span>${x.compradoFe?'<br><span style="color:var(--mute);font-size:12px">'+fd(x.compradoFe)+'</span>':''}
         <br><button class="b-und" data-insok="${x.ts}" style="font-size:12px">${x.montoCompra?'Editar valor':'Anotar valor'}</button></span>`;
-    else der=`<button class="btn b-sec" data-insok="${x.ts}">Ya compré</button>`;
+    else der=`<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><button class="btn b-sec" data-insok="${x.ts}">Ya compré</button><button class="b-und" data-insno="${x.ts}" style="font-size:12px">No hace falta</button></span>`;
     return `<div class="xrow" style="align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)">
       <span style="font-family:var(--body)">${nom}
         <br><span style="color:var(--mute);font-size:12px">${x.vendedor?nomPersona(vendedorKey(x.vendedor)||x.vendedor):'—'} · ${fd(isoDe(x.ts))}</span></span>${der}</div>`}).join('')
@@ -5193,6 +5195,13 @@ document.addEventListener('click',async e=>{
   const insok=e.target.closest('[data-insok]');
   if(insok){ insEdit=insok.dataset.insok; pintaInsumos(); return; }
   if(e.target.closest('[data-inscancel]')){ insEdit=null; pintaInsumos(); return; }
+  const inno=e.target.closest('[data-insno]'), inre=e.target.closest('[data-insreab]');
+  if(inno||inre){ const ts=(inno||inre).dataset[inno?'insno':'insreab'], av=AVISOSVEND.find(x=>String(x.ts)===String(ts)); if(!av) return;
+    av.atendido=!!inno; av.noNec=!!inno; try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
+    pintaInsumos(); pintaPendientes();
+    if(fbReady){ try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({atendido:!!inno,noNec:!!inno},{merge:true}); }catch(err){ console.error('insno',err); } }
+    toast(inno?'Marcado: no hacía falta (Víctor/Bryan lo ven así)':'Aviso reabierto'); return; }
+  if(e.target.closest('#insSinAviso')){ $('#genAdd').click(); genCat='INSUMOS'; $$('#genCatg [data-genc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.genc==='INSUMOS'))); $('#genN').placeholder='Ej: silicona y paños'; return; }
   const insg=e.target.closest('[data-insguarda]');
   if(insg){ const i=document.querySelector(`[data-insmonto="${insg.dataset.insguarda}"]`); await guardaCompraInsumo(insg.dataset.insguarda, pnum(i?i.value:'')||0); return; }
   const fdel=e.target.closest('[data-fixdel]');
