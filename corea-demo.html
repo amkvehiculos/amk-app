@@ -492,6 +492,8 @@ async function boot(){
   await demoSeed();
   try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
   migraModelosPorterBongo();
+  /* 01/10: trabajo ya cargados sin cabina → 6 pasajeros doble cabina, 3 cabina y media (Andre) */
+  { let n=0; L.forEach(v=>{ if(!v.cab&&/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase())&&+v.pa>0){ v.cab=+v.pa>=5?'DOBLE':'MEDIA'; n++; } }); if(n) save(); }
   try{const r=await window.storage.get('amkc_prov');if(r&&r.value)PROV=JSON.parse(r.value)}catch(e){console.error('boot PROV',e); PROV=[]}
   PROV=[...new Map(PROV.map(p=>[String(p).trim().toUpperCase(),String(p).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_cont');if(r&&r.value)CONT=JSON.parse(r.value)}catch(e){console.error('boot CONT',e); CONT=[]}
@@ -524,7 +526,7 @@ let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
 const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
 /* Viajan a Sistema solo si tienen valor (2026-09-28). Solo el VIN cuenta para la firma, para no reenviar de golpe
    todos los vehículos ya cargados (y pisar en la nube correcciones hechas en Sistema). */
-const FB_GEN_EXTRA=['vin','motor','cil','trans','codMotor'];
+const FB_GEN_EXTRA=['vin','motor','cil','trans','codMotor','cab'];
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
 /* Estado real de cada vehículo en la nube. v.nube guarda la "firma" de lo último que la nube confirmó (ver fbFirma):
    si coincide con la firma actual => "En Chile ✓". null => cargado/editado y todavía sin confirmar.
@@ -868,6 +870,7 @@ function fbVehiculosListen(){
           if(d[k]!==undefined && d[k]!==null && d[k]!==v[k]){ v[k]=d[k]; cambio=true; }
         });
       }
+      if(d.cab && d.cab!==v.cab){ v.cab=d.cab; cambio=true; }
       if(d.zarpe!==undefined && (d.zarpe||'')!==(v.zarpe||'') && !v.soloReferencia && !(ZARPE_PEND[ch]!==undefined)){ if(d.zarpe) v.zarpe=d.zarpe; else delete v.zarpe; cambio=true; }
       if(priv){
         const enSync=!!(v.nube && v.nube===fbFirma(v));
@@ -1106,7 +1109,7 @@ function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:''};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
   ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
-  tocado={}; anAuto=''; autoAbierto=false; codMotor=''; $('#fCh').readOnly=false; $('#fSinCh').hidden=false; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
+  tocado={}; anAuto=''; autoAbierto=false; codMotor=''; cabSel=''; $('#fCh').readOnly=false; $('#fSinCh').hidden=false; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts(); pintaAuto();
@@ -1121,7 +1124,7 @@ document.addEventListener('click',e=>{
 $('#fTrabNo').addEventListener('click',()=>{tocado.trab=1;setTrab(false)});
 $('#fTrabSi').addEventListener('click',()=>{tocado.trab=1;setTrab(true)});
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(!b) return;
-  const k=b.dataset.k; if(['cat','motor','trans'].includes(k)) tocado[k]=1; if(k==='mo') aplicaModelo(); });
+  const k=b.dataset.k; if(['cat','motor','trans'].includes(k)) tocado[k]=1; if(k==='mo') aplicaModelo(); if(k==='ma') pintaAuto(); });
 $('#fMoNew').addEventListener('input',aplicaModelo);
 $('#fPa').addEventListener('input',()=>{tocado.pa=1});
 $('#fCil').addEventListener('input',()=>{tocado.cil=1});
@@ -1137,8 +1140,11 @@ $('#fVin').addEventListener('input',()=>{
   autoAnio();
 });
 $('#fCh').addEventListener('input',()=>{
-  const el=$('#fCh'); const v=el.value.trim().toUpperCase();
+  const el=$('#fCh'); const v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(v.length===17){ $('#fVin').value=v; el.value=v.slice(-8); $('#fVin').dispatchEvent(new Event('input')); return; }
+  /* el chasis son exactamente 8 letras o números (si pegan el VIN de 17, arriba se separa solo) */
+  if(el.value!==v.slice(0,8)) el.value=v.slice(0,8);
+  const er=$('#eCh'); if(er) er.textContent=(el.value&&el.value.length<8)?'Faltan '+(8-el.value.length)+' caracteres (son 8).':'';
   autoAnio();
 });
 /* Datos típicos por modelo: [categoría, pasajeros, motor, cilindrada, transmisión, ¿de trabajo?].
@@ -1160,26 +1166,30 @@ let tocado={}, anAuto='';
    - del VIN: chasis (últimos 8), año y marca;
    - del modelo: categoría, pasajeros, motor, transmisión, cilindrada y si es de trabajo → quedan en un resumen con "Corregir".
    Color, tracción, kilometraje y carrocería sí los elige ella (cambian de un auto a otro). */
-let autoAbierto=false, codMotor='';
+let autoAbierto=false, codMotor='', cabSel='';  /* cabSel: SIMPLE | MEDIA | DOBLE (simple y media tienen los mismos 3 pasajeros) */
 /* Motores posibles por modelo (Andre, 01/10): Sorento y Santa Fe casi siempre 2.0 D4HA, a veces 2.2 D4HB (como la Carnival). */
 /* Opciones por modelo (Andre, 01/10): se muestran como botones con la más común ya marcada.
    pa = pasajeros posibles (el 1° es el normal); cil = [cilindrada, código de motor] (el 1° es el normal). */
 const MOD_OPC={'SORENTO':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},'SANTA FE':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},'SANTAFE':{pa:[7,5],cil:[['2.0','D4HA'],['2.2','D4HB']]},
   'CARNIVAL':{pa:[9,11,7],cil:[['2.2','D4HB']]},'PALISADE':{pa:[7,8],cil:[['2.2','D4HB']]},'TUCSON':{pa:[5],cil:[['2.0',''],['1.7','']]},'SPORTAGE':{pa:[5],cil:[['2.0',''],['1.7','']]},
-  'PORTER':{pa:[3,6],cil:[['2.5','']]},'BONGO':{pa:[3,6],cil:[['2.5','']]},'AVANTE':{pa:[5],cil:[['1.6','']]},'VELOSTER':{pa:[4],cil:[['1.6','']]},'STAREX':{pa:[12,9,3],cil:[['2.5','']]}};
+  'PORTER':{cab:1,cil:[['2.5','']]},'BONGO':{cab:1,cil:[['2.5','']]},'AVANTE':{pa:[5],cil:[['1.6','']]},'VELOSTER':{pa:[4],cil:[['1.6','']]},'STAREX':{pa:[12,9,3],cil:[['2.5','']]}};
 function modOpc(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOD_OPC){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOD_OPC[k]:null; }
 function motorVar(mo){ const o=modOpc(mo); return o?o.cil:null; }
 function pintaAuto(){
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, d=modDef(mo), o=modOpc(mo), r=$('#autoRes'), w=$('#wAuto'); if(!r||!w) return;
+  if(!mo&&!autoAbierto){ r.hidden=false; w.hidden=true; r.innerHTML='<span class="mtr" style="margin:0">Elige el modelo: categoría, pasajeros y motor se completan solos.</span>'; return; }
   const ok=!!d&&!autoAbierto; r.hidden=!ok; w.hidden=ok;
   if(!ok) return;
   /* valores por defecto: el primero de cada lista, salvo que ella ya haya elegido */
+  if(o&&o.cab&&!tocado.pa) $('#fPa').value='';   /* de trabajo: la cabina la elige ella, sin marcar ninguna */
   if(o){ if(!tocado.pa&&o.pa&&o.pa.length) $('#fPa').value=o.pa[0];
     if(!tocado.cil&&o.cil&&o.cil.length){ $('#fCil').value=o.cil[0][0]; codMotor=o.cil[0][1]; } }
   const pa=$('#fPa').value, cil=$('#fCil').value.trim();
   const fila=(tit,html)=>`<div style="margin-top:9px"><div class="mtr" style="margin:0 0 4px">${tit}</div><div class="opt">${html}</div></div>`;
   let h='<div style="flex:1"><span>✓ Según el modelo: <b>'+[sel.cat,sel.motor,sel.trans,esTrab?'de trabajo':''].filter(Boolean).join(' · ')+'</b></span>';
-  if(o&&o.pa&&o.pa.length>1) h+=fila('Pasajeros',o.pa.map((n,i)=>`<button type="button" data-qpa="${n}" aria-pressed="${String(n)===String(pa)}">${n}${i===0?' (lo normal)':''}</button>`).join(''));
+  /* Vehículos de trabajo: cabina en palabras (guarda pasajeros 3 / 4 / 6, igual que lo entiende Sistema) */
+  if(o&&o.cab) h+=fila('Cabina'+(cabSel?'':' <span style="color:#B5533C">(elige una)</span>'),[['SIMPLE','Cabina simple'],['MEDIA','Cabina y media'],['DOBLE','Doble cabina']].map(([k,t])=>`<button type="button" data-qcab="${k}" aria-pressed="${k===cabSel}">${t}</button>`).join(''));
+  else if(o&&o.pa&&o.pa.length>1) h+=fila('Pasajeros',o.pa.map((n,i)=>`<button type="button" data-qpa="${n}" aria-pressed="${String(n)===String(pa)}">${n}${i===0?' (lo normal)':''}</button>`).join(''));
   else if(pa) h+='<div class="mtr" style="margin:6px 0 0">Pasajeros: <b>'+pa+'</b></div>';
   if(o&&o.cil&&o.cil.length>1) h+=fila('Motor',o.cil.map((x,i)=>`<button type="button" data-mvar="${i}" aria-pressed="${x[0]===cil}">${x[0]}${x[1]?' · '+x[1]:''}${i===0?' (la mayoría)':''}</button>`).join(''));
   else if(cil) h+='<div class="mtr" style="margin:6px 0 0">Motor: <b>'+cil+(codMotor?' · '+codMotor:'')+'</b></div>';
@@ -1189,11 +1199,13 @@ function pintaAuto(){
 document.addEventListener('click',e=>{ if(e.target.id==='autoEdit'){ autoAbierto=true; pintaAuto(); return; }
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
   const b=e.target.closest('[data-mvar]'); if(b){ const mv=motorVar(mo); if(!mv) return; const x=mv[+b.dataset.mvar]; $('#fCil').value=x[0]; codMotor=x[1]; tocado.cil=1; pintaAuto(); return; }
-  const q=e.target.closest('[data-qpa]'); if(q){ $('#fPa').value=q.dataset.qpa; tocado.pa=1; pintaAuto(); } });
+  const q=e.target.closest('[data-qpa]'); if(q){ $('#fPa').value=q.dataset.qpa; tocado.pa=1; pintaAuto(); return; }
+  const c=e.target.closest('[data-qcab]'); if(c){ cabSel=c.dataset.qcab; $('#fPa').value=cabSel==='DOBLE'?6:3; tocado.pa=1; pintaAuto(); } });
 const WMI={KNA:'KIA',KNC:'KIA',KND:'KIA',KNE:'KIA',KNF:'KIA',KNG:'KIA',KMH:'HYUNDAI',KMF:'HYUNDAI',KMJ:'HYUNDAI',KMC:'HYUNDAI',KMT:'GENESIS',KPT:'SSANGYONG',KPA:'SSANGYONG',KPB:'SSANGYONG',KL1:'CHEVROLET',KLA:'CHEVROLET',KLY:'CHEVROLET',KNM:'RENAULT SAMSUNG'};
 function marcaDeVin(vin){ vin=String(vin||'').toUpperCase(); return WMI[vin.slice(0,3)]||''; }
 function aplicaModelo(){
-  tocado.pa=0; tocado.cil=0;
+  /* al cambiar de modelo, todo lo deducido se vuelve a calcular (antes quedaban datos del modelo anterior) */
+  tocado.pa=0; tocado.cil=0; tocado.cat=0; tocado.motor=0; tocado.trans=0; tocado.trab=0; autoAbierto=false; codMotor=''; cabSel='';
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
   const d=modDef(mo); if(!d) return;
   if(!tocado.cat&&d[0]) sel.cat=d[0];
@@ -1254,6 +1266,7 @@ $('#fmOk').addEventListener('click',async()=>{
     sel.ma=maNew;
   }
   if(!sel.ma){irA();toast('Elige la marca');return}
+  if(esTrab&&!cabSel){ irA(); toast('Elige la cabina: simple, cabina y media o doble cabina'); return; }
   const moNew=$('#fMoNew').value.trim().toUpperCase();
   const mo=normalizaModelo((moNew&&!$('#fMoNew').hidden)?moNew:(sel.mo||'')); if(!mo){irA();toast('Falta el modelo');return}
   if(!modelos(sel.ma).includes(mo)){
@@ -1274,7 +1287,7 @@ $('#fmOk').addEventListener('click',async()=>{
     dlCont();}
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
-    motor:sel.motor||'',cil:$('#fCil').value.trim(),codMotor:codMotor||'',trans:sel.trans||'',vin:vin||'',
+    motor:sel.motor||'',cil:$('#fCil').value.trim(),codMotor:codMotor||'',cab:esTrab?cabSel:'',trans:sel.trans||'',vin:vin||'',
     krw:pnum($('#fKrw').value)||null,senia:pnum($('#fSenia').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
@@ -1317,7 +1330,7 @@ function draw(){
   $('#list').innerHTML=LV.length?LV.map(v=>{
     const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
     const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
-    const sp=[v.cat,v.tr,(v.pa?v.pa+' pas.':''),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
+    const sp=[v.cat,v.tr,(v.cab?{SIMPLE:'cabina simple',MEDIA:'cabina y media',DOBLE:'doble cabina'}[v.cab]:(v.pa?v.pa+' pas.':'')),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
       .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
     const en=enChile(v);
@@ -1661,7 +1674,7 @@ document.addEventListener('click',async e=>{
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fVin').value=v.vin||''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); tocado={cat:1,pa:1,motor:1,cil:1,trans:1,trab:1}; anAuto='';
-  $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||''; codMotor=v.codMotor||'';$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
+  $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||''; codMotor=v.codMotor||''; cabSel=v.cab||((v.ca&&v.ca!=='S/N'&&+v.pa>=5)?'DOBLE':'');$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
   $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');try{ const vv=$('#fVin').value; $('#fCh').readOnly=vv.length===17; $('#fSinCh').hidden=vv.length===17; pintaAuto(); }catch(_){} openSheet('shForm');return}
  if(dl){const c=dl.dataset.del;

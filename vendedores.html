@@ -520,7 +520,7 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
 const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
@@ -1567,14 +1567,15 @@ function draw(){
    const cm=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
    return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
     <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
-    <div class="cm-s">${v.ce||''}${v.trab&&v.ca&&v.ca!=='S/N'?' · '+(CARN[v.ca]||String(v.ca).toLowerCase()):''}${+v.pa>=7?' · '+v.pa+' pas.':''}</div></div>
+    <div class="cm-s">${v.ce||''}${v.trab&&v.ca&&v.ca!=='S/N'?' · '+(CARN[v.ca]||String(v.ca).toLowerCase()):''}${v.cab?' · '+({SIMPLE:'cab. simple',MEDIA:'cab. y media',DOBLE:'doble cabina'}[v.cab]||''):(+v.pa>=7?' · '+v.pa+' pas.':'')}</div></div>
     <div style="text-align:right">${v.pventa?`<div class="cm-p">${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
   }
   const cars=[];
   if(v.trab&&v.ca&&v.ca!=='S/N') cars.push(CARN[v.ca]||String(v.ca).toLowerCase());   /* antes solo 3 nombres exactos: "BARANDA BAJA" no salía */
   if(!v.trab&&v.tp) cars.push('T. panorámico');
   if(v.tr) cars.push(v.tr);
-  if(v.pa&&v.pa>=7) cars.push(v.pa+' pasajeros');
+  if(v.cab) cars.push({SIMPLE:'Cabina simple',MEDIA:'Cabina y media',DOBLE:'Doble cabina'}[v.cab]||'');
+  else if(v.pa&&v.pa>=7) cars.push(v.pa+' pasajeros');
   if(v.sv) cars.push('Sello verde');
   const sp=cars.map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${x}</span>`).join('');
   return `<div class="card"${compacto?` data-exp="${v.ch}"`:''}><span class="strip" style="background:${estado}"></span>

@@ -591,7 +591,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 21:30 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 21:52 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -885,7 +885,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvTr">Tracción</label><select id="nvTr"><option value="4X2" selected>4X2</option><option value="4X4">4X4</option></select></div>
-        <div class="fld"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
+        <div class="fld" id="nvPaWrap"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
+        <div class="fld" id="nvCabWrap" hidden><label for="nvCab">Cabina</label><select id="nvCab"><option value="">— Elige —</option><option value="SIMPLE">Cabina simple</option><option value="MEDIA">Cabina y media</option><option value="DOBLE">Doble cabina</option></select></div>
       </div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="fld"><label for="nvMotor">Motor</label><select id="nvMotor"><option value="DIESEL" selected>Diésel</option><option value="BENCINA">Bencina</option></select></div>
@@ -1119,7 +1120,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="fld"><label for="evTr">Tracción</label><select id="evTr"><option value="4X2">4X2</option><option value="4X4">4X4</option></select></div>
-    <div class="fld"><label for="evPa">Pasajeros</label><input id="evPa" inputmode="numeric" placeholder="7"></div>
+    <div class="fld" id="evPaWrap"><label for="evPa">Pasajeros</label><input id="evPa" inputmode="numeric" placeholder="7"></div>
+    <div class="fld" id="evCabWrap" hidden><label for="evCab">Cabina</label><select id="evCab"><option value="">— Elige —</option><option value="SIMPLE">Cabina simple</option><option value="MEDIA">Cabina y media</option><option value="DOBLE">Doble cabina</option></select></div>
   </div>
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
     <div class="fld"><label for="evMotor">Motor</label><select id="evMotor"><option value="">Sin especificar</option><option value="DIESEL">Diésel</option><option value="BENCINA">Bencina</option></select></div>
@@ -1476,7 +1478,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor'];  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab'];  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2192,6 +2194,7 @@ function webDoc(v){
     trab:!!v.trab, sv:!!v.sv,
     oferta:!!t.of,
     enCorea: !!v.enCorea,
+    cab: v.cab||'',  /* cabina de los vehículos de trabajo: SIMPLE | MEDIA | DOBLE */
     eta: v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null,  /* llegada (estimada desde el embarque o la del BL): la web muestra "llega ~dd/mm" / "En puerto" */
     reservado: !!resAct(v.ch),
     precio: t.of ? (t.pprice||v.vev||null) : null,
@@ -3067,7 +3070,10 @@ function drawVit(){
    Si ya está en un embarque/BL igual cuenta como en camino. Sin BL, la llegada se estima zarpe + 35 días (v.eta "~"). */
 const TRANSITO_DIAS=35;
 function coreaSync(){ if(typeof EMB==='undefined') return; let n=0;
-  for(const v of V){ const em=v.st==='ORIGEN'?embDeVeh(v.ch):null; const c=v.st==='ORIGEN'&&!v.creando&&!v.baja&&!v.zarpe&&!em; if(!!v.enCorea!==c){ v.enCorea=c; n++; }
+  for(const v of V){
+    /* 01/10 (Andre): vehículos de trabajo ya ingresados sin cabina: 6 pasajeros = doble cabina; 3 = cabina y media. */
+    if(!v.cab&&(v.trab||esModeloTrabajo(v.mo))&&+v.pa>0){ v.cab=+v.pa>=5?'DOBLE':'MEDIA'; n++; }
+    const em=v.st==='ORIGEN'?embDeVeh(v.ch):null; const c=v.st==='ORIGEN'&&!v.creando&&!v.baja&&!v.zarpe&&!em; if(!!v.enCorea!==c){ v.enCorea=c; n++; }
     if(v.st==='ORIGEN'&&v.zarpe&&!(em&&em.fechaManifiesto)){ const e2=sumaDias(v.zarpe,TRANSITO_DIAS); if(v.eta!==e2){ v.eta=e2; n++; } } }
   if(n){ try{ guardaCacheV(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); webSyncPronto(); }catch(_){} } }
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-llpset]'); if(!b) return; e.stopPropagation();
@@ -9055,7 +9061,7 @@ function emResCarac(v){
   const p=[v.ce?low(v.ce):'', v.pa?v.pa+' pas.':'', [cil,mot].filter(Boolean).join(' '), v.tr||'', tr?low(tr).replace('automatica','automática').replace('mecanica','mecánica'):'',
     v.ca&&v.ca!=='S/N'?low(v.ca):'', v.km?(+v.km).toLocaleString('es-CL')+' km':''];
   let trab='';
-  try{ const ef=zofEf(v); if(ef.esCam){ const cab=ef.cab==='DOBLE'?'doble cabina':(ef.cab==='REGULAR'?((+v.pa||0)>3?'cabina y media':'cabina simple'):'');
+  try{ const ef=zofEf(v); if(ef.esCam){ const cab=v.cab?CAB_TXT[v.cab]:(ef.cab==='DOBLE'?'doble cabina':(ef.cab==='REGULAR'?((+v.pa||0)>3?'cabina y media':'cabina simple'):''));
     trab=' · <b style="color:var(--amber)">'+[v.ca&&v.ca!=='S/N'?low(v.ca):'',cab].filter(Boolean).join(' · ')+'</b>'; } }catch(_){}
   return p.filter(x=>x&&!(trab&&x===low(v.ca))).join(' · ')+trab+(v.tp?' · <b style="color:var(--green)">techo panorámico</b>':'');
 }
@@ -9066,7 +9072,7 @@ function emSimil(v){
   const mk=x=>String(x.mo||'').toUpperCase().replace(/[^A-Z0-9]/g,''), m=mk(v), an=+v.an||0;
   let esCam=false, cab=''; try{ const ef=zofEf(v); esCam=ef.esCam; cab=ef.cab; }catch(_){}
   const vend=V.filter(x=>x.ch!==v.ch&&sold(x.ch)&&mk(x)===m&&enCLP(S[x.ch]||{})>0);
-  const cabDe=x=>{ try{return zofEf(x).cab}catch(_){return ''} };
+  const cabDe=x=>{ if(x.cab) return x.cab; try{return zofEf(x).cab}catch(_){return ''} };
   const pasos=esCam?[
       [x=>Math.abs((+x.an||0)-an)<=1&&(x.ca||'')===(v.ca||'')&&cabDe(x)===cab,'mismo año ±1, carrocería y cabina'],
       [x=>Math.abs((+x.an||0)-an)<=2&&(x.ca||'')===(v.ca||''),'año ±2, misma carrocería'],
@@ -9468,12 +9474,22 @@ $('#nvMo').addEventListener('input',nvTransSugerir);
 $('#nvCa').addEventListener('input',nvTransSugerir);
 nvTransSugerir();
 let nvMotorTocado=false, nvCilTocado=false, nvPaTocado=false;
-function nvCaVis(){ const w=$('#nvCaWrap'); if(w) w.hidden=!esModeloTrabajo($('#nvMo').value); }
+function nvCaVis(){ const t=esModeloTrabajo($('#nvMo').value); const w=$('#nvCaWrap'); if(w) w.hidden=!t; cabVis('nv',t); }
+/* 01/10/2026 (igual que la app de Corea): en vehículos de trabajo se elige la cabina en palabras en vez de pasajeros.
+   Se guarda en v.cab (SIMPLE/MEDIA/DOBLE) porque simple y cabina y media tienen los mismos 3 pasajeros; pa = 3 o 6. */
+const CAB_TXT={SIMPLE:'cabina simple',MEDIA:'cabina y media',DOBLE:'doble cabina'};
+function cabVis(pf,t){ const cw=$('#'+pf+'CabWrap'), pw=$('#'+pf+'PaWrap'); if(!cw||!pw) return; cw.hidden=!t; pw.hidden=!!t;
+  if(t&&pf==='ev'&&evCabIni!==null){ $('#evCab').value=evCabIni; } }
+let evCabIni=null;
+['nv','ev'].forEach(pf=>{ const c=document.getElementById(pf+'Cab'); if(c) c.addEventListener('change',()=>{ $('#'+pf+'Pa').value=c.value==='DOBLE'?6:(c.value?3:''); if(pf==='nv') nvPaTocado=true; if(pf==='ev') evCabIni=c.value; }); });
+const WMI_MARCA={KNA:'KIA',KNC:'KIA',KND:'KIA',KNE:'KIA',KNF:'KIA',KNG:'KIA',KMH:'HYUNDAI',KMF:'HYUNDAI',KMJ:'HYUNDAI',KMC:'HYUNDAI',KMT:'GENESIS',KPT:'SSANGYONG',KPA:'SSANGYONG',KPB:'SSANGYONG',KL1:'CHEVROLET',KLA:'CHEVROLET',KLY:'CHEVROLET',KNM:'RENAULT SAMSUNG'};
+/* Código de motor según modelo y cilindrada (Sorento/Santa Fe 2.0 = D4HA, 2.2 = D4HB; Carnival/Palisade 2.2 = D4HB). */
+function codMotorDe(mo,cil){ const m=String(mo||'').toUpperCase(); if(/^(SORENTO|SANTA ?FE|CARNIVAL|PALISADE)/.test(m)){ if(String(cil)==='2.0') return 'D4HA'; if(String(cil)==='2.2') return 'D4HB'; } return ''; }
 function nvSugerirExtra(){
   const mo=$('#nvMo').value.trim().toUpperCase();
   if(!nvMotorTocado) $('#nvMotor').value=motorSugerido(mo);
   if(!nvCilTocado) pintaCilSel('nvCilSel','nvCil',cilSugerida(mo));
-  if(!nvPaTocado) $('#nvPa').value=paxSugeridos(mo);
+  if(!nvPaTocado) $('#nvPa').value=esModeloTrabajo(mo)?'':paxSugeridos(mo);
   nvCaVis();
 }
 $('#nvMotor').addEventListener('change',()=>{nvMotorTocado=true});
@@ -9483,11 +9499,13 @@ $('#nvPa').addEventListener('input',()=>{nvPaTocado=true});
 $('#nvMo').addEventListener('input',nvSugerirExtra);
 nvSugerirExtra();
 $('#nvVin').addEventListener('input',()=>{
+  { const el=$('#nvVin'), c=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,17); if(el.value!==c) el.value=c; }
   const vin=$('#nvVin').value.trim().toUpperCase();
+  { const ma=WMI_MARCA[vin.slice(0,3)]; if(ma&&!$('#nvMa').value.trim()){ $('#nvMa').value=ma; try{ selOtroPinta(); }catch(_){} } }
   if(vin.length===17){ $('#nvCh').value=vin.slice(-8); $('#nvCh').dispatchEvent(new Event('input')); }
   autoAnio('nv');
 });
-$('#nvCh').addEventListener('input',()=>autoAnio('nv'));
+$('#nvCh').addEventListener('input',()=>{ const el=$('#nvCh'), c=el.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(c.length===17){ $('#nvVin').value=c; $('#nvVin').dispatchEvent(new Event('input')); return; } if(el.value!==c.slice(0,8)) el.value=c.slice(0,8); autoAnio('nv'); });
 $('#nvMo').addEventListener('input',()=>autoPorModelo('nv'));
 $('#nvCh').addEventListener('input',()=>{
   const c=$('#nvCh').value.trim().toUpperCase(); const el=$('#nvChT');
@@ -9503,6 +9521,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   if(!RXCH.test(ch)&&!nvWarn){nvWarn=true;toast('Formato inusual · toca de nuevo si está correcto');return}
   const ma=$('#nvMa').value.trim().toUpperCase(), mo=normalizaModelo($('#nvMo').value.trim().toUpperCase());
   if(!ma||!mo){toast('Falta marca o modelo');return}
+  if(esModeloTrabajo(mo)&&!$('#nvCab').value){toast('Elige la cabina (simple, cabina y media o doble)');return}
   if(!avisaProvSiParecido($('#nvProv').value)) return;
   const an=pnum($('#nvAn').value)||null;
   const ca=$('#nvCa').value.trim().toUpperCase()||'S/N';
@@ -9512,7 +9531,7 @@ $('#nvAdd').addEventListener('click',async()=>{
   const zofNv={}; if(vinNv.length===17) zofNv.vin=vinNv; const transNv=$('#nvTrans').value; if(transNv) zofNv.trans=transNv;
   const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#nvCe').value.trim().toUpperCase(),cat:$('#nvCat').value.trim().toUpperCase(),
     tr:$('#nvTr').value.trim().toUpperCase(),pa:pnum($('#nvPa').value)||null,ca,tp:false,km:null,
-    motor:$('#nvMotor').value||'', cil:cilVal('nvCilSel','nvCil'),
+    motor:$('#nvMotor').value||'', cil:cilVal('nvCilSel','nvCil'), codMotor:codMotorDe(mo,cilVal('nvCilSel','nvCil')), cab:esModeloTrabajo(mo)?$('#nvCab').value:'',
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
     trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#nvProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
   if(Object.keys(zofNv).length) nuevo.zof=zofNv;
@@ -9543,13 +9562,13 @@ $('#nvAdd').addEventListener('click',async()=>{
    se toca acá: ya se calcula solo al crear el vehículo (nuevo/embarque), y "Editar" es adrede
    para vehículos ya existentes, no para recalcular datos que ya tienen. */
 let evTransTocado=false, evMotorTocado=false, evCilTocado=false, evPaTocado=false;
-function evCaVis(){ const w=$('#evCaWrap'); if(w) w.hidden=!esModeloTrabajo($('#evMo').value); }
+function evCaVis(){ const t=esModeloTrabajo($('#evMo').value); const w=$('#evCaWrap'); if(w) w.hidden=!t; cabVis('ev',t); }
 function evSugerir(){
   const mo=$('#evMo').value.trim().toUpperCase(), ca=$('#evCa').value.trim().toUpperCase();
   if(!evTransTocado && !$('#evTrans').value) $('#evTrans').value=transSugerida(esTrabajoPorCaMo(mo,ca));
   if(!evMotorTocado && !$('#evMotor').value) $('#evMotor').value=motorSugerido(mo);
   if(!evCilTocado && !cilVal('evCilSel','evCil')) pintaCilSel('evCilSel','evCil',cilSugerida(mo));
-  if(!evPaTocado && !$('#evPa').value) $('#evPa').value=paxSugeridos(mo);
+  if(!evPaTocado && !$('#evPa').value && !esModeloTrabajo(mo)) $('#evPa').value=paxSugeridos(mo);
   evCaVis();
 }
 /* Sello verde en "Editar vehículo" ya no se puede tocar a mano (para no dejarlo "apretado"
@@ -9564,6 +9583,7 @@ function evSvActualizar(){
 function abrirEditVeh(ch){
   const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
   editing=ch;
+  evCabIni=v.cab||(esModeloTrabajo(v.mo)&&+v.pa>=5?'DOBLE':''); $('#evCab').value=evCabIni;
   $('#evT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
   $('#evC').textContent=v.ch;
   $('#evMa').value=v.ma||''; $('#evMo').value=v.mo||'';
@@ -9607,7 +9627,7 @@ $('#evOk').addEventListener('click',()=>{
   v.ca=$('#evCa').value.trim().toUpperCase()||'S/N';
   if(!avisaProvSiParecido($('#evProv').value)) return;
   v.prov=$('#evProv').value.trim().toUpperCase();
-  v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil');
+  v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil'); { const cm=codMotorDe(v.mo,v.cil); if(cm) v.codMotor=cm; if(esModeloTrabajo(v.mo)&&$('#evCab').value) v.cab=$('#evCab').value; }
   v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
   v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
   const evTransVal=$('#evTrans').value;
