@@ -409,6 +409,18 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <span><input id="sqVeh" inputmode="numeric" placeholder="$350.000"
           style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
     </div>
+    <div class="box" id="boxDeu" style="margin-top:13px">
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Lo que deben (vehículo y préstamos)</h3>
+        <button class="b-und" style="flex:0 0 auto" id="deuAdd">＋ Nuevo</button></div>
+      <p class="mtr" style="margin:0 0 8px">Se descuenta de cada quincena. Cambia el descuento de la quincena que estás viendo arriba en Sueldos (Anterior / Actual). Víctor y Bryan ven su saldo en su app.</p>
+      <div id="deuList"></div>
+    </div>
+    <div class="box" id="boxHist" style="margin-top:13px">
+      <h3>Historial de pagos</h3>
+      <div class="opt" id="histChips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px">
+        <button class="chip" data-hf="todos" aria-pressed="true">Todos</button><button class="chip" data-hf="sueldo" aria-pressed="false">Sueldos</button><button class="chip" data-hf="adelanto" aria-pressed="false">Adelantos y préstamos</button><button class="chip" data-hf="fijo" aria-pressed="false">Costos fijos</button></div>
+      <div id="histList"></div>
+    </div>
     <div class="box" id="boxCom" style="margin-top:13px">
       <h3>Ventas por comuna</h3>
       <div id="byCom"></div>
@@ -573,7 +585,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->30-09-2026 22:13<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 12:31<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1202,12 +1214,27 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genOk">Guardar</button></div>
 </div>
 
+<div class="sheet" id="shDeu">
+  <h3>Nueva deuda o préstamo</h3><div class="sb">Lo que Víctor o Bryan te deben y se descuenta de sus quincenas</div>
+  <div class="fld"><label>¿Quién?</label><div class="catg" id="deuQuien"></div></div>
+  <div class="fld"><label for="deuNom">¿Qué es?</label><input id="deuNom" placeholder="Ej: Vehículo a crédito, Préstamo"></div>
+  <div class="fld"><label for="deuM">Saldo que debe hoy</label><input id="deuM" inputmode="numeric" placeholder="$0"></div>
+  <div class="fld"><label for="deuC">Descuento normal por quincena</label><input id="deuC" inputmode="numeric" placeholder="$50.000"></div>
+  <div class="fld"><label>Empieza a descontarse</label><div class="opt" style="display:flex;gap:6px" id="deuDesde">
+    <button class="chip" data-dd="act" aria-pressed="true">Esta quincena</button><button class="chip" data-dd="sig" aria-pressed="false">La próxima</button></div></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="deuOk">Guardar</button></div>
+</div>
+
 <div class="sheet" id="shAdel">
   <h3>Anotar adelanto de sueldo</h3><div class="sb" id="adC">Se descuenta del sueldo del mes</div>
   <div class="fld"><label>¿A quién?</label><div class="catg" id="adQuien"></div></div>
   <div class="fld"><label for="adM">Monto</label><input id="adM" inputmode="numeric" placeholder="$0"></div>
   <div class="fld"><label for="adD">Fecha</label><input id="adD" type="date"></div>
   <div class="fld"><label for="adN">Nota (opcional)</label><input id="adN" placeholder="Ej: para la micro"></div>
+  <div class="fld"><label>¿Cuándo se descuenta?</label><div class="opt" style="display:flex;gap:6px;flex-wrap:wrap" id="adCuando">
+    <button class="chip" data-adc="esta" aria-pressed="true">En esta quincena</button><button class="chip" data-adc="prox" aria-pressed="false">En la próxima</button><button class="chip" data-adc="prest" aria-pressed="false">Como préstamo (a su deuda)</button></div>
+    <div id="adCuotasW" hidden style="margin-top:8px;display:flex;gap:8px;align-items:center"><span style="font-size:13px;color:var(--mute)">Descontar</span><input id="adCuotas" inputmode="numeric" placeholder="$50.000" style="width:110px"> <span style="font-size:13px;color:var(--mute)">por quincena (lo cambias cuando quieras)</span></div>
+    <div class="sug" id="adCuandoTxt"></div></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="adOk">Guardar</button></div>
 </div>
 
@@ -1967,6 +1994,10 @@ const NUBE_DOCS={'amk_remesas':{col:'remesas',doc:'todas',tipo:'lista',clave:'ts
                  'amk_embarques':{col:'embarques',doc:'todos',tipo:'items',nom:'embarques'}};
 /* Las navieras guardadas (plantillas de costos) también viajan entre aparatos, en el mismo lugar que los embarques. */
 NUBE_DOCS['amk_navieras']={col:NUBE_DOCS['amk_embarques'].col,doc:'navieras',tipo:'mapa',nom:'navieras'};
+/* 01/10/2026: adelantos y pagos de costos fijos también viajan entre aparatos (antes quedaban solo en el aparato donde se anotaban). */
+NUBE_DOCS['amk_adelantos']={col:NUBE_DOCS['amk_embarques'].col,doc:'adelantos',tipo:'lista',clave:'ts',nom:'adelantos'};
+NUBE_DOCS['amk_pagosf']={col:NUBE_DOCS['amk_embarques'].col,doc:'pagosFijos',tipo:'lista',clave:'ts',nom:'pagos de costos fijos'};
+NUBE_DOCS['amk_deudas']={col:NUBE_DOCS['amk_embarques'].col,doc:'deudas',tipo:'lista',clave:'id',nom:'deudas'};
 const NUBE_MAX=900000;
 const nubeUlt={}, nubeMod={}, nubeBorr={}, nubeTimers={}, nubePend={}, nubeListo={};
 /* Hasta que este aparato no se haya puesto al día con la nube, lo que se guarde NO se sella con hora:
@@ -2093,6 +2124,12 @@ function nubeRefresca(k){
       if(!embId) embNuevo(); pintaEmb(); if(typeof draw==='function') draw(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_navieras'){
     (async()=>{ try{ const r=await window.storage.get(k); const o=nubeParse(r&&r.value); if(o) NAVIERAS=o; pintaNaviera(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_adelantos'){
+    (async()=>{ try{ const r=await window.storage.get(k); AD=nubeParse(r&&r.value)||[]; pintaFJ(); fbSyncSueldosPronto(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_deudas'){
+    (async()=>{ try{ const r=await window.storage.get(k); DEU=nubeParse(r&&r.value)||[]; pintaFJ(); fbSyncSueldosPronto(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_pagosf'){
+    (async()=>{ try{ const r=await window.storage.get(k); PF=nubeParse(r&&r.value)||[]; pintaFJ(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_remesas'){
     (async()=>{ try{ const r=await window.storage.get(k); RM=nubeParse(r&&r.value)||[]; pintaRM(); }catch(e){ console.error('nubeRefresca',e); } })();
   }
@@ -3948,7 +3985,7 @@ const KRDEF=[['kdir','Uso de dirección en Corea',250000],['kcont','Contador en 
 let FJK={}, tcKRW=0.685;
 const VENDEDORES=[['yo','Yo'],['victor','Víctor'],['bryan','Bryan']];
 let COMB=10000, ssQ='yo';
-let FJ={}, AD=[], adQ='victor';
+let FJ={}, AD=[], adQ='victor', PF=[], adCuando='esta', DEU=[];
 const GENCAT=[['COMBUSTIBLE','Combustible'],['INSUMOS','Insumos de aseo/taller'],['OTRO','Otro']];
 const GENCATN=Object.fromEntries(GENCAT);
 let GEN=[], genCat='COMBUSTIBLE';
@@ -3963,6 +4000,8 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_fijos'); if(r&&r.value) FJ=JSON.parse(r.value)}catch(e){}
   if(!Object.keys(FJ).length) FJ=Object.fromEntries(FJDEF.map(([k])=>[k, k==='victor'?1800000:(k==='bryan'?500000:0)]));
   try{const r=await window.storage.get('amk_adelantos'); if(r&&r.value) AD=JSON.parse(r.value)}catch(e){}
+  try{const r=await window.storage.get('amk_pagosf'); if(r&&r.value) PF=JSON.parse(r.value)||[]}catch(e){}
+  try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[]; CATS_CUSTOM.forEach(([k,n])=>CN[k]=n) }}catch(e){}
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
@@ -4019,16 +4058,37 @@ function etiquetaQuincena(q){
   const m=+ym.slice(5,7), y=ym.slice(0,4);
   return (qq==='1'?'1–15 ':'16–fin ')+MESES_ES[m]+' '+y;
 }
+function quincenaSig(q){ const ym=q.slice(0,7); if(q.slice(-1)==='1') return ym+'-Q2';
+  const y=+ym.slice(0,4), m=+ym.slice(5,7); return (m===12?y+1:y)+'-'+String(m===12?1:m+1).padStart(2,'0')+'-Q1'; }
+/* Un adelanto puede descontarse en la quincena en que se dio (como siempre), en la siguiente, o en cuotas (x.desc=[{q,m}]). */
 function adelQ(k,q){
-  return AD.filter(x=>x.q===k&&enQuincena(x.f,q)).reduce((a,x)=>a+x.m,0);
+  return AD.filter(x=>x.q===k).reduce((a,x)=>a+(Array.isArray(x.desc)?x.desc.filter(d=>d.q===q).reduce((s,d)=>s+(+d.m||0),0):(enQuincena(x.f,q)?x.m:0)),0);
 }
+function descTexto(x){ if(!Array.isArray(x.desc)||!x.desc.length) return ''; const e=q=>etiquetaQuincena(q);
+  return x.desc.length===1?'se descuenta en '+e(x.desc[0].q):x.desc.length+' cuotas de '+clp(x.desc[0].m)+' desde '+e(x.desc[0].q); }
 function comisQ(k,q){
   let n=0;
   for(const c in S){const t=S[c];
     if(t.sold&&t.vendedor===k&&enQuincena(t.date,q)) n++}
   return n;
 }
-function vehQ(q){ return (q in QV)?QV[q]:VEH_DEF; }
+/* ---------- Deudas de Víctor y Bryan (01/10/2026) ----------
+   DEU=[{id,k,nom,cuota,desde:q,mov:[{ts,f,m,t:'cargo'|'abono',nota}],desc:{q:m}}]. Cada quincena se descuenta la cuota
+   (o lo que Andre ponga para esa quincena), sin pasar del saldo. El vehículo de Víctor es la deuda 'veh_victor' y su
+   descuento por quincena sigue guardándose en QV (el campo de siempre). Se sincroniza entre aparatos (amk_deudas). */
+const deuBase=d=>(d.mov||[]).reduce((a,x)=>a+(x.t==='cargo'?1:-1)*(+x.m||0),0);
+const deuOv=(d,q)=>d.id==='veh_victor'?((q in QV)?QV[q]:undefined):((d.desc&&(q in d.desc))?d.desc[q]:undefined);
+function deuWalk(d,hasta){ let rest=deuBase(d), q=d.desde||quincenaActual(); const out={}; let i=0;
+  while(q<=hasta&&i<240){ const ov=deuOv(d,q); const m=Math.max(0,Math.min(ov!==undefined?+ov:(+d.cuota||0),rest)); out[q]=m; rest-=m; q=quincenaSig(q); i++; }
+  return out; }
+const descQ=(d,q)=>(!d||q<(d.desde||'9'))?0:(deuWalk(d,q)[q]||0);
+/* saldo hoy: descuenta las quincenas ya pasadas o ya pagadas */
+function deuSaldo(d){ const qa=quincenaActual(), w=deuWalk(d,quincenaSig(qa)); let s=deuBase(d);
+  for(const q in w){ if(q<qa||pagoQ(d.k,q)) s-=w[q]; } return Math.max(0,s); }
+const deuVeh=()=>DEU.find(x=>x.id==='veh_victor');
+function deudasQ(k,q){ return DEU.filter(d=>d.k===k&&d.id!=='veh_victor').reduce((a,d)=>a+descQ(d,q),0); }
+async function guardaDeu(){ try{ await window.storage.set('amk_deudas',JSON.stringify(DEU)); }catch(e){ toast('No se pudo guardar'); } }
+function vehQ(q){ const d=deuVeh(); if(d) return descQ(d,q); return (q in QV)?QV[q]:VEH_DEF; }
 function baseQ(k){ return Math.round((FJ[k]||0)/2); }
 /* Pagos de quincena (30/09/2026): Andre marca "Pagar" y Víctor/Bryan lo ven en su app. Viaja en sueldosVend/{k}.pagos
    {[q]:{f,m,ts}} o {del:true,ts}; al subir se mezcla con lo que haya en la nube (gana el más reciente), así ningún aparato borra lo de otro. */
@@ -4042,7 +4102,7 @@ function netoQuincena(k,q){
   let n=baseQ(k);
   if(k==='victor'){ n-=COMIDA_VICTOR; n-=vehQ(q); }
   if(k==='bryan'){ n+=comisQ('bryan',q)*COMB; }
-  n-=adelQ(k,q);
+  n-=adelQ(k,q); n-=deudasQ(k,q);
   return n;
 }
 function sqQuincena(){ return sqSel==='cur'?quincenaActual():quincenaAnterior(quincenaActual()); }
@@ -4064,13 +4124,15 @@ function pintaSueldos(){
     if(veh) det.push('− '+clp(veh)+' vehículo');
     if(com) det.push('+ '+clp(com)+' por '+nv+' venta'+(nv===1?'':'s'));
     if(ad) det.push('− '+clp(ad)+' adelantos');
+    { const pr=deudasQ(k,q); if(pr) det.push('− '+clp(pr)+' préstamo'); }
     return `<div class="xrow" style="align-items:flex-start"><span style="font-family:var(--body);font-weight:600">${nomPersona(k)}
       <br><span style="font-weight:400;color:var(--mute);font-size:12px">Base ${clp(base)}${det.length?' · '+det.join(' · '):''}</span></span>
       <span style="text-align:right"><b>${clp(neto)}</b><br>${pagoQ(k,q)
-        ?`<span style="color:var(--green);font-size:12.5px;font-weight:700">✓ Pagado ${fd(pagoQ(k,q).f).slice(0,5)}${pagoQ(k,q).m!==neto?' · '+clp(pagoQ(k,q).m):''}</span> <button class="b-und" data-sqdes="${k}" style="font-size:12px">Deshacer</button>`
+        ?`<span style="color:var(--green);font-size:12.5px;font-weight:700">✓ Pagado ${fd(pagoQ(k,q).f).slice(0,5)}${pagoQ(k,q).m!==neto?' · '+clp(pagoQ(k,q).m)+(pagoQ(k,q).m>neto?' (+'+clp(pagoQ(k,q).m-neto)+' extra)':' (−'+clp(neto-pagoQ(k,q).m)+')'):''}</span> <button class="b-und" data-sqdes="${k}" style="font-size:12px">Deshacer</button>`
         :`<button class="btn b-pri" data-sqpag="${k}" style="padding:6px 12px;margin-top:4px">Pagar</button>`}</span></div>`;
   }).join('');
   const vEl=$('#sqVeh'); if(vEl && document.activeElement!==vEl) vEl.value=clp(vehQ(q));
+  try{ pintaDeu(); }catch(e){ console.error('pintaDeu',e); }
 }
 let sueldosSyncTimer=null;
 function fbSyncSueldosPronto(){
@@ -4093,10 +4155,12 @@ function datosSueldoPersona(k){
       ventas:(k==='bryan')?comisQ('bryan',q):0,
       comision:(k==='bryan')?comisQ('bryan',q)*COMB:0,
       adelantos:adelQ(k,q),
+      prestamos:deudasQ(k,q),
       neto:netoQuincena(k,q),
       pagado:pagoQ(k,q)||null
     })),
     pagos:PAGOSQ[k]||{},
+    deudas:DEU.filter(d=>d.k===k).map(d=>({nom:d.nom,saldo:deuSaldo(d),cuota:+d.cuota||0,estaQ:descQ(d,quincenaActual())})),
     actualizado:Date.now()
   };
 }
@@ -4109,8 +4173,10 @@ async function fbSyncSueldos(){
     }
   }catch(e){ console.error('fbSyncSueldos', e); }
 }
+const pagoFijo=(k,mes)=>PF.filter(x=>x.tipo==='fijo'&&x.k===k&&x.per===mes).sort((a,b)=>b.ts-a.ts)[0]||null;
+async function guardaPF(){ try{ await window.storage.set('amk_pagosf',JSON.stringify(PF)); }catch(e){ toast('No se pudo guardar'); } }
 function pintaFJ(){
-  const ks=Object.keys(FJ);
+  const ks=Object.keys(FJ), m0=mesActual();
   const totCL=ks.reduce((a,k)=>a+(FJ[k]||0),0);
   const totKR=krwEnClp();
   const tot=totCL+Math.round(totKR);
@@ -4129,7 +4195,9 @@ function pintaFJ(){
       ${com?`<br><span style="font-weight:400;color:var(--green);font-size:12px">+ ${clp(com)} por ${nv} venta${nv===1?'':'s'}</span>`:''}
       ${ad?`<br><span style="font-weight:400;color:var(--amber);font-size:12px">− ${clp(ad)} en adelantos</span>`:''}
       ${(com||ad)?`<br><span style="font-weight:400;font-size:12px">Queda por pagar ${clp(neto)}</span>`:''}</span>
-      <span>${clp(FJ[k]||0)}</span></div>`}).join(''):'')
+      <span style="text-align:right">${clp(FJ[k]||0)}${(k==='victor'||k==='bryan')?'':(()=>{ const pg=pagoFijo(k,m0);
+        return pg?`<br><span style="color:var(--green);font-size:12px;font-weight:700">✓ Pagado ${fd(pg.f).slice(0,5)}${pg.m!==(FJ[k]||0)?' · '+clp(pg.m):''}</span> <button class="b-und" data-pfdes="${pg.ts}" style="font-size:12px">Deshacer</button>`
+          :(FJ[k]?`<br><button class="btn b-sec" data-pfpag="${k}" style="padding:5px 11px;margin-top:3px">Pagar</button>`:''); })()}</span></div>`}).join(''):'')
     +`<div class="xrow" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
       <span style="font-family:var(--body);font-weight:700">Total mensual</span><span style="font-weight:700">${clp(tot)}</span></div>`
     +(function(){
@@ -4138,12 +4206,13 @@ function pintaFJ(){
         <span style="color:var(--mute)">${n?clp(Math.round(tot/n)):'—'}</span></div>`;
     })();
   const m=mesActual();
-  const L=AD.filter(x=>(x.f||'').slice(0,7)===m).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const qHoy=quincenaActual();
+  const L=AD.filter(x=>(x.f||'').slice(0,7)===m||(Array.isArray(x.desc)&&x.desc.some(d=>d.q>=qHoy))).sort((a,b)=>(b.ts||0)-(a.ts||0));
   $('#adList').innerHTML=L.length?L.map(x=>`<div class="xrow">
-      <span style="font-family:var(--body)">${nomPersona(x.q)} · ${fd(x.f)}${x.nota?'<br><span style="color:var(--mute);font-size:12px">'+x.nota.replace(/</g,'&lt;')+'</span>':''}</span>
+      <span style="font-family:var(--body)">${nomPersona(x.q)} · ${fd(x.f)}${x.nota?'<br><span style="color:var(--mute);font-size:12px">'+x.nota.replace(/</g,'&lt;')+'</span>':''}${descTexto(x)?'<br><span style="color:var(--amber);font-size:12px">'+descTexto(x)+'</span>':''}</span>
       <span>${clp(x.m)}<button class="b-und" style="margin-left:8px;padding:4px 8px" data-addel="${x.ts}">✕</button></span></div>`).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos este mes.</p>';
-  pintaSueldos();
+  pintaSueldos(); try{pintaHist()}catch(_){}
 }
 $('#sqSegs').addEventListener('click',e=>{
   const b=e.target.closest('[data-sq]'); if(!b) return;
@@ -4154,14 +4223,105 @@ $('#sqSegs').addEventListener('click',e=>{
 document.addEventListener('click',async e=>{
   const pg=e.target.closest('[data-sqpag]'), ds=e.target.closest('[data-sqdes]'); if(!pg&&!ds) return;
   const k=(pg||ds).dataset[pg?'sqpag':'sqdes'], q=sqQuincena(); PAGOSQ[k]=PAGOSQ[k]||{};
-  if(pg){ const neto=netoQuincena(k,q);
+  if(pg){ clearTimeout(sqVehT); if(!deuVeh()) sqVehAplica(); if(deuPend){ clearTimeout(deuTimer); await deuPend(); } guardaQV(); pintaSueldos(); const neto=netoQuincena(k,q);
     const r=await pedirDato({t:'Pagar quincena · '+nomPersona(k),s:etiquetaQuincena(q)+' · neto '+clp(neto),l:'Monto pagado hoy',modo:'clp',ok:'Marcar pagado',v:clp(neto)});
     if(r===null||r===undefined) return; const m=pnum(r)||neto;
     PAGOSQ[k][q]={f:iso(),m,ts:Date.now()}; toast(nomPersona(k)+': pagado '+clp(m)+' · se le avisa en su app'); }
   else { if(!confirm('¿Deshacer el pago de '+nomPersona(k)+'?')) return; PAGOSQ[k][q]={del:true,ts:Date.now()}; }
-  guardaPagosQ(); fbSyncSueldosPronto();
+  guardaPagosQ(); fbSyncSueldosPronto(); pintaHist();
 });
-$('#sqVeh').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
+/* Pago de costos fijos del mes (arriendo, contador, otros) */
+document.addEventListener('click',async e=>{
+  const pg=e.target.closest('[data-pfpag]'), ds=e.target.closest('[data-pfdes]'); if(!pg&&!ds) return;
+  if(pg){ const k=pg.dataset.pfpag, mes=mesActual();
+    const r=await pedirDato({t:'Pagar · '+nombreFJ(k),s:'Mes '+mes.slice(5,7)+'/'+mes.slice(0,4),l:'Monto pagado hoy',modo:'clp',ok:'Marcar pagado',v:clp(FJ[k]||0)});
+    if(r===null||r===undefined) return; const m=pnum(r)||FJ[k]||0;
+    PF.push({ts:Date.now(),tipo:'fijo',k,nom:nombreFJ(k),per:mes,m,f:iso()}); toast(nombreFJ(k)+': pagado '+clp(m)); }
+  else { if(!confirm('¿Deshacer este pago?')) return; PF=PF.filter(x=>String(x.ts)!==ds.dataset.pfdes); }
+  await guardaPF(); pintaFJ();
+});
+function pintaDeu(){
+  const el=$('#deuList'); if(!el) return; const q=sqQuincena(), qa=quincenaActual();
+  if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#deuList [data-deudesc]')) return;  /* no rehacer mientras se escribe */
+  const vr=$('#sqVeh')&&$('#sqVeh').closest('.xrow'); if(vr) vr.hidden=!!deuVeh();
+  const ps=['victor','bryan'];
+  el.innerHTML=ps.map(k=>{ const L=DEU.filter(d=>d.k===k);
+    const tot=L.reduce((a,d)=>a+deuSaldo(d),0);
+    return `<div style="margin-bottom:12px"><div class="xrow" style="font-weight:700;border-bottom:1px solid var(--line)"><span>${nomPersona(k)}</span><span>${tot?'debe '+clp(tot):'no debe nada'}</span></div>`
+      +(k==='victor'&&!deuVeh()?`<div class="note" style="margin:6px 0">El vehículo de Víctor todavía no tiene saldo anotado (se descuenta igual ${clp(vehQ(q))} por quincena). <button class="b-und" data-deuveh="1">Anotar saldo del vehículo</button></div>`:'')
+      +L.map(d=>{ const sal=deuSaldo(d), dq=descQ(d,q), pag=!!pagoQ(k,q)||q<qa, des=Math.max(0,sal-(pag?0:dq));
+        const movs=(d.mov||[]).slice().sort((a,b)=>String(b.f).localeCompare(String(a.f)));
+        return `<div style="padding:8px 0;border-bottom:1px dashed var(--line)">
+          <div class="xrow"><span style="font-family:var(--body);font-weight:600">${String(d.nom).replace(/</g,'&lt;')}<br><span style="font-weight:400;color:var(--mute);font-size:12px">Normal ${clp(d.cuota||0)} por quincena${!pag&&dq?' · después de esta quincena queda '+clp(des):''}</span></span><span style="font-weight:700">${clp(sal)}</span></div>
+          <div class="xrow" style="align-items:center"><span style="font-size:12.5px">Descuento ${etiquetaQuincena(q)}${pag?' (ya pagada)':''}</span>
+            <span><input data-deudesc="${d.id}" inputmode="numeric" value="${clp(dq)}" ${pag?'disabled':''} style="width:110px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
+          <div class="acts" style="margin-top:6px;flex-wrap:wrap"><button class="btn b-sec" data-deucargo="${d.id}" style="padding:7px 10px">＋ Prestar más</button><button class="btn b-sec" data-deuabono="${d.id}" style="padding:7px 10px">Abono directo</button><button class="btn b-sec" data-deucuota="${d.id}" style="padding:7px 10px">Cuota normal</button></div>
+          <details style="margin-top:6px"><summary style="font-size:12.5px;color:var(--mute);cursor:pointer">Movimientos (${movs.length})</summary>
+            ${movs.map(x=>`<div class="xrow"><span style="font-size:12.5px">${fd(x.f)} · ${x.t==='cargo'?'Préstamo / saldo':'Abono directo'}${x.nota?' · '+String(x.nota).replace(/</g,'&lt;'):''}</span><span style="font-size:12.5px">${x.t==='cargo'?'+':'−'}${clp(x.m)} <button class="b-und" data-deumovdel="${d.id}|${x.ts}" style="font-size:11px">✕</button></span></div>`).join('')}
+            <div style="font-size:12px;color:var(--mute);margin-top:4px">Los descuentos de cada quincena se restan solos.</div>
+            <button class="b-und" data-deudel="${d.id}" style="font-size:12px;margin-top:6px">Eliminar esta deuda</button></details></div>`; }).join('')
+      +'</div>'; }).join('');
+}
+let deuQ='victor', deuDd='act', deuTimer=null, deuPend=null;
+$('#deuAdd').addEventListener('click',()=>{ deuQ='victor'; deuDd='act';
+  $('#deuQuien').innerHTML=['victor','bryan'].map(k=>`<button class="cg" data-deuq="${k}" aria-pressed="${k===deuQ}">${nomPersona(k)}</button>`).join('');
+  $('#deuNom').value=''; $('#deuM').value=''; $('#deuC').value=''; $$('#deuDesde [data-dd]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dd==='act')));
+  openSheet('shDeu'); });
+$('#deuQuien').addEventListener('click',e=>{ const b=e.target.closest('[data-deuq]'); if(!b) return; deuQ=b.dataset.deuq; $$('#deuQuien [data-deuq]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
+$('#deuDesde').addEventListener('click',e=>{ const b=e.target.closest('[data-dd]'); if(!b) return; deuDd=b.dataset.dd; $$('#deuDesde [data-dd]').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); });
+$('#deuOk').addEventListener('click',async()=>{ const nom=$('#deuNom').value.trim()||'Préstamo', m=pnum($('#deuM').value)||0, c=pnum($('#deuC').value)||0;
+  if(!m){toast('Falta el saldo');return}
+  const esVeh=deuQ==='victor'&&/veh|auto|camioneta|cr[eé]dito/i.test(nom)&&!deuVeh();
+  const qa=quincenaActual(), desde=deuDd==='act'?qa:quincenaSig(qa);
+  DEU.push({id:esVeh?'veh_victor':('d_'+Date.now()),k:deuQ,nom,cuota:c||(esVeh?VEH_DEF:Math.min(m,50000)),desde,mov:[{ts:Date.now(),f:iso(),m,t:'cargo',nota:'Saldo inicial'}],desc:{}});
+  await guardaDeu(); closeAll(); pintaFJ(); fbSyncSueldosPronto(); toast(nomPersona(deuQ)+' debe '+clp(m)); });
+document.addEventListener('click',async e=>{
+  const vv=e.target.closest('[data-deuveh]'); if(vv){ $('#deuAdd').click(); $('#deuNom').value='Vehículo a crédito'; $('#deuC').value=clp(VEH_DEF);
+    $$('#deuDesde [data-dd]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.dd==='act'))); return; }
+  const b=e.target.closest('[data-deucargo],[data-deuabono],[data-deucuota],[data-deudel],[data-deumovdel]'); if(!b) return;
+  const id=(b.dataset.deucargo||b.dataset.deuabono||b.dataset.deucuota||b.dataset.deudel||(b.dataset.deumovdel||'').split('|')[0]);
+  const d=DEU.find(x=>x.id===id); if(!d) return;
+  if(b.dataset.deucargo||b.dataset.deuabono){ const cargo=!!b.dataset.deucargo;
+    const r=await pedirDato({t:(cargo?'Prestar más a ':'Abono directo de ')+nomPersona(d.k),s:d.nom+' · debe '+clp(deuSaldo(d)),l:cargo?'Monto que le pasas':'Monto que te devolvió (fuera del sueldo)',modo:'clp',ok:'Guardar'});
+    const m=pnum(r||''); if(!m) return; const nota=cargo?(await pedirDato({t:'¿Para qué? (opcional)',l:'Nota',ok:'Listo'})||''):'';
+    d.mov=(d.mov||[]).concat([{ts:Date.now(),f:iso(),m,t:cargo?'cargo':'abono',nota:String(nota).trim()}]); toast((cargo?'Préstamo':'Abono')+' anotado · debe '+clp(deuSaldo(d))); }
+  else if(b.dataset.deucuota){ const r=await pedirDato({t:'Descuento normal por quincena',s:d.nom+' · '+nomPersona(d.k),l:'Monto',modo:'clp',ok:'Guardar',v:clp(d.cuota||0)}); if(r===null||r===undefined) return; d.cuota=pnum(r)||0; }
+  else if(b.dataset.deudel){ if(!confirm('¿Eliminar "'+d.nom+'" de '+nomPersona(d.k)+'? Se borra su historial.')) return; DEU=DEU.filter(x=>x!==d); }
+  else { const ts=(b.dataset.deumovdel||'').split('|')[1]; if(!confirm('¿Quitar este movimiento?')) return; d.mov=(d.mov||[]).filter(x=>String(x.ts)!==ts); }
+  await guardaDeu(); pintaFJ(); fbSyncSueldosPronto();
+});
+document.addEventListener('input',e=>{ const i=e.target.closest&&e.target.closest('[data-deudesc]'); if(!i) return;
+  const n=pnum(i.value); fmtVivo(i,()=>n===''?'':clp(n));
+  clearTimeout(deuTimer); deuPend=async()=>{ deuPend=null; const d=DEU.find(x=>x.id===i.dataset.deudesc); if(!d) return; const q=sqQuincena(), v=pnum(i.value)||0;
+    if(d.id==='veh_victor'){ if(v===(+d.cuota||0)) delete QV[q]; else QV[q]=v; await guardaQV(); }
+    else { d.desc=d.desc||{}; if(v===(+d.cuota||0)) delete d.desc[q]; else d.desc[q]=v; await guardaDeu(); }
+    pintaSueldos(); fbSyncSueldosPronto(); }; deuTimer=setTimeout(deuPend,450); });
+document.addEventListener('change',e=>{ if(e.target.closest&&e.target.closest('#deuList [data-deudesc]')) setTimeout(()=>{ try{pintaDeu()}catch(_){} },500); });
+/* Historial de pagos: sueldos (quincenas), adelantos y costos fijos, por mes. */
+let histF='todos', histN=3;
+function pintaHist(){
+  const el=$('#histList'); if(!el) return;
+  const L=[];
+  for(const k of ['victor','bryan']) for(const q in (PAGOSQ[k]||{})){ const x=PAGOSQ[k][q]; if(x&&!x.del) L.push({t:'sueldo',f:x.f,m:x.m,txt:'Sueldo '+nomPersona(k),sub:etiquetaQuincena(q)}); }
+  AD.forEach(x=>L.push({t:'adelanto',f:x.f,m:x.m,txt:'Adelanto '+nomPersona(x.q),sub:[x.nota,descTexto(x)].filter(Boolean).join(' · ')}));
+  DEU.forEach(d=>(d.mov||[]).forEach(x=>{ if(x.nota==='Saldo inicial') return; L.push({t:'adelanto',f:x.f,m:x.m,txt:(x.t==='cargo'?'Préstamo a ':'Abono de ')+nomPersona(d.k),sub:[d.nom,x.nota].filter(Boolean).join(' · ')}); }));
+  PF.forEach(x=>L.push({t:'fijo',f:x.f,m:x.m,txt:x.nom||nombreFJ(x.k),sub:'Mes '+String(x.per||'').slice(5,7)+'/'+String(x.per||'').slice(0,4)}));
+  const F=L.filter(x=>histF==='todos'||x.t===histF).sort((a,b)=>String(b.f).localeCompare(String(a.f)));
+  const meses=[...new Set(F.map(x=>String(x.f).slice(0,7)))];
+  const col={sueldo:'var(--azul)',adelanto:'var(--amber)',fijo:'var(--ink2)'};
+  el.innerHTML=meses.length?meses.slice(0,histN).map(mm=>{ const X=F.filter(x=>String(x.f).slice(0,7)===mm), tot=X.reduce((a,x)=>a+(+x.m||0),0);
+      return `<div style="margin-bottom:10px"><div class="xrow" style="font-weight:700;border-bottom:1px solid var(--line)"><span>${['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][+mm.slice(5,7)]} ${mm.slice(0,4)}</span><span>${clp(tot)}</span></div>`
+        +X.map(x=>`<div class="xrow"><span style="font-family:var(--body)"><span style="color:${col[x.t]}">●</span> ${x.txt}<br><span style="color:var(--mute);font-size:12px">${fd(x.f)}${x.sub?' · '+String(x.sub).replace(/</g,'&lt;'):''}</span></span><span>${clp(x.m)}</span></div>`).join('')+'</div>'; }).join('')
+      +(meses.length>histN?`<button class="b-und" id="histMas" style="width:100%">Ver meses anteriores</button>`:'')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:0">Todavía no hay pagos registrados.</p>';
+}
+document.addEventListener('click',e=>{ const c=e.target.closest('#histChips [data-hf]'); if(c){ histF=c.dataset.hf; $$('#histChips [data-hf]').forEach(b=>b.setAttribute('aria-pressed',String(b===c))); pintaHist(); return; }
+  if(e.target.closest('#histMas')){ histN+=6; pintaHist(); } });
+let sqVehT=null;
+function sqVehAplica(){ const q=sqQuincena(), raw=$('#sqVeh').value.trim(), n=pnum(raw); if(raw===''||n===VEH_DEF) delete QV[q]; else QV[q]=(n||0); }
+$('#sqVeh').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n));
+  /* 01/10: se recalcula al escribir (antes solo al salir del campo, y "Pagar" mostraba todavía $350.000) */
+  clearTimeout(sqVehT); sqVehT=setTimeout(async()=>{ sqVehAplica(); pintaSueldos(); await guardaQV(); fbSyncSueldosPronto(); },350);});
 $('#sqVeh').addEventListener('change',async()=>{
   const q=sqQuincena();
   const raw=$('#sqVeh').value.trim();
@@ -4296,16 +4456,30 @@ $('#adAdd').addEventListener('click',()=>{
   adQ=personas()[0];
   $('#adQuien').innerHTML=personas().map(k=>`<button class="cg" data-adq="${k}" aria-pressed="${k===adQ}">${nomPersona(k)}</button>`).join('');
   $('#adM').value=''; $('#adN').value=''; $('#adD').value=iso();
-  openSheet('shAdel'); setTimeout(()=>$('#adM').focus(),240);
+  adCuando='esta'; try{adCuandoPinta()}catch(_){} openSheet('shAdel'); setTimeout(()=>$('#adM').focus(),240);
 });
 $('#adQuien').addEventListener('click',e=>{const b=e.target.closest('[data-adq]');if(!b)return;
   adQ=b.dataset.adq; $$('#adQuien .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.adq===adQ?'true':'false'))});
 $('#adM').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
+function adCuandoPinta(){ $$('#adCuando [data-adc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.adc===adCuando))); $('#adCuotasW').hidden=adCuando!=='prest';
+  const q0=quincenaId($('#adD').value||iso());
+  $('#adCuandoTxt').textContent=adCuando==='esta'?'Se descuenta en '+etiquetaQuincena(q0):adCuando==='prox'?'Se descuenta en '+etiquetaQuincena(quincenaSig(q0)):'Se suma a lo que debe y se descuenta de a poco desde '+etiquetaQuincena(quincenaSig(q0)); }
+$('#adCuando').addEventListener('click',e=>{ const b=e.target.closest('[data-adc]'); if(!b) return; adCuando=b.dataset.adc; adCuandoPinta(); });
+['adD'].forEach(id=>$('#'+id).addEventListener('input',()=>adCuandoPinta()));
 $('#adOk').addEventListener('click',async()=>{
   const m=pnum($('#adM').value)||0;
   if(!m){toast('Ingresa el monto');return}
   const avTsAdel=avisoAdelantoActivo;
-  AD.push({ts:Date.now(),q:adQ,m,f:$('#adD').value||iso(),nota:$('#adN').value.trim()});
+  const fAd=$('#adD').value||iso(), it={ts:Date.now(),q:adQ,m,f:fAd,nota:$('#adN').value.trim()};
+  if(adCuando==='prest'){ const k=adQ, cuota=pnum($('#adCuotas').value)||0; let d=DEU.find(x=>x.id==='prest_'+k);
+    if(!d){ d={id:'prest_'+k,k,nom:'Préstamos',cuota:cuota||Math.min(m,50000),desde:quincenaSig(quincenaId(fAd)),mov:[],desc:{}}; DEU.push(d); }
+    else if(cuota) d.cuota=cuota;
+    d.mov=(d.mov||[]).concat([{ts:Date.now(),f:fAd,m,t:'cargo',nota:it.nota}]);
+    await guardaDeu(); closeAll(); adCuando='esta'; pintaFJ(); fbSyncSueldosPronto();
+    if(avisoAdelantoActivo) marcarAvisoAtendido(avisoAdelantoActivo);
+    toast('Préstamo anotado · debe '+clp(deuSaldo(d))); return; }
+  if(adCuando==='prox') it.desc=[{q:quincenaSig(quincenaId(fAd)),m}];
+  AD.push(it); adCuando='esta';
   try{await window.storage.set('amk_adelantos',JSON.stringify(AD))}catch(e){toast('No se pudo guardar');return}
   pintaFJ(); closeAll();
   fbSyncSueldosPronto();
@@ -5170,7 +5344,7 @@ function abrirAvisoAdelanto(av){
   $('#adM').value = av.monto?clp(av.monto):'';
   $('#adD').value = av.fecha||iso();
   $('#adN').value = av.nota||'';
-  openSheet('shAdel'); setTimeout(()=>$('#adM').focus(),240);
+  adCuando='esta'; try{adCuandoPinta()}catch(_){} openSheet('shAdel'); setTimeout(()=>$('#adM').focus(),240);
   avisoAdelantoActivo=av.ts;
 }
 /* ---------- Aviso grande arriba: cosas por confirmar entre Sistema, Corea y Vendedores.

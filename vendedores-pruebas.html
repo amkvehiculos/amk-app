@@ -608,19 +608,23 @@ function pintaSueldo(){
     return;
   }
   const qs=SUELDO.quincenas.slice().reverse();
+  const deu=(SUELDO.deudas||[]).filter(d=>d.saldo>0);
+  const deuHtml=deu.length?`<div style="margin-top:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px"><div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Lo que debes hoy: ${clp(deu.reduce((a,d)=>a+d.saldo,0))}</div>`
+    +deu.map(d=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${String(d.nom).replace(/</g,'&lt;')}${d.estaQ?' <span style="color:var(--mute);font-size:12px">(esta quincena −'+clp(d.estaQ)+')</span>':''}</span><b>${clp(d.saldo)}</b></div>`).join('')+'</div>':'';
   el.innerHTML=qs.map((x,i)=>{
     const det=[];
     if(x.comida) det.push('− '+clp(x.comida)+' comida');
     if(x.vehiculo) det.push('− '+clp(x.vehiculo)+' vehículo');
     if(x.comision) det.push('+ '+clp(x.comision)+' por '+x.ventas+' venta'+(x.ventas===1?'':'s'));
     if(x.adelantos) det.push('− '+clp(x.adelantos)+' adelantos');
+    if(x.prestamos) det.push('− '+clp(x.prestamos)+' préstamo');
     return `<div style="padding:7px 0;${i===0?'border-bottom:1px dashed var(--line)':''}">
       <div style="display:flex;justify-content:space-between;align-items:baseline">
         <span style="font-family:var(--body);font-weight:600">${i===0?'Esta quincena':'Quincena anterior'}</span>
         <span style="font-weight:700">${clp(x.neto)}</span></div>
       <div style="color:var(--mute);font-size:12px">${x.etiqueta||''}${det.length?' · '+det.join(' · '):''}</div>
       <div style="font-size:12.5px;font-weight:700;margin-top:3px;color:${x.pagado?'var(--green)':'var(--ink2)'}">${x.pagado?'✓ Pagado el '+String(x.pagado.f||'').slice(8,10)+'/'+String(x.pagado.f||'').slice(5,7)+(x.pagado.m&&x.pagado.m!==x.neto?' · '+clp(x.pagado.m):''):'Por pagar'}</div></div>`;
-  }).join('');
+  }).join('')+deuHtml;
 }
 /* ---------- Avisos a Andre (ventas y adelantos), en vivo ----------
    Reemplaza el aviso que antes solo llegaba por WhatsApp: al avisar una venta o un
