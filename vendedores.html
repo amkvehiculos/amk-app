@@ -520,8 +520,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta','carga'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='sueldosVend';
@@ -1584,6 +1584,7 @@ function draw(){
     <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${cp}"></span>${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
+   ${v.carga&&v.st==='ORIGEN'?`<div class="minbox" style="background:#B4321C;border-color:#B4321C;color:#fff">📦 Trae accesorios dentro: ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
    ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
    ${!v.pventa?'<div class="sinprecio">Sin precio todavía · consulta a André antes de dar un valor</div>':''}
@@ -1850,11 +1851,9 @@ $('#soOk').addEventListener('click',async()=>{
  outEncola({col:AVISOSVEND_COL, doc:String(ts), unico:true, lbl:'venta', ref:{t:'venta',ts},
    data:{tipo:'venta', ch, precio, vendedor:(ST.vend||'').trim(), ts, atendido:false}});
  pintaVT();
- const txt=`Venta ${ST.vend?'('+ST.vend+')':''}\n${v.ma} ${v.mo} ${v.an||''}\nChasis: ${ch}\nPrecio: ${clp(precio)||'por confirmar'}\nFecha: ${new Date().toLocaleDateString('es-CL')}`;
- closeAll();   /* la venta ya quedó anotada: cerrar antes de compartir evita que un segundo toque la duplique */
- try{if(navigator.share){await navigator.share({text:txt,title:'Venta AMK'});toast('Aviso enviado');return}}
- catch(e){if(e&&e.name==='AbortError'){toast('Venta anotada · falta avisar por WhatsApp');return}}
- cp(txt,'Aviso copiado · pégalo en WhatsApp')});
+ closeAll();
+ /* 01/10/2026 (Andre): ya no se abre WhatsApp: el aviso le llega a Andre directo en Sistema. */
+ toast(msgEnvio('Venta avisada · le llega a Andre en Sistema'))});
 $('#q').addEventListener('input',e=>{q=e.target.value;draw()});
 $('#qc').addEventListener('input',e=>{qc=e.target.value;drawPick()});
 $('#genVar').addEventListener('click',()=>{gvar++;drawGen()});
@@ -1918,10 +1917,8 @@ $('#avOk').addEventListener('click',async()=>{
   outEncola({col:AVISOSVEND_COL, doc:String(ts), unico:true, lbl:'adelanto', ref:{t:'adel',ts},
     data:{tipo:'adelanto', monto:m, fecha:f, nota, vendedor:(ST.vend||'').trim(), ts, atendido:false}});
   pintaAV();
-  const txt=`Adelanto recibido\n\n${ST.vend||'Vendedor'}\n${clp(m)} el ${fd(f)}`+(nota?`\n${nota}`:'');
-  try{ if(navigator.share){await navigator.share({text:txt,title:'Adelanto AMK'});return} }
-  catch(e){ if(e&&e.name==='AbortError'){ toast('Adelanto anotado · falta avisar por WhatsApp'); return } }
-  cp(txt,'Copiado · mándalo al administrador');
+  /* 01/10/2026 (Andre): ya no se abre WhatsApp: el aviso le llega a Andre directo en Sistema. */
+  closeAll(); toast(msgEnvio('Adelanto avisado · le llega a Andre en Sistema'));
 });
 const CBTASA=23.57;
 const CBFIJOS=[['Patente',90000],['Revisión técnica',24000],['Seguro obligatorio',14000],

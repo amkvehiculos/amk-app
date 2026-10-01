@@ -591,7 +591,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 21:49<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 22:22<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -859,10 +859,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div id="rmTot" style="border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-weight:600;font-size:16px;background:var(--seaL);color:var(--ink)">—</div></div>
       </div>
       <button class="btn b-pri" id="rmAdd" style="width:100%">Registrar envío</button>
-      <div class="fld" style="margin:12px 0 8px"><div class="mtr" style="margin:0 0 4px">Confirmación de Corea</div>
+      <div class="fld" hidden style="margin:12px 0 8px"><div class="mtr" style="margin:0 0 4px">Confirmación de Corea</div>
         <textarea id="rmRx" rows="3" placeholder="Pega aquí el código que te envía tu mamá"
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
-      <button class="btn b-sec" id="rmRxBtn" style="width:100%">Cargar confirmación</button>
+      <button class="btn b-sec" id="rmRxBtn" hidden style="width:100%">Cargar confirmación</button>
       <div id="rmList" style="margin-top:12px"></div></div>
     </div>
     <div id="ngTraspaso" hidden>
@@ -908,14 +908,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div class="fld"><label for="nvMin">Valor mínimo (opcional)</label><input id="nvMin" inputmode="numeric" placeholder="$0"></div>
       </div>
       <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></div>
-    <div class="box"><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
+    <!-- 01/10/2026: respaldos por código/WhatsApp de antes de la sincronización automática: ocultos (código conservado) -->
+    <div class="box" hidden><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
       <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
       <button class="btn b-pri" id="rxBtn" style="width:100%">Cargar vehículos</button></div>
-    <div class="box"><h3>Todo → Excel</h3><p>Una fila por vehículo con sus costos y su venta, en el orden de tus columnas. Se pega de una sola vez en BASE DE DATOS.</p>
+    <div class="box" hidden><h3>Todo → Excel</h3><p>Una fila por vehículo con sus costos y su venta, en el orden de tus columnas. Se pega de una sola vez en BASE DE DATOS.</p>
       <button class="btn b-sec" id="eAll" style="width:100%">Copiar para Excel</button></div>
-    <div class="box"><h3>Catálogo → Web</h3><p>Los vehículos publicados. <b>No incluye el precio mínimo.</b></p>
+    <div class="box" hidden><h3>Catálogo → Web</h3><p>Los vehículos publicados. <b>No incluye el precio mínimo.</b></p>
       <button class="btn b-sec" id="eWeb" style="width:100%">Copiar para la web</button></div>
-    <div class="box"><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
+    <div class="box" hidden><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
       <button class="btn b-sec" id="eVend" style="width:100%">Copiar para el equipo</button></div>
     <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de la venta, la app deja automáticamente 3 fotos por vehículo -- las tuyas, las de Víctor/Bryan/Corea y las vistas 360° de todos. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.</p>
       <button class="btn b-sec" id="eFree" style="width:100%">Podar ahora</button></div>
@@ -924,6 +925,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-pri" id="eBakXlsx" style="width:100%;margin-top:8px">⇩ Descargar respaldo en Excel</button>
       <button class="btn b-pri" id="eBakJson" style="width:100%;margin-top:8px">⇩ Respaldo completo (archivo JSON)</button>
       <div class="mtr" style="margin-top:8px">El respaldo completo incluye TODO lo guardado en este dispositivo, fotos incluidas. Es el que sirve para restaurar si algo sale mal. Guárdalo antes de cualquier cambio grande.</div>
+      <button class="btn b-sec" id="bakAutoBtn" type="button" aria-pressed="false" style="width:100%;margin-top:10px">Respaldo automático diario</button>
+      <div id="bakAutoTxt" class="mtr" style="margin-top:4px"></div>
       <div id="bakEstado" class="mtr" style="margin-top:6px"></div></div>
     </div>
   </section>
@@ -1425,6 +1428,12 @@ const fd=s=>s?s.split('-').reverse().join('/'):'';
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
 /* Reformatea el.value en vivo (mientras se escribe) sin que el cursor salte al final -- ver
    patch32.py. fn recibe el valor VIEJO (string) y devuelve el valor nuevo ya formateado. */
+/* REGLA (Andre, 01/10/2026): todo campo de dinero se ve con puntos de miles mientras se escribe y se corrige en cualquier
+   parte sin que el cursor salte al final. Respaldo general para los campos de plata ($ o ₩) que no tengan su propio formato. */
+document.addEventListener('input',e=>{ const el=e.target; if(!el||el.tagName!=='INPUT') return;
+  const ph=el.getAttribute('placeholder')||''; if(!(el.dataset.dinero||/^\s*(\$|₩)/.test(ph))) return;
+  const pre=/^\s*₩/.test(el.value)||/^\s*₩/.test(ph)?'₩':'$';
+  fmtVivo(el,v=>{ const n=pnum(v); return n===''?'':pre+Number(n).toLocaleString('es-CL'); }); });
 function fmtVivo(el,fn){
   const viejo=el.value, pos=el.selectionStart==null?viejo.length:el.selectionStart;
   const antes=(viejo.slice(0,pos).match(/\d/g)||[]).length;
@@ -1478,7 +1487,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='demo_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab'];  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga'];  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2875,6 +2884,7 @@ function cardS(v){
   const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
     +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · Seña ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
+    +(v.carga&&(v.st==='ORIGEN'||!v.llp||diasDesde(v.llp)<=10)?`<div class="xlist" style="font-size:13px;color:#fff;background:#B4321C;border-radius:8px;padding:7px 9px">📦 <b>Lleva accesorios dentro:</b> ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:'')
     +(resAct(v.ch)?(()=>{const r=resAct(v.ch);return `<div class="xlist" style="font-size:12.5px;color:#C3A2F0">🔒 Reserva: <b>${String(r.cli||'—').replace(/</g,'&lt;')}</b> · pagado ${clp(resPag(r))} de ${clp(r.precio||0)} · <b>saldo ${clp(resSaldo(r))}</b></div>`})():'')
     +(v.nota?`<div class="xlist" style="font-size:13px;color:var(--ink2)">${String(v.nota).replace(/</g,'&lt;')}</div>`:'')
     +(xr?`<div class="xlist">${xr}</div>`:'');
@@ -5556,7 +5566,7 @@ function pintaRM(){
         </div>
       </div>
       `}
-      <div class="acts">${real?'':`<button class="btn b-pri" data-rmav="${x.ts}">➦ Avisar a Corea</button>`}
+      <div class="acts">${''/* 01/10: 'Avisar a Corea' por código ya no hace falta (sincronización automática) */}
         <button class="btn b-sec" data-rmk="${x.ts}">${real?'Corregir wones':'Anotar wones'}</button>
         <button class="btn b-sec" data-rmc="${x.ts}" style="flex:0 0 auto">Comisión</button>
         <button class="b-und" style="flex:0 0 auto" data-rmdel="${x.ts}">✕</button></div></div>`}).join('');
@@ -8076,7 +8086,7 @@ const itiFmt=c=>{ c=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,''); return
 function itiPayload(e){
   const cod=e.contCod||{}; const ns=Object.keys(cod).filter(k=>cod[k]).sort((a,b)=>a-b);
   return {amkITI:1, bl:e.nom||'', nave:e.buque||'', cont:ns.map(n=>({n:+n, c:String(cod[n]).toUpperCase().replace(/[^A-Z0-9]/g,''),
-    veh:e.veh.filter(x=>+x.cn===+n).map(x=>{ const v=IDX[x.ch]||{}; return [v.ma,v.mo,v.an,String(v.ce||'').toLowerCase()].filter(Boolean).join(' ')+' ('+x.ch+')'; })}))};
+    veh:e.veh.filter(x=>+x.cn===+n).map(x=>{ const v=IDX[x.ch]||{}; return [v.ma,v.mo,v.an,String(v.ce||'').toLowerCase()].filter(Boolean).join(' ')+' ('+x.ch+')'+(v.carga?' ⚠️ 📦 LLEVA ACCESORIOS: '+v.carga:''); })}))};
 }
 function itiMarcador(){
   (async()=>{
@@ -9862,7 +9872,7 @@ function buildXLSX(sheets){
   sheets.forEach((s,i)=>{ files.push({name:`xl/worksheets/sheet${i+1}.xml`,data:strToBytes(sheetXML(s.rows))}); });
   return buildZip(files);
 }
-function descargaRespaldoExcel(){
+function descargaRespaldoExcel(auto){
   const sheets=[];
 
   const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
@@ -9905,6 +9915,26 @@ function descargaRespaldoExcel(){
   });
   sheets.push({name:'Navieras',rows:nvRows});
 
+  /* 01/10/2026: el respaldo incluye también todo lo nuevo (ventas, costos, reservas, sueldos, deudas, gastos, insumos). */
+  try{
+    const sv=[['Chasis','Marca','Modelo','Año','Vendido','Fecha venta','Precio venta','Vendedor','Cliente','Teléfono cliente','Precio a pedir','Precio mínimo','Publicado','Oferta','Reserva','Reserva: cliente','Reserva: precio','Reserva: pagado','Reserva: vence']];
+    V.forEach(v=>{ const t=S[v.ch]||{}, r=t.res||null, pg=r?(r.pagos||[]).reduce((a,x)=>a+(+x.m||0),0):'';
+      sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r?r.precio:'',pg,r?r.vence:'']); });
+    sheets.push({name:'Ventas y precios',rows:sv});
+    const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Fecha','Acordado','Pagado','Debe','Posventa']];
+    for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
+    sheets.push({name:'Costos por vehículo',rows:co});
+    sheets.push({name:'Gastos generales',rows:[['Fecha','Categoría','Monto','Nota']].concat(GEN.map(g=>[g.fecha,GENCATN[g.cat]||g.cat,g.monto,g.nota||'']))});
+    const pg=[['Fecha','Tipo','Persona / concepto','Detalle','Monto']];
+    for(const k of ['victor','bryan']) for(const q in (PAGOSQ[k]||{})){ const x=PAGOSQ[k][q]; if(x&&!x.del) pg.push([x.f,'Sueldo',nomPersona(k),etiquetaQuincena(q),x.m]); }
+    AD.forEach(x=>pg.push([x.f,'Adelanto',nomPersona(x.q),x.nota||'',x.m]));
+    PF.forEach(x=>pg.push([x.f,'Costo fijo',x.nom||nombreFJ(x.k),x.per||'',x.m]));
+    DEU.forEach(d=>(d.mov||[]).forEach(x=>pg.push([x.f,x.t==='cargo'?'Préstamo / deuda':'Abono deuda',nomPersona(d.k),[d.nom,x.nota].filter(Boolean).join(' · '),x.m])));
+    pg.sort((a,b)=>String(b[0]).localeCompare(String(a[0])));
+    sheets.push({name:'Pagos y sueldos',rows:pg});
+    sheets.push({name:'Deudas (saldo hoy)',rows:[['Persona','Deuda','Saldo hoy','Descuento normal por quincena']].concat(DEU.map(d=>[nomPersona(d.k),d.nom,deuSaldo(d),d.cuota||0]))});
+    sheets.push({name:'Insumos avisados',rows:[['Fecha aviso','Insumo','Avisó','Estado','Monto compra','Fecha compra']].concat(AVISOSVEND.filter(x=>x.tipo==='insumo').map(x=>[isoDe(x.ts),x.item||'',x.vendedor||'',x.noNec?'No hacía falta':(x.atendido?'Comprado':'Pendiente'),x.montoCompra||'',x.compradoFe||'']))});
+  }catch(err){ console.error('respaldo extra',err); }
   const zipBytes=buildXLSX(sheets);
   const blob=new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob);
@@ -9912,9 +9942,19 @@ function descargaRespaldoExcel(){
   a.href=url; a.download='AMK_respaldo_'+iso()+'.xlsx';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),4000);
-  toast('Respaldo Excel descargado');
+  try{ localStorage.setItem('amk_bak_xlsx_dia',iso()); }catch(_){}
+  toast(auto?'Respaldo automático del día descargado (Excel)':'Respaldo Excel descargado'); pintaBakAuto();
 }
-$('#eBakXlsx').addEventListener('click',descargaRespaldoExcel);
+$('#eBakXlsx').addEventListener('click',()=>descargaRespaldoExcel(false));
+/* Respaldo automático (Andre, 01/10/2026): en el computador (no en teléfonos) se descarga solo, una vez al día,
+   el Excel completo al abrir Sistema. Se puede apagar en este aparato. */
+const esCompu=()=>!/iPhone|iPad|Android|Mobile/i.test(navigator.userAgent)&&!(navigator.maxTouchPoints>1&&/Mac/.test(navigator.platform)&&window.innerWidth<1100);
+function bakAutoOn(){ return false; try{ const x=localStorage.getItem('amk_bak_auto'); return x===null?esCompu():x==='1'; }catch(_){ return false; } }
+function pintaBakAuto(){ const b=document.getElementById('bakAutoBtn'), t=document.getElementById('bakAutoTxt'); if(!b) return; const on=bakAutoOn();
+  b.setAttribute('aria-pressed',String(on)); b.textContent=on?'✓ Respaldo automático diario: activado en este aparato':'Respaldo automático diario: apagado en este aparato';
+  let ult=''; try{ ult=localStorage.getItem('amk_bak_xlsx_dia')||''; }catch(_){} if(t) t.textContent=ult?'Último respaldo Excel en este aparato: '+fd(ult):'Todavía no hay respaldo Excel en este aparato.'; }
+document.addEventListener('click',e=>{ if(e.target.id!=='bakAutoBtn') return; try{ localStorage.setItem('amk_bak_auto',bakAutoOn()?'0':'1'); }catch(_){} pintaBakAuto(); });
+setTimeout(()=>{ try{ pintaBakAuto(); if(!bakAutoOn()) return; if((localStorage.getItem('amk_bak_xlsx_dia')||'')===iso()) return; if(!V.length) return; descargaRespaldoExcel(true); }catch(e){ console.error('respaldo auto',e); } },20000);
 
 let _fbBaselineDone=false;
 draw=(function(){

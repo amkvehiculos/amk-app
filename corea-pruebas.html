@@ -170,7 +170,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button class="dmhead" id="ctToggle" aria-expanded="false" aria-controls="contBody">
         <span><b>Contenedores</b><span class="dmcount" id="ctCount">—</span></span><i aria-hidden="true">▾</i></button>
       <div id="contBody" hidden style="margin-top:11px">
-        <p>Agrupación simulada, para ir viendo cómo se va llenando cada contenedor. Se arma a mano: anota el contenedor de cada vehículo al cargarlo o editarlo.</p>
+        <p>Arma los contenedores como los vas pensando (simulación). En el shoring puedes reorganizar todo: mover autos y ponerle a cada contenedor su número real. Se puede editar siempre, incluso después de embarcado.</p>
+        <button class="btn b-pri" id="ctNuevo" type="button" style="width:100%;margin-bottom:10px">＋ Armar contenedor</button>
         <div id="contList" class="dmlist"></div></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
@@ -184,7 +185,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="reNueva">＋ Llegó una remesa</button>
     <p class="cnt" id="reCnt"></p>
     <div id="reList"></div>
-    <div class="box" id="boxAvisar" hidden><h3>Avisar a Iquique</h3>
+    <div class="box" id="boxAvisar" hidden data-siempre-oculto="1"><h3>Avisar a Iquique</h3>
       <p>Con internet, las remesas se avisan solas. Si alguna sigue en “Por avisar”, usa este botón para mandarla por WhatsApp.</p>
       <button class="btn b-pri" id="reSend" style="width:100%">Avisar a Iquique</button></div>
   </section>
@@ -218,7 +219,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <nav class="tabbar" role="tablist">
   <button class="tb" role="tab" data-p="pLista" aria-selected="true"><i>▦</i>Vehículos</button>
   <button class="tb" role="tab" data-p="pRemesa" aria-selected="false"><i>₩</i>Remesas</button>
-  <button class="tb" role="tab" data-p="pEnviar" aria-selected="false"><i>➦</i>Enviar</button>
+  <button class="tb" role="tab" data-p="pEnviar" aria-selected="false" hidden><i>➦</i>Enviar</button>
   <button class="tb" role="tab" data-p="pHist" aria-selected="false"><i>▤</i>Histórico</button>
   <button class="tb" role="tab" data-p="pGastos" aria-selected="false"><i>◫</i>Gastos</button>
 </nav>
@@ -245,7 +246,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <input id="fMoNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe el modelo" hidden style="margin-top:8px"></div>
   <div class="two">
     <div class="fld"><label for="fAn">Año *</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
-    <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" placeholder="80000"></div>
+    <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" data-dinero="1" placeholder="80000"></div>
   </div>
   <div class="fld"><label>Color exterior</label><div class="opt" id="fCe"></div></div>
   <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
@@ -269,22 +270,22 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="fld"><label for="fPr">Proveedor</label>
     <input id="fPr" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan">
     <datalist id="dlPr"></datalist></div>
-  <div class="fld"><label for="fCont">Contenedor</label>
+  <div class="fld" hidden><label for="fCont">Contenedor</label>
     <input id="fCont" list="dlCont" autocapitalize="characters" autocomplete="off" placeholder="Ej: Contenedor 1 (sin asignar si lo dejas vacío)">
     <datalist id="dlCont"></datalist></div>
   <div class="two">
-    <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" placeholder="₩0"></div>
+    <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
     <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
   </div>
-  <div class="fld"><label for="fSenia">Seña pagada (KRW)</label><input id="fSenia" inputmode="numeric" placeholder="₩0"></div>
+  <div class="fld"><label for="fSenia">Seña pagada (KRW)</label><input id="fSenia" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
   <div class="fld"><label>Gastos en Corea (KRW)</label>
     <div class="two" style="gap:8px">
-      <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" placeholder="₩0"></div>
-      <div><div class="mtr" style="margin:0 0 3px">Asiento</div><input id="cASI" inputmode="numeric" placeholder="₩0"></div>
-      <div><div class="mtr" style="margin:0 0 3px">Cromado</div><input id="cCRO" inputmode="numeric" placeholder="₩0"></div>
-      <div><div class="mtr" style="margin:0 0 3px">Pisadera</div><input id="cPIS" inputmode="numeric" placeholder="₩0"></div>
-      <div><div class="mtr" style="margin:0 0 3px">Parabrisas</div><input id="cPAR" inputmode="numeric" placeholder="₩0"></div>
-      <div><div class="mtr" style="margin:0 0 3px">Otro</div><input id="cOTR" inputmode="numeric" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Asiento</div><input id="cASI" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Cromado</div><input id="cCRO" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Pisadera</div><input id="cPIS" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Parabrisas</div><input id="cPAR" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">Otro</div><input id="cOTR" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
     </div>
     <div class="mtr" id="cTot" style="margin-top:7px"></div></div>
   <div class="fld"><label for="fNo">Estado observado</label>
@@ -326,10 +327,19 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shLleg">
   <h3>Llegó una remesa</h3><div class="sb" id="llC">Anota lo que llegó al banco</div>
-  <div class="fld"><label for="llK">Wones que llegaron</label><input id="llK" inputmode="numeric" placeholder="0"></div>
-  <div class="fld"><label for="llCom">Comisión que descontaron (opcional)</label><input id="llCom" inputmode="numeric" placeholder="En wones"></div>
+  <div class="fld"><label for="llK">Wones que llegaron</label><input id="llK" inputmode="numeric" data-dinero="1" placeholder="0"></div>
+  <div class="fld"><label for="llCom">Comisión que descontaron (opcional)</label><input id="llCom" inputmode="numeric" data-dinero="1" placeholder="En wones"></div>
   <div class="fld"><label for="llD">Fecha en que llegó</label><input id="llD" type="date"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="llOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shCont">
+  <h3 id="ctT">Contenedor</h3><div class="sb">Marca los autos que van en este contenedor</div>
+  <div class="fld"><label for="ctNom">Nombre o número del contenedor <span class="mtr">(en el shoring cámbialo por el número real)</span></label><input id="ctNom" autocapitalize="characters" autocomplete="off" placeholder="Ej: CONTENEDOR 1 · o el número real: HLBU 166131-3"></div>
+  <div id="ctVehs" style="max-height:52vh;overflow:auto"></div>
+  <div class="mtr" id="ctCuenta" style="margin-top:8px"></div>
+  <button class="b-und" id="ctBorrar" type="button" style="margin-top:8px">Desarmar este contenedor (los autos quedan sin asignar)</button>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="ctOk">Guardar</button></div>
 </div>
 
 <div class="sheet" id="shAsig">
@@ -343,7 +353,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <div class="sheet" id="shGasto">
   <h3 id="genT">Nuevo gasto general</h3><div class="sb">Ej: cromados comprados para varios vehículos a la vez</div>
   <div class="fld"><label>Categoría</label><div class="opt" id="genCat"></div></div>
-  <div class="fld"><label for="genMonto">Monto total (KRW)</label><input id="genMonto" inputmode="numeric" placeholder="₩0"></div>
+  <div class="fld"><label for="genMonto">Monto total (KRW)</label><input id="genMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
   <div class="fld"><label for="genFe">Fecha</label><input id="genFe" type="date"></div>
   <div class="fld"><label for="genProv">Proveedor</label><input id="genProv" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan"></div>
   <div class="fld"><label for="genNota">Nota (opcional)</label><input id="genNota" autocomplete="off" placeholder="Ej: para el contenedor de julio"></div>
@@ -355,7 +365,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="fld"><label for="genAsigCh">Vehículo</label>
     <input id="genAsigCh" list="dlGenV" autocomplete="off" placeholder="Busca por marca, modelo o chasis">
     <datalist id="dlGenV"></datalist></div>
-  <div class="fld"><label for="genAsigMonto">Monto para este vehículo (KRW)</label><input id="genAsigMonto" inputmode="numeric" placeholder="₩0"></div>
+  <div class="fld"><label for="genAsigMonto">Monto para este vehículo (KRW)</label><input id="genAsigMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genAsigOk">Asignar</button></div>
 </div>
 
@@ -438,6 +448,20 @@ const kb=n=>Math.round(n/1024)+' KB';
 const iso=(d)=>{d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const fd=s=>s?s.split('-').reverse().join('/'):'';
+/* REGLA (Andre, 01/10/2026): todo número de dinero (y kilometraje) se ve con puntos de miles mientras se escribe
+   (₩12.500.000), y se puede corregir en cualquier parte del número: el cursor NO salta al final. pnum() ya ignora los puntos. */
+function fmtVivo(el,fn){
+  const viejo=el.value, pos=el.selectionStart==null?viejo.length:el.selectionStart;
+  const antes=(viejo.slice(0,pos).match(/\d/g)||[]).length;
+  el.value=fn(viejo);
+  if(document.activeElement!==el) return;
+  if(!antes){ try{el.setSelectionRange(0,0)}catch(_){} return; }
+  let c=0,i=0; for(;i<el.value.length;i++){ if(/\d/.test(el.value[i])){ c++; if(c===antes){ i++; break; } } }
+  try{ el.setSelectionRange(i,i); }catch(_){}
+}
+const miles=v=>{ const n=pnum(v); return n===''?'':Number(n).toLocaleString('es-CL'); };
+document.addEventListener('input',e=>{ const el=e.target; if(el&&el.dataset&&el.dataset.dinero) fmtVivo(el,miles); });
+function fmtDinero(){ document.querySelectorAll('[data-dinero]').forEach(el=>{ if(el.value) el.value=miles(el.value); }); }
 function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join('')}
 function dlCont(){const d=$('#dlCont'); if(d) d.innerHTML=CONT.map(c=>`<option value="${c}">`).join('')}
 function sumCC(){let t=0;for(const[k]of CC)t+=pnum($('#c'+k).value)||0;
@@ -466,6 +490,8 @@ async function boot(){
   /* 01/10: trabajo ya cargados sin cabina → 6 pasajeros doble cabina, 3 cabina y media (Andre) */
   { let n=0; L.forEach(v=>{ if(!v.cab&&/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase())&&+v.pa>0){ v.cab=+v.pa>=5?'DOBLE':'MEDIA'; n++; } }); if(n) save(); }
   try{const r=await window.storage.get('amkc_prov');if(r&&r.value)PROV=JSON.parse(r.value)}catch(e){console.error('boot PROV',e); PROV=[]}
+  /* Proveedores ya usados (de los datos reales, 01/10/2026): siempre aparecen en la lista */
+  PROV=PROV.concat(['ALAN','AMIGO BARBA','AMIGO KHAN','CHANG','CHINITO','COREANITO','KHAN BARBA','PASADIZO','RYU','TOP KOREA']);
   PROV=[...new Map(PROV.map(p=>[String(p).trim().toUpperCase(),String(p).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_cont');if(r&&r.value)CONT=JSON.parse(r.value)}catch(e){console.error('boot CONT',e); CONT=[]}
   CONT=[...new Map(CONT.map(c=>[String(c).trim().toUpperCase(),String(c).trim().toUpperCase()])).keys()].filter(Boolean).sort();
@@ -842,6 +868,7 @@ function fbVehiculosListen(){
         });
       }
       if(d.cab && d.cab!==v.cab){ v.cab=d.cab; cambio=true; }
+      if(d.carga!==undefined && (d.carga||'')!==(v.carga||'') && !(CARGA_PEND[ch]!==undefined)){ if(d.carga) v.carga=d.carga; else delete v.carga; cambio=true; }
       if(d.zarpe!==undefined && (d.zarpe||'')!==(v.zarpe||'') && !v.soloReferencia && !(ZARPE_PEND[ch]!==undefined)){ if(d.zarpe) v.zarpe=d.zarpe; else delete v.zarpe; cambio=true; }
       if(priv){
         const enSync=!!(v.nube && v.nube===fbFirma(v));
@@ -899,25 +926,76 @@ document.addEventListener('click',async e=>{ const b=e.target.closest('[data-ctz
    que Andre haya hecho en Sistema. Sin internet queda pendiente en el teléfono y sale sola al volver. */
 let ZARPE_PEND={}; try{ ZARPE_PEND=JSON.parse(localStorage.getItem('amkc_zarpe_pend')||'{}')||{}; }catch(_){}
 function zarpeGuardaPend(){ try{ localStorage.setItem('amkc_zarpe_pend',JSON.stringify(ZARPE_PEND)); }catch(_){} }
-async function fbZarpeEnvia(){ if(!fbReady) return; for(const ch of Object.keys(ZARPE_PEND)){ const f=ZARPE_PEND[ch];
+/* 01/10/2026: accesorios (cromados, pisaderas…) que la mamá manda DENTRO de un auto (Porter con cajón freezer, Starex,
+   Carnival…). En Chile se marca en rojo para cuidar la descarga. Se sube solo ese campo (igual que la fecha de embarque). */
+let CARGA_PEND={}; try{ CARGA_PEND=JSON.parse(localStorage.getItem('amkc_carga_pend')||'{}')||{}; }catch(_){}
+function cargaGuardaPend(){ try{ localStorage.setItem('amkc_carga_pend',JSON.stringify(CARGA_PEND)); }catch(_){} }
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-carga]'); if(!b) return; const v=L.find(x=>x.ch===b.dataset.carga); if(!v) return;
+  const r=prompt('¿Qué accesorios van DENTRO de '+v.ma+' '+v.mo+' '+(v.an||'')+'?\nEj: 4 juegos de cromados, 2 pisaderas, 1 parabrisas.\nDeja vacío si no lleva nada.', v.carga||'');
+  if(r===null) return; const t=r.trim(); if(t) v.carga=t; else delete v.carga; CARGA_PEND[v.ch]=t; cargaGuardaPend();
+  await guardaL(); draw(); fbZarpeEnvia(); toast(t?'Anotado: en Chile lo verán al descargar':'Quitado'); });
+async function fbZarpeEnvia(){ if(!fbReady) return;
+  for(const ch of Object.keys(CARGA_PEND)){ try{ await fbDb.collection(FB_COL).doc(ch).set({carga:CARGA_PEND[ch]||null},{merge:true}); delete CARGA_PEND[ch]; cargaGuardaPend(); }catch(e){ console.error('carga',e); return; } }
+  for(const ch of Object.keys(ZARPE_PEND)){ const f=ZARPE_PEND[ch];
     try{ await fbDb.collection(FB_COL).doc(ch).set({zarpe:f||null},{merge:true}); delete ZARPE_PEND[ch]; zarpeGuardaPend(); }catch(e){ console.error('fbZarpeEnvia',e); return; } }
   fbEstado('✓ Fecha de embarque enviada a Chile','#2E7D32'); }
+/* 01/10/2026 (Andre): la mamá compra durante días/semanas y DESPUÉS decide qué autos van en cada contenedor
+   (según ofertas, volumen, cómo calzan). Por eso el contenedor ya no se pregunta al cargar el auto: se arma aquí. */
+let ctEdit=null;
+const nomCont=n=>String(n||'').trim().toUpperCase();
+function contNombres(){ const base=L.filter(v=>!v.soloReferencia); return [...new Set([...CONT.map(nomCont),...base.map(v=>nomCont(v.cont)).filter(Boolean)])].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es',{numeric:true})); }
+async function guardaCONT(){ try{ await window.storage.set('amkc_cont',JSON.stringify(CONT)); }catch(_){} dlCont(); }
 function pintaContenedores(){
   const el=document.getElementById('contList'); if(!el) return;
-  const base=L.filter(v=>!v.soloReferencia);
-  const grupos={};
-  let sinAsignar=0;
-  base.forEach(v=>{ const c=(v.cont||'').trim(); if(c){ grupos[c]=(grupos[c]||0)+1; } else { sinAsignar++; } });
-  const nombres=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'es'));
+  const base=L.filter(v=>!v.soloReferencia), nombres=contNombres();
+  const de=n=>base.filter(v=>nomCont(v.cont)===n), sin=base.filter(v=>!nomCont(v.cont));
   const cnt=document.getElementById('ctCount');
-  if(cnt) cnt.textContent=nombres.length?nombres.length+' contenedor'+(nombres.length===1?'':'es'):'Sin contenedores todavía';
-  const zarpeDe=n=>{ const vs=base.filter(v=>(v.cont||'').trim()===n); return vs.length&&vs.every(v=>v.zarpe)?vs[0].zarpe:''; };
-  const filas=nombres.map(n=>{ const z=zarpeDe(n); return `<div class="xrow" style="align-items:center"><span style="font-family:var(--body)"><b>${n.replace(/</g,'&lt;')}</b><br><span style="color:var(--mute);font-size:12.5px">${grupos[n]} vehículo${grupos[n]===1?'':'s'}</span></span>
-    <span>${z?`<span style="color:#2E7D32;font-weight:700;font-size:13px">🚢 Embarcado ${fd(z)}</span> <button class="b-und" data-ctzarpe="${n.replace(/"/g,'&quot;')}" style="font-size:12px">cambiar</button>`:`<button class="btn b-pri" data-ctzarpe="${n.replace(/"/g,'&quot;')}" style="padding:7px 12px">🚢 Ya se embarcó</button>`}</span></div>`; }).join('');
-  const filaSin=`<div class="xrow"><span style="font-family:var(--body);color:var(--mute)">Sin contenedor asignado</span>
-    <span style="color:var(--mute);font-size:13px">${sinAsignar} vehículo${sinAsignar===1?'':'s'}</span></div>`;
-  el.innerHTML=(nombres.length?filas:'<p style="color:var(--mute);font-size:13.5px;margin:0">Todavía no se ha asignado ningún contenedor.</p>')+(base.length?filaSin:'');
+  if(cnt) cnt.textContent=(nombres.length?nombres.length+' contenedor'+(nombres.length===1?'':'es'):'Sin contenedores')+(sin.length?' · '+sin.length+' auto'+(sin.length===1?'':'s')+' sin asignar':'');
+  const nomV=v=>`${v.ma} ${v.mo} ${v.an||''}`;
+  const filas=nombres.map(n=>{ const vs=de(n), z=vs.length&&vs.every(v=>v.zarpe)?vs[0].zarpe:''; const esc2=n.replace(/"/g,'&quot;');
+    return `<div style="border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px">
+      <div class="xrow" style="align-items:center"><span style="font-family:var(--body)"><b>${n.replace(/</g,'&lt;')}</b> <span style="color:var(--mute);font-size:12.5px">· ${vs.length} auto${vs.length===1?'':'s'}</span></span>
+        ${z?`<span style="color:#2E7D32;font-weight:700;font-size:13px">🚢 Embarcado ${fd(z)}</span>`:''}</div>
+      ${vs.length?`<div style="font-size:12.5px;color:var(--ink2);margin:4px 0 6px">${vs.map(nomV).join(' · ')}</div>`:'<div class="mtr" style="margin:4px 0 6px">Todavía sin autos</div>'}
+      <div class="acts" style="margin-top:4px"><button class="btn b-sec" data-ctedit="${esc2}" style="flex:1">✎ Editar</button>
+        ${vs.length?`<button class="${z?'b-und':'btn b-pri'}" data-ctzarpe="${esc2}" style="${z?'font-size:12px':'flex:1'}">${z?'cambiar fecha':'🚢 Ya se embarcó'}</button>`:''}</div></div>`; }).join('');
+  el.innerHTML=(filas||'<p style="color:var(--mute);font-size:13.5px;margin:0 0 8px">Todavía no armas ningún contenedor.</p>')
+    +(sin.length?`<div style="margin-top:6px"><b style="font-size:13.5px">Sin contenedor (${sin.length})</b><div style="font-size:12.5px;color:var(--ink2);margin-top:3px">${sin.map(nomV).join(' · ')}</div></div>`:'');
 }
+function abrirCont(n){
+  ctEdit=n||null; const base=L.filter(v=>!v.soloReferencia);
+  const nombre=n||('CONTENEDOR '+(contNombres().length+1));
+  $('#ctT').textContent=n?'Contenedor':'Armar contenedor'; $('#ctNom').value=nombre; $('#ctBorrar').hidden=!n;
+  const lista=base.slice().sort((a,b)=>(nomCont(a.cont)===n?0:(nomCont(a.cont)?2:1))-(nomCont(b.cont)===n?0:(nomCont(b.cont)?2:1))||String(a.fe).localeCompare(String(b.fe)));
+  $('#ctVehs').innerHTML=lista.length?lista.map(v=>{ const otro=nomCont(v.cont)&&nomCont(v.cont)!==n;
+    return `<label style="display:flex;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer">
+      <input type="checkbox" data-ctv="${v.ch}" ${nomCont(v.cont)===n&&n?'checked':''} style="width:22px;height:22px;flex:0 0 auto">
+      <span><b>${v.ma} ${v.mo} ${v.an||''}</b><br><span style="font-size:12px;color:var(--mute)">${v.ch} · comprado ${fd(v.fe)}${otro?' · <span style="color:#B5533C">ahora en '+nomCont(v.cont)+'</span>':''}</span></span></label>`; }).join('')
+    :'<p class="mtr">No hay autos para asignar.</p>';
+  ctCuenta(); openSheet('shCont');
+}
+function ctCuenta(){ const n=document.querySelectorAll('#ctVehs [data-ctv]:checked').length; $('#ctCuenta').textContent=n+' auto'+(n===1?'':'s')+' marcado'+(n===1?'':'s'); }
+document.addEventListener('change',e=>{ if(e.target.closest&&e.target.closest('#ctVehs [data-ctv]')) ctCuenta(); });
+document.addEventListener('click',async e=>{
+  if(e.target.id==='ctNuevo'){ abrirCont(null); return; }
+  const ed=e.target.closest('[data-ctedit]'); if(ed){ abrirCont(ed.dataset.ctedit); return; }
+  if(e.target.id==='ctOk'){ const nom=nomCont($('#ctNom').value); if(!nom){ toast('Ponle un nombre al contenedor'); return; }
+    if(nom!==ctEdit&&contNombres().includes(nom)){ toast('Ya existe un contenedor con ese nombre'); return; }
+    const zC=ctEdit?((L.find(v=>!v.soloReferencia&&nomCont(v.cont)===ctEdit&&v.zarpe)||{}).zarpe||''):'';
+    let n=0; document.querySelectorAll('#ctVehs [data-ctv]').forEach(c=>{ const v=L.find(x=>x.ch===c.dataset.ctv); if(!v) return;
+      if(c.checked){ if(nomCont(v.cont)!==nom){ v.cont=nom; v.ts=Date.now(); } n++;
+        /* si el contenedor ya se embarcó, el auto que entra toma esa fecha (y pasa a "En camino" en Chile) */
+        if(zC&&v.zarpe!==zC){ v.zarpe=zC; ZARPE_PEND[v.ch]=zC; } }
+      else if(nomCont(v.cont)===ctEdit||nomCont(v.cont)===nom){ v.cont=''; v.ts=Date.now();
+        /* el que sale de un contenedor embarcado vuelve a "En Corea" */
+        if(zC&&v.zarpe===zC){ delete v.zarpe; ZARPE_PEND[v.ch]=''; } } });
+    zarpeGuardaPend(); fbZarpeEnvia();
+    CONT=CONT.map(nomCont).filter(x=>x!==ctEdit); if(!CONT.includes(nom)) CONT.push(nom);
+    await guardaCONT(); await guardaL(); closeAll(); draw(); toast(nom+': '+n+' auto'+(n===1?'':'s')); return; }
+  if(e.target.id==='ctBorrar'){ if(!ctEdit||!confirm('¿Desarmar "'+ctEdit+'"? Sus autos quedan sin contenedor.')) return;
+    L.forEach(v=>{ if(nomCont(v.cont)===ctEdit){ v.cont=''; v.ts=Date.now(); if(v.zarpe){ delete v.zarpe; ZARPE_PEND[v.ch]=''; } } }); zarpeGuardaPend(); fbZarpeEnvia(); CONT=CONT.map(nomCont).filter(x=>x!==ctEdit);
+    await guardaCONT(); await guardaL(); closeAll(); draw(); return; }
+});
 function pintaDemanda(){
   const el=document.getElementById('demandaList'); if(!el) return;
   const activas=DEMANDA.filter(d=>!d.atendido);
@@ -1010,7 +1088,7 @@ function setStep(s){
   $('#stTabB').setAttribute('aria-selected',s==='B'?'true':'false');
   $('#fBody').scrollTop=0;
 }
-function openSheet(i){$('#scrim').classList.add('on');$('#'+i).classList.add('on');if(i==='shForm'){setStep('A');snap0=formSnap()}}
+function openSheet(i){try{fmtDinero()}catch(_){}$('#scrim').classList.add('on');$('#'+i).classList.add('on');if(i==='shForm'){setStep('A');snap0=formSnap()}}
 function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>s.classList.remove('on'));if(typeof stopSpinMy360C==='function')stopSpinMy360C()}
 /* Tocar fuera de la hoja ya no cierra el formulario si hay datos escritos sin guardar. */
 $('#scrim').addEventListener('click',()=>{
@@ -1314,6 +1392,7 @@ function draw(){
       ${(v.senia&&v.krw&&v.krw>v.senia)?`<span class="tag t-pend">Saldo ${krw(v.krw-v.senia)}</span>`:''}
       <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span>
       ${v.zarpe?`<span class="tag t-ok">🚢 Embarcado ${fd(v.zarpe)}</span>`:''}</div></div>
+     ${v.carga?`<div class="nota" style="border-left-color:#D9822B;background:rgba(217,130,43,.12)"><b>📦 Lleva accesorios:</b> ${esc(v.carga)}</div>`:''}
      <div class="specs">${sp}</div>
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
      ${v.senia?`<div class="nota" style="border-left-color:var(--amber)">Seña pagada ${krw(v.senia)}${v.krw?(v.krw>v.senia?' · Saldo pendiente '+krw(v.krw-v.senia):' · Sin saldo pendiente'):''}</div>`:''}
@@ -1321,6 +1400,7 @@ function draw(){
      <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Fotos ${v.nf||''}</button>
       <button class="btn b-sec" data-mi360="${v.ch}" style="flex:0 0 auto">📷 360°${v.n360?' ✓':''}</button>
       ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}" style="flex:0 0 auto">＃</button>`:''}
+      <button class="btn b-sec" data-carga="${v.ch}" style="flex:0 0 auto" title="Accesorios que van dentro de este auto">📦</button>
       <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
       <button class="btn b-sec" data-del="${v.ch}" style="flex:0 0 auto">✕</button></div></div>`}).join('')
    :(base.length?'<div class="empty">Ningún vehículo coincide con la búsqueda o el filtro.</div>'
@@ -1681,7 +1761,7 @@ const dec2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumF
 function pintaRE(){
   const porInf=RE.filter(x=>!avisada(x)).length;
   $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':' · todas avisadas ✓'):'';
-  const box=$('#boxAvisar'); if(box) box.hidden=!porInf;
+  const box=$('#boxAvisar'); if(box) box.hidden=true;   /* 01/10: respaldo por WhatsApp retirado: las remesas se suben solas (y quedan en cola sin internet) */
   $('#reList').innerHTML=RE.length?RE.slice().reverse().map(x=>`<div class="card ${avisada(x)?'sent':''}">
     <div class="r1"><div><div class="tt">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
       <div class="ch">Llegó el ${fd(x.fll||x.f)}</div></div>
@@ -1756,7 +1836,7 @@ function corePendientes(){
   const v=L.filter(x=>x.ch&&!x.soloReferencia&&x.nube!==undefined&&x.nube!==fbFirma(x)).length;
   const r=RE.filter(y=>y.nube!==undefined&&y.nube!==remFirma(y)).length;
   const g=(typeof GEN!=='undefined'?GEN:[]).filter(y=>y.nube===undefined||y.nube!==genFirma(y)).length;
-  return v+r+g+borrPend().length+Object.keys(typeof ZARPE_PEND!=='undefined'?ZARPE_PEND:{}).length;
+  return v+r+g+borrPend().length+Object.keys(typeof ZARPE_PEND!=='undefined'?ZARPE_PEND:{}).length+Object.keys(typeof CARGA_PEND!=='undefined'?CARGA_PEND:{}).length;
 }
 function coreaReintenta(){
   const n=corePendientes();
