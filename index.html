@@ -543,6 +543,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
         <div id="emZof"></div>
       </details>
+      <details class="box" id="emAccIti"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">ITI · inscripción y llegada</h3> <span id="emAccItiStat" class="mtr"></span></summary>
+        <div id="emIti"></div>
+      </details>
       <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
         <div class="segs" id="emCt">
           <button data-emt="contenedor" aria-pressed="true">Por contenedor</button>
@@ -585,7 +588,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 12:31<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 16:39<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -5353,6 +5356,12 @@ function pendientesGlobales(){
   const p=[];
   const nRec=RECOREA.filter(x=>!x.vinculada).length;
   if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
+  try{ Object.values(EMB||{}).forEach(em=>{ const cod=em.contCod||{}; if(em.itiInsc||!Object.values(cod).some(Boolean)||!(em.veh||[]).length) return;
+    if(!(em.veh||[]).some(x=>IDX[x.ch]&&IDX[x.ch].st==='ORIGEN')) return;
+    const arr=em.fechaManifiesto||''; if(arr&&arr<sumaDias(iso(),-1)) return;
+    const lim=arr?sumaDias(arr,-1):'';
+    p.push({texto:'Inscribir contenedores en la ITI'+(em.nom?' ('+em.nom+')':'')+(lim?' · plazo '+fd(lim).slice(0,5)+(lim<=iso()?' ⚠ HOY o vencido':''):''),
+      ir:()=>{ show('pDatos'); ngseg('embarque'); embId=em.id; try{pintaEmb()}catch(_){} setTimeout(()=>{const b=$('#emAccIti'); if(b){ b.open=true; secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},120); }}); }); }catch(_){}
   V.filter(v=>{const r=resAct(v.ch); return r&&r.vence&&r.vence<=iso();}).forEach(v=>{ const r=resAct(v.ch);
     p.push({texto:(r.vence<iso()?'Reserva vencida':'Reserva vence hoy')+': '+v.ma+' '+v.mo+' ('+(r.cli||'cliente')+', saldo '+clp(resSaldo(r))+')', ir:()=>{show('pStock'); abrirReserva(v.ch);}}); });
   const pendVenta=AVISOSVEND.filter(x=>x.tipo==='venta'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
@@ -7947,6 +7956,118 @@ function zofMarcador(){
     alert('Listo: '+r2.hechos+' de '+r2.cambios.length+' cambios aplicados.'+(r2.errores.length?'\n\nNo se pudo:\n- '+r2.errores.join('\n- '):'')+av+'\n\nRevisa el documento y aprieta Guardar tú.');
   })();
 }
+/* ---------- ITI (01/10/2026): inscripción de contenedores y fecha de entrega ----------
+   Inscribir a tiempo evita multa (Andre: ~1 día antes, hasta 8 h antes del arribo). Aviso arriba hasta marcar "Inscrito".
+   El favorito "AMK · ITI", en la página "Ver Fecha de Entrega" de la nave, consulta todos los contenedores de una vez
+   (misma búsqueda que el botón Buscar, uno tras otro) y arma el informe para Víctor y Bryan con los vehículos de cada uno. */
+const itiFmt=c=>{ c=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,''); return c.slice(0,4)+' '+c.slice(4,10)+'-'+c.slice(10); };
+function itiPayload(e){
+  const cod=e.contCod||{}; const ns=Object.keys(cod).filter(k=>cod[k]).sort((a,b)=>a-b);
+  return {amkITI:1, bl:e.nom||'', nave:e.buque||'', cont:ns.map(n=>({n:+n, c:String(cod[n]).toUpperCase().replace(/[^A-Z0-9]/g,''),
+    veh:e.veh.filter(x=>+x.cn===+n).map(x=>{ const v=IDX[x.ch]||{}; return [v.ma,v.mo,v.an,String(v.ce||'').toLowerCase()].filter(Boolean).join(' ')+' ('+x.ch+')'; })}))};
+}
+function itiMarcador(){
+  (async()=>{
+    const ID='ctl00_cph_Principal_', NM='ctl00$cph_Principal$', g=k=>document.getElementById(ID+k);
+    let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
+    if(!t||t.indexOf('amkITI')<0) t=prompt('Pega aquí los datos copiados desde AMK (Embarque → ITI → "Copiar datos para la ITI"):')||'';
+    if(!t) return; let D; try{ D=JSON.parse(t.slice(t.indexOf('{'))); }catch(_){ alert('Los datos pegados no son válidos. Vuelve a copiarlos desde AMK.'); return; }
+    if(!D||!D.amkITI||!Array.isArray(D.cont)){ alert('Estos datos no vienen de AMK.'); return; }
+    /* Pantalla "Inscripción Directos" (botón "Agregar a Listado"): agrega cada contenedor a la lista con destino
+       "ZF- Barrio industrial". NO aprieta Guardar: eso lo hace Andre después de revisar la lista. */
+    const btnAg=[...document.querySelectorAll('button,input[type=button],input[type=submit],a')].find(b=>/agregar a listado/i.test(b.value||b.textContent||''));
+    if(btnAg){
+      const sl=ms=>new Promise(r=>setTimeout(r,ms)), norm=x=>String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      const vis=el=>!!el&&el.getClientRects().length>0;
+      const inps=[...document.querySelectorAll('input[type=text],input:not([type])')].filter(vis);
+      const iS=inps.find(i=>/ABCD/i.test(i.placeholder||'')), iN=inps.find(i=>/123456/.test(i.placeholder||'')), iD=inps.find(i=>(i.placeholder||'').trim()==='7');
+      const sels=[...document.querySelectorAll('select')];
+      const sDest=sels.find(x=>[...x.options].some(o=>/barrio/i.test(o.text)));
+      const sTipo=sels.find(x=>[...x.options].some(o=>/por contenedor/i.test(o.text)));
+      if(!iS||!iN||!iD||!sDest){ alert('No encontré las casillas del contenedor o el "Destino Contenedor" en esta pantalla. Avísale a Claude con un pantallazo.'); return; }
+      const ya=()=>norm([...document.querySelectorAll('table td')].map(td=>td.textContent).join(' '));
+      const nuevos=D.cont.filter(c=>ya().indexOf(c.c.slice(0,10))<0);
+      if(!nuevos.length){ alert('Todos los contenedores ya están en el listado. Revisa y aprieta Guardar tú.'); return; }
+      if(!confirm('Agregar al listado '+nuevos.length+' contenedor'+(nuevos.length===1?'':'es')+' con destino "ZF- Barrio industrial":\n\n'+nuevos.map(c=>c.c.slice(0,4)+' '+c.c.slice(4,10)+'-'+c.c.slice(10)).join('\n')+'\n\nNo se guarda nada: al final revisa la lista y aprieta Guardar tú.')) return;
+      const J=window.jQuery, pon=(el,v)=>{ el.focus(); el.value=v; ['input','keyup','change','blur'].forEach(t=>el.dispatchEvent(new Event(t,{bubbles:true}))); if(J) J(el).trigger('change'); };
+      const box=document.createElement('div'); box.style.cssText='position:fixed;top:12px;right:12px;z-index:99999;background:#12343b;color:#fff;padding:12px 16px;border-radius:10px;font:14px sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)'; document.body.appendChild(box);
+      const ok=[], mal=[];
+      for(let i=0;i<nuevos.length;i++){ const c=nuevos[i]; box.textContent='AMK · agregando '+(i+1)+' de '+nuevos.length+'…';
+        if(sTipo){ const o=[...sTipo.options].find(o=>/por contenedor/i.test(o.text)); if(o&&sTipo.value!==o.value){ sTipo.value=o.value; sTipo.dispatchEvent(new Event('change',{bubbles:true})); if(J) J(sTipo).trigger('change'); await sl(400); } }
+        const od=[...sDest.options].find(o=>/barrio/i.test(o.text)); if(od&&sDest.value!==od.value){ sDest.value=od.value; sDest.dispatchEvent(new Event('change',{bubbles:true})); if(J) J(sDest).trigger('change'); await sl(300); }
+        pon(iS,c.c.slice(0,4)); pon(iN,c.c.slice(4,10)); pon(iD,c.c.slice(10)); await sl(200);
+        btnAg.click();
+        let t=0; while(t<40&&ya().indexOf(c.c.slice(0,10))<0){ await sl(250); t++; }
+        if(ya().indexOf(c.c.slice(0,10))>=0) ok.push(c); else mal.push(c);
+        await sl(500); }
+      box.remove();
+      const f=c=>c.c.slice(0,4)+' '+c.c.slice(4,10)+'-'+c.c.slice(10);
+      alert('Agregados al listado: '+ok.length+' de '+nuevos.length+'.'+(mal.length?'\n\nNo aparecieron en la lista (revísalos a mano):\n'+mal.map(f).join('\n'):'')+'\n\nAhora revisa que el destino diga "ZF- Barrio industrial" en cada uno y aprieta Guardar tú. Después, en AMK marca el embarque como "Inscrito".');
+      return;
+    }
+    if(!g('txt_sigla')||!g('btn_Buscar')){ alert('Abre primero en la ITI: Clientes → Importación → Contenedores → Ver Fecha de Entrega → la nave, y vuelve a tocar el favorito.'); return; }
+    const f=g('btn_Buscar').form, box=document.createElement('div');
+    box.style.cssText='position:fixed;top:12px;right:12px;z-index:99999;background:#12343b;color:#fff;padding:12px 16px;border-radius:10px;font:14px sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.3)'; document.body.appendChild(box);
+    const txt=n=>(n.textContent||'').replace(/\s+/g,' ').trim();
+    for(let i=0;i<D.cont.length;i++){ const c=D.cont[i]; box.textContent='AMK · consultando '+(i+1)+' de '+D.cont.length+'…';
+      try{ const fd=new FormData(f); fd.set(NM+'txt_sigla',c.c.slice(0,4)); fd.set(NM+'txt_numero',c.c.slice(4,10)); fd.set(NM+'txt_digito',c.c.slice(10));
+        fd.set(NM+'btn_Buscar','Buscar');
+        const html=await (await fetch(location.href,{method:'POST',body:new URLSearchParams(fd),credentials:'same-origin'})).text();
+        const doc=new DOMParser().parseFromString(html,'text/html'), cod=c.c.slice(0,10)+'-'+c.c.slice(10);
+        const tr=[...doc.querySelectorAll('tr')].find(r=>txt(r).replace(/\s/g,'').indexOf(cod)>=0);
+        if(tr){ const td=[...tr.querySelectorAll('td')].map(txt); c.estado=td[0]||''; c.fecha=td[td.length-1]||''; } else c.fecha='';
+      }catch(err){ c.fecha=''; c.err=String(err&&err.message||err); } }
+    box.remove();
+    const conF=D.cont.filter(c=>/\d{2}\/\d{2}\/\d{2}/.test(c.fecha||'')), sinF=D.cont.filter(c=>!/\d{2}\/\d{2}\/\d{2}/.test(c.fecha||''));
+    const key=c=>{ const m=c.fecha.match(/(\d{2})\/(\d{2})\/(\d{2,4})\s*(\d{1,2}):(\d{2})?/); return m?(m[3].slice(-2)+m[2]+m[1]+m[4].padStart(2,'0')+(m[5]||'00')):'z'; };
+    conF.sort((a,b)=>key(a).localeCompare(key(b)));
+    const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'], fmt=c=>c.c.slice(0,4)+' '+c.c.slice(4,10)+'-'+c.c.slice(10);
+    const dia=f=>{ const m=f.match(/(\d{2})\/(\d{2})\/(\d{2})/); if(!m) return f; const d=new Date(2000+ +m[3],+m[2]-1,+m[1]); return DIAS[d.getDay()]+' '+(+m[1])+'/'+(+m[2]); };
+    const hora=f=>(f.match(/(\d{1,2}:\d{2})/)||[])[1]||'';
+    const dias=[...new Set(conF.map(c=>dia(c.fecha)))];
+    let out='*🚢 Llegada de contenedores'+(dias.length===1?' – '+dias[0].charAt(0).toUpperCase()+dias[0].slice(1):'')+'*\n'+(D.nave?'Nave '+D.nave+' · ':'')+'BL '+D.bl+' · '+D.cont.length+' contenedores, '+D.cont.reduce((a,c)=>a+c.veh.length,0)+' vehículos\nHoras según la ITI (desde cuándo se puede retirar cada uno):\n';
+    conF.forEach(c=>{ out+='\n*🕐 '+(dias.length>1?dia(c.fecha)+' ':'')+hora(c.fecha)+' – '+fmt(c)+'* ('+c.veh.length+')\n'+c.veh.map(v=>'• '+v).join('\n')+'\n'; });
+    if(sinF.length) out+='\n*Sin fecha todavía en la ITI:*\n'+sinF.map(c=>'• '+fmt(c)+' ('+c.veh.length+' vehículos)').join('\n')+'\n';
+    out+='\nEntre paréntesis: últimos 8 del chasis, para revisar al abrir cada contenedor.';
+    try{ await navigator.clipboard.writeText(out); }catch(_){}
+    const w=document.createElement('div'); w.style.cssText='position:fixed;inset:20px;z-index:99999;background:#fff;color:#111;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);display:flex;flex-direction:column;font:14px sans-serif';
+    w.innerHTML='<div style="padding:12px 16px;background:#12343b;color:#fff;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center"><b>AMK · Informe de llegada ('+conF.length+' de '+D.cont.length+' con fecha)</b><span><button id="amkItiCp" style="margin-right:8px;padding:6px 12px">Copiar</button><button id="amkItiX" style="padding:6px 12px">Cerrar</button></span></div><textarea style="flex:1;margin:12px;font:13px monospace;padding:10px"></textarea>';
+    w.querySelector('textarea').value=out; document.body.appendChild(w);
+    w.querySelector('#amkItiX').onclick=()=>w.remove(); w.querySelector('#amkItiCp').onclick=async()=>{ try{ await navigator.clipboard.writeText(out); w.querySelector('#amkItiCp').textContent='✓ Copiado'; }catch(_){ w.querySelector('textarea').select(); } };
+  })();
+}
+function itiMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+itiMarcador.toString()+')())'); }
+function pintaEmIti(){
+  const e=E(), box=$('#emIti'); if(!box) return; const st=$('#emAccItiStat');
+  const P=e?itiPayload(e):{cont:[]};
+  if(st) st.innerHTML=!P.cont.length?'':(e.itiInsc?'<span style="color:var(--green)">✓ inscrito '+fd(e.itiInsc).slice(0,5)+'</span>':'<span style="color:var(--amber)">⚠ falta inscribir</span>');
+  if(!e||!P.cont.length){ box.innerHTML='<p class="mtr" style="margin:0">Primero anota los contenedores del embarque (códigos del BL).</p>'; return; }
+  const arr=e.fechaManifiesto||'';
+  box.innerHTML=`<div class="xrow" style="align-items:center"><span style="font-family:var(--body);font-weight:600">Inscripción en la ITI<br><span style="font-weight:400;color:var(--mute);font-size:12px">${arr?'Arribo '+fd(arr)+' · inscribe a más tardar el '+fd(sumaDias(arr,-1)):'Anota la fecha de arribo (Vista previa de Zofri) para calcular el plazo'}. Si no se inscribe a tiempo hay multa.</span></span>
+      <span>${e.itiInsc?`<span style="color:var(--green);font-weight:700">✓ ${fd(e.itiInsc)}</span><br><button class="b-und" data-itiinsc="0" style="font-size:12px">Deshacer</button>`:`<button class="btn b-pri" data-itiinsc="1" style="padding:7px 12px">Marcar inscrito</button>`}</span></div>
+    <div style="margin:10px 0 4px;font-size:12.5px;color:var(--mute)">Contenedores (como se escriben en la ITI: 4 letras · 6 números · dígito)</div>
+    ${P.cont.map(c=>`<div class="xrow"><span style="font-family:var(--mono)">${c.n}. <b>${c.c.slice(0,4)}</b> ${c.c.slice(4,10)} <b>${c.c.slice(10)}</b></span><span style="font-size:12px;color:var(--mute)">${c.veh.length} veh. <button class="b-und" data-iticp="${c.c}" style="font-size:12px">Copiar</button></span></div>`).join('')}
+    <button class="btn b-pri" id="itiPayloadCp" style="width:100%;margin-top:10px">➦ Copiar datos para la ITI</button>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Informe de llegada para Víctor y Bryan (fecha de entrega)</summary>
+      <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
+        <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos → <a href="${itiMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">AMK · ITI</a></li>
+        <li>Toca "Copiar datos para la ITI" (arriba).</li>
+        <li>En la ITI entra a Clientes → Importación → Contenedores → Ver Fecha de Entrega → la nave, y toca el favorito "AMK · ITI".</li>
+        <li>Consulta todos los contenedores, los ordena por hora y deja copiado el mensaje de WhatsApp con los vehículos de cada uno. Solo consulta: no inscribe ni cambia nada.</li>
+      </ol></details>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-size:13px">Inscribir los contenedores con el mismo favorito</summary>
+      <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
+        <li>Toca "Copiar datos para la ITI".</li>
+        <li>En la ITI: Clientes → Importación → Contenedores → Inscripciones Directo Chilenos → "Inscribir" en la nave.</li>
+        <li>Toca el favorito "AMK · ITI": te muestra los contenedores y, si aceptas, los agrega uno por uno al listado con destino "ZF- Barrio industrial" (salta los que ya estén).</li>
+        <li>Revisa la lista y aprieta <b>Guardar</b> tú. Después vuelve acá y toca "Marcar inscrito".</li>
+      </ol></details>`;
+}
+document.addEventListener('click',async e=>{
+  const ins=e.target.closest('[data-itiinsc]'); if(ins){ const em=E(); if(!em) return; if(ins.dataset.itiinsc==='1') em.itiInsc=iso(); else delete em.itiInsc; await guardaEmb(); pintaEmIti(); try{pintaPendientes()}catch(_){} toast(em.itiInsc?'Marcado como inscrito en la ITI':'Inscripción desmarcada'); return; }
+  const c1=e.target.closest('[data-iticp]'); if(c1){ await cp(itiFmt(c1.dataset.iticp),'Copiado '+itiFmt(c1.dataset.iticp)); return; }
+  if(e.target.closest('#itiPayloadCp')){ const em=E(); if(!em) return; const P=itiPayload(em); await cp(JSON.stringify(P),'Datos copiados ('+P.cont.length+' contenedores) — ahora toca el favorito "AMK · ITI" en la ITI'); return; }
+});
 function zofMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+zofMarcador.toString()+')())'); }
 async function setZof(ch,key,val){
   const v=IDX[ch]; if(!v) return;
@@ -8192,6 +8313,7 @@ function emAccAbre(){
 function pintaEmb(){
   const e=E(); if(!e) return;
   etaSync(e);
+  try{ pintaEmIti(); }catch(err){ console.error('pintaEmIti',err); }
   /* Si hay vehículos asignados a un contenedor mayor que la cantidad declarada (o códigos de
      contenedor de más), la cantidad se corrige sola — si no, los costos por contenedor se cobran de menos. */
   const maxCnE=Math.max(0,...e.veh.map(v=>+v.cn||0),...Object.keys(e.contCod||{}).map(k=>+k||0));
