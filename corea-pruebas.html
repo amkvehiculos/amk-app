@@ -247,12 +247,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label for="fAn">Año *</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
     <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" placeholder="80000"></div>
   </div>
-  <div class="fld"><label>Categoría</label><div class="opt" id="fCat"></div></div>
   <div class="fld"><label>Color exterior</label><div class="opt" id="fCe"></div></div>
-  <div class="two">
-    <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
-    <div class="fld"><label for="fPa">Pasajeros</label><input id="fPa" inputmode="numeric" placeholder="5"></div>
-  </div>
+  <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
+  <div class="nota" id="autoRes" hidden style="border-left-color:#2E7D32;display:flex;justify-content:space-between;gap:8px;align-items:center"></div>
+  <div id="wAuto">
+  <div class="fld"><label>Categoría</label><div class="opt" id="fCat"></div></div>
+  <div class="fld"><label for="fPa">Pasajeros</label><input id="fPa" inputmode="numeric" placeholder="5"></div>
   <div class="fld"><label>Motor <span class="mtr">(si no lo sabes, déjalo así)</span></label><div class="opt" id="fMotor"></div></div>
   <div class="two">
     <div class="fld"><label>Transmisión <span class="mtr">(si no lo sabes, déjalo así)</span></label><div class="opt" id="fTrans"></div></div>
@@ -261,6 +261,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="fld"><label>¿Es vehículo de trabajo?</label>
     <div class="opt"><button id="fTrabNo" aria-pressed="true">No, es un auto</button>
       <button id="fTrabSi" aria-pressed="false">Sí, es de trabajo</button></div></div>
+  </div>
   <div class="fld" id="wCa" hidden><label>Tipo de carrocería</label><div class="opt" id="fCa"></div></div>
   <button class="btn b-sec" id="stNext" type="button" style="width:100%;margin:2px 0 6px">Siguiente: compra y gastos →</button>
   </div>
@@ -494,7 +495,7 @@ let fbVehiculosEscuchando=false, fbAvisoLecturaCostos=false;
 const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','prov'];
 /* Viajan a Sistema solo si tienen valor (2026-09-28). Solo el VIN cuenta para la firma, para no reenviar de golpe
    todos los vehículos ya cargados (y pisar en la nube correcciones hechas en Sistema). */
-const FB_GEN_EXTRA=['vin','motor','cil','trans'];
+const FB_GEN_EXTRA=['vin','motor','cil','trans','codMotor'];
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
 /* Estado real de cada vehículo en la nube. v.nube guarda la "firma" de lo último que la nube confirmó (ver fbFirma):
    si coincide con la firma actual => "En Chile ✓". null => cargado/editado y todavía sin confirmar.
@@ -1076,10 +1077,10 @@ function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:''};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
   ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
-  tocado={}; anAuto=''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
+  tocado={}; anAuto=''; autoAbierto=false; codMotor=''; $('#fCh').readOnly=false; $('#fSinCh').hidden=false; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
-  $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts();
+  $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts(); pintaAuto();
 }
 CC.forEach(([k])=>{const el=document.getElementById('c'+k); if(el) el.addEventListener('input',sumCC)});
 document.addEventListener('click',e=>{
@@ -1095,12 +1096,15 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(
 $('#fMoNew').addEventListener('input',aplicaModelo);
 $('#fPa').addEventListener('input',()=>{tocado.pa=1});
 $('#fCil').addEventListener('input',()=>{tocado.cil=1});
+$('#fPa').addEventListener('change',pintaAuto); $('#fCil').addEventListener('change',pintaAuto);
 $('#fVin').addEventListener('input',()=>{
   const el=$('#fVin'), v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,''); if(el.value!==v) el.value=v;
   const er=$('#eVin'); $('#wVin').classList.remove('bad'); er.textContent='';
   if(/[IOQ]/.test(v)){ $('#wVin').classList.add('bad'); er.textContent='Un VIN nunca lleva las letras I, O ni Q: revisa si es 1 o 0.'; }
   else if(v&&v.length<17) er.textContent='Faltan '+(17-v.length)+' caracteres.';
   if(v.length===17&&!sinCh){ $('#fCh').value=v.slice(-8); }
+  const vinOk=v.length===17&&!/[IOQ]/.test(v); $('#fCh').readOnly=vinOk; $('#fSinCh').hidden=vinOk; $('#fCh').style.opacity=vinOk?.7:1;
+  const ma=marcaDeVin(v); if(ma&&!sel.ma&&$('#fMaNew').hidden){ sel.ma=ma; if(!marcas().includes(ma)){ EXTRA.marcas=(EXTRA.marcas||[]).concat([ma]); guardaExtra(); } opts(); }
   autoAnio();
 });
 $('#fCh').addEventListener('input',()=>{
@@ -1123,16 +1127,40 @@ function anioDeChasis(c){ c=String(c||'').trim().toUpperCase(); const k=c.length
   const L='ABCDEFGHJKLMNPRSTVWXY'; let y=null; if(L.includes(k)) y=2010+L.indexOf(k); else if(/[1-9]/.test(k)) y=2000+(+k);
   if(y&&y>new Date().getFullYear()+1) y-=30; return y; }
 let tocado={}, anAuto='';
+/* 01/10/2026 (Andre): lo que se deduce solo no se le pregunta a mamá (menos errores):
+   - del VIN: chasis (últimos 8), año y marca;
+   - del modelo: categoría, pasajeros, motor, transmisión, cilindrada y si es de trabajo → quedan en un resumen con "Corregir".
+   Color, tracción, kilometraje y carrocería sí los elige ella (cambian de un auto a otro). */
+let autoAbierto=false, codMotor='';
+/* Motores posibles por modelo (Andre, 01/10): Sorento y Santa Fe casi siempre 2.0 D4HA, a veces 2.2 D4HB (como la Carnival). */
+const MOTOR_VAR={'SORENTO':[['2.0','D4HA'],['2.2','D4HB']],'SANTA FE':[['2.0','D4HA'],['2.2','D4HB']],'SANTAFE':[['2.0','D4HA'],['2.2','D4HB']],'CARNIVAL':[['2.2','D4HB']]};
+function motorVar(mo){ const m=String(mo||'').trim().toUpperCase().replace(/\s+/g,' '); let k=null; for(const x in MOTOR_VAR){ if(m.startsWith(x)&&(!k||x.length>k.length)) k=x; } return k?MOTOR_VAR[k]:null; }
+function pintaAuto(){
+  const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, d=modDef(mo), r=$('#autoRes'), w=$('#wAuto'); if(!r||!w) return;
+  const cil=$('#fCil').value.trim(), ok=!!d&&!autoAbierto&&!!cil;
+  r.hidden=!ok; w.hidden=ok;
+  const mv=motorVar(mo);
+  if(mv&&!codMotor){ const x=mv.find(y=>y[0]===cil)||mv[0]; codMotor=x[1]; }
+  if(ok){ const pa=$('#fPa').value;
+    r.innerHTML='<div style="flex:1"><span>✓ Completado según el modelo: <b>'+[sel.cat,pa?pa+' pasajeros':'',[sel.motor,cil,codMotor?'('+codMotor+')':''].filter(Boolean).join(' '),sel.trans,esTrab?'de trabajo':''].filter(Boolean).join(' · ')+'</b></span>'
+      +(mv&&mv.length>1?'<div class="opt" style="margin-top:8px">'+mv.map((x,i)=>`<button type="button" data-mvar="${i}" aria-pressed="${x[0]===cil}">${x[0]} · ${x[1]}${i===0?' (la mayoría)':''}</button>`).join('')+'</div>':'')
+      +'</div><button class="b-und" id="autoEdit" type="button" style="flex:0 0 auto">Corregir</button>'; }
+}
+document.addEventListener('click',e=>{ if(e.target.id==='autoEdit'){ autoAbierto=true; pintaAuto(); }
+  const b=e.target.closest('[data-mvar]'); if(b){ const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo, mv=motorVar(mo); if(!mv) return;
+    const x=mv[+b.dataset.mvar]; $('#fCil').value=x[0]; codMotor=x[1]; tocado.cil=1; pintaAuto(); } });
+const WMI={KNA:'KIA',KNC:'KIA',KND:'KIA',KNE:'KIA',KNF:'KIA',KNG:'KIA',KMH:'HYUNDAI',KMF:'HYUNDAI',KMJ:'HYUNDAI',KMC:'HYUNDAI',KMT:'GENESIS',KPT:'SSANGYONG',KPA:'SSANGYONG',KPB:'SSANGYONG',KL1:'CHEVROLET',KLA:'CHEVROLET',KLY:'CHEVROLET',KNM:'RENAULT SAMSUNG'};
+function marcaDeVin(vin){ vin=String(vin||'').toUpperCase(); return WMI[vin.slice(0,3)]||''; }
 function aplicaModelo(){
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
   const d=modDef(mo); if(!d) return;
   if(!tocado.cat&&d[0]) sel.cat=d[0];
   if(!tocado.pa&&d[1]) $('#fPa').value=d[1];
   if(!tocado.motor&&d[2]) sel.motor=d[2];
-  if(!tocado.cil) { $('#fCil').value=d[3]||''; $('#fCil').placeholder=d[3]?'Ej: 2.5':'¿1.7 o 2.0?'; }
+  if(!tocado.cil) { codMotor=''; $('#fCil').value=d[3]||''; $('#fCil').placeholder=d[3]?'Ej: 2.5':'¿1.7 o 2.0?'; }
   if(!tocado.trans&&d[4]) sel.trans=d[4];
   if(!tocado.trab) setTrab(!!d[5]);
-  opts();
+  opts(); pintaAuto();
 }
 function autoAnio(){
   const vin=$('#fVin').value.trim(), ch=$('#fCh').value.trim();
@@ -1204,7 +1232,7 @@ $('#fmOk').addEventListener('click',async()=>{
     dlCont();}
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
-    motor:sel.motor||'',cil:$('#fCil').value.trim(),trans:sel.trans||'',vin:vin||'',
+    motor:sel.motor||'',cil:$('#fCil').value.trim(),codMotor:codMotor||'',trans:sel.trans||'',vin:vin||'',
     krw:pnum($('#fKrw').value)||null,senia:pnum($('#fSenia').value)||null,fe:$('#fFe').value||iso(),prov,cc,cont,
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
@@ -1591,9 +1619,9 @@ document.addEventListener('click',async e=>{
   setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fVin').value=v.vin||''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); tocado={cat:1,pa:1,motor:1,cil:1,trans:1,trab:1}; anAuto='';
-  $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||'';$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
+  $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||''; codMotor=v.codMotor||'';$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
   $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
-  $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');openSheet('shForm');return}
+  $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');try{ const vv=$('#fVin').value; $('#fCh').readOnly=vv.length===17; $('#fSinCh').hidden=vv.length===17; pintaAuto(); }catch(_){} openSheet('shForm');return}
  if(dl){const c=dl.dataset.del;
   if(!confirm('¿Eliminar este vehículo y sus fotos?'))return;
   const vBorrado=L.find(x=>x.ch===c);
