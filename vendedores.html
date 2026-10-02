@@ -1833,8 +1833,8 @@ function ctrHTML(L,abrir,card){
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
     <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
-      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor asignado'}</b>
-        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${A[0].eta?' · llega '+ddmm(A[0].eta):''} · toca para ver</span></span>
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'🚢 Embarcados, todavía sin contenedor'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ddmm(A[0].eta):''):' · todavía no se sabe en qué contenedor vienen'} · toca para ver</span></span>
       ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
     <div style="padding:0 14px 12px">
       ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">

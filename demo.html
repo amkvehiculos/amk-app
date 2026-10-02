@@ -120,6 +120,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .fld label{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
 .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:17px;background:var(--paper);color:var(--ink)}
 .catg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.cmp{display:flex;align-items:center;gap:10px;padding:9px 11px 9px 15px;margin-bottom:6px;cursor:pointer}
+.cmp .cm-t{flex:1;min-width:0}.cmp .cm-t .tt{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp .cm-s{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp .cm-p{font-family:var(--mono);font-size:13px;font-weight:700;white-space:nowrap}
 .cg{padding:11px 5px;border-radius:9px;border:1px solid var(--line);background:var(--card);font-size:12.5px;
  font-weight:600;color:var(--ink2);cursor:pointer;text-align:center;line-height:1.2}
 .cg[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:#fff}
@@ -262,7 +266,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <option value="estado">Estado (como siempre)</option>
         <option value="recientes">Más recientes primero</option>
         <option value="antiguos">Más antiguos primero</option>
-      </select></label></div>
+      </select></label>
+      <button class="b-und" id="stVista" type="button" style="float:right;font-size:12.5px">☰ Lista compacta</button></div>
     <p class="cnt" id="cStock"></p>
     <div id="lStock"></div>
     <details class="box" id="boxNv" style="margin-top:14px"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">＋ Cargar vehículo a mano</h3></summary>
@@ -679,7 +684,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 20:33<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 21:14<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1221,11 +1226,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shGen">
   <h3>Anotar gasto general</h3><div class="sb">Combustible, insumos de aseo o taller, u otro gasto que no es de un vehículo en particular</div>
-  <div class="fld"><label>Categoría</label><div class="catg" id="genCatg"></div></div>
-  <div class="fld" id="genInsW" hidden><label>¿Qué compraste? <span style="font-weight:400;color:var(--mute)">(un nombre nuevo queda como botón fijo)</span></label><div class="catg" id="genInsChips"></div></div>
+  <div class="fld" hidden><label>Categoría</label><div class="catg" id="genCatg"></div></div>
+  <div class="fld" id="genInsW"><label>¿Qué compraste? <span style="font-weight:400;color:var(--mute)">(con "＋ Otro" escribes uno nuevo y queda como botón fijo)</span></label><div class="catg" id="genInsChips"></div></div>
   <div class="fld"><label for="genM">Monto</label><input id="genM" inputmode="numeric" placeholder="$0"></div>
   <div class="fld"><label for="genD">Fecha</label><input id="genD" type="date"></div>
-  <div class="fld"><label for="genN">Nota (opcional)</label><input id="genN" placeholder="Ej: bidón de 20 litros"></div>
+  <div class="fld"><label for="genN">Nombre de lo que compraste</label><input id="genN" placeholder="Toca un botón o “＋ Otro”"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genOk">Guardar</button></div>
 </div>
 
@@ -2974,11 +2979,32 @@ function drawStock(){
     });
   } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
-  if(fS==='camino'&&L.some(v=>v.ctr)){ $('#lStock').innerHTML=ctrHTML(L,!!toks.length,cardS); return; }
-  $('#lStock').innerHTML=L.length?L.map(cardS).join(''):'<div class="empty">Sin resultados.</div>';
+  { const b=$('#stVista'); if(b) b.textContent=stCompacto?'▦ Vista completa':'☰ Lista compacta'; }
+  if(fS==='camino'&&L.some(v=>v.ctr)){ $('#lStock').innerHTML=ctrHTML(L,!!toks.length,cardSV); return; }
+  $('#lStock').innerHTML=L.length?L.map(cardSV).join(''):'<div class="empty">Sin resultados.</div>';
 }
 /* En camino agrupado por contenedor (02/10/2026): cada contenedor se despliega con la relación simple de chasis
    y, más abajo, las fichas completas. "Copiar lista" deja el texto listo para WhatsApp. */
+/* Lista compacta en Stock (02/10/2026, igual que en Vendedores): una línea por vehículo; al tocarla se abre su ficha completa. */
+let stCompacto=false; const STEXP=new Set();
+setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); if(r&&r.value==='1'){ stCompacto=true; try{drawStock()}catch(_){} } }catch(_){} },1200);
+function cardSV(v){
+  if(!stCompacto) return cardS(v);
+  if(STEXP.has(v.ch)) return `<div><button class="b-und" type="button" data-scmp="${v.ch}" style="font-size:12px;margin:0 0 4px">▴ Achicar</button>${cardS(v)}</div>`;
+  const s=st(v.ch), isS=sold(v.ch), esc=t=>String(t||'').replace(/</g,'&lt;');
+  const dm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
+  const [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
+  const pr=isS?(s.price?clp(enCLP(s)):''):(s.pventa?clp(s.pventa):'');
+  return `<div class="card cmp" data-sexp="${v.ch}"><span class="strip" style="background:${col}"></span>
+    <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span></div>
+    <div class="cm-s">${esc(v.ch)} · ${esc(String(v.ce||'').toLowerCase())}</div></div>
+    <div style="text-align:right">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div></div></div>`;
+}
+document.addEventListener('click',async e=>{
+  if(e.target.closest('#stVista')){ stCompacto=!stCompacto; STEXP.clear(); try{ await window.storage.set('amk_stCompacto',stCompacto?'1':'0'); }catch(_){} drawStock(); return; }
+  const a=e.target.closest('[data-sexp]'); if(a){ STEXP.add(a.dataset.sexp); drawStock(); return; }
+  const c=e.target.closest('[data-scmp]'); if(c){ STEXP.delete(c.dataset.scmp); drawStock(); return; }
+});
 const CTR_ABIERTOS=new Set(); const CTR_FICHAS=new Set();
 const ctrFmt=c=>{ c=String(c||''); return c.length>=11?c.slice(0,4)+' '+c.slice(4,10)+'-'+c.slice(10):c; };
 const ctrDm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
@@ -2991,8 +3017,8 @@ function ctrHTML(L,abrir,card){
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
     <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
-      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor asignado'}</b>
-        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${A[0].eta?' · llega '+ctrDm(A[0].eta):''} · toca para ver</span></span>
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'🚢 Embarcados, todavía sin contenedor'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ctrDm(A[0].eta):''):' · aparecen en su contenedor cuando cargues el BL'} · toca para ver</span></span>
       ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
     <div style="padding:0 14px 12px">
       ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">
@@ -4151,7 +4177,7 @@ let FJK={}, tcKRW=0.685;
 const VENDEDORES=[['yo','Yo'],['victor','Víctor'],['bryan','Bryan']];
 let COMB=10000, ssQ='yo';
 let FJ={}, AD=[], adQ='victor', PF=[], adCuando='esta', DEU=[];
-const GENCAT=[['COMBUSTIBLE','Combustible'],['INSUMOS','Insumos de aseo/taller'],['OTRO','Otro']];
+const GENCAT=[['COMBUSTIBLE','Combustible'],['INSUMOS','Insumos de aseo/taller'],['TRAMITES','Trámites y papeles'],['OTRO','Imprevisto / otro']];
 const GENCATN=Object.fromEntries(GENCAT);
 let GEN=[], genCat='COMBUSTIBLE';
 const nomPersona=k=>({victor:'Víctor',bryan:'Bryan'}[k]||k);
@@ -4169,6 +4195,8 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[]; CATS_CUSTOM.forEach(([k,n])=>CN[k]=n) }}catch(e){}
+  /* 02/10/2026: la publicidad se paga por vehículo -> categoría fija 'Publicidad' en los costos de cada vehículo */
+  if(!CATS_CUSTOM.some(([k])=>k==='PUBLICIDAD')){ CATS_CUSTOM=CATS_CUSTOM.concat([['PUBLICIDAD','Publicidad']]); CN.PUBLICIDAD='Publicidad'; }
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
   try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_fijos_krw');
@@ -4595,29 +4623,37 @@ function pintaGen(){
 $('#genAdd').addEventListener('click',()=>{
   genCat='COMBUSTIBLE';
   $('#genCatg').innerHTML=GENCAT.map(([k,n])=>`<button class="cg" data-genc="${k}" aria-pressed="${k===genCat}">${n}</button>`).join('');
-  $('#genM').value=''; $('#genN').value=''; $('#genD').value=iso(); $('#genN').placeholder='Ej: bidón de 20 litros';
-  pintaGenIns(); openSheet('shGen'); setTimeout(()=>$('#genM').focus(),240);
+  $('#genM').value=''; $('#genN').value=''; $('#genD').value=iso(); $('#genN').placeholder='Toca un botón o "＋ Otro"';
+  genNoIns=''; pintaGenIns(); openSheet('shGen'); setTimeout(()=>$('#genM').focus(),240);
 });
 $('#genCatg').addEventListener('click',e=>{const b=e.target.closest('[data-genc]');if(!b)return;
   genCat=b.dataset.genc; $$('#genCatg .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.genc===genCat?'true':'false')); pintaGenIns()});
 /* Compra de insumos (02/10/2026): salen los botones fijos de insumos para tocarlos; "＋ Otro" para escribir uno nuevo,
    que al guardar queda como botón fijo (Andre lo escribió, así que ya está aprobado) también para Víctor y Bryan. */
-function pintaGenIns(){ const w=$('#genInsW'); if(!w) return; w.hidden=genCat!=='INSUMOS'; if(w.hidden) return;
+let genNoIns='';   /* 'TRAMITES' u 'OTRO' cuando el gasto no es insumo (no crea botón) */
+function pintaGenIns(){ const w=$('#genInsW'); if(!w) return;   /* 02/10/2026: ya no hay fila Combustible/Insumos/Otro; la categoría sale del botón */
   const cur=$('#genN').value.trim().toUpperCase(), esc=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-  const L=INSUMO_PRESETS.map(p=>String(p[1]).trim().toUpperCase()), hay=L.includes(cur);
-  $('#genInsChips').innerHTML=L.map(l=>`<button class="cg" type="button" data-genins="${esc(l)}" aria-pressed="${l===cur}">${esc(l)}</button>`).join('')
-    +`<button class="cg" type="button" data-genins="" aria-pressed="${!!cur&&!hay}">＋ Otro</button>`; }
-$('#genInsChips').addEventListener('click',e=>{ const b=e.target.closest('[data-genins]'); if(!b) return;
+  const L=INSUMO_PRESETS.map(p=>String(p[1]).trim().toUpperCase()), hay=L.includes(cur), ni=!!genNoIns;
+  const otroOn=!ni&&!!cur&&!hay;
+  $('#genInsChips').innerHTML=L.map(l=>`<button class="cg" type="button" data-genins="${esc(l)}" aria-pressed="${!ni&&l===cur}">${esc(l)}</button>`).join('')
+    +`<button class="cg" type="button" data-genins="" aria-pressed="${otroOn}" style="${otroOn?'':'border:1.5px dashed var(--amber);color:var(--amber);background:transparent;font-weight:700'}">＋ Otro insumo</button>`
+    +`<div style="flex-basis:100%;width:100%;grid-column:1/-1;font-size:12px;color:var(--mute);margin:8px 0 2px">No es insumo (no queda como botón):</div>`
+    +[['TRAMITES','📄 Trámites y papeles'],['OTRO','⚡ Imprevisto / otro']].map(([k,n])=>`<button class="cg" type="button" data-gennoins="${k}" aria-pressed="${genNoIns===k}" style="${genNoIns===k?'':'border:1.5px solid var(--sea);color:var(--sea);background:transparent;font-weight:700'}">${n}</button>`).join(''); }
+$('#genInsChips').addEventListener('click',e=>{ const bn=e.target.closest('[data-gennoins]');
+  if(bn){ genNoIns=genNoIns===bn.dataset.gennoins?'':bn.dataset.gennoins; $('#genN').value=''; $('#genN').placeholder=genNoIns==='TRAMITES'?'Detalle: ej. notaría, fotocopias, multa':'Detalle: qué fue'; if(genNoIns) $('#genN').focus(); pintaGenIns(); return; }
+  const b=e.target.closest('[data-genins]'); if(!b) return;
+  genNoIns='';
   const l=b.dataset.genins; $('#genN').value=l;
   if(!l){ $('#genN').placeholder='Escribe qué compraste (quedará como botón fijo)'; $('#genN').focus(); }
   pintaGenIns(); });
-$('#genN').addEventListener('input',()=>{ if(genCat==='INSUMOS') pintaGenIns(); });
+$('#genN').addEventListener('input',()=>pintaGenIns());
 $('#genM').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#genOk').addEventListener('click',async()=>{
   const m=pnum($('#genM').value)||0;
   if(!m){toast('Ingresa el monto');return}
   const nota=$('#genN').value.trim().toUpperCase();
-  const g={ts:Date.now(),cat:genCat,monto:m,fecha:$('#genD').value||iso(),nota};
+  if(!nota){toast('Toca un botón o "＋ Otro" para escribir qué compraste');return}
+  const g={ts:Date.now(),cat:genNoIns||(/COMBUSTIBLE|BENCINA|PETR[OÓ]LEO|DI[EÉ]SEL/.test(nota)?'COMBUSTIBLE':'INSUMOS'),monto:m,fecha:$('#genD').value||iso(),nota};   /* categoría según lo que se compró */
   GEN.push(g);
   const nuevoFijo=insFijoDeGen(g);
   if(nuevoFijo) await guardaConfigPend();   /* primero el botón (antes se guardaba después y el aviso quedaba tapado por "Gasto anotado") */
