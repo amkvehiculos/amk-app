@@ -26,7 +26,7 @@ button,input,select{font-family:inherit}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes vEntra{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 #secEst:not([hidden]),#secReal:not([hidden]),#secCorea:not([hidden]),
-#ngDinero:not([hidden]),#ngMes:not([hidden]),#ngEmbarque:not([hidden]),#ngAjustes:not([hidden]),#ngTraspaso:not([hidden])
+#ngDinero:not([hidden]),#ngMes:not([hidden]),#ngEmbarque:not([hidden]),#ngAjustes:not([hidden]),#ngVentas:not([hidden])
  {animation:vEntra .2s ease}
 
 header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 15px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
@@ -168,6 +168,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .sendbar{display:flex;gap:8px;margin-bottom:11px}
 .segs{display:flex;flex-wrap:wrap;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
 .segs button{flex:1 1 auto;min-width:0;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
+#ngSegs{flex-wrap:nowrap;gap:2px}#ngSegs button{padding:10px 2px;font-size:13px}
 .segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .note{background:var(--amberBg);border-left:3px solid var(--amber);color:var(--amber);
  padding:11px 13px;border-radius:0 9px 9px 0;font-size:13px}
@@ -264,6 +265,48 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </select></label></div>
     <p class="cnt" id="cStock"></p>
     <div id="lStock"></div>
+    <details class="box" id="boxNv" style="margin-top:14px"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">＋ Cargar vehículo a mano</h3></summary>
+      <p>Por si tu mamá no alcanza a subirlo desde su app. Entra como “En camino”.</p>
+      <div class="fld"><label for="nvVin">VIN completo (17, opcional)</label><input id="nvVin" autocapitalize="characters" maxlength="17" placeholder="Ej: KNANB81BBMS026561">
+        <div class="mtr">Si lo pones, el Chasis de abajo se completa solo con los últimos 8 — y queda guardado para la Vista previa de Zofri.</div></div>
+      <div class="fld"><label for="nvCh">Chasis</label><input id="nvCh" autocapitalize="characters" placeholder="Ej: BA123290">
+        <div class="mtr" id="nvChT"></div></div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvMaSel">Marca</label><select id="nvMaSel"></select>
+          <input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="Escribe la marca nueva" style="margin-top:6px" hidden></div>
+        <div class="fld"><label for="nvMoSel">Modelo</label><select id="nvMoSel"></select>
+          <input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="Escribe el modelo nuevo" style="margin-top:6px" hidden></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvAn">Año</label><input id="nvAn" inputmode="numeric" placeholder="2018"></div>
+        <div class="fld"><label for="nvCeSel">Color</label><select id="nvCeSel"></select>
+          <input id="nvCe" list="dlNvCe" autocapitalize="characters" placeholder="Escribe el color nuevo" style="margin-top:6px" hidden></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvTr">Tracción</label><select id="nvTr"><option value="4X2" selected>4X2</option><option value="4X4">4X4</option></select></div>
+        <div class="fld" id="nvPaWrap"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
+        <div class="fld" id="nvCabWrap" hidden><label for="nvCab">Cabina</label><select id="nvCab"><option value="">— Elige —</option><option value="SIMPLE">Cabina simple</option><option value="MEDIA">Cabina y media</option><option value="DOBLE">Doble cabina</option></select></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvMotor">Motor</label><select id="nvMotor"><option value="DIESEL" selected>Diésel</option><option value="BENCINA">Bencina</option></select></div>
+        <div class="fld"><label for="nvCilSel">Cilindrada</label><select id="nvCilSel"><option value="" selected>Sin especificar</option><option value="1.6">1.6</option><option value="1.7">1.7</option><option value="2.0">2.0</option><option value="2.2">2.2</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="__otro__">Otro…</option></select>
+          <input id="nvCil" inputmode="decimal" placeholder="Ej: 2.4" style="margin-top:6px" hidden></div>
+      </div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvCatSel">Categoría</label><select id="nvCatSel"></select>
+          <input id="nvCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
+        <div class="fld" id="nvCaWrap"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
+          <input id="nvCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
+      </div>
+      <div class="fld"><label for="nvTrans">Transmisión (para Zofri, opcional)</label>
+        <select id="nvTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
+      <div class="fld"><label for="nvProvSel">Proveedor</label><select id="nvProvSel"></select>
+        <input id="nvProv" autocapitalize="characters" placeholder="Escribe el proveedor nuevo" style="margin-top:6px" hidden></div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="nvVenta">Precio de venta (opcional)</label><input id="nvVenta" inputmode="numeric" placeholder="$0"></div>
+        <div class="fld"><label for="nvMin">Valor mínimo (opcional)</label><input id="nvMin" inputmode="numeric" placeholder="$0"></div>
+      </div>
+      <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></details>
   </section>
 
   <section class="panel" id="pResumen">
@@ -340,6 +383,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div id="genOut"></div>
     </div>
+    <div class="box" id="boxCons"><h3>Clientes y consultas</h3>
+      <p class="mtr" style="margin:0 0 10px">Lo que anotan Víctor y Bryan en su pestaña Clientes: de qué red llega cada cliente y si termina comprando. Úsalo para decidir dónde publicar más.</p>
+      <div class="chips" id="consPer" style="margin-bottom:8px"><button class="chip" data-cper="30" aria-selected="true">30 días</button><button class="chip" data-cper="90" aria-selected="false">90 días</button><button class="chip" data-cper="0" aria-selected="false">Todo</button></div>
+      <div id="consRes"></div><div id="consPend" style="margin-top:12px"></div></div>
     <div class="box" id="boxBrand"><h3>Ideas de contenido de marca</h3>
       <p class="mtr" style="margin:0 0 10px">No van sobre un auto puntual — son para ir construyendo la marca AMK de a poco. Ve rotando entre estas y los videos de autos.</p>
       <div id="brandIdeas"></div></div>
@@ -370,33 +417,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <section class="panel" id="pDatos">
     <h2>Negocio</h2><p class="sub">Lo que no revisas todos los días.</p>
     <div class="segs" id="ngSegs">
-      <button data-ng="dinero" aria-pressed="true">Dinero</button>
-      <button data-ng="mes" aria-pressed="false">Mes</button>
+      <button data-ng="dinero" aria-pressed="true">Plata</button>
+      <button data-ng="mes" aria-pressed="false">Equipo</button>
       <button data-ng="embarque" aria-pressed="false">Embarque</button>
+      <button data-ng="ventas" aria-pressed="false">Ventas</button>
       <button data-ng="ajustes" aria-pressed="false">Ajustes</button>
-      <button data-ng="traspaso" aria-pressed="false">Traspaso</button>
     </div>
     <div id="ngMes" hidden>
-    <div class="box" id="boxFijo" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Costos fijos del mes</h3>
-        <button class="b-und" style="flex:0 0 auto" id="fjEdit">Editar</button></div>
-      <div id="fjList"></div>
-      <div id="fjKrwList" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:9px"></div>
-      <div class="xrow">
-        <span style="font-family:var(--body);font-weight:600">Pesos por wón<br>
-          <span style="font-weight:400;color:var(--mute);font-size:12px">Para convertir los costos de Corea</span></span>
-        <span><input id="fjKrw" inputmode="decimal" placeholder="0,685"
-          style="width:100px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
-      <div class="xrow" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:9px">
-        <span style="font-family:var(--body);font-weight:600">Comisión por venta de Bryan</span>
-        <span><input id="fjComB" inputmode="numeric" placeholder="$0"
-          style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
-    </div>
-    <div class="box" id="boxAdel" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Adelantos de sueldo</h3>
-        <button class="b-und" style="flex:0 0 auto" id="adAdd">＋ Anotar</button></div>
-      <div id="adList"></div>
-    </div>
     <div class="box" id="boxSueldos" style="margin-top:13px">
       <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Sueldos por quincena (Víctor y Bryan)</h3>
         <div id="sqSegs" style="flex:0 0 auto;display:flex;gap:6px">
@@ -412,8 +439,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <span><input id="sqVeh" inputmode="numeric" placeholder="$350.000"
           style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
     </div>
+    <div class="box" id="boxAdel" style="margin-top:13px">
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Adelantos de sueldo</h3>
+        <button class="b-und" style="flex:0 0 auto" id="adAdd">＋ Anotar</button></div>
+      <div id="adList"></div>
+    </div>
     <div class="box" id="boxDeu" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Lo que deben (vehículo y préstamos)</h3>
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Deudas de Víctor y Bryan</h3>
         <button class="b-und" style="flex:0 0 auto" id="deuAdd">＋ Nuevo</button></div>
       <p class="mtr" style="margin:0 0 8px">Se descuenta de cada quincena. Cambia el descuento de la quincena que estás viendo arriba en Sueldos (Anterior / Actual). Víctor y Bryan ven su saldo en su app.</p>
       <div id="deuList"></div>
@@ -424,22 +456,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="chip" data-hf="todos" aria-pressed="true">Todos</button><button class="chip" data-hf="sueldo" aria-pressed="false">Sueldos</button><button class="chip" data-hf="adelanto" aria-pressed="false">Adelantos y préstamos</button><button class="chip" data-hf="fijo" aria-pressed="false">Costos fijos</button></div>
       <div id="histList"></div>
     </div>
-    <div class="box" id="boxCom" style="margin-top:13px">
-      <h3>Ventas por comuna</h3>
-      <div id="byCom"></div>
-    </div>
-    <div class="box" id="boxSRF" style="margin-top:13px">
-      <h3>Vista previa de venta (SRF)</h3>
-      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Las ventas en dólares o de exportación no aparecen acá — esas van por Traspaso (203), no por SRF.</p>
-      <div id="ngSRF"></div>
-    </div>
-    <div class="box" id="boxCat" style="margin-top:13px">
-      <h3>En qué se fue el gasto</h3>
-      <div id="byCat"></div>
-    </div>
+    <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
+      <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). Al tocar "Ya compré" anotas cuánto costó y queda como gasto general (Insumos de aseo/taller). No afecta el costo de ningún vehículo.</p>
+      <button class="btn b-sec" id="insSinAviso" style="width:100%;margin-bottom:10px">＋ Anotar compra sin aviso (algo que compraste tú)</button>
+      <div id="insumosList"></div></div>
     </div>
     <div id="ngEmbarque" hidden>
-      <div class="box"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Embarque</h3><span style="display:inline-flex;gap:10px;align-items:center"><span id="emSyncEstado" style="font-size:12px;color:var(--mute)"></span><span id="emSaveStatus" style="font-size:12px;color:var(--mute)"></span></span></div>
+    <div class="box"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Embarque</h3><span style="display:inline-flex;gap:10px;align-items:center"><span id="emSyncEstado" style="font-size:12px;color:var(--mute)"></span><span id="emSaveStatus" style="font-size:12px;color:var(--mute)"></span></span></div>
         <p>Reparte los costos del contenedor entre los vehículos y calcula el FOB Zeta.</p>
         <div style="margin:0 0 14px;padding:12px;border:1px dashed var(--line);border-radius:10px">
           <h3 style="margin:0 0 6px;font-size:14px">Cargar desde el BL</h3>
@@ -459,14 +482,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <button class="btn b-sec" id="emLista">Abrir otro</button>
           <button class="btn b-sec" id="emBorrar">Borrar este embarque</button></div>
       </div>
-
-      <details class="box" id="emAccVeh"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vehículos del embarque</h3> <span id="emAccVehStat" class="mtr"></span></summary>
+    <details class="box" id="emAccVeh"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vehículos del embarque</h3> <span id="emAccVehStat" class="mtr"></span></summary>
         <div class="fld" style="margin-bottom:9px"><input id="emV" list="dlEmV" autocomplete="off" placeholder="Buscar vehículo"
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)">
           <datalist id="dlEmV"></datalist></div>
         <button class="btn b-sec" id="emVNToggle" type="button" style="width:100%;margin-bottom:11px">⚠ ¿No está en Stock todavía? Agregar vehículo nuevo</button>
         <div id="emVNBox" hidden style="margin:0 0 16px;padding:12px;border:1px dashed var(--line);border-radius:10px;background:var(--panel2, transparent)">
-          <div class="mtr" style="margin:0 0 10px">Por si tu mamá no alcanza a subirlo desde su app — los mismos datos que "Cargar vehículo a mano" en Traspaso.</div>
+          <div class="mtr" style="margin:0 0 10px">Por si tu mamá no alcanza a subirlo desde su app — los mismos datos que "Cargar vehículo a mano" en Stock.</div>
           <div class="fld"><label for="emVNVin">VIN completo (17, opcional)</label><input id="emVNVin" autocapitalize="characters" maxlength="17" placeholder="Ej: KNANB81BBMS026561">
             <div class="mtr">Si lo pones, el Chasis de abajo se completa solo con los últimos 8.</div></div>
           <div class="fld"><label for="emVNCh">Chasis</label><input id="emVNCh" autocapitalize="characters" placeholder="Ej: BA123290">
@@ -523,33 +545,45 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div id="emLista2" style="margin-top:12px"></div>
 
       </details>
-
-      <details class="box" id="boxGastosCorea" hidden><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Gastos generales de Corea</h3></summary>
+    <details class="box" id="emAccEst"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos estimados (este embarque)</h3></summary>
+        <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
+        <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
+        <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
+        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0">
+          <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
+          <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
+        </div>
+        <div id="emEstDup"></div>
+        <div id="emEstLista"></div>
+        <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
+        <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
+      </details>
+    <details class="box" id="boxGastosCorea" hidden><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Gastos de Corea</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Compras que tu mamá anotó en su app sin asignarlas a un vehículo en particular (ej: cromados comprados en bloque). El saldo que le queda sin asignar se puede repartir en partes iguales entre todos los vehículos de este embarque.</p>
         <div id="emGastosList"></div>
       </details>
-
-      <details class="box" id="boxAcum"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos de período acumulados</h3> <span id="emAccAcumStat" class="mtr"></span></summary>
-        <p id="acumT"></p>
-        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px">
-          <input id="acumM" inputmode="numeric" placeholder="₩0" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:15px;background:var(--paper);color:var(--ink)">
-          <button class="btn b-pri" id="acumAdd" style="flex:0 0 auto;padding:10px 14px">Traer</button>
-        </div>
-        <div class="mtr" style="margin-top:8px">Si un mes no hubo embarque, estos costos siguen corriendo y se imputan al siguiente.</div>
-      </details>
-      <details class="box" id="emAccFob"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">FOB Zeta</h3></summary>
+    <details class="box" id="emAccFob"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">FOB Zeta</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Se calcula solo, a partir del FOB y el flete de cada vehículo — igual que en el Excel. No hay nada que escribir a mano acá.</p>
         <div id="emFob"></div>
         <button class="btn b-pri" id="emFobCp" style="width:100%;margin-top:11px">➦ Copiar lista para Zofri</button>
       </details>
-      <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
+    <div class="box"><h3>Impuesto Ley 18.211</h3>
+      <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="mtr" style="margin:0 0 4px">Dólar aduanero</div>
+          <input id="lbDA" inputmode="decimal" placeholder="935,57" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <div><div class="mtr" style="margin:0 0 4px">Tasa (%)</div>
+          <input id="lbT18" inputmode="decimal" placeholder="0,33" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+      </div>
+      <div class="mtr" style="margin-top:7px">Aduanas fija el dólar aduanero el primer día hábil de cada mes.</div></div>
+    <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
         <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
         <div id="emZof"></div>
       </details>
-      <details class="box" id="emAccIti"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">ITI · inscripción y llegada</h3> <span id="emAccItiStat" class="mtr"></span></summary>
+    <details class="box" id="emAccIti"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">ITI · inscripción y llegada</h3> <span id="emAccItiStat" class="mtr"></span></summary>
         <div id="emIti"></div>
       </details>
-      <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
+    <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
         <div class="segs" id="emCt">
           <button data-emt="contenedor" aria-pressed="true">Por contenedor</button>
           <button data-emt="vehiculo" aria-pressed="false">Por vehículo</button>
@@ -571,59 +605,25 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         </div>
         <div class="money" id="emTot" style="margin-top:12px"></div>
       </details>
-      <details class="box" id="emAccEst"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos estimados (este embarque)</h3></summary>
-        <p class="mtr" style="margin:0 0 10px">Para dejar de una sola vez una estimación de reacondicionamiento a los vehículos de este BL, sin entrar chasis por chasis. El monto sugerido es la mediana de lo gastado antes en el mismo modelo. Se guardan como "Tareas" en la ficha de cada vehículo (pestaña Costos), igual que si se cargaran una por una.</p>
-        <div class="segs" id="emEstCat" style="flex-wrap:wrap;gap:6px"></div>
-        <div class="mtr" style="margin:8px 0 0">Una categoría en <b style="color:var(--green)">verde</b> ya tiene estimados guardados en este embarque.</div>
-        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px;margin:12px 0">
-          <input id="emEstTodos" inputmode="numeric" placeholder="Aplicar el mismo monto a todos ($)" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)">
-          <button class="btn b-sec" id="emEstTodosBtn" style="flex:0 0 auto;padding:10px 14px">Aplicar a todos</button>
+    <details class="box" id="boxAcum"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos de período acumulados</h3> <span id="emAccAcumStat" class="mtr"></span></summary>
+        <p id="acumT"></p>
+        <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <input id="acumM" inputmode="numeric" placeholder="₩0" style="border:1px solid var(--line);border-radius:9px;padding:10px;font-size:15px;background:var(--paper);color:var(--ink)">
+          <button class="btn b-pri" id="acumAdd" style="flex:0 0 auto;padding:10px 14px">Traer</button>
         </div>
-        <div id="emEstDup"></div>
-        <div id="emEstLista"></div>
-        <button class="btn b-pri" id="emEstGuardar" style="width:100%;margin-top:12px">Guardar estimados</button>
-        <div id="emEstStatus" style="font-size:12.5px;color:var(--green);margin-top:8px;text-align:center;min-height:16px"></div>
+        <div class="mtr" style="margin-top:8px">Si un mes no hubo embarque, estos costos siguen corriendo y se imputan al siguiente.</div>
       </details>
-      <details class="box" id="emAccRes"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Resumen de costos y precios</h3></summary>
+    <details class="box" id="emAccRes"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Resumen de costos y precios</h3></summary>
         <p class="mtr" style="margin:0 0 10px">Por vehículo: costo hasta Chile redondeado como en el Excel (al múltiplo de $100.000 más cercano + $100.000), más los costos estimados pendientes y los reales ya anotados — se va actualizando solo a medida que anotas en cada vehículo. Al lado, precio de venta (lo que ofrecen Víctor y Bryan) y valor mínimo.</p>
         <div id="emRes"></div>
         <p>"Aplicar costos" guarda en cada vehículo el costo hasta Chile, el CIF y el FOB Zeta, y los precios escritos arriba, pasa los que estaban "en creación" a Stock como En camino (para que los vean Víctor y Bryan), y lo sube a la nube. Los precios también se guardan solos al salir de cada campo.</p>
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
-    <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 14:25<!--/VER--></b></div>
-    <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
-      <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="ctaBanco">Banco</label><input id="ctaBanco" placeholder="Ej: Banco Estado"></div>
-        <div class="fld"><label for="ctaTipo">Tipo de cuenta</label><input id="ctaTipo" placeholder="Ej: Cuenta Vista"></div>
-      </div>
-      <div class="fld"><label for="ctaNum">Número de cuenta</label><input id="ctaNum" inputmode="numeric" placeholder="Ej: 12345678"></div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="ctaTit">Nombre del titular</label><input id="ctaTit" placeholder="Ej: Andre Pérez"></div>
-        <div class="fld"><label for="ctaRut">RUT del titular</label><input id="ctaRut" placeholder="Ej: 12.345.678-9"></div>
-      </div>
-      <div class="fld"><label for="ctaMail">Email para el comprobante (opcional)</label><input id="ctaMail" type="email" placeholder="Ej: correo@ejemplo.com"></div>
-      <button class="btn b-pri" id="ctaOk" style="width:100%">Guardar</button>
-      <div class="mtr" id="ctaEstado" style="margin-top:9px"></div>
-      <button class="btn b-sec" id="ctaShare" style="width:100%;margin-top:9px">🖼️ Enviar imagen + datos al cliente</button></div>
-    <div class="box" id="boxModeracion"><h3>Categorías nuevas por revisar</h3>
-      <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
-      <div id="modList"></div>
-      <details id="fixBox" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">Editar botones fijos</summary>
-        <p style="font-size:12.5px;color:var(--mute);margin:6px 0 8px">Cambia el nombre (se guarda al salir del campo) o quita el botón con ✕. Lo que ya se reportó antes no cambia.</p>
-        <div id="fixList"></div>
-        <div style="border-top:1px solid var(--line);margin-top:10px;padding-top:10px">
-          <div style="font-weight:700;font-size:13px;margin-bottom:6px">Agregar botón fijo</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <select id="fixNTipo" style="padding:7px 6px"><option value="i">Insumo</option><option value="p">Pendiente de vehículo</option></select>
-            <select id="fixNCat" hidden style="padding:7px 4px"></select>
-            <input id="fixNLbl" placeholder="Ej: Trapos exteriores" style="flex:1;min-width:140px;padding:7px 9px">
-            <button class="btn b-pri" id="fixNOk" style="padding:7px 12px">Agregar</button></div></div></details></div>
-    <div class="box" id="boxInsumos"><h3>Insumos del taller</h3>
-      <p>Avisos de Víctor y Bryan de que algo se está por acabar (combustible, desengrasante, renovador de gomas, silicona, etc). Al tocar "Ya compré" anotas cuánto costó y queda como gasto general (Insumos de aseo/taller). No afecta el costo de ningún vehículo.</p>
-      <button class="btn b-sec" id="insSinAviso" style="width:100%;margin-bottom:10px">＋ Anotar compra sin aviso (algo que compraste tú)</button>
-      <div id="insumosList"></div></div>
+    <div id="ngVentas" hidden>
+    <div class="box" id="boxCom" style="margin-top:13px">
+      <h3>Ventas por comuna</h3>
+      <div id="byCom"></div>
+    </div>
     <div class="box" id="boxDemanda"><h3>Demanda de clientes</h3>
       <p>Lo que Víctor, Bryan y tú van anotando cuando un cliente busca algo que no tenemos. Se comparte también con Corea, para ir comprando de a pocos según lo que se pide.</p>
       <div class="fld"><label for="dcMarca">Marca</label>
@@ -657,23 +657,44 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <input id="dcCarac" placeholder="Otra característica (opcional)" style="margin-top:8px"></div>
       <button class="btn b-pri" id="dcOk" style="width:100%">Anotar demanda</button>
       <div id="demandaList" style="margin-top:12px"></div></div>
-    <div class="box"><h3>Impuesto Ley 18.211</h3>
-      <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
+    <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
+      <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div class="mtr" style="margin:0 0 4px">Dólar aduanero</div>
-          <input id="lbDA" inputmode="decimal" placeholder="935,57" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
-        <div><div class="mtr" style="margin:0 0 4px">Tasa (%)</div>
-          <input id="lbT18" inputmode="decimal" placeholder="0,33" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <div class="fld"><label for="ctaBanco">Banco</label><input id="ctaBanco" placeholder="Ej: Banco Estado"></div>
+        <div class="fld"><label for="ctaTipo">Tipo de cuenta</label><input id="ctaTipo" placeholder="Ej: Cuenta Vista"></div>
       </div>
-      <div class="mtr" style="margin-top:7px">Aduanas fija el dólar aduanero el primer día hábil de cada mes.</div></div>
-    <div class="box"><h3>Clave API de Anthropic (opcional)</h3>
-      <p>Solo hace falta si quieres usar "Buscar dólar de hoy" y "Leer datos del carnet". Sin clave, esas dos funciones piden escribir los datos a mano — el resto de la app funciona igual.</p>
-      <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:10px">
-        <input id="aiKey" type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
-        <button class="btn b-pri" id="aiKeySave">Guardar</button>
+      <div class="fld"><label for="ctaNum">Número de cuenta</label><input id="ctaNum" inputmode="numeric" placeholder="Ej: 12345678"></div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label for="ctaTit">Nombre del titular</label><input id="ctaTit" placeholder="Ej: Andre Pérez"></div>
+        <div class="fld"><label for="ctaRut">RUT del titular</label><input id="ctaRut" placeholder="Ej: 12.345.678-9"></div>
       </div>
-      <div class="mtr" style="margin-top:8px">Ojo: la clave queda guardada en este teléfono y viaja desde el navegador en cada consulta — cualquiera que abra este archivo o revise el código la puede ver. Usa una clave de bajo límite de gasto, creada solo para esto, en console.anthropic.com.</div></div>
-    <div class="box"><h3>Publicar en Instagram (Meta)</h3>
+      <div class="fld"><label for="ctaMail">Email para el comprobante (opcional)</label><input id="ctaMail" type="email" placeholder="Ej: correo@ejemplo.com"></div>
+      <button class="btn b-pri" id="ctaOk" style="width:100%">Guardar</button>
+      <div class="mtr" id="ctaEstado" style="margin-top:9px"></div>
+      <button class="btn b-sec" id="ctaShare" style="width:100%;margin-top:9px">🖼️ Enviar imagen + datos al cliente</button></div>
+    <div class="box" id="boxSRF" style="margin-top:13px">
+      <h3>Formulario SRF (Zofri)</h3>
+      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Las ventas en dólares o de exportación no aparecen acá — esas van por Traspaso (203), no por SRF.</p>
+      <div id="ngSRF"></div>
+    </div>
+    </div>
+    <div id="ngAjustes" hidden>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 16:55<!--/VER--></b></div>
+    <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
+      <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
+      <div id="modList"></div>
+      <details id="fixBox" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;font-size:14px">Editar botones fijos</summary>
+        <p style="font-size:12.5px;color:var(--mute);margin:6px 0 8px">Cambia el nombre (se guarda al salir del campo) o quita el botón con ✕. Lo que ya se reportó antes no cambia.</p>
+        <div id="fixList"></div>
+        <div style="border-top:1px solid var(--line);margin-top:10px;padding-top:10px">
+          <div style="font-weight:700;font-size:13px;margin-bottom:6px">Agregar botón fijo</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <select id="fixNTipo" style="padding:7px 6px"><option value="i">Insumo</option><option value="p">Pendiente de vehículo</option></select>
+            <select id="fixNCat" hidden style="padding:7px 4px"></select>
+            <input id="fixNLbl" placeholder="Ej: Trapos exteriores" style="flex:1;min-width:140px;padding:7px 9px">
+            <button class="btn b-pri" id="fixNOk" style="padding:7px 12px">Agregar</button></div></div></details></div>
+    <div class="box"><h3>Redes sociales</h3>
+      <div style="font-weight:700;font-size:14px;margin:4px 0 4px">Instagram (Meta)</div>
       <p>Token de la app "AMK Contenido" de Meta for Developers. Se guarda solo en este dispositivo.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de acceso de Instagram</div>
         <input id="igToken" type="password" autocomplete="off" placeholder="IGAA..."
@@ -685,7 +706,19 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="igTest">Probar conexión</button>
         <button class="btn b-pri" id="igSave">Guardar</button></div>
       <div id="igEstado" class="mtr" style="margin-top:9px"></div>
-      <div class="mtr" style="margin-top:8px">El token de Meta caduca cada 60 días: cuando deje de funcionar, hay que generar uno nuevo en el panel de Meta y volver a pegarlo acá.</div></div>
+      <div class="mtr" style="margin-top:8px">El token de Meta caduca cada 60 días: cuando deje de funcionar, hay que generar uno nuevo en el panel de Meta y volver a pegarlo acá.</div>
+      <div style="font-weight:700;font-size:14px;margin:16px 0 4px;border-top:1px solid var(--line);padding-top:12px">Facebook (página)</div>
+      <p>Token de página de Meta. Facebook acepta la foto o el video directo, sin pasar por GitHub.</p>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de acceso de la página</div>
+        <input id="fbToken" type="password" autocomplete="off" placeholder="EAAG..."
+          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">ID de la página</div>
+        <input id="fbPage" inputmode="numeric" placeholder="1234567890"
+          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
+      <div class="acts">
+        <button class="btn b-sec" id="fbTest">Probar conexión</button>
+        <button class="btn b-pri" id="fbSave">Guardar</button></div>
+      <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
     <div class="box"><h3>Bodega de fotos (GitHub)</h3>
       <p>Instagram no acepta fotos desde tu computador: exige que estén publicadas en internet. La app sube sola la foto de portada a tu repositorio de GitHub antes de publicar.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de GitHub</div>
@@ -703,21 +736,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="ghSave">Guardar</button></div>
       <div id="ghEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos en ese repositorio (es lo que permite que Instagram los tome). Usa un token de tipo "fine-grained" con permiso de Contenido: lectura y escritura, solo sobre ese repositorio. Conviene un repositorio aparte (ej. amk-media), no el de la web.</div></div>
-    <div class="box"><h3>Depurar vehículos</h3>
-      <p>Para cuando tengas vehículos subidos que ya no son parte de tu stock real -- no fue una venta, simplemente ya no los tienes. Se archivan, no se borran: los puedes ver y restaurar cuando quieras desde la pestaña "Archivados" del Stock. No es algo que necesites usar seguido.</p>
-      <div class="acts"><button class="btn b-sec" id="irDepurar" style="width:100%">🗄 Depurar vehículos</button></div>
-    </div>
-    <div class="box"><h3>Historial · volver a como estaba</h3>
-      <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
-      <select id="histSel" style="width:100%;margin-bottom:8px"><option value="">(todavía no hay ningún momento guardado)</option></select>
-      <div class="acts">
-        <button class="btn b-pri" id="histVolver" style="width:100%" disabled>↺ Volver a este momento</button></div>
-      <div class="acts" style="margin-top:8px">
-        <button class="btn b-sec" id="histArch" style="width:100%">↺ Volver usando un archivo de respaldo</button></div>
-      <input type="file" id="histFile" accept=".json,application/json" style="display:none">
-      <div id="histEstado" class="mtr" style="margin-top:9px"></div>
-      <div class="mtr" style="margin-top:6px"><b>Reemplaza</b> todo por lo que traiga la foto o el respaldo. Los vehículos que sobran se quitan también de la nube y de la web. Siempre guarda una foto de cómo estaba antes, por si te arrepientes.</div>
-    </div>
+    <div class="box"><h3>Clave API de Anthropic (opcional)</h3>
+      <p>Solo hace falta si quieres usar "Buscar dólar de hoy" y "Leer datos del carnet". Sin clave, esas dos funciones piden escribir los datos a mano — el resto de la app funciona igual.</p>
+      <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:10px">
+        <input id="aiKey" type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+        <button class="btn b-pri" id="aiKeySave">Guardar</button>
+      </div>
+      <div class="mtr" style="margin-top:8px">Ojo: la clave queda guardada en este teléfono y viaja desde el navegador en cada consulta — cualquiera que abra este archivo o revise el código la puede ver. Usa una clave de bajo límite de gasto, creada solo para esto, en console.anthropic.com.</div></div>
     <div class="box"><h3>Sincronización en la nube</h3>
       <p>Estado de la conexión con Firestore y carga inicial de los datos de este dispositivo.</p>
       <div id="fbEstadoSync" class="mtr" style="margin-bottom:9px">Comprobando…</div>
@@ -749,25 +774,42 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="mtr" style="margin-top:6px">Compara un archivo de respaldo con lo que hay ahora y rellena solo los campos que estén vacíos. Nunca pisa un dato que ya tengas.</div>
       <div id="fbMigEstado" class="mtr" style="margin-top:9px"></div>
       <div class="mtr" style="margin-top:8px">La subida completa se hace una sola vez, y solo cuando tú la aprietas. Después de eso, cada cambio viaja solo. Antes de usarla, ten descargado el respaldo completo en JSON.</div></div>
-    <div class="box"><h3>Publicar en Facebook (página)</h3>
-      <p>Token de página de Meta. Facebook acepta la foto o el video directo, sin pasar por GitHub.</p>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de acceso de la página</div>
-        <input id="fbToken" type="password" autocomplete="off" placeholder="EAAG..."
-          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">ID de la página</div>
-        <input id="fbPage" inputmode="numeric" placeholder="1234567890"
-          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
+    <div class="box"><h3>Respaldo</h3><p>Copia de seguridad de todo lo registrado en esta app.</p>
+      <button class="btn b-sec" id="eBak" style="width:100%">Copiar respaldo (texto)</button>
+      <button class="btn b-pri" id="eBakXlsx" style="width:100%;margin-top:8px">⇩ Descargar respaldo en Excel</button>
+      <button class="btn b-pri" id="eBakJson" style="width:100%;margin-top:8px">⇩ Respaldo completo (archivo JSON)</button>
+      <div class="mtr" style="margin-top:8px">El respaldo completo incluye TODO lo guardado en este dispositivo, fotos incluidas. Es el que sirve para restaurar si algo sale mal. Guárdalo antes de cualquier cambio grande.</div>
+      <button class="btn b-sec" id="bakAutoBtn" type="button" aria-pressed="false" style="width:100%;margin-top:10px">Respaldo automático diario</button>
+      <div id="bakAutoTxt" class="mtr" style="margin-top:4px"></div>
+      <div id="bakEstado" class="mtr" style="margin-top:6px"></div></div>
+    <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de la venta, la app deja automáticamente 3 fotos por vehículo -- las tuyas, las de Víctor/Bryan/Corea y las vistas 360° de todos. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.</p>
+      <button class="btn b-sec" id="eFree" style="width:100%">Podar ahora</button></div>
+    <div class="box"><h3>Limpiar vehículos</h3>
+      <p>Para cuando tengas vehículos subidos que ya no son parte de tu stock real -- no fue una venta, simplemente ya no los tienes. Se archivan, no se borran: los puedes ver y restaurar cuando quieras desde la pestaña "Archivados" del Stock. No es algo que necesites usar seguido.</p>
+      <div class="acts"><button class="btn b-sec" id="irDepurar" style="width:100%">🗄 Depurar vehículos</button></div>
+    </div>
+    <div class="box"><h3>Deshacer cambios</h3>
+      <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
+      <select id="histSel" style="width:100%;margin-bottom:8px"><option value="">(todavía no hay ningún momento guardado)</option></select>
       <div class="acts">
-        <button class="btn b-sec" id="fbTest">Probar conexión</button>
-        <button class="btn b-pri" id="fbSave">Guardar</button></div>
-      <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
+        <button class="btn b-pri" id="histVolver" style="width:100%" disabled>↺ Volver a este momento</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="histArch" style="width:100%">↺ Volver usando un archivo de respaldo</button></div>
+      <input type="file" id="histFile" accept=".json,application/json" style="display:none">
+      <div id="histEstado" class="mtr" style="margin-top:9px"></div>
+      <div class="mtr" style="margin-top:6px"><b>Reemplaza</b> todo por lo que traiga la foto o el respaldo. Los vehículos que sobran se quitan también de la nube y de la web. Siempre guarda una foto de cómo estaba antes, por si te arrepientes.</div>
+    </div>
+    <div class="box" hidden><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
+      <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
+      <button class="btn b-pri" id="rxBtn" style="width:100%">Cargar vehículos</button></div>
+    <div class="box" hidden><h3>Todo → Excel</h3><p>Una fila por vehículo con sus costos y su venta, en el orden de tus columnas. Se pega de una sola vez en BASE DE DATOS.</p>
+      <button class="btn b-sec" id="eAll" style="width:100%">Copiar para Excel</button></div>
+    <div class="box" hidden><h3>Catálogo → Web</h3><p>Los vehículos publicados. <b>No incluye el precio mínimo.</b></p>
+      <button class="btn b-sec" id="eWeb" style="width:100%">Copiar para la web</button></div>
+    <div class="box" hidden><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
+      <button class="btn b-sec" id="eVend" style="width:100%">Copiar para el equipo</button></div>
     </div>
     <div id="ngDinero">
-    <div class="box" id="boxPendCambiar"><h3>Pendiente de cambiar (ventas en pesos)</h3>
-      <p>Ventas en pesos que aún no has cambiado a dólares. Se agregan solas al marcar un vehículo vendido; marca "Ya cambiado" cuando corresponda. Las ventas de antes de esta actualización no aparecen acá (no hay forma de saber si ya se cambiaron o no).</p>
-      <div class="money" style="margin:0 0 11px"><div>Total pendiente <b id="pcTotal">$0</b></div>
-        <div>Ventas <b id="pcCant">0</b></div></div>
-      <div id="pcList"></div></div>
     <div class="box" id="boxFlujo"><h3>Panorama de flujo de caja</h3>
       <p>Un resumen con tus propios números: cuánto tienes pendiente de cambiar, cuánto sabes que se viene en pesos y en dólares, y cuánto conviene dejar de colchón. No predice el mercado — solo ordena lo que ya sabes.</p>
       <div class="money" style="margin:0 0 4px">
@@ -791,6 +833,30 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <input id="fcEmergUSD" inputmode="decimal" placeholder="0,00" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
       </div>
       <button class="btn b-pri" id="fcGuardar" style="width:100%">Guardar fondo de emergencia</button></div>
+    <div class="box" id="boxFijo" style="margin-top:13px">
+      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">Costos fijos del mes</h3>
+        <button class="b-und" style="flex:0 0 auto" id="fjEdit">Editar</button></div>
+      <div id="fjList"></div>
+      <div id="fjKrwList" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:9px"></div>
+      <div class="xrow">
+        <span style="font-family:var(--body);font-weight:600">Pesos por wón<br>
+          <span style="font-weight:400;color:var(--mute);font-size:12px">Para convertir los costos de Corea</span></span>
+        <span><input id="fjKrw" inputmode="decimal" placeholder="0,685"
+          style="width:100px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
+      <div class="xrow" style="border-top:1px dashed var(--line);margin-top:8px;padding-top:9px">
+        <span style="font-family:var(--body);font-weight:600">Comisión por venta de Bryan</span>
+        <span><input id="fjComB" inputmode="numeric" placeholder="$0"
+          style="width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;text-align:right;background:var(--paper);color:var(--ink)"></span></div>
+    </div>
+    <div class="box" id="boxCat" style="margin-top:13px">
+      <h3>En qué se fue el gasto</h3>
+      <div id="byCat"></div>
+    </div>
+    <div class="box" id="boxPendCambiar"><h3>Pendiente de cambiar (ventas en pesos)</h3>
+      <p>Ventas en pesos que aún no has cambiado a dólares. Se agregan solas al marcar un vehículo vendido; marca "Ya cambiado" cuando corresponda. Las ventas de antes de esta actualización no aparecen acá (no hay forma de saber si ya se cambiaron o no).</p>
+      <div class="money" style="margin:0 0 11px"><div>Total pendiente <b id="pcTotal">$0</b></div>
+        <div>Ventas <b id="pcCant">0</b></div></div>
+      <div id="pcList"></div></div>
     <div class="box"><h3>Tipo de cambio</h3>
       <p>Se usa por defecto en las ventas en dólares y para calcular la compra de divisas.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -815,8 +881,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <div>Actualizado <b id="tcFecha" style="font-size:12.5px">—</b></div></div>
       <div class="acts"><button class="btn b-sec" id="tcGet">Buscar dólar de hoy</button>
         <button class="btn b-pri" id="tcSave" style="flex:0 0 auto">Guardar</button></div>
-      <div class="mtr" id="tcFuente" style="margin-top:8px"></div></div>
-    <div class="box"><h3>Contexto del mercado (noticias)</h3>
+      <div class="mtr" id="tcFuente" style="margin-top:8px"></div>
+      <div style="font-weight:700;font-size:14px;margin:16px 0 4px;border-top:1px solid var(--line);padding-top:12px">Noticias del mercado</div>
       <p>Busca noticias recientes sobre el dólar/peso chileno, el won coreano y fletes/disponibilidad de contenedores en la ruta Corea-Chile, usando tu clave de Anthropic. Es un resumen de lo que está pasando, no una predicción de hacia dónde van esos valores — eso no se puede saber con certeza, ni la app ni nadie más.</p>
       <button class="btn b-sec" id="mktNews" style="width:100%">Buscar noticias de mercado</button>
       <div id="mktNewsOut" style="margin-top:12px"></div></div>
@@ -864,70 +930,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
       <button class="btn b-sec" id="rmRxBtn" hidden style="width:100%">Cargar confirmación</button>
       <div id="rmList" style="margin-top:12px"></div></div>
-    </div>
-    <div id="ngTraspaso" hidden>
-    <div class="box"><h3>Cargar vehículo a mano</h3>
-      <p>Por si tu mamá no alcanza a subirlo desde su app. Entra como “En camino”.</p>
-      <div class="fld"><label for="nvVin">VIN completo (17, opcional)</label><input id="nvVin" autocapitalize="characters" maxlength="17" placeholder="Ej: KNANB81BBMS026561">
-        <div class="mtr">Si lo pones, el Chasis de abajo se completa solo con los últimos 8 — y queda guardado para la Vista previa de Zofri.</div></div>
-      <div class="fld"><label for="nvCh">Chasis</label><input id="nvCh" autocapitalize="characters" placeholder="Ej: BA123290">
-        <div class="mtr" id="nvChT"></div></div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvMaSel">Marca</label><select id="nvMaSel"></select>
-          <input id="nvMa" list="dlNvMa" autocapitalize="characters" placeholder="Escribe la marca nueva" style="margin-top:6px" hidden></div>
-        <div class="fld"><label for="nvMoSel">Modelo</label><select id="nvMoSel"></select>
-          <input id="nvMo" list="dlNvMo" autocapitalize="characters" placeholder="Escribe el modelo nuevo" style="margin-top:6px" hidden></div>
-      </div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvAn">Año</label><input id="nvAn" inputmode="numeric" placeholder="2018"></div>
-        <div class="fld"><label for="nvCeSel">Color</label><select id="nvCeSel"></select>
-          <input id="nvCe" list="dlNvCe" autocapitalize="characters" placeholder="Escribe el color nuevo" style="margin-top:6px" hidden></div>
-      </div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvTr">Tracción</label><select id="nvTr"><option value="4X2" selected>4X2</option><option value="4X4">4X4</option></select></div>
-        <div class="fld" id="nvPaWrap"><label for="nvPa">Pasajeros</label><input id="nvPa" inputmode="numeric" placeholder="7"></div>
-        <div class="fld" id="nvCabWrap" hidden><label for="nvCab">Cabina</label><select id="nvCab"><option value="">— Elige —</option><option value="SIMPLE">Cabina simple</option><option value="MEDIA">Cabina y media</option><option value="DOBLE">Doble cabina</option></select></div>
-      </div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvMotor">Motor</label><select id="nvMotor"><option value="DIESEL" selected>Diésel</option><option value="BENCINA">Bencina</option></select></div>
-        <div class="fld"><label for="nvCilSel">Cilindrada</label><select id="nvCilSel"><option value="" selected>Sin especificar</option><option value="1.6">1.6</option><option value="1.7">1.7</option><option value="2.0">2.0</option><option value="2.2">2.2</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="__otro__">Otro…</option></select>
-          <input id="nvCil" inputmode="decimal" placeholder="Ej: 2.4" style="margin-top:6px" hidden></div>
-      </div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvCatSel">Categoría</label><select id="nvCatSel"></select>
-          <input id="nvCat" placeholder="Escribe la categoría nueva" style="margin-top:6px" hidden></div>
-        <div class="fld" id="nvCaWrap"><label for="nvCaSel">Carrocería</label><select id="nvCaSel"></select>
-          <input id="nvCa" placeholder="Solo si es de trabajo" style="margin-top:6px" hidden></div>
-      </div>
-      <div class="fld"><label for="nvTrans">Transmisión (para Zofri, opcional)</label>
-        <select id="nvTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
-      <div class="fld"><label for="nvProvSel">Proveedor</label><select id="nvProvSel"></select>
-        <input id="nvProv" autocapitalize="characters" placeholder="Escribe el proveedor nuevo" style="margin-top:6px" hidden></div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="fld"><label for="nvVenta">Precio de venta (opcional)</label><input id="nvVenta" inputmode="numeric" placeholder="$0"></div>
-        <div class="fld"><label for="nvMin">Valor mínimo (opcional)</label><input id="nvMin" inputmode="numeric" placeholder="$0"></div>
-      </div>
-      <button class="btn b-pri" id="nvAdd" style="width:100%">Agregar vehículo</button></div>
-    <!-- 01/10/2026: respaldos por código/WhatsApp de antes de la sincronización automática: ocultos (código conservado) -->
-    <div class="box" hidden><h3>Recibir de Corea</h3><p>Pega acá el código que te envía tu mamá con los vehículos recién comprados. Entran como “En camino”.</p>
-      <div class="fld" style="margin-bottom:10px"><textarea id="rxTxt" rows="4" placeholder="Pega el código AMK-COREA…" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
-      <button class="btn b-pri" id="rxBtn" style="width:100%">Cargar vehículos</button></div>
-    <div class="box" hidden><h3>Todo → Excel</h3><p>Una fila por vehículo con sus costos y su venta, en el orden de tus columnas. Se pega de una sola vez en BASE DE DATOS.</p>
-      <button class="btn b-sec" id="eAll" style="width:100%">Copiar para Excel</button></div>
-    <div class="box" hidden><h3>Catálogo → Web</h3><p>Los vehículos publicados. <b>No incluye el precio mínimo.</b></p>
-      <button class="btn b-sec" id="eWeb" style="width:100%">Copiar para la web</button></div>
-    <div class="box" hidden><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
-      <button class="btn b-sec" id="eVend" style="width:100%">Copiar para el equipo</button></div>
-    <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de la venta, la app deja automáticamente 3 fotos por vehículo -- las tuyas, las de Víctor/Bryan/Corea y las vistas 360° de todos. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.</p>
-      <button class="btn b-sec" id="eFree" style="width:100%">Podar ahora</button></div>
-    <div class="box"><h3>Respaldo</h3><p>Copia de seguridad de todo lo registrado en esta app.</p>
-      <button class="btn b-sec" id="eBak" style="width:100%">Copiar respaldo (texto)</button>
-      <button class="btn b-pri" id="eBakXlsx" style="width:100%;margin-top:8px">⇩ Descargar respaldo en Excel</button>
-      <button class="btn b-pri" id="eBakJson" style="width:100%;margin-top:8px">⇩ Respaldo completo (archivo JSON)</button>
-      <div class="mtr" style="margin-top:8px">El respaldo completo incluye TODO lo guardado en este dispositivo, fotos incluidas. Es el que sirve para restaurar si algo sale mal. Guárdalo antes de cualquier cambio grande.</div>
-      <button class="btn b-sec" id="bakAutoBtn" type="button" aria-pressed="false" style="width:100%;margin-top:10px">Respaldo automático diario</button>
-      <div id="bakAutoTxt" class="mtr" style="margin-top:4px"></div>
-      <div id="bakEstado" class="mtr" style="margin-top:6px"></div></div>
     </div>
   </section>
 </main>
@@ -3246,7 +3248,7 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     }else{
       $('#ss18').textContent=cu?'Falta tasa o dólar aduanero':'Sin CIF en dólares';
       $('#ss18Cp').dataset.v='';
-      $('#ss18F').textContent=cu?'Configúralos en Negocio → Ajustes':'Agrégalo en Negocio → Embarque: pon el vehículo con su CIF y usa "Aplicar costos"';
+      $('#ss18F').textContent=cu?'Configúralos en Negocio → Embarque':'Agrégalo en Negocio → Embarque: pon el vehículo con su CIF y usa "Aplicar costos"';
     }
     ssQ=st(v.ch).vendedor||'yo';
     pintaQuien();
@@ -4746,7 +4748,7 @@ async function fetchTCMedioAuto(){
     if(TC.medioAvisoFallo!==iso()){
       TC.medioAvisoFallo=iso();
       try{await window.storage.set('amk_tc',JSON.stringify(TC))}catch(_){}
-      toast('No se pudo actualizar el dólar de mercado automáticamente — revísalo o ingrésalo a mano en Negocio → Datos');
+      toast('No se pudo actualizar el dólar de mercado automáticamente — revísalo o ingrésalo a mano en Negocio → Plata');
     }
   }
 }
@@ -5111,11 +5113,45 @@ async function cargaAvisosVend(){
   try{const r=await window.storage.get('amk_avisosvend_cache'); if(r&&r.value) AVISOSVEND=JSON.parse(r.value)}catch(e){}
   pintaPendientes();
 }
+/* ---------- Clientes y consultas (02/10/2026) ----------
+   Víctor y Bryan anotan cada consulta en su app (pestaña Clientes). Viajan por avisosVend con id 'cons_<ts>'
+   y tipo:'consulta' (misma colección y reglas: no hizo falta regla nueva). Aquí solo se leen y se resumen. */
+let CONSULTAS={}, consPer=30;
+try{ Promise.resolve(window.storage.get('amk_consultas_cache')).then(r=>{ if(r&&r.value){ CONSULTAS=Object.assign(JSON.parse(r.value),CONSULTAS); pintaConsultas(); } }).catch(()=>{}); }catch(_){}
+const CONS_ORI={tiktok:'TikTok',marketplace:'Marketplace',instagram:'Instagram',facebook:'Facebook',whatsapp:'WhatsApp directo',chileautos:'Chileautos',web:'Página web',recomendado:'Recomendado',local:'Pasó por el local',otro:'Otro'};
+const CONS_EST={nueva:'Nueva',conversando:'Conversando',reservo:'Reservó',compro:'Compró',perdida:'No compró'};
+const consAbierta=e=>!e||e==='nueva'||e==='conversando'||e==='reservo';
+const consEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const consLista=()=>Object.values(CONSULTAS).filter(c=>c&&c.tipo==='consulta');
+function consAuto(c){ const v=c.ch&&V.find(x=>x.ch===c.ch); return v?(v.ma+' '+v.mo+' '+(v.an||'')).trim():(c.vtxt||''); }
+function pintaConsultas(){
+  const el=document.getElementById('consRes'), ep=document.getElementById('consPend'); if(!el) return;
+  const desde=consPer?Date.now()-consPer*864e5:0, L=consLista().filter(c=>(c.ts||0)>=desde);
+  if(!L.length){ el.innerHTML='<p class="mtr" style="margin:0">Todavía no hay consultas anotadas'+(consPer?' en este período':'')+'.</p>'; }
+  else{
+    const m={}; L.forEach(c=>{ const k=c.ori||'otro'; m[k]=m[k]||{n:0,c:0,r:0}; m[k].n++; if(c.est==='compro') m[k].c++; if(c.est==='reservo') m[k].r++; });
+    const max=Math.max(...Object.values(m).map(x=>x.n)), tot=L.length, comp=L.filter(c=>c.est==='compro').length;
+    el.innerHTML='<div style="font-size:13.5px;margin-bottom:6px"><b>'+tot+'</b> '+(tot===1?'consulta':'consultas')+' · <b style="color:var(--green)">'+comp+'</b> '+(comp===1?'compró':'compraron')+(tot?' ('+Math.round(comp/tot*100)+'%)':'')+'</div>'
+      +Object.entries(m).sort((a,b)=>b[1].n-a[1].n).map(([k,x])=>'<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13.5px"><span>'+(CONS_ORI[k]||k)+'</span><span><b>'+x.n+'</b>'
+        +(x.r?' · '+x.r+' reservó':'')+(x.c?' · <span style="color:var(--green);font-weight:700">'+x.c+' '+(x.c===1?'compró':'compraron')+'</span>':'')+'</span></div>'
+        +'<div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:6px;border-radius:3px;background:var(--ink2);opacity:.75;width:'+Math.max(4,Math.round(x.n/max*100))+'%"></div></div></div>').join('');
+  }
+  if(ep){
+    const hoy=iso(), at=consLista().filter(c=>consAbierta(c.est)&&c.seg&&c.seg<hoy).sort((a,b)=>String(a.seg).localeCompare(String(b.seg)));
+    ep.innerHTML=at.length?'<div style="font-weight:700;font-size:13.5px;color:var(--red);margin-bottom:4px">⚠ '+at.length+' '+(at.length===1?'seguimiento atrasado':'seguimientos atrasados')+'</div>'
+      +at.slice(0,15).map(c=>'<div style="font-size:13px;padding:6px 0;border-top:1px solid var(--line)"><b>'+consEsc(c.nom||c.tel||'Sin nombre')+'</b> · '+consEsc([CONS_ORI[c.ori]||'',consAuto(c),c.vendedor||''].filter(Boolean).join(' · '))+'<br><span class="mtr">Tocaba el '+fd(c.seg).slice(0,5)+' · '+(CONS_EST[c.est]||'Nueva')+'</span></div>').join(''):'';
+  }
+}
+document.getElementById('consPer').addEventListener('click',e=>{ const b=e.target.closest('[data-cper]'); if(!b) return; consPer=+b.dataset.cper;
+  document.querySelectorAll('#consPer [data-cper]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false')); pintaConsultas(); });
+setTimeout(pintaConsultas,0);
 function fbAvisosVendListen(){
   if(!fbReady) return;
   fbDb.collection(AVISOSVEND_COL).onSnapshot(snap=>{
+    let tocaCons=false;
     snap.docChanges().forEach(chg=>{
       const ts=chg.doc.id;
+      if(ts.indexOf('cons_')===0){ if(chg.type==='removed') delete CONSULTAS[ts]; else CONSULTAS[ts]=Object.assign({},chg.doc.data()||{},{id:ts}); tocaCons=true; return; }
       AVISOSVEND=AVISOSVEND.filter(x=>String(x.ts)!==ts);
       if(chg.type!=='removed'){
         const d=chg.doc.data()||{};
@@ -5127,6 +5163,7 @@ function fbAvisosVendListen(){
     });
     try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
     pintaPendientes(); pintaInsumos(); sincNombresInsumos();
+    if(tocaCons){ try{window.storage.set('amk_consultas_cache', JSON.stringify(CONSULTAS))}catch(_){} pintaConsultas(); }
   }, e=>console.error('fbAvisosVendListen', e));
 }
 async function marcarAvisoAtendido(ts){
@@ -5546,7 +5583,7 @@ function pendientesGlobales(){
   const pendVeh=AVISOSVEND.filter(x=>x.tipo==='pendiente'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
   const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
-  if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
+  if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('mes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
@@ -6355,7 +6392,7 @@ function cseg(k){
 function ngseg(k){
   window.scrollTo(0,0);
   alturaFluida(MAIN,()=>{
-    [['dinero','ngDinero'],['mes','ngMes'],['embarque','ngEmbarque'],['ajustes','ngAjustes'],['traspaso','ngTraspaso']].forEach(([n,id])=>{
+    [['dinero','ngDinero'],['mes','ngMes'],['embarque','ngEmbarque'],['ventas','ngVentas'],['ajustes','ngAjustes']].forEach(([n,id])=>{
       const el=$('#'+id); if(el) el.hidden = n!==k;
     });
     $$('#ngSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ng===k?'true':'false'));
@@ -10004,6 +10041,7 @@ function descargaRespaldoExcel(auto){
     sheets.push({name:'Pagos y sueldos',rows:pg});
     sheets.push({name:'Deudas (saldo hoy)',rows:[['Persona','Deuda','Saldo hoy','Descuento normal por quincena']].concat(DEU.map(d=>[nomPersona(d.k),d.nom,deuSaldo(d),d.cuota||0]))});
     sheets.push({name:'Insumos avisados',rows:[['Fecha aviso','Insumo','Avisó','Estado','Monto compra','Fecha compra']].concat(AVISOSVEND.filter(x=>x.tipo==='insumo').map(x=>[isoDe(x.ts),x.item||'',x.vendedor||'',x.noNec?'No hacía falta':(x.atendido?'Comprado':'Pendiente'),x.montoCompra||'',x.compradoFe||'']))});
+    sheets.push({name:'Consultas de clientes',rows:[['Fecha','Nombre','Teléfono','Llegó por','Vehículo','Estado','Próximo seguimiento','Vendedor','Nota']].concat(consLista().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(c=>[isoDe(c.ts||0),c.nom||'',c.tel||'',CONS_ORI[c.ori]||c.ori||'',consAuto(c),CONS_EST[c.est]||'Nueva',c.seg||'',c.vendedor||'',c.nota||'']))});
   }catch(err){ console.error('respaldo extra',err); }
   const zipBytes=buildXLSX(sheets);
   const blob=new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -10105,7 +10143,7 @@ function secBarArma(pane){
 function secMuestra(box){ if(box&&box.classList.contains('colp')) colPon(box,false); if(!box||!box.classList.contains('secOff')) return; const pane=box.closest('.secPane'); if(pane&&pane._secVer) pane._secVer(box.dataset.secId); }
 function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
 
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngAjustes', 'ngTraspaso']);
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes']);
 </script>
 </body>
 </html>
