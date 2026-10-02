@@ -265,6 +265,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <option value="estado">Estado (como siempre)</option>
         <option value="recientes">Más recientes primero</option>
         <option value="antiguos">Más antiguos primero</option>
+        <option value="contenedor">Por contenedor</option>
       </select></label>
       <button class="b-und" id="stVista" type="button" style="float:right;font-size:12.5px">☰ Lista compacta</button></div>
     <p class="cnt" id="cStock"></p>
@@ -683,7 +684,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 21:14<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 21:59<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2920,7 +2921,7 @@ function drawStock(){
   } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
   { const b=$('#stVista'); if(b) b.textContent=stCompacto?'▦ Vista completa':'☰ Lista compacta'; }
-  if(fS==='camino'&&L.some(v=>v.ctr)){ $('#lStock').innerHTML=ctrHTML(L,!!toks.length,cardSV); return; }
+  if(orden==='contenedor'){ $('#lStock').innerHTML=L.length?ctrHTML(L,!!toks.length,cardSV):'<div class="empty">Sin resultados.</div>'; return; }
   $('#lStock').innerHTML=L.length?L.map(cardSV).join(''):'<div class="empty">Sin resultados.</div>';
 }
 /* En camino agrupado por contenedor (02/10/2026): cada contenedor se despliega con la relación simple de chasis
@@ -2928,6 +2929,16 @@ function drawStock(){
 /* Lista compacta en Stock (02/10/2026, igual que en Vendedores): una línea por vehículo; al tocarla se abre su ficha completa. */
 let stCompacto=false; const STEXP=new Set();
 setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); if(r&&r.value==='1'){ stCompacto=true; try{drawStock()}catch(_){} } }catch(_){} },1200);
+const carsC=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
+  if(v.ce) t.push(cap(v.ce));
+  if(v.trab&&v.ca&&v.ca!=='S/N') t.push(cap(v.ca));
+  if(v.cab) t.push({SIMPLE:'Cab. simple',MEDIA:'Cab. y media',DOBLE:'Doble cabina'}[v.cab]||'');
+  else if(+v.pa>=7) t.push(v.pa+' pasajeros');
+  if(!v.trab&&v.tp) t.push('T. panorámico');
+  if(v.tr) t.push(v.tr);
+  if(v.km) t.push(Number(v.km).toLocaleString('es-CL')+' km');
+  if(v.sv) t.push('Sello verde');
+  return t.filter(Boolean).join(' · '); };   /* 2.ª línea de la lista compacta: lo relevante del vehículo */
 function cardSV(v){
   if(!stCompacto) return cardS(v);
   if(STEXP.has(v.ch)) return `<div><button class="b-und" type="button" data-scmp="${v.ch}" style="font-size:12px;margin:0 0 4px">▴ Achicar</button>${cardS(v)}</div>`;
@@ -2936,8 +2947,8 @@ function cardSV(v){
   const [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
   const pr=isS?(s.price?clp(enCLP(s)):''):(s.pventa?clp(s.pventa):'');
   return `<div class="card cmp" data-sexp="${v.ch}"><span class="strip" style="background:${col}"></span>
-    <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span></div>
-    <div class="cm-s">${esc(v.ch)} · ${esc(String(v.ce||'').toLowerCase())}</div></div>
+    <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span> <span style="font-family:var(--mono);font-size:11.5px;color:var(--mute);font-weight:400">${esc(v.ch)}</span></div>
+    <div class="cm-s" style="white-space:normal">${esc(carsC(v))}</div></div>
     <div style="text-align:right">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div></div></div>`;
 }
 document.addEventListener('click',async e=>{
@@ -2957,15 +2968,10 @@ function ctrHTML(L,abrir,card){
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
     <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
-      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'🚢 Embarcados, todavía sin contenedor'}</b>
-        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ctrDm(A[0].eta):''):' · aparecen en su contenedor cuando cargues el BL'} · toca para ver</span></span>
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ctrDm(A[0].eta):''):' · aún sin BL o ya no están en un embarque'} · toca para ver</span></span>
       ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
-    <div style="padding:0 14px 12px">
-      ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">
-        <span>${esc([v.ma,v.mo,v.an].filter(Boolean).join(' '))}${v.ce?' · <span style="color:var(--mute)">'+esc(String(v.ce).toLowerCase())+'</span>':''}${v.carga?'<br><span style="color:var(--red);font-size:12px">📦 trae accesorios: '+esc(v.carga)+'</span>':''}</span>
-        <b style="font-family:var(--mono);font-size:12.5px;white-space:nowrap">${esc(v.ch)}</b></div>`).join('')}
-      <details data-ctrf="${esc(k)}" ${CTR_FICHAS.has(k)?'open':''} style="margin-top:8px"><summary style="cursor:pointer;font-size:13px;color:var(--mute)">Ver fichas completas</summary><div style="margin-top:8px">${A.map(card).join('')}</div></details>
-    </div></details>`).join('');
+    <div style="padding:0 10px 10px">${A.map(card).join('')}</div></details>`).join('');
 }
 document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.ctrf!==undefined){ if(d.open) CTR_FICHAS.add(d.dataset.ctrf); else CTR_FICHAS.delete(d.dataset.ctrf); return; } if(!d||!d.dataset||d.dataset.ctrg===undefined) return;
   if(d.open) CTR_ABIERTOS.add(d.dataset.ctrg); else CTR_ABIERTOS.delete(d.dataset.ctrg); },true);

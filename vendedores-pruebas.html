@@ -211,6 +211,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
         <option value="pmay">Precio: mayor a menor</option>
         <option value="anio">Año: más nuevo primero</option>
         <option value="marca">Marca y modelo (A–Z)</option>
+        <option value="cont">Por contenedor</option>
       </select></div>
     <p class="cnt" id="cnt"></p>
     <div id="list"></div>
@@ -1775,6 +1776,16 @@ function draw(){
  { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
    document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':(k==='corea'?'En Corea ('+V.filter(v=>v.st==='ORIGEN'&&v.enCorea).length+')':'En camino ('+V.filter(v=>v.st==='ORIGEN'&&!v.enCorea).length+')')); b.setAttribute('aria-selected',String(k===fE)); }); }
  cntN=L.length; $('#cnt').textContent=textoCnt(cntN);
+const carsC=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
+  if(v.ce) t.push(cap(v.ce));
+  if(v.trab&&v.ca&&v.ca!=='S/N') t.push(cap(v.ca));
+  if(v.cab) t.push({SIMPLE:'Cab. simple',MEDIA:'Cab. y media',DOBLE:'Doble cabina'}[v.cab]||'');
+  else if(+v.pa>=7) t.push(v.pa+' pasajeros');
+  if(!v.trab&&v.tp) t.push('T. panorámico');
+  if(v.tr) t.push(v.tr);
+  if(v.km) t.push(Number(v.km).toLocaleString('es-CL')+' km');
+  if(v.sv) t.push('Sello verde');
+  return t.filter(Boolean).join(' · '); };   /* 2.ª línea de la lista compacta: lo relevante del vehículo */
  const cardV=v=>{const t=fst(v.ch),nf=t.nf||0;
   const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
   const cp=colorDe(v.ce), sin360=!!(ST.up360&&ST.up360[v.ch]);
@@ -1787,7 +1798,7 @@ function draw(){
    const cm=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
    return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
     <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
-    <div class="cm-s">${v.ce||''}${v.trab&&v.ca&&v.ca!=='S/N'?' · '+(CARN[v.ca]||String(v.ca).toLowerCase()):''}${v.cab?' · '+({SIMPLE:'cab. simple',MEDIA:'cab. y media',DOBLE:'doble cabina'}[v.cab]||''):(+v.pa>=7?' · '+v.pa+' pas.':'')}</div></div>
+    <div class="cm-s" style="white-space:normal">${String(carsC(v)).replace(/</g,'&lt;')}</div></div>
     <div style="text-align:right">${v.pventa?`<div class="cm-p">${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
   }
   const cars=[];
@@ -1818,7 +1829,7 @@ function draw(){
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
    <div class="acts"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
     <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`};
- if(fE==='camino'&&L.some(v=>v.ctr)){ $('#list').innerHTML=ctrHTML(L,!!toks.length,cardV); return; }
+ if(ordenStock==='cont'){ $('#list').innerHTML=L.length?ctrHTML(L,!!toks.length,cardV):'<div class="empty">Sin resultados.</div>'; return; }
  $('#list').innerHTML=L.length?L.map(cardV).join('')
   :'<div class="empty">Sin resultados.</div>'}
 /* En camino agrupado por contenedor (02/10/2026): cada contenedor se despliega con la relación simple de chasis
@@ -1834,15 +1845,10 @@ function ctrHTML(L,abrir,card){
   const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
   return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
     <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
-      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'🚢 Embarcados, todavía sin contenedor'}</b>
-        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ddmm(A[0].eta):''):' · todavía no se sabe en qué contenedor vienen'} · toca para ver</span></span>
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${k?(A[0].eta?' · llega '+ddmm(A[0].eta):''):' · aún sin BL'} · toca para ver</span></span>
       ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
-    <div style="padding:0 14px 12px">
-      ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">
-        <span>${esc([v.ma,v.mo,v.an].filter(Boolean).join(' '))}${v.ce?' · <span style="color:var(--mute)">'+esc(String(v.ce).toLowerCase())+'</span>':''}${v.carga?'<br><span style="color:#E0664A;font-size:12px">📦 trae accesorios: '+esc(v.carga)+'</span>':''}</span>
-        <b style="font-family:var(--mono);font-size:12.5px;white-space:nowrap">${esc(v.ch)}</b></div>`).join('')}
-      <details data-ctrf="${esc(k)}" ${CTR_FICHAS.has(k)?'open':''} style="margin-top:8px"><summary style="cursor:pointer;font-size:13px;color:var(--mute)">Ver fichas completas</summary><div style="margin-top:8px">${A.map(card).join('')}</div></details>
-    </div></details>`).join('');
+    <div style="padding:0 10px 10px">${A.map(card).join('')}</div></details>`).join('');
 }
 document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.ctrf!==undefined){ if(d.open) CTR_FICHAS.add(d.dataset.ctrf); else CTR_FICHAS.delete(d.dataset.ctrf); return; } if(!d||!d.dataset||d.dataset.ctrg===undefined) return;
   if(d.open) CTR_ABIERTOS.add(d.dataset.ctrg); else CTR_ABIERTOS.delete(d.dataset.ctrg); },true);
