@@ -89,6 +89,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
 .empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--seaL);border-top:1px solid var(--btn2b);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.csb{position:absolute;top:4px;left:calc(50% + 6px);min-width:17px;height:17px;line-height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;font-weight:800;padding:0 4px;font-style:normal}
 .tb{flex:1;border:none;background:none;padding:11px 4px 12px;font-size:12px;font-weight:600;color:var(--mute);cursor:pointer;position:relative}
 .tb i{display:block;font-family:var(--disp);font-size:17px;font-style:normal;margin-bottom:2px}
 .tb[aria-selected="true"],.tb[aria-selected="true"] i{color:var(--plata)}
@@ -216,6 +217,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pConten">
     <h2>Textos y guiones</h2><p class="sub">Elige un vehículo y copia lo que necesites.</p>
+    <div class="box" id="rrGen" style="margin-bottom:12px"><h3>Respuestas rápidas</h3>
+      <p class="mtr" style="margin:0 0 9px">Para las preguntas de siempre. Si eliges un auto abajo, salen también con sus datos.</p>
+      <div class="acts"><button class="btn b-sec" data-rr="dir">📍 Dónde estamos</button><button class="btn b-sec" data-rr="res">💳 Cómo reservar</button><button class="btn b-sec" data-rr="sv">🟢 Sello verde</button></div></div>
     <input class="search" id="qc" placeholder="Buscar vehículo…" autocomplete="off">
     <div id="lPick"></div>
     <div id="genWrap" hidden>
@@ -227,6 +231,18 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       </div>
       <div id="genOut"></div>
     </div>
+  </section>
+
+  <section class="panel" id="pClientes">
+    <h2>Clientes</h2><p class="sub">Anota cada consulta: de dónde llegó, qué auto busca y cuándo volver a escribirle.</p>
+    <button class="btn b-pri" id="csNueva" style="width:100%;margin-bottom:12px">＋ Nueva consulta</button>
+    <div class="chips" id="csFil" role="tablist" style="margin-bottom:10px">
+      <button class="chip" data-csf="hoy" aria-selected="true">Para hoy</button>
+      <button class="chip" data-csf="abiertas" aria-selected="false">Abiertas</button>
+      <button class="chip" data-csf="todas" aria-selected="false">Todas</button>
+    </div>
+    <div id="csList"></div>
+    <div class="box" style="margin-top:14px"><h3>¿De dónde llegan? · últimos 30 días</h3><div id="csRes"></div></div>
   </section>
 
   <section class="panel" id="pAjustes">
@@ -370,6 +386,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <nav class="tabbar" role="tablist">
   <button class="tb" role="tab" data-p="pStock" aria-selected="true"><i>▦</i>Vehículos</button>
   <button class="tb" role="tab" data-p="pConten" aria-selected="false"><i>✎</i>Textos</button>
+  <button class="tb" role="tab" data-p="pClientes" aria-selected="false"><i>☎</i>Clientes<span id="csBadge" class="csb" hidden></span></button>
   <button class="tb" role="tab" data-p="pAjustes" aria-selected="false"><i>⚙</i>Herramientas</button>
 </nav>
 
@@ -420,6 +437,19 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <select id="whoSel"><option value="Víctor">Víctor</option><option value="Bryan">Bryan</option></select></div>
   <div class="fld"><label for="whoPin">PIN</label><input id="whoPin" inputmode="numeric" type="password" maxlength="4" placeholder="••••"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="whoOk">Ingresar</button></div>
+</div>
+
+<div class="sheet" id="shCons">
+  <h3 id="csT">Nueva consulta</h3><div class="sb">La ven Andre y el resto del equipo. Basta con el nombre o el teléfono.</div>
+  <div class="fld"><label for="csNom">Nombre</label><input id="csNom" placeholder="Ej: JUAN PÉREZ" autocomplete="off"></div>
+  <div class="fld"><label for="csTel">Teléfono (WhatsApp)</label><input id="csTel" type="tel" inputmode="tel" placeholder="9 1234 5678" autocomplete="off"></div>
+  <div class="fld"><label>¿De dónde llegó?</label><div class="chips" id="csOri"></div></div>
+  <div class="fld"><label for="csV">Vehículo que le interesa <span style="color:var(--mute);font-weight:400;font-size:12px">(opcional)</span></label><input id="csV" list="dlCsV" autocomplete="off" placeholder="Marca, modelo o chasis"><datalist id="dlCsV"></datalist></div>
+  <div class="fld"><label for="csNota">Nota</label><textarea id="csNota" rows="2" placeholder="Ej: BUSCA 4X4, HASTA 12 MILLONES"></textarea></div>
+  <div class="fld"><label>Estado</label><div class="chips" id="csEst"></div></div>
+  <div class="fld"><label for="csSeg">Volver a escribirle el</label><input id="csSeg" type="date"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="csOk">Guardar</button></div>
+  <button class="btn b-sec" id="csDel" style="width:100%;margin-top:10px" hidden>Borrar esta consulta</button>
 </div>
 
 <div class="sheet" id="shSold">
@@ -520,8 +550,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga'];  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta','carga'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='sueldosVend';
@@ -662,6 +692,7 @@ function fbAvisosVendListen(){
   fbDb.collection(AVISOSVEND_COL).onSnapshot(snap=>{
     let tocado=false;
     snap.docChanges().forEach(chg=>{
+      if(String(chg.doc.id).indexOf('cons_')===0){ csDeNube(chg); return; }
       if(chg.type==='removed') return;
       const d=chg.doc.data()||{}; const ts=Number(chg.doc.id);
       if(d.tipo==='insumo'){ INS[ts]={ts, item:d.item||'', vendedor:d.vendedor||'', atendido:!!d.atendido, compradoFe:d.compradoFe||'', noNec:!!d.noNec}; tocaIns=true; }
@@ -671,8 +702,177 @@ function fbAvisosVendListen(){
     });
     if(tocado){ save(); pintaAV(); pintaVT(); }
     if(tocaIns){ tocaIns=false; try{window.storage.set('amkv_ins',JSON.stringify(INS))}catch(_){} pintaInsMios(); }
+    if(tocaCons){ tocaCons=false; csGuardaLocal(); pintaCons(); }
   }, e=>console.error('fbAvisosVendListen',e));
 }
+
+/* ---------- Respuestas rápidas (02/10/2026) ----------
+   Textos fijos para las preguntas de siempre, armados con los datos reales del auto.
+   A propósito NO hablan de garantía, financiamiento ni traslados: esos datos no están confirmados. */
+const AMK_DIR='Of. Buenaventura C-20, Barrio Industrial Zofri, Iquique';
+const rrFirma=()=>ST.vend?`\n\n${ST.vend} · AMK Vehículos Selectos`:'\n\nAMK Vehículos Selectos';
+const rrAuto=v=>`${v.ma} ${v.mo} ${v.an||''}`.trim();
+function rrDisp(v){
+  let est;
+  if(v.res) est=`el ${rrAuto(v)} está reservado en este momento${v.res.vence?' (hasta el '+ddmm(v.res.vence)+')':''}. Si la reserva se cae te aviso altiro, y mientras tanto te puedo mostrar otras opciones parecidas.`;
+  else if(v.st==='ORIGEN') est=`el ${rrAuto(v)} está disponible y ${v.enCorea?'todavía está en Corea, por embarcar':'viene en camino desde Corea'+(v.eta?' (llegaría aprox. el '+ddmm(v.eta)+')':'')}. Lo puedes dejar reservado desde ya.`;
+  else est=`el ${rrAuto(v)} sigue disponible 🙌\n${priceLine(v)}\n\nLo puedes ver en ${AMK_DIR}.`;
+  return `¡Hola! Sí, ${est}\n\n¿Quieres que te mande más fotos o prefieres venir a verlo?${rrFirma()}`;
+}
+function rrSVGeneral(){
+  return `El sello verde se otorga a vehículos año 2018 en adelante y de menos de 2.700 kg. Sin sello verde el vehículo no puede circular en la Región Metropolitana, Valparaíso ni O'Higgins; en el resto del país circula sin problema.`;
+}
+function rrSV(v){
+  let t;
+  if(v.sv) t=`¡Sí! El ${rrAuto(v)} es apto para sello verde, así que puede circular en Santiago, Valparaíso y O'Higgins sin problema.`;
+  else if(v.an&&+v.an<2018) t=`El ${rrAuto(v)} es año ${v.an}, así que no califica para sello verde: no puede circular en la Región Metropolitana, Valparaíso ni O'Higgins. En el resto del país, sin problema.`;
+  else t=`Déjame confirmarte si el ${rrAuto(v)} califica para sello verde y te aviso. ${rrSVGeneral()}`;
+  return `${t}${rrFirma()}`;
+}
+function rrCuenta(){
+  if(!CTA||!(CTA.numero||CTA.banco)) return '';
+  return '\n\n'+[CTA.banco,CTA.tipo,CTA.numero?('N° '+CTA.numero):'',CTA.titular?('Titular: '+CTA.titular):'',CTA.rut?('RUT: '+CTA.rut):'',CTA.email].filter(Boolean).join('\n');
+}
+function rrRes(v){
+  const cta=rrCuenta();
+  return `Para reservar${v?' el '+rrAuto(v):''} puedes hacer la transferencia a esta cuenta y mandarme el comprobante por aquí:${cta||'\n\n(Te paso los datos de la cuenta enseguida.)'}\n\nApenas la vea te confirmo la reserva.${rrFirma()}`;
+}
+function rrDir(){ return `Estamos en ${AMK_DIR}. Avísame antes de venir y te espero 👍${rrFirma()}`; }
+function rrSeg(v,nom){
+  const n=String(nom||'').trim().split(/\s+/)[0]||''; const N=n?' '+n.charAt(0).toUpperCase()+n.slice(1).toLowerCase():'';
+  if(v) return `¡Hola${N}! ¿Cómo estás? Te escribo por el ${rrAuto(v)} que consultaste. ¿Pudiste pensarlo? Si quieres te mando más fotos o coordinamos para que lo veas acá en Iquique.${rrFirma()}`;
+  return `¡Hola${N}! ¿Cómo estás? Te escribo de AMK Vehículos Selectos por tu consulta. ¿Sigues buscando vehículo? Si quieres te cuento lo que tenemos disponible ahora.${rrFirma()}`;
+}
+$('#rrGen').addEventListener('click',e=>{ const b=e.target.closest('[data-rr]'); if(!b) return;
+  const k=b.dataset.rr; cp(k==='dir'?rrDir():k==='res'?rrRes(null):rrSVGeneral()+rrFirma(),'Copiado ✓ · pégalo en WhatsApp'); });
+
+/* ---------- Clientes y consultas (02/10/2026) ----------
+   Cada consulta es un documento en avisosVend con tipo:'consulta' e id 'cons_<ts>' (reutiliza la colección
+   y sus reglas ya publicadas: no hace falta regla nueva). La ven todos los vendedores y Andre en Sistema.
+   Sirve para (1) saber de qué red llegan los clientes y cuáles compran, y (2) no olvidar ningún seguimiento. */
+const CS_ORI=[['tiktok','TikTok'],['marketplace','Marketplace'],['instagram','Instagram'],['facebook','Facebook'],['whatsapp','WhatsApp directo'],
+  ['chileautos','Chileautos'],['web','Página web'],['recomendado','Recomendado'],['local','Pasó por el local'],['otro','Otro']];
+const CS_EST=[['nueva','Nueva'],['conversando','Conversando'],['reservo','Reservó'],['compro','Compró'],['perdida','No compró']];
+const CS_ABIERTA=e=>!e||e==='nueva'||e==='conversando'||e==='reservo';
+const csEsc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const csMas=n=>isoDe(Date.now()+n*864e5);
+let CONS={}, tocaCons=false, csFil='hoy', csEdit=null, csOriSel='', csEstSel='nueva';
+try{ Promise.resolve(window.storage.get('amkv_cons')).then(r=>{ if(r&&r.value){ CONS=Object.assign(JSON.parse(r.value),CONS); pintaCons(); } }).catch(()=>{}); }catch(_){}
+function csGuardaLocal(){ try{ Promise.resolve(window.storage.set('amkv_cons',JSON.stringify(CONS))).catch(()=>{}); }catch(_){} }
+function csDeNube(chg){
+  const id=chg.doc.id;
+  if(chg.type==='removed'){ delete CONS[id]; tocaCons=true; return; }
+  const d=chg.doc.data()||{}, loc=CONS[id];
+  if(loc&&(loc.mod||0)>(d.mod||0)) return;   /* lo local es más nuevo (todavía subiendo) */
+  CONS[id]=Object.assign({},d,{id}); tocaCons=true;
+}
+const csLista=()=>Object.values(CONS).filter(c=>c&&c.tipo==='consulta');
+function csWa(tel){
+  const t=String(tel||'').trim(); let d=t.replace(/\D/g,''); if(!d) return '';
+  if(t[0]==='+') return d;
+  if(d.length===9&&d[0]==='9') return '56'+d;
+  if(d.length===8) return '569'+d;
+  return d;
+}
+function csVeh(t){ if(!t) return null; const m=t.match(/([A-Z0-9]{6,})\s*$/i); return (m&&IDX[m[1].toUpperCase()])||null; }
+function csFila(c){
+  const v=c.ch&&IDX[c.ch], hoy=iso();
+  const ori=(CS_ORI.find(o=>o[0]===c.ori)||['','Sin origen'])[1], est=(CS_EST.find(o=>o[0]===c.est)||['','Nueva'])[1];
+  const ab=CS_ABIERTA(c.est), venc=ab&&c.seg&&c.seg<hoy, esHoy=ab&&c.seg===hoy;
+  const segTxt=ab&&c.seg?(venc?'⚠ Seguimiento atrasado (era el '+fd(c.seg).slice(0,5)+')':esHoy?'Escribirle hoy':'Próximo seguimiento: '+fd(c.seg).slice(0,5)):'';
+  const auto=v?rrAuto(v):(c.vtxt||'');
+  return `<div class="box" style="padding:12px 13px;margin-bottom:9px">
+   <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">${csEsc(c.nom||c.tel||'Sin nombre')}</b>
+   <span style="font-size:12px;font-weight:700;white-space:nowrap;color:${c.est==='compro'?'var(--green)':c.est==='perdida'?'var(--mute)':'var(--ink2)'}">${est}</span></div>
+   <div style="color:var(--mute);font-size:12.5px;margin-top:2px">${[ori,auto,c.vendedor,c.ts?fd(isoDe(c.ts)).slice(0,5):''].filter(Boolean).map(csEsc).join(' · ')}</div>
+   ${c.nota?`<div style="font-size:13.5px;margin-top:5px">${csEsc(c.nota)}</div>`:''}
+   ${segTxt?`<div style="font-size:12.5px;font-weight:700;margin-top:5px;color:${venc?'var(--red)':esHoy?'var(--amber)':'var(--mute)'}">${segTxt}</div>`:''}
+   <div class="acts" style="margin-top:9px">
+     ${c.tel?`<button class="btn b-pri" data-cswa="${csEsc(c.id)}" style="flex:1">WhatsApp</button>`:''}
+     ${ab?`<button class="btn b-sec" data-cspos="${csEsc(c.id)}">+2 días</button>`:''}
+     <button class="btn b-sec" data-csed="${csEsc(c.id)}">Editar</button>
+   </div></div>`;
+}
+function pintaCons(){
+  const hoy=iso(), todas=csLista();
+  const due=todas.filter(c=>CS_ABIERTA(c.est)&&c.seg&&c.seg<=hoy);
+  const b=document.getElementById('csBadge'); if(b){ b.hidden=!due.length; b.textContent=due.length; }
+  const el=document.getElementById('csList'); if(!el) return;
+  const L=csFil==='hoy'?due:csFil==='abiertas'?todas.filter(c=>CS_ABIERTA(c.est)):todas;
+  if(csFil==='todas') L.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  else L.sort((a,b)=>String(a.seg||'9999').localeCompare(String(b.seg||'9999'))||((a.ts||0)-(b.ts||0)));
+  el.innerHTML=L.length?L.slice(0,200).map(csFila).join('')
+    :'<p style="color:var(--mute);font-size:13.5px;margin:4px 0 0">'+(csFil==='hoy'?(todas.length?'Nada para hoy ✓ · no hay seguimientos pendientes.':'Todavía no hay consultas. Anota la primera con “＋ Nueva consulta”.'):'No hay consultas en esta lista.')+'</p>';
+  pintaConsRes();
+}
+function pintaConsRes(){
+  const el=document.getElementById('csRes'); if(!el) return;
+  const desde=Date.now()-30*864e5, L=csLista().filter(c=>(c.ts||0)>=desde);
+  if(!L.length){ el.innerHTML='<p style="color:var(--mute);font-size:13px;margin:0">Cuando anoten consultas, aquí se ve qué red trae más clientes y cuáles terminan comprando.</p>'; return; }
+  const m={}; L.forEach(c=>{ const k=c.ori||'otro'; m[k]=m[k]||{n:0,c:0}; m[k].n++; if(c.est==='compro') m[k].c++; });
+  const max=Math.max(...Object.values(m).map(x=>x.n));
+  el.innerHTML=Object.entries(m).sort((a,b)=>b[1].n-a[1].n).map(([k,x])=>`<div style="margin:8px 0">
+    <div style="display:flex;justify-content:space-between;font-size:13.5px"><span>${(CS_ORI.find(o=>o[0]===k)||[k,k])[1]}</span>
+    <span><b>${x.n}</b> ${x.n===1?'consulta':'consultas'}${x.c?` · <span style="color:var(--green);font-weight:700">${x.c} ${x.c===1?'compró':'compraron'}</span>`:''}</span></div>
+    <div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:6px;border-radius:3px;background:var(--ink2);opacity:.75;width:${Math.max(4,Math.round(x.n/max*100))}%"></div></div></div>`).join('');
+}
+function pintaCsChips(){
+  $('#csOri').innerHTML=CS_ORI.map(([k,l])=>`<button type="button" class="chip" data-csori="${k}" aria-selected="${csOriSel===k}">${l}</button>`).join('');
+  $('#csEst').innerHTML=CS_EST.map(([k,l])=>`<button type="button" class="chip" data-csest="${k}" aria-selected="${csEstSel===k}">${l}</button>`).join('');
+}
+function csAbre(id){
+  if(pideQuien('anotar una consulta')) return;
+  const c=id?CONS[id]:null; csEdit=c?id:null;
+  $('#csT').textContent=c?'Editar consulta':'Nueva consulta';
+  $('#csNom').value=c?(c.nom||''):''; $('#csTel').value=c?(c.tel||''):'';
+  const v=c&&c.ch&&IDX[c.ch];
+  $('#csV').value=v?`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`:(c?(c.vtxt||''):'');
+  $('#csNota').value=c?(c.nota||''):'';
+  csOriSel=c?(c.ori||''):''; csEstSel=c?(c.est||'nueva'):'nueva';
+  $('#csSeg').value=c?(c.seg||''):csMas(2);
+  $('#csDel').hidden=!c;
+  pintaCsChips(); openSheet('shCons');
+}
+function csGuarda(c){
+  c.mod=Date.now(); c.modPor=(ST.vend||'').trim();
+  CONS[c.id]=c; csGuardaLocal(); pintaCons();
+  const data=Object.assign({},c); delete data.id;
+  outEncola({col:AVISOSVEND_COL, doc:c.id, lbl:'consulta', data});
+}
+$('#csNueva').addEventListener('click',()=>csAbre(null));
+$('#csOri').addEventListener('click',e=>{ const b=e.target.closest('[data-csori]'); if(!b) return; csOriSel=b.dataset.csori; pintaCsChips(); });
+$('#csEst').addEventListener('click',e=>{ const b=e.target.closest('[data-csest]'); if(!b) return; csEstSel=b.dataset.csest; pintaCsChips(); });
+$('#csFil').addEventListener('click',e=>{ const b=e.target.closest('[data-csf]'); if(!b) return; csFil=b.dataset.csf;
+  $$('#csFil [data-csf]').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false')); pintaCons(); });
+$('#csOk').addEventListener('click',()=>{
+  if(rebote()) return;
+  const nom=$('#csNom').value.trim(), tel=$('#csTel').value.trim();
+  if(!nom&&!tel){ toast('Escribe al menos el nombre o el teléfono'); return; }
+  if(!csOriSel){ toast('Marca de dónde llegó el cliente'); return; }
+  const vt=$('#csV').value.trim(), v=csVeh(vt);
+  const ant=csEdit?CONS[csEdit]:null, ts=ant?ant.ts:Date.now(), id=ant?csEdit:('cons_'+ts);
+  csGuarda({tipo:'consulta', id, ts, nom, tel, ori:csOriSel, ch:v?v.ch:'', vtxt:v?'':vt, nota:$('#csNota').value.trim(),
+    est:csEstSel, seg:$('#csSeg').value||'', vendedor:ant?(ant.vendedor||''):(ST.vend||'').trim()});
+  closeAll(); toast(msgEnvio(ant?'Consulta actualizada':'Consulta anotada · la ve todo el equipo'));
+});
+$('#csDel').addEventListener('click',()=>{
+  if(!csEdit||!CONS[csEdit]) return;
+  if(!confirm('¿Borrar esta consulta? Se borra para todo el equipo.')) return;
+  const id=csEdit; delete CONS[id]; csGuardaLocal(); pintaCons(); closeAll();
+  outEncola({col:AVISOSVEND_COL, doc:id, lbl:'consulta', del:true}); toast('Consulta borrada');
+});
+$('#csList').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-csed]'), po=e.target.closest('[data-cspos]'), wa=e.target.closest('[data-cswa]');
+  if(ed){ csAbre(ed.dataset.csed); return; }
+  if(po){ const c=CONS[po.dataset.cspos]; if(!c) return; csGuarda(Object.assign({},c,{seg:csMas(2)})); toast('Seguimiento movido al '+fd(csMas(2)).slice(0,5)); return; }
+  if(wa){ const c=CONS[wa.dataset.cswa]; if(!c) return; const n=csWa(c.tel); if(!n){ toast('Ese teléfono no se entiende, revísalo en Editar'); return; }
+    window.open('https://wa.me/'+n+'?text='+encodeURIComponent(rrSeg(c.ch&&IDX[c.ch],c.nom)),'_blank');
+    /* al escribirle, el próximo seguimiento pasa solo a 2 días más y la consulta queda "Conversando" */
+    csGuarda(Object.assign({},c,{seg:csMas(2),est:(!c.est||c.est==='nueva')?'conversando':c.est}));
+    toast('Próximo seguimiento: '+fd(csMas(2)).slice(0,5)); }
+});
+$$('.tb').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.p==='pClientes') pintaCons(); }));
+setTimeout(pintaCons,0);
 
 /* ---------- Cuenta bancaria para reservas (la carga Andre en Sistema, aquí solo se lee) ---------- */
 const CONFIGCTA_COL='configCuenta';
@@ -1314,6 +1514,7 @@ function pintaDatalists(){
   const opts=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   $('#dlCbV').innerHTML=opts;
   $('#dlIvV').innerHTML=opts;
+  const dc=document.getElementById('dlCsV'); if(dc) dc.innerHTML=opts;
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(ST))}catch(e){console.error('save',e); toast('No se pudo guardar')}}
 
@@ -1573,7 +1774,7 @@ function draw(){
  { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
    document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':(k==='corea'?'En Corea ('+V.filter(v=>v.st==='ORIGEN'&&v.enCorea).length+')':'En camino ('+V.filter(v=>v.st==='ORIGEN'&&!v.enCorea).length+')')); b.setAttribute('aria-selected',String(k===fE)); }); }
  cntN=L.length; $('#cnt').textContent=textoCnt(cntN);
- $('#list').innerHTML=L.length?L.map(v=>{const t=fst(v.ch),nf=t.nf||0;
+ const cardV=v=>{const t=fst(v.ch),nf=t.nf||0;
   const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
   const cp=colorDe(v.ce), sin360=!!(ST.up360&&ST.up360[v.ch]);
   const enCam=v.st==='ORIGEN';
@@ -1602,6 +1803,7 @@ function draw(){
     <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${cp}"></span>${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
+   ${v.ctr&&v.st==='ORIGEN'?`<div class="ch" style="margin-top:6px">📦 Viene en el contenedor ${v.ctrN?v.ctrN+' · ':''}<b style="font-family:var(--mono)">${ctrFmt(v.ctr)}</b></div>`:''}
    ${v.carga&&v.st==='ORIGEN'?`<div class="minbox" style="background:#B4321C;border-color:#B4321C;color:#fff">📦 Trae accesorios dentro: ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
    ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
@@ -1614,8 +1816,37 @@ function draw(){
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
    <div class="acts"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
-    <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`}).join('')
+    <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`};
+ if(fE==='camino'&&L.some(v=>v.ctr)){ $('#list').innerHTML=ctrHTML(L,!!toks.length,cardV); return; }
+ $('#list').innerHTML=L.length?L.map(cardV).join('')
   :'<div class="empty">Sin resultados.</div>'}
+/* En camino agrupado por contenedor (02/10/2026): cada contenedor se despliega con la relación simple de chasis
+   y, más abajo, las fichas completas. "Copiar lista" deja el texto listo para WhatsApp. */
+const CTR_ABIERTOS=new Set(); const CTR_FICHAS=new Set();
+const ctrFmt=c=>{ c=String(c||''); return c.length>=11?c.slice(0,4)+' '+c.slice(4,10)+'-'+c.slice(10):c; };
+function ctrGrupos(L){ const G={}; L.forEach(v=>{ const k=v.ctr||''; (G[k]=G[k]||[]).push(v); });
+  return Object.entries(G).sort(([a,A],[b,B])=>{ if(!a) return 1; if(!b) return -1;
+    return String(A[0].eta||'9').localeCompare(String(B[0].eta||'9'))||((A[0].ctrN||0)-(B[0].ctrN||0))||a.localeCompare(b); }); }
+function ctrTexto(k,A){ return '📦 Contenedor '+ctrFmt(k)+(A[0].eta?' · llega '+ddmm(A[0].eta):'')+' · '+A.length+' veh.\n'
+  +A.map(v=>'• '+[v.ma,v.mo,v.an,String(v.ce||'').toLowerCase()].filter(Boolean).join(' ')+' ('+v.ch+')'+(v.carga?' ⚠️ trae accesorios: '+v.carga:'')).join('\n'); }
+function ctrHTML(L,abrir,card){
+  const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
+    <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor asignado'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${A[0].eta?' · llega '+ddmm(A[0].eta):''} · toca para ver</span></span>
+      ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
+    <div style="padding:0 14px 12px">
+      ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">
+        <span>${esc([v.ma,v.mo,v.an].filter(Boolean).join(' '))}${v.ce?' · <span style="color:var(--mute)">'+esc(String(v.ce).toLowerCase())+'</span>':''}${v.carga?'<br><span style="color:#E0664A;font-size:12px">📦 trae accesorios: '+esc(v.carga)+'</span>':''}</span>
+        <b style="font-family:var(--mono);font-size:12.5px;white-space:nowrap">${esc(v.ch)}</b></div>`).join('')}
+      <details data-ctrf="${esc(k)}" ${CTR_FICHAS.has(k)?'open':''} style="margin-top:8px"><summary style="cursor:pointer;font-size:13px;color:var(--mute)">Ver fichas completas</summary><div style="margin-top:8px">${A.map(card).join('')}</div></details>
+    </div></details>`).join('');
+}
+document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.ctrf!==undefined){ if(d.open) CTR_FICHAS.add(d.dataset.ctrf); else CTR_FICHAS.delete(d.dataset.ctrf); return; } if(!d||!d.dataset||d.dataset.ctrg===undefined) return;
+  if(d.open) CTR_ABIERTOS.add(d.dataset.ctrg); else CTR_ABIERTOS.delete(d.dataset.ctrg); },true);
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-ctrcp]'); if(!b) return; e.preventDefault(); e.stopPropagation();
+  const k=b.dataset.ctrcp, A=V.filter(v=>v.ctr===k&&pass(v)); await cp(ctrTexto(k,A),'Lista del contenedor copiada'); },true);
 function drawPick(){const s=qc.trim().toLowerCase();
  const TODOS=V.filter(v=>!s||(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(s));
  const L=TODOS.slice(0,40);
@@ -1625,13 +1856,14 @@ function drawPick(){const s=qc.trim().toLowerCase();
   :'<div class="empty">Sin resultados.</div>';
  if(TODOS.length>L.length) $('#lPick').insertAdjacentHTML('beforeend',`<div class="cnt">Se muestran ${L.length} de ${TODOS.length}. Escribe arriba para buscar el resto.</div>`);}
 function drawGen(){
- if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;return}
- $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;
+ if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;$('#rrGen').hidden=false;return}
+ $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;$('#rrGen').hidden=true;
  $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
  $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
  const b=[['Facebook Marketplace',genMP(gv,gvar)],['Publicación de Facebook',genFB(gv,gvar)],
   ['Instagram',genIG(gv,gvar)],['Guión TikTok / Reels',genTT(gv,gvar)],
-  ['Respuesta de WhatsApp',genWA(gv)],['Hashtags',tags(gv)]];
+  ['Respuesta de WhatsApp',genWA(gv)],['Respuesta: ¿sigue disponible?',rrDisp(gv)],['Respuesta: sello verde',rrSV(gv)],
+  ['Respuesta: cómo reservar',rrRes(gv)],['Respuesta: dónde estamos',rrDir()],['Seguimiento (no ha respondido)',rrSeg(gv,'')],['Hashtags',tags(gv)]];
  $('#genOut').innerHTML=b.map((x,i)=>`<div class="gen"><div class="gh"><h4>${x[0]}</h4>
   <button class="cpy" data-cp="${i}">Copiar</button></div><pre>${x[1].replace(/</g,'&lt;')}</pre></div>`).join('');
  window.__BLK=b}

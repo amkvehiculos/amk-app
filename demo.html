@@ -679,7 +679,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 16:55<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 20:33<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1222,6 +1222,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <div class="sheet" id="shGen">
   <h3>Anotar gasto general</h3><div class="sb">Combustible, insumos de aseo o taller, u otro gasto que no es de un vehículo en particular</div>
   <div class="fld"><label>Categoría</label><div class="catg" id="genCatg"></div></div>
+  <div class="fld" id="genInsW" hidden><label>¿Qué compraste? <span style="font-weight:400;color:var(--mute)">(un nombre nuevo queda como botón fijo)</span></label><div class="catg" id="genInsChips"></div></div>
   <div class="fld"><label for="genM">Monto</label><input id="genM" inputmode="numeric" placeholder="$0"></div>
   <div class="fld"><label for="genD">Fecha</label><input id="genD" type="date"></div>
   <div class="fld"><label for="genN">Nota (opcional)</label><input id="genN" placeholder="Ej: bidón de 20 litros"></div>
@@ -1507,7 +1508,7 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='demo_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga'];  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
@@ -2973,8 +2974,37 @@ function drawStock(){
     });
   } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
+  if(fS==='camino'&&L.some(v=>v.ctr)){ $('#lStock').innerHTML=ctrHTML(L,!!toks.length,cardS); return; }
   $('#lStock').innerHTML=L.length?L.map(cardS).join(''):'<div class="empty">Sin resultados.</div>';
 }
+/* En camino agrupado por contenedor (02/10/2026): cada contenedor se despliega con la relación simple de chasis
+   y, más abajo, las fichas completas. "Copiar lista" deja el texto listo para WhatsApp. */
+const CTR_ABIERTOS=new Set(); const CTR_FICHAS=new Set();
+const ctrFmt=c=>{ c=String(c||''); return c.length>=11?c.slice(0,4)+' '+c.slice(4,10)+'-'+c.slice(10):c; };
+const ctrDm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
+function ctrGrupos(L){ const G={}; L.forEach(v=>{ const k=v.ctr||''; (G[k]=G[k]||[]).push(v); });
+  return Object.entries(G).sort(([a,A],[b,B])=>{ if(!a) return 1; if(!b) return -1;
+    return String(A[0].eta||'9').localeCompare(String(B[0].eta||'9'))||((A[0].ctrN||0)-(B[0].ctrN||0))||a.localeCompare(b); }); }
+function ctrTexto(k,A){ return '📦 Contenedor '+ctrFmt(k)+(A[0].eta?' · llega '+ctrDm(A[0].eta):'')+' · '+A.length+' veh.\n'
+  +A.map(v=>'• '+[v.ma,v.mo,v.an,String(v.ce||'').toLowerCase()].filter(Boolean).join(' ')+' ('+v.ch+')'+(v.carga?' ⚠️ trae accesorios: '+v.carga:'')).join('\n'); }
+function ctrHTML(L,abrir,card){
+  const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return ctrGrupos(L).map(([k,A])=>`<details class="card" data-ctrg="${esc(k)}" ${abrir||CTR_ABIERTOS.has(k)?'open':''} style="padding:0;margin-bottom:10px">
+    <summary style="cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none">
+      <span><b>${k?'📦 '+(A[0].ctrN?'Contenedor '+A[0].ctrN+' · ':'')+'<span style="font-family:var(--mono)">'+esc(ctrFmt(k))+'</span>':'Sin contenedor asignado'}</b>
+        <br><span style="font-size:12.5px;color:var(--mute)">${A.length} vehículo${A.length===1?'':'s'}${A[0].eta?' · llega '+ctrDm(A[0].eta):''} · toca para ver</span></span>
+      ${k?`<button class="b-und" type="button" data-ctrcp="${esc(k)}" style="font-size:12px;flex:0 0 auto">Copiar lista</button>`:''}</summary>
+    <div style="padding:0 14px 12px">
+      ${A.map(v=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:13.5px">
+        <span>${esc([v.ma,v.mo,v.an].filter(Boolean).join(' '))}${v.ce?' · <span style="color:var(--mute)">'+esc(String(v.ce).toLowerCase())+'</span>':''}${v.carga?'<br><span style="color:var(--red);font-size:12px">📦 trae accesorios: '+esc(v.carga)+'</span>':''}</span>
+        <b style="font-family:var(--mono);font-size:12.5px;white-space:nowrap">${esc(v.ch)}</b></div>`).join('')}
+      <details data-ctrf="${esc(k)}" ${CTR_FICHAS.has(k)?'open':''} style="margin-top:8px"><summary style="cursor:pointer;font-size:13px;color:var(--mute)">Ver fichas completas</summary><div style="margin-top:8px">${A.map(card).join('')}</div></details>
+    </div></details>`).join('');
+}
+document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.ctrf!==undefined){ if(d.open) CTR_FICHAS.add(d.dataset.ctrf); else CTR_FICHAS.delete(d.dataset.ctrf); return; } if(!d||!d.dataset||d.dataset.ctrg===undefined) return;
+  if(d.open) CTR_ABIERTOS.add(d.dataset.ctrg); else CTR_ABIERTOS.delete(d.dataset.ctrg); },true);
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-ctrcp]'); if(!b) return; e.preventDefault(); e.stopPropagation();
+  const k=b.dataset.ctrcp, A=V.filter(v=>v.ctr===k&&passS(v)); await cp(ctrTexto(k,A),'Lista del contenedor copiada'); },true);
 
 /* ---------- RESUMEN ---------- */
 function inPer(d){
@@ -4565,11 +4595,23 @@ function pintaGen(){
 $('#genAdd').addEventListener('click',()=>{
   genCat='COMBUSTIBLE';
   $('#genCatg').innerHTML=GENCAT.map(([k,n])=>`<button class="cg" data-genc="${k}" aria-pressed="${k===genCat}">${n}</button>`).join('');
-  $('#genM').value=''; $('#genN').value=''; $('#genD').value=iso();
-  openSheet('shGen'); setTimeout(()=>$('#genM').focus(),240);
+  $('#genM').value=''; $('#genN').value=''; $('#genD').value=iso(); $('#genN').placeholder='Ej: bidón de 20 litros';
+  pintaGenIns(); openSheet('shGen'); setTimeout(()=>$('#genM').focus(),240);
 });
 $('#genCatg').addEventListener('click',e=>{const b=e.target.closest('[data-genc]');if(!b)return;
-  genCat=b.dataset.genc; $$('#genCatg .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.genc===genCat?'true':'false'))});
+  genCat=b.dataset.genc; $$('#genCatg .cg').forEach(x=>x.setAttribute('aria-pressed',x.dataset.genc===genCat?'true':'false')); pintaGenIns()});
+/* Compra de insumos (02/10/2026): salen los botones fijos de insumos para tocarlos; "＋ Otro" para escribir uno nuevo,
+   que al guardar queda como botón fijo (Andre lo escribió, así que ya está aprobado) también para Víctor y Bryan. */
+function pintaGenIns(){ const w=$('#genInsW'); if(!w) return; w.hidden=genCat!=='INSUMOS'; if(w.hidden) return;
+  const cur=$('#genN').value.trim().toUpperCase(), esc=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const L=INSUMO_PRESETS.map(p=>String(p[1]).trim().toUpperCase()), hay=L.includes(cur);
+  $('#genInsChips').innerHTML=L.map(l=>`<button class="cg" type="button" data-genins="${esc(l)}" aria-pressed="${l===cur}">${esc(l)}</button>`).join('')
+    +`<button class="cg" type="button" data-genins="" aria-pressed="${!!cur&&!hay}">＋ Otro</button>`; }
+$('#genInsChips').addEventListener('click',e=>{ const b=e.target.closest('[data-genins]'); if(!b) return;
+  const l=b.dataset.genins; $('#genN').value=l;
+  if(!l){ $('#genN').placeholder='Escribe qué compraste (quedará como botón fijo)'; $('#genN').focus(); }
+  pintaGenIns(); });
+$('#genN').addEventListener('input',()=>{ if(genCat==='INSUMOS') pintaGenIns(); });
 $('#genM').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#genOk').addEventListener('click',async()=>{
   const m=pnum($('#genM').value)||0;
@@ -4578,10 +4620,11 @@ $('#genOk').addEventListener('click',async()=>{
   const g={ts:Date.now(),cat:genCat,monto:m,fecha:$('#genD').value||iso(),nota};
   GEN.push(g);
   const nuevoFijo=insFijoDeGen(g);
+  if(nuevoFijo) await guardaConfigPend();   /* primero el botón (antes se guardaba después y el aviso quedaba tapado por "Gasto anotado") */
   await guardaGen();
-  if(nuevoFijo){ await guardaConfigPend(); try{pintaFijos()}catch(_){} toast('"'+nuevoFijo+'" quedó como botón fijo de insumos'); }
+  if(nuevoFijo){ try{pintaFijos()}catch(_){} }
   pintaGen(); drawResumen(); pintaFlujo(); closeAll();
-  toast('Gasto anotado');
+  toast(nuevoFijo?'Gasto anotado · "'+nuevoFijo+'" quedó como botón fijo (también para Víctor y Bryan)':'Gasto anotado');
 });
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-gendel]'); if(!b)return;
@@ -5403,7 +5446,7 @@ document.addEventListener('click',async e=>{
     pintaInsumos(); pintaPendientes();
     if(fbReady){ try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set({atendido:!!inno,noNec:!!inno},{merge:true}); }catch(err){ console.error('insno',err); } }
     toast(inno?'Marcado: no hacía falta (Víctor/Bryan lo ven así)':'Aviso reabierto'); return; }
-  if(e.target.closest('#insSinAviso')){ $('#genAdd').click(); genCat='INSUMOS'; $$('#genCatg [data-genc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.genc==='INSUMOS'))); $('#genN').placeholder='Ej: silicona y paños'; return; }
+  if(e.target.closest('#insSinAviso')){ $('#genAdd').click(); genCat='INSUMOS'; $$('#genCatg [data-genc]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.genc==='INSUMOS'))); $('#genN').placeholder='Toca un botón o "＋ Otro"'; pintaGenIns(); return; }
   const insg=e.target.closest('[data-insguarda]');
   if(insg){ const i=document.querySelector(`[data-insmonto="${insg.dataset.insguarda}"]`); await guardaCompraInsumo(insg.dataset.insguarda, pnum(i?i.value:'')||0); return; }
   const fdel=e.target.closest('[data-fixdel]');
@@ -7692,6 +7735,7 @@ async function cargaEmb(){
   try{const r=await window.storage.get('amk_periodo'); if(r&&r.value) PER=JSON.parse(r.value)}catch(e){}
   if(!PER.saldoDesde) PER.saldoDesde=mesActual();
   if(!embId||!EMB[embId]) embNuevo();
+  setTimeout(()=>{ try{ if(ctrSyncTodos()) drawStock(); }catch(er){ console.error('ctrSyncTodos',er); } },4000);
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   pintaEmb();
 }
@@ -9351,10 +9395,22 @@ const ccCLP=v=>{ const e=v&&v.ch?embDeVeh(v.ch):null; return Math.round(ccKRW(v)
    muestre 'En puerto de Iquique desde …' o 'llega ~…'. Solo toca los que cambian. */
 function etaSync(em){
   if(!em) return; const f=em.fechaManifiesto||''; let n=0;
+  if(ctrSync(em)){ try{ guardaCacheV(); }catch(_){} n++; }
   for(const x of (em.veh||[])){ const v=IDX[x.ch]; if(!v||v.st!=='ORIGEN') continue;
     if((v.eta||'')!==f){ if(f) v.eta=f; else v.eta=null; n++; } }
   if(n){ try{ save(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); }catch(_){} }
 }
+/* Contenedor de cada vehículo (02/10/2026): código y número del contenedor del embarque viajan a la nube
+   para que Stock → En camino (aquí y en Vendedores) se agrupe por contenedor. */
+function ctrSync(em){
+  if(!em) return 0; const cod=em.contCod||{}; let n=0;
+  for(const x of (em.veh||[])){ const v=IDX[x.ch]; if(!v) continue; const cn=+x.cn||1;
+    const c=cod[cn]?String(cod[cn]).toUpperCase().replace(/[^A-Z0-9]/g,''):null, nn=c?cn:null;
+    if((v.ctr||null)!==c||(v.ctrN||null)!==nn){ v.ctr=c; v.ctrN=nn; n++; } }
+  return n;
+}
+function ctrSyncTodos(){ let n=0; Object.values(EMB||{}).forEach(em=>{ n+=ctrSync(em); });
+  if(n){ try{ guardaCacheV(); if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); }catch(_){} } return n; }
 function embDeVeh(ch){ return Object.values(EMB).find(e=>(e.veh||[]).some(x=>x.ch===ch)); }
 function pintaCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
