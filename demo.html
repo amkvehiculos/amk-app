@@ -591,7 +591,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->01-10-2026 22:22<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 14:25<!--/VER--></b></div>
     <div class="box" id="boxCta"><h3>Cuenta bancaria para reservas</h3>
       <p>La ven Víctor y Bryan en su app, para que un cliente pueda transferir y reservar un vehículo sin que te tengan que preguntar cada vez.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1434,6 +1434,24 @@ document.addEventListener('input',e=>{ const el=e.target; if(!el||el.tagName!=='
   const ph=el.getAttribute('placeholder')||''; if(!(el.dataset.dinero||/^\s*(\$|₩)/.test(ph))) return;
   const pre=/^\s*₩/.test(el.value)||/^\s*₩/.test(ph)?'₩':'$';
   fmtVivo(el,v=>{ const n=pnum(v); return n===''?'':pre+Number(n).toLocaleString('es-CL'); }); });
+/* REGLA (Andre, 02/10/2026): todo lo que se escribe en las apps queda en MAYÚSCULAS, mientras se escribe y sin que el
+   cursor salte. No toca usuario/clave, correos, links, videos, ni los cuadros donde se pega texto para leerlo
+   (BL, confirmaciones). Para excluir un campo nuevo: atributo data-noup. Respeta el teclado coreano (IME). */
+function mayusOk(el){
+  if(!el||!(el.tagName==='INPUT'||el.tagName==='TEXTAREA')||el.dataset.noup!=null||el.readOnly) return false;
+  const ty=(el.getAttribute('type')||'text').toLowerCase();
+  if(el.tagName==='INPUT'&&!['text','search',''].includes(ty)) return false;
+  if(/user|pass|mail|url|link|video|token|key|owner|repo|page|rx|txt|bak|pin/i.test(el.id||'')) return false;
+  if(/^\s*(https?:|www\.)/i.test(el.value)) return false;
+  return true;
+}
+function mayusAplica(el){
+  if(!mayusOk(el)) return; const v=el.value, u=v.toUpperCase(); if(u===v||u.length!==v.length) return;
+  const a=el.selectionStart, b=el.selectionEnd; el.value=u;
+  if(document.activeElement===el&&a!=null){ try{el.setSelectionRange(a,b)}catch(_){} }
+}
+document.addEventListener('input',e=>{ if(!e.isComposing) mayusAplica(e.target); },true);
+document.addEventListener('compositionend',e=>mayusAplica(e.target),true);
 function fmtVivo(el,fn){
   const viejo=el.value, pos=el.selectionStart==null?viejo.length:el.selectionStart;
   const antes=(viejo.slice(0,pos).match(/\d/g)||[]).length;
@@ -2729,6 +2747,7 @@ async function boot(){
   fbActualizaAviso();
   $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
+  setTimeout(()=>{ try{ if(migraEstEmb()) draw(); }catch(_){} },3000);
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
   $('#rmCom').value='30,00'; $('#rmIva').value='19'; calcRM(); drawPick();
 }
@@ -3092,10 +3111,10 @@ function drawResumen(){
     const amt=m.k==='v'?clp(m.price):('− '+clp(m.k==='g'?m.monto:m.amt));
     return `<div class="card plain" style="padding:11px"><div class="r1">
       <div><div class="tt" style="font-size:15px">${ttl}</div>
-      <div class="ch">${m.k==='g'?(m.nota?m.nota.replace(/</g,'&lt;')+' · ':'')+fd(m.fecha):(v?v.ma+' '+v.mo+' · ':'')+m.ch+' · '+fd(m.date)}</div></div>
+      <div class="ch">${m.k==='g'?(m.nota?String(m.nota).toUpperCase().replace(/</g,'&lt;')+' · ':'')+fd(m.fecha):(v?v.ma+' '+v.mo+' · ':'')+m.ch+' · '+fd(m.date)}</div></div>
       <div style="font-family:var(--mono);font-weight:600;color:${m.k==='v'?'var(--green)':'var(--ink2)'}">${amt}</div></div>
       ${m.k==='c'?`<div class="acts"><button class="b-und" style="flex:0 0 auto" data-delx="${m.ch}|${m.ts}">Eliminar</button></div>`:''}
-      ${m.k==='g'?`<div class="acts"><button class="b-und" style="flex:0 0 auto" data-gendel="${m.ts}">Eliminar</button></div>`:''}
+      ${m.k==='g'?`<div class="acts"><button class="b-sec" style="flex:0 0 auto" data-genedit="${m.ts}">Corregir</button><button class="b-und" style="flex:0 0 auto" data-gendel="${m.ts}">Eliminar</button></div>`:''}
       </div>`}).join('')
     :'<div class="empty">Sin movimientos en este período.</div>';
   pintaSRF();
@@ -4537,8 +4556,8 @@ function pintaGen(){
   const L=GEN.filter(x=>(x.fecha||'').slice(0,7)===m).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const tot=L.reduce((a,x)=>a+x.monto,0);
   el.innerHTML=(L.length?L.map(x=>`<div class="xrow">
-      <span style="font-family:var(--body)">${GENCATN[x.cat]||x.cat}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}<br><span style="color:var(--mute);font-size:12px">${fd(x.fecha)}</span></span>
-      <span>${clp(x.monto)}<button class="b-und" style="margin-left:8px;padding:4px 8px" data-gendel="${x.ts}">✕</button></span></div>`).join(''):'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin gastos generales este mes.</p>')
+      <span style="font-family:var(--body)">${GENCATN[x.cat]||x.cat}${x.nota?' · '+String(x.nota).toUpperCase().replace(/</g,'&lt;'):''}<br><span style="color:var(--mute);font-size:12px">${fd(x.fecha)}</span></span>
+      <span>${clp(x.monto)}<button class="b-sec" style="margin-left:8px;padding:4px 8px" data-genedit="${x.ts}" title="Corregir">✎</button><button class="b-und" style="margin-left:8px;padding:4px 8px" data-gendel="${x.ts}">✕</button></span></div>`).join(''):'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin gastos generales este mes.</p>')
     +(L.length?`<div class="xrow" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><span style="font-family:var(--body);font-weight:700">Total del mes</span><span style="font-weight:700">${clp(tot)}</span></div>`:'');
 }
 $('#genAdd').addEventListener('click',()=>{
@@ -4553,8 +4572,12 @@ $('#genM').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.t
 $('#genOk').addEventListener('click',async()=>{
   const m=pnum($('#genM').value)||0;
   if(!m){toast('Ingresa el monto');return}
-  GEN.push({ts:Date.now(),cat:genCat,monto:m,fecha:$('#genD').value||iso(),nota:$('#genN').value.trim()});
+  const nota=$('#genN').value.trim().toUpperCase();
+  const g={ts:Date.now(),cat:genCat,monto:m,fecha:$('#genD').value||iso(),nota};
+  GEN.push(g);
+  const nuevoFijo=insFijoDeGen(g);
   await guardaGen();
+  if(nuevoFijo){ await guardaConfigPend(); try{pintaFijos()}catch(_){} toast('"'+nuevoFijo+'" quedó como botón fijo de insumos'); }
   pintaGen(); drawResumen(); pintaFlujo(); closeAll();
   toast('Gasto anotado');
 });
@@ -4565,6 +4588,38 @@ document.addEventListener('click',async e=>{
   GEN=GEN.filter(y=>String(y.ts)!==b.dataset.gendel);
   await guardaGen();
   pintaGen(); drawResumen(); pintaFlujo();
+});
+/* Compra de insumo anotada sin aviso -> queda como botón fijo de insumos (una sola vez por gasto,
+   para que si después borras el botón no vuelva a aparecer). Devuelve el nombre si agregó uno. */
+function insFijoDeGen(g){
+  if(!g||g.cat!=='INSUMOS'||g.refIns||g.fijoOk) return '';
+  g.fijoOk=true;
+  const lbl=String(g.nota||'').trim().toUpperCase(); if(!lbl) return '';
+  if(INSUMO_PRESETS.some(p=>String(p[1]).trim().toUpperCase()===lbl)) return '';
+  INSUMO_PRESETS=INSUMO_PRESETS.concat([['i_'+Date.now()+Math.floor(Math.random()*1000),lbl]]);
+  return lbl;
+}
+async function insFijosDesdeGenViejos(){
+  const antes=GEN.filter(g=>g.fijoOk).length; const nuevos=GEN.map(insFijoDeGen).filter(Boolean);
+  if(GEN.filter(g=>g.fijoOk).length===antes) return;
+  await guardaGen();
+  if(nuevos.length){ await guardaConfigPend(); try{pintaFijos()}catch(_){} }
+}
+/* Corregir un gasto general ya anotado (monto y detalle). Si viene de un aviso de insumo, también corrige el aviso. */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-genedit]'); if(!b)return;
+  const x=GEN.find(y=>String(y.ts)===b.dataset.genedit); if(!x) return;
+  const m=await pedirDato({t:'Corregir gasto',s:(GENCATN[x.cat]||x.cat)+' · '+fd(x.fecha),l:'Monto',modo:'clp',ok:'Siguiente',v:clp(x.monto)});
+  if(m==null) return; const n=pnum(m); if(!n){toast('Ingresa el monto');return}
+  let nota=x.nota||'';
+  if(!x.refIns){ const t=await pedirDato({t:'Corregir gasto',s:'Monto '+clp(n),l:'Detalle',ok:'Guardar',v:String(nota).toUpperCase()}); if(t==null) return; nota=t.trim().toUpperCase(); }
+  x.monto=n; x.nota=nota;
+  if(x.refIns){ const av=AVISOSVEND.find(a=>String(a.ts)===String(x.refIns));
+    if(av){ av.montoCompra=n; try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
+      if(fbReady) fbDb.collection(AVISOSVEND_COL).doc(String(av.ts)).set({montoCompra:n},{merge:true}).catch(er=>console.error('genedit aviso',er)); } }
+  await guardaGen();
+  try{ pintaGen(); drawResumen(); pintaFlujo(); pintaInsumos(); }catch(_){}
+  toast('Gasto corregido · '+clp(n));
 });
 $('#adAdd').addEventListener('click',()=>{
   adQ=personas()[0];
@@ -5166,6 +5221,7 @@ function fbConfigPendListen(){
       INSUMO_PRESETS=(x.insumos&&x.insumos.length)?insumosDeObjs(x.insumos):INSUMO_PRESETS_DEF.slice();
       PEND_CANDIDATOS=x.candidatos||[];
       try{window.storage.set('amk_configpend_cache', JSON.stringify({presets:PEND_PRESETS, insumos:INSUMO_PRESETS, candidatos:PEND_CANDIDATOS}))}catch(_){}
+      if(!window._insFijMig){ window._insFijMig=1; setTimeout(()=>insFijosDesdeGenViejos().catch(er=>console.error('insFijMig',er)),1500); }
     }else{
       fbDb.collection(CONFIGPEND_COL).doc('main').set({presets:presetsAObjs(PEND_PRESETS_DEF), insumos:insumosAObjs(INSUMO_PRESETS_DEF), candidatos:[]}).catch(e=>console.error('seedConfigPend',e));
     }
@@ -6278,7 +6334,13 @@ const COSTMAP={SUSP:'MECANICO',OTRO:'OBLIG'};
 let tkCh=null, tkCat='PINTURA', tlView='grupo';
 
 function tasks(c){const t=st(c); if(!t.tasks)t.tasks=[]; return t.tasks}
-function pend(c){return tasks(c).filter(x=>!x.hecho).length}
+/* 02/10/2026 (Andre): lo estimado desde el Embarque (origen 'emb') es solo un cálculo antes de ver el auto: NO es un
+   trabajo pendiente hasta que él lo ve en persona y lo confirma ("✓ Lo vi: va") o anota el trabajo a mano. Sigue contando
+   en el costo estimado, pero no en "Trabajos pendientes" ni en los contadores. */
+const esEstSinVer=x=>x&&x.origen==='emb'&&!x.visto&&!x.hecho;
+function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)).length}
+/* Una vez: marca como 'emb' los estimados que ya se habían guardado desde el embarque (sin nota, con monto, auto en un embarque). */
+function migraEstEmb(){ let n=0; try{ for(const c in S){ const T=S[c].tasks; if(!T||!embDeVeh(c)) continue; T.forEach(x=>{ if(!x.origen&&!x.nota&&+x.est>0&&!x.hecho){ x.origen='emb'; n++; } }); } }catch(_){} if(n){ save(); } return n; }
 const saldo=x=>(x.est||0);
 
 function cseg(k){
@@ -6312,8 +6374,9 @@ function drawTaskSheet(){
     <div class="r1"><div><div class="tt" style="font-size:15px">${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}</div>
     ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}
     ${x.reportadoPor?`<div class="ch" style="color:var(--mute)">Reportado por ${nomPersona(vendedorKey(x.reportadoPor)||x.reportadoPor)}</div>`:''}</div>
-    <span class="tag ${x.noAplica?'':(x.hecho?'t-sold':'t-or')}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':'Pendiente')}</span></div>
-    <div class="acts"><button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>
+    <span class="tag ${x.noAplica?'':(x.hecho?'t-sold':(esEstSinVer(x)?'':'t-or'))}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':(esEstSinVer(x)?'Estimado (sin ver)':'Pendiente'))}</span></div>
+    ${esEstSinVer(x)?`<div class="mtr" style="margin:4px 0 0">Calculado en el embarque antes de que llegue. Cuando veas el auto, confírmalo o márcalo "No se necesitó".</div>`:''}
+    <div class="acts">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}">✓ Lo vi: va</button>`:''}<button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>
     ${x.hecho?'':`<button class="btn b-sec" data-tnoap="${x.ts}" title="Al verlo en persona o al trabajarlo, este gasto no hizo falta: el estimado deja de contar en el costo (queda en el historial)">No se necesitó</button>`}
     ${x.noAplica?'':`<button class="btn b-pri" data-tcost="${x.ts}">＄ Registrar costo</button>`}
     <button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}">✕</button></div></div>`).join('')
@@ -6352,7 +6415,10 @@ $('#tkAdd').addEventListener('click',async()=>{
     if(est) ya.est=est;
     if(nota&&nota!==(ya.nota||'')) ya.nota=ya.nota?(ya.nota+' · '+nota):nota;
     ya.ts=Date.now();
-  } else tasks(tkCh).push({ts:Date.now(),cat:tkCat,nota,est,hecho:false});
+  } else { const prev=tasks(tkCh).find(x=>esEstSinVer(x)&&x.cat===tkCat);
+    /* si había un estimado del embarque de la misma categoría, se reemplaza por lo que viste (no se cuenta dos veces) */
+    if(prev){ prev.visto=true; prev.vistoFe=iso(); if(nota) prev.nota=nota; if(est) prev.est=est; }
+    else tasks(tkCh).push({ts:Date.now(),cat:tkCat,nota,est,hecho:false}); }
   $('#tkNota').value=''; $('#tkEst').value=''; await save(); drawTaskSheet(); draw();
   toast(ya?('Ya había '+(TN[tkCat]||tkCat)+' pendiente: se actualizó ese (no se duplica)'):('Anotado en '+(IDX[tkCh]?IDX[tkCh].mo:'el vehículo')));
 });
@@ -6360,8 +6426,10 @@ $('#tkAdd').addEventListener('click',async()=>{
 function drawTaller(){
   const items=[];
   for(const c in S) for(const x of (S[c].tasks||[])) if(IDX[c]&&!sold(c)) items.push({...x,ch:c});
-  const pen=items.filter(x=>!x.hecho), lis=items.filter(x=>x.hecho);
-  $('#tlCnt').textContent=pen.length+' pendiente'+(pen.length===1?'':'s')+' · '+lis.length+' terminado'+(lis.length===1?'':'s');
+  const sinVer=items.filter(esEstSinVer);
+  const pen=items.filter(x=>!x.hecho&&!esEstSinVer(x)), lis=items.filter(x=>x.hecho);
+  $('#tlCnt').textContent=pen.length+' pendiente'+(pen.length===1?'':'s')+' · '+lis.length+' terminado'+(lis.length===1?'':'s')
+    +(sinVer.length?' · '+sinVer.length+' estimado'+(sinVer.length===1?'':'s')+' del embarque sin revisar (no cuentan hasta que veas el auto)':'');
   const box=$('#tlList');
   const linea=x=>{const v=IDX[x.ch];
     return `<div class="xrow" style="padding:7px 0;align-items:flex-start">
@@ -6403,6 +6471,8 @@ $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#tlChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true'); tlView=c.dataset.tv; drawTaller()}));
 
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-tvisto]'); if(!b||!tkCh) return; const x=tasks(tkCh).find(t=>String(t.ts)===b.dataset.tvisto); if(!x) return;
+  x.visto=true; x.vistoFe=iso(); await save(); drawTaskSheet(); draw(); toast('Confirmado: ahora es un trabajo pendiente'); });
 document.addEventListener('click',async e=>{
   const d1=e.target.closest('[data-tdone]');
   /* 2026-09-29: "No se necesitó" -- se estimó un gasto que al final no hizo falta. Queda en el historial (tachado),
@@ -7749,7 +7819,7 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     if(tl.some(ta=>ta&&ta.cat===emEstCat&&ta.noAplica)){ saltados.push(x.ch); continue; }   /* ya se vio en persona que no hacía falta */
     const ya=tl.find(ta=>emEstPend(ta,emEstCat));
     if(ya){ ya.est=est; ya.ts=Date.now(); for(let i=tl.length-1;i>=0;i--) if(tl[i]!==ya&&emEstEsSuya(tl[i],emEstCat)) tl.splice(i,1); }   /* reemplaza, no suma */
-    else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false});
+    else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false,origen:'emb'});
     n++;
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}

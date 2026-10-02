@@ -1063,6 +1063,24 @@ let phCh=null, phArr=[], phSel=new Set();
 const clp=n=>(n==null||n===''||isNaN(n))?'':'$'+Math.round(n).toLocaleString('es-CL');
 const pnum=s=>{const n=parseInt(String(s).replace(/[^0-9]/g,''),10);return isNaN(n)?'':n};
 /* Reformatea e.target.value en vivo sin que el cursor salte al final -- ver sis/patch32.py. */
+/* REGLA (Andre, 02/10/2026): todo lo que se escribe en las apps queda en MAYÚSCULAS, mientras se escribe y sin que el
+   cursor salte. No toca usuario/clave, correos, links, videos, ni los cuadros donde se pega texto para leerlo
+   (BL, confirmaciones). Para excluir un campo nuevo: atributo data-noup. Respeta el teclado coreano (IME). */
+function mayusOk(el){
+  if(!el||!(el.tagName==='INPUT'||el.tagName==='TEXTAREA')||el.dataset.noup!=null||el.readOnly) return false;
+  const ty=(el.getAttribute('type')||'text').toLowerCase();
+  if(el.tagName==='INPUT'&&!['text','search',''].includes(ty)) return false;
+  if(/user|pass|mail|url|link|video|token|key|owner|repo|page|rx|txt|bak|pin/i.test(el.id||'')) return false;
+  if(/^\s*(https?:|www\.)/i.test(el.value)) return false;
+  return true;
+}
+function mayusAplica(el){
+  if(!mayusOk(el)) return; const v=el.value, u=v.toUpperCase(); if(u===v||u.length!==v.length) return;
+  const a=el.selectionStart, b=el.selectionEnd; el.value=u;
+  if(document.activeElement===el&&a!=null){ try{el.setSelectionRange(a,b)}catch(_){} }
+}
+document.addEventListener('input',e=>{ if(!e.isComposing) mayusAplica(e.target); },true);
+document.addEventListener('compositionend',e=>mayusAplica(e.target),true);
 function fmtVivo(el,fn){
   const viejo=el.value, pos=el.selectionStart==null?viejo.length:el.selectionStart;
   const antes=(viejo.slice(0,pos).match(/\d/g)||[]).length;
