@@ -694,7 +694,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-10-2026 14:22<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-10-2026 14:33<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -735,22 +735,30 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="fbSave">Guardar</button></div>
       <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
     <div class="box"><h3>Bodega de fotos (GitHub)</h3>
-      <p>Instagram no acepta fotos desde tu computador: exige que estén publicadas en internet. La app sube sola la foto de portada a tu repositorio de GitHub antes de publicar.</p>
+      <p>Instagram no acepta archivos desde tu computador: exige que estén publicados en internet. La app los sube sola a GitHub antes de publicar. Son dos bodegas distintas: una guarda las fotos de los vehículos y otra los videos y las publicaciones.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de GitHub</div>
         <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_..."
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
       <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div><div class="mtr" style="margin:0 0 4px">Cuenta</div>
           <input id="ghOwner" value="amkvehiculos" placeholder="amkvehiculos" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
-        <div><div class="mtr" style="margin:0 0 4px">Repositorio</div>
-          <input id="ghRepo" value="amk-web" placeholder="amk-web" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
+        <div><div class="mtr" style="margin:0 0 4px">Fotos de vehículos</div>
+          <input id="ghRepo" value="amk-fotos" placeholder="amk-fotos" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
       </div>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Videos y publicaciones</div>
+        <input id="ghRepoMedia" value="amk-media" placeholder="amk-media" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
       <div class="acts">
         <button class="btn b-sec" id="ghVer">Ver token</button>
         <button class="btn b-sec" id="ghTest">Probar acceso</button>
         <button class="btn b-pri" id="ghSave">Guardar</button></div>
       <div id="ghEstado" class="mtr" style="margin-top:9px"></div>
-      <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos en ese repositorio (es lo que permite que Instagram los tome). Usa un token de tipo "fine-grained" con permiso de Contenido: lectura y escritura, solo sobre ese repositorio. Conviene un repositorio aparte (ej. amk-media), no el de la web.</div></div>
+      <div class="mtr" style="margin-top:8px">Los archivos que se suban quedan públicos (es lo que permite que Instagram los tome). Usa un token "fine-grained" con permiso de Contenido: lectura y escritura sobre los dos repositorios.
+        <b>Van separados a propósito:</b> Git guarda todo su historial, así que un repositorio que recibe fotos y videos solo crece. Teniéndolos aparte del de la web, se pueden vaciar o rehacer sin tocar la página pública.</div></div>
+    <div class="box"><h3>Compactar la bodega de fotos</h3>
+      <p>Mueve a la bodega de fotos de arriba todas las fotos que siguen en uso, y deja fuera las que ya no lo están. Úsalo cuando cambies de repositorio o cuando el actual esté muy lleno. No borra nada: cuando termine, te dice qué repositorio viejo puedes eliminar tú mismo en GitHub.</p>
+      <div class="acts"><button class="btn b-sec" id="ghCompVer" style="width:100%">Ver qué se movería</button></div>
+      <div class="acts" style="margin-top:8px"><button class="btn b-pri" id="ghCompactar" style="width:100%">Compactar y mudar</button></div>
+      <div id="ghCompEstado" class="mtr" style="margin-top:9px"></div></div>
     <div class="box"><h3>Clave API de Anthropic (opcional)</h3>
       <p>Solo hace falta si quieres usar "Buscar dólar de hoy" y "Leer datos del carnet". Sin clave, esas dos funciones piden escribir los datos a mano — el resto de la app funciona igual.</p>
       <div class="two" style="display:grid;grid-template-columns:1fr auto;gap:10px">
@@ -2244,12 +2252,16 @@ function webDoc(v){
     reservado: !!resAct(v.ch),
     precio: t.of ? (t.pprice||v.vev||null) : null,
     foto: fe.fotos[0] || '',
-    fotos: fe.fotos.slice(0,20),  /* propias si hay; si no, las de Víctor/Bryan/Corea (ver fotosEfectivas) */
+    /* 2026-10-03: la galeria ya no va aca (la web bajaba ~700 KB por auto al abrirse). Va aparte en
+       {ch}__fotos (ver webGal) y la web la pide al abrir el detalle. lista:true = doc de vehiculo. */
+    lista: true, nf: Math.min(fe.fotos.length,20),
     hd: (fe.hd||[]).slice(0,20), hdCol: FB_FOTOS_COL,  /* ids de las mismas fotos en alta (la web las pide al abrir el detalle) */
     f360: fe3.fotos.slice(0,24),  /* vista 360° completa, misma prioridad (ver fotosEfectivas360) */
     video: v.video || ''  /* link del video editado (YouTube, Vimeo, Instagram o archivo directo), opcional */
   };
 }
+/* Galeria liviana del vehiculo (propias si hay; si no, las de Víctor/Bryan/Corea, ver fotosEfectivas). */
+function webGal(v){ return {ch:v.ch, galeriaDe:v.ch, fotos:fotosEfectivas(v).fotos.slice(0,20)}; }
 function webVaEnLaWeb(v){ if(v.borrado) return false; const t=st(v.ch); return !!t.pub && !t.sold; }
 
 /* Marca como publicados en la web todos los vehículos que no estén vendidos (en camino o en patio).
@@ -2290,21 +2302,23 @@ async function webSync(completo){
     if(completo){
       pinta('Revisando qué hay publicado…');
       const s=await fbDb.collection(WEB_COL).get();
-      yaArriba=new Set(); s.forEach(d=>yaArriba.add(d.id));
+      yaArriba=new Set(); s.forEach(d=>{ if(!d.id.endsWith('__fotos')) yaArriba.add(d.id); else if(!V.some(v=>v.ch===d.id.slice(0,-7)&&webVaEnLaWeb(v))) d.ref.delete().catch(e=>console.error('webSync galeria',e)); });
     }
     for(const v of V){
       const debe=webVaEnLaWeb(v);
-      const doc=debe?webDoc(v):null;
-      const firma=debe?JSON.stringify(doc):'(fuera)';
+      const doc=debe?webDoc(v):null, gal=debe?webGal(v):null;
+      const firma=debe?JSON.stringify([doc,gal]):'(fuera)';
       const cambio = webUltimo[v.ch]!==firma;
       if(debe){
         if(cambio || (completo && !yaArriba.has(v.ch))){
+          if(gal.fotos.length>1) await fbDb.collection(WEB_COL).doc(v.ch+'__fotos').set(gal);
+          else await fbDb.collection(WEB_COL).doc(v.ch+'__fotos').delete();
           await fbDb.collection(WEB_COL).doc(v.ch).set(doc);
           puestos++;
         }
       }else{
         const estaba = (yaArriba && yaArriba.has(v.ch)) || (webUltimo[v.ch] && webUltimo[v.ch]!=='(fuera)');
-        if(estaba){ await fbDb.collection(WEB_COL).doc(v.ch).delete(); sacados++; }
+        if(estaba){ await fbDb.collection(WEB_COL).doc(v.ch).delete(); await fbDb.collection(WEB_COL).doc(v.ch+'__fotos').delete(); sacados++; }
       }
       webUltimo[v.ch]=firma;
     }
@@ -2316,7 +2330,7 @@ async function webSync(completo){
       const chasisV=new Set(V.map(v=>v.ch));
       for(const ch of yaArriba){
         if(!chasisV.has(ch)){
-          try{ await fbDb.collection(WEB_COL).doc(ch).delete(); sacados++; delete webUltimo[ch]; }
+          try{ await fbDb.collection(WEB_COL).doc(ch).delete(); await fbDb.collection(WEB_COL).doc(ch+'__fotos').delete(); sacados++; delete webUltimo[ch]; }
           catch(e){ console.error('webSync huerfano',ch,e); }
         }
       }
@@ -3679,7 +3693,9 @@ async function podaAuto(){
 async function podaF360Propio(c){
   const v=IDX[c];
   if(!v || !Array.isArray(v.f360) || v.f360.length<=KEEP) return false;
+  const sobran=v.f360.slice(KEEP);
   v.f360=v.f360.slice(0,KEEP); guardaCacheV();
+  await borrarVariasGH(sobran);
   return true;
 }
 /* Reduce a KEEP fotos las colecciones que suben Vendedores/Corea (fotosVend y
@@ -3706,13 +3722,46 @@ async function podaVendCoreaNube(ch){
   }
   return podado;
 }
+/* Desarma la direccion publica de una foto para saber a que repositorio y archivo
+   corresponde. Sin esto no hay forma de borrarla de GitHub. */
+function partesFotoGH(url){
+  /* la rama puede venir como "main" o como "refs/heads/main" */
+  const m=String(url||'').match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/(?:refs\/heads\/)?[^/]+\/(.+)$/);
+  if(!m) return null;
+  return {owner:m[1], repo:m[2], path:decodeURIComponent(m[3].split('?')[0])};
+}
+/* OJO: esto saca el archivo del repositorio, pero NO reduce su tamano: Git conserva
+   todo en el historial. Lo que de verdad libera espacio es "Compactar y mudar". */
+async function borrarFotoGH(url){
+  const p=partesFotoGH(url);
+  if(!p||!GHTOKEN) return false;
+  const api='https://api.github.com/repos/'+p.owner+'/'+p.repo+'/contents/'+p.path;
+  const cab={Authorization:'Bearer '+GHTOKEN,Accept:'application/vnd.github+json'};
+  try{
+    const g=await fetch(api,{headers:cab});
+    if(!g.ok) return false;
+    const gj=await g.json();
+    if(!gj||!gj.sha) return false;
+    const r=await fetch(api,{method:'DELETE',headers:Object.assign({'Content-Type':'application/json'},cab),
+      body:JSON.stringify({message:'Poda AMK: '+p.path, sha:gj.sha})});
+    return r.ok;
+  }catch(e){ console.error('borrarFotoGH',e); return false; }
+}
+async function borrarVariasGH(lista){
+  let n=0;
+  for(const u of (lista||[])){
+    if(typeof u==='string' && u.indexOf('http')===0 && await borrarFotoGH(u)) n++;
+  }
+  return n;
+}
 async function pruneOne(c){
   const arr=await loadPhotos(c);
   if(arr.length<=KEEP) return false;
-  const keep=arr.slice(0,KEEP);
+  const keep=arr.slice(0,KEEP), sobran=arr.slice(KEEP);
   const ok=await savePhotos(c,keep);
   if(!ok) return false;
   st(c).nf=keep.length; await save();
+  await borrarVariasGH(sobran);
   return true;
 }
 function pintaQuien(){
@@ -5913,15 +5962,19 @@ $('#eBakJson').addEventListener('click',async()=>{
   try{
     const ks=await window.storage.keys();
     if(!ks.length) throw new Error('No se encontró nada guardado en este dispositivo');
+    /* Los tokens NO entran al respaldo: el archivo se comparte y se guarda en
+       carpetas cualquiera, y con ellos se controlan las redes y el repositorio. */
+    const SECRETAS=['amk_gh_token','amk_ig_token','amk_fb_token','amk_api_key'];
     const datos={};
-    let n=0;
+    let n=0, omitidas=0;
     for(const k of ks){
+      if(SECRETAS.indexOf(k)>=0){ omitidas++; continue; }
       const r=await window.storage.get(k);
       datos[k]=(r&&r.value!==undefined)?r.value:null;
       n++;
       if(n%20===0) el.textContent='Leyendo… '+n+' de '+ks.length;
     }
-    const paquete={app:'AMK_sistema', fecha:new Date().toISOString(), claves:ks.length, datos:datos};
+    const paquete={app:'AMK_sistema', fecha:new Date().toISOString(), claves:n, datos:datos};
     const txt=JSON.stringify(paquete);
     const blob=new Blob([txt],{type:'application/json'});
     const url=URL.createObjectURL(blob);
@@ -5929,7 +5982,7 @@ $('#eBakJson').addEventListener('click',async()=>{
     a.href=url; a.download='AMK_respaldo_'+iso()+'.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),4000);
-    el.innerHTML='<span style="color:var(--green)">✓ Respaldo descargado · '+ks.length+' registros · '+(txt.length/1048576).toFixed(1)+' MB</span>';
+    el.innerHTML='<span style="color:var(--green)">✓ Respaldo descargado · '+n+' registros · '+(txt.length/1048576).toFixed(1)+' MB'+(omitidas?' · '+omitidas+' token(s) excluidos a propósito':'')+'</span>';
     toast('Respaldo descargado');
   }catch(e){
     console.error('respaldo json',e);
@@ -5938,20 +5991,24 @@ $('#eBakJson').addEventListener('click',async()=>{
   }
   b.disabled=false; b.textContent=t0;
 });
-let GHTOKEN='', GHOWNER='', GHREPO='';
+let GHTOKEN='', GHOWNER='', GHREPO='', GHMEDIA='';
 async function cargaGH(){
   try{
     const a=await window.storage.get('amk_gh_token'); if(a&&a.value){GHTOKEN=a.value; $('#ghToken').value=GHTOKEN;}
     const b=await window.storage.get('amk_gh_owner'); if(b&&b.value){GHOWNER=b.value; $('#ghOwner').value=GHOWNER;}
     const c=await window.storage.get('amk_gh_repo'); if(c&&c.value){GHREPO=c.value; $('#ghRepo').value=GHREPO;}
+    const d=await window.storage.get('amk_gh_repo_media'); if(d&&d.value){GHMEDIA=d.value; $('#ghRepoMedia').value=GHMEDIA;}
+    if(!GHMEDIA) GHMEDIA=$('#ghRepoMedia').value.trim()||GHREPO;   /* si nunca se configuro, cae en el de fotos */
   }catch(e){console.error('cargaGH',e)}
 }
 $('#ghSave').addEventListener('click',async()=>{
   GHTOKEN=$('#ghToken').value.trim(); GHOWNER=$('#ghOwner').value.trim(); GHREPO=$('#ghRepo').value.trim();
+  GHMEDIA=$('#ghRepoMedia').value.trim()||GHREPO;
   try{
     GHTOKEN?await window.storage.set('amk_gh_token',GHTOKEN):await window.storage.delete('amk_gh_token');
     GHOWNER?await window.storage.set('amk_gh_owner',GHOWNER):await window.storage.delete('amk_gh_owner');
     GHREPO?await window.storage.set('amk_gh_repo',GHREPO):await window.storage.delete('amk_gh_repo');
+    GHMEDIA?await window.storage.set('amk_gh_repo_media',GHMEDIA):await window.storage.delete('amk_gh_repo_media');
     toast('Datos de GitHub guardados');
   }catch(e){ console.error('guardar gh',e); toast('No se pudo guardar'); }
 });
@@ -5964,30 +6021,137 @@ $('#ghVer').addEventListener('click',()=>{
     ? ('Pegado: '+t.length+' caracteres, empieza con "'+t.slice(0,11)+'"'+(t!==t.trim()?' · OJO: tiene espacios al inicio o al final':''))
     : 'El campo está vacío.';
 });
+/* ---------- Compactar la bodega de fotos ----------
+   Git conserva todo su historial, asi que borrar archivos no achica el repositorio.
+   Lo unico que de verdad libera espacio es dejar de usar el repositorio viejo. Esto
+   copia a la bodega actual todas las fotos que siguen en uso (y solo esas), de modo
+   que el viejo se pueda eliminar entero desde GitHub sin perder nada. */
+async function urlADataURI(u){
+  const r=await fetch(u,{cache:'no-store'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const b=await r.blob();
+  return await new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>res(String(fr.result));
+    fr.onerror=()=>rej(new Error('no se pudo leer la foto'));
+    fr.readAsDataURL(b);
+  });
+}
+/* Recorre los vehiculos y devuelve las fotos que estan fuera de la bodega actual. */
+function fotosFueraDeBodega(){
+  const pend=[], porRepo={};
+  for(const v of V){
+    for(const campo of ['fotos','f360']){
+      const arr=v[campo];
+      if(!Array.isArray(arr)) continue;
+      for(let i=0;i<arr.length;i++){
+        const u=arr[i];
+        if(typeof u!=='string'||u.indexOf('http')!==0) continue;
+        const p=partesFotoGH(u);
+        if(!p) continue;
+        const clave=p.owner+'/'+p.repo;
+        porRepo[clave]=(porRepo[clave]||0)+1;
+        if(p.owner===GHOWNER && p.repo===GHREPO) continue;
+        pend.push({ch:v.ch, campo:campo, i:i, url:u});
+      }
+    }
+  }
+  return {pend:pend, porRepo:porRepo};
+}
+async function compactarBodega(simular){
+  const el=$('#ghCompEstado');
+  if(!GHTOKEN||!GHOWNER||!GHREPO){
+    el.innerHTML='<span style="color:var(--red)">Completa primero el token, la cuenta y la bodega de fotos.</span>';
+    return;
+  }
+  if(!simular){ try{ await podaAuto(); }catch(e){ console.error('podaAuto',e); } }
+  const {pend,porRepo}=fotosFueraDeBodega();
+  const resumen=Object.keys(porRepo).sort().map(k=>k+': '+porRepo[k]+' foto(s)').join(' · ');
+  if(!pend.length){
+    el.innerHTML='<span style="color:var(--green)">✓ Todo está ya en '+GHOWNER+'/'+GHREPO+'.</span>'
+      +(resumen?'<div style="margin-top:6px">'+resumen+'</div>':'');
+    return;
+  }
+  if(simular){
+    el.innerHTML='Se moverían <b>'+pend.length+'</b> foto(s) a '+GHOWNER+'/'+GHREPO+'.'
+      +'<div style="margin-top:6px">Dónde están hoy → '+resumen+'</div>';
+    return;
+  }
+  if(!confirm('Se van a copiar '+pend.length+' foto(s) a '+GHOWNER+'/'+GHREPO+'.\n\nNo se borra nada: al terminar te digo qué repositorio viejo puedes eliminar tú en GitHub.\n\n¿Seguimos?')) return;
+  const b=$('#ghCompactar'); b.disabled=true;
+  const cambios={};
+  let ok=0, fallos=0;
+  for(let k=0;k<pend.length;k++){
+    const it=pend[k];
+    el.textContent='Moviendo '+(k+1)+' de '+pend.length+'…';
+    try{
+      const d=await urlADataURI(it.url);
+      const chica=(await shrinkDataURI(d,WEBW,WEBQ))||d;
+      const nuevo=await subirFotoGH(chica, it.ch+'-'+it.campo+'-'+it.i+'-'+Date.now()+'.jpg', GHREPO);
+      const v=IDX[it.ch];
+      if(v&&Array.isArray(v[it.campo])) v[it.campo][it.i]=nuevo;
+      cambios[it.url]=nuevo;
+      ok++;
+    }catch(e){ console.error('compactar',it,e); fallos++; }
+  }
+  guardaCacheV();
+  /* la copia local de cada vehiculo tambien apunta a las direcciones viejas */
+  const tocados={}; pend.forEach(it=>tocados[it.ch]=1);
+  for(const ch in tocados){
+    try{
+      const arr=await loadPhotos(ch);
+      let cambio=false;
+      const nuevo=arr.map(u=>{ if(cambios[u]){cambio=true; return cambios[u];} return u; });
+      if(cambio) await savePhotos(ch,nuevo);
+    }catch(e){ console.error('compactar local',ch,e); }
+  }
+  draw();
+  const quedan=fotosFueraDeBodega();
+  const viejos=Object.keys(quedan.porRepo).filter(k=>k!==GHOWNER+'/'+GHREPO);
+  let msg='<span style="color:'+(fallos?'var(--amber)':'var(--green)')+'">'+(fallos?'⚠':'✓')+' '+ok+' foto(s) movidas'+(fallos?' · '+fallos+' fallaron':'')+'</span>';
+  if(!viejos.length && !fallos){
+    msg+='<div style="margin-top:6px">Ya no queda nada fuera de '+GHOWNER+'/'+GHREPO+'. Ahora puedes borrar el repositorio viejo en GitHub y recuperar todo ese espacio.</div>';
+  }else if(viejos.length){
+    msg+='<div style="margin-top:6px">Todavía quedan fotos en: '+viejos.join(', ')+'. Vuelve a intentarlo antes de borrar nada.</div>';
+  }
+  el.innerHTML=msg;
+  b.disabled=false;
+  toast(ok+' foto(s) movidas a la bodega');
+}
+$('#ghCompVer').addEventListener('click',()=>compactarBodega(true));
+$('#ghCompactar').addEventListener('click',()=>compactarBodega(false));
+
 $('#ghTest').addEventListener('click',async()=>{
   const tk=$('#ghToken').value.trim(), ow=$('#ghOwner').value.trim(), rp=$('#ghRepo').value.trim();
+  const rm=$('#ghRepoMedia').value.trim()||rp;
   const el=$('#ghEstado');
   if(!tk||!ow||!rp){ el.textContent='Completa el token, la cuenta y el repositorio.'; return; }
   el.textContent='Probando…';
   try{
-    const r=await fetch('https://api.github.com/repos/'+ow+'/'+rp,{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github+json'}});
-    const j=await r.json();
-    if(r.ok&&j&&j.full_name){
-      const puede=(j.permissions&&j.permissions.push)?'con permiso de escritura':'SIN permiso de escritura (hay que corregir el token)';
-      el.innerHTML='<span style="color:'+((j.permissions&&j.permissions.push)?'var(--green)':'var(--red)')+'">'+((j.permissions&&j.permissions.push)?'✓':'✗')+' '+j.full_name+' · '+puede+'</span>';
-    }else{
-      el.innerHTML='<span style="color:var(--red)">✗ GitHub respondió: '+((j&&j.message)||r.status)+'</span>';
+    const lineas=[];
+    for(const [nombre,repo] of [['Fotos',rp],['Videos',rm]]){
+      if(lineas.some(l=>l.repo===repo)) continue;
+      const r=await fetch('https://api.github.com/repos/'+ow+'/'+repo,{headers:{Authorization:'Bearer '+tk,Accept:'application/vnd.github+json'}});
+      const j=await r.json();
+      if(r.ok&&j&&j.full_name){
+        const esc=!!(j.permissions&&j.permissions.push);
+        lineas.push({repo:repo,html:'<span style="color:'+(esc?'var(--green)':'var(--red)')+'">'+(esc?'✓':'✗')+' '+nombre+': '+j.full_name+' · '+(esc?'con permiso de escritura':'SIN permiso de escritura (hay que corregir el token)')+'</span>'});
+      }else{
+        lineas.push({repo:repo,html:'<span style="color:var(--red)">✗ '+nombre+' ('+repo+'): '+((j&&j.message)||r.status)+'</span>'});
+      }
     }
+    el.innerHTML=lineas.map(l=>l.html).join('<br>');
   }catch(e){
     console.error('ghTest',e);
     el.innerHTML='<span style="color:var(--red)">✗ No se pudo conectar con GitHub ('+e.message+')</span>';
   }
 });
-async function subirFotoGH(dataURI,nombre){
-  if(!GHTOKEN||!GHOWNER||!GHREPO) throw new Error('Falta configurar GitHub en Negocio → Ajustes');
+async function subirFotoGH(dataURI,nombre,repo){
+  const rp=(repo||GHREPO||'').trim();
+  if(!GHTOKEN||!GHOWNER||!rp) throw new Error('Falta configurar GitHub en Negocio → Ajustes');
   const b64=(String(dataURI).split(',')[1]||'');
   if(!b64) throw new Error('La foto está vacía');
-  const url='https://api.github.com/repos/'+GHOWNER+'/'+GHREPO+'/contents/fotos/'+nombre;
+  const url='https://api.github.com/repos/'+GHOWNER+'/'+rp+'/contents/fotos/'+nombre;
   const cab={Authorization:'Bearer '+GHTOKEN,Accept:'application/vnd.github+json'};
   let sha='';
   try{ const g=await fetch(url,{headers:cab}); if(g.ok){ const gj=await g.json(); sha=gj.sha||''; } }catch(_){}
@@ -6095,7 +6259,7 @@ async function publicarTodo(v,paso){
       let url=urlYa;
       if(!url){
         paso&&paso('Subiendo el archivo a la bodega…');
-        url=await subirFotoGH(dataURI,v.ch+'-'+Date.now()+(esVideo?'.mp4':'.jpg'));
+        url=await subirFotoGH(dataURI,v.ch+'-'+Date.now()+(esVideo?'.mp4':'.jpg'),GHMEDIA);
       }
       paso&&paso('Creando la publicación en Instagram…');
       await igPublicar(url,genIG(v,gvar),esVideo,paso);
@@ -6124,7 +6288,7 @@ async function publicarIGViejo(v,caption,paso){
   paso&&paso('Preparando la foto…');
   const chica=(await shrinkDataURI(foto,1080,0.85))||foto;
   paso&&paso('Subiendo la foto…');
-  const url=await subirFotoGH(chica,v.ch+'-'+Date.now()+'.jpg');
+  const url=await subirFotoGH(chica,v.ch+'-'+Date.now()+'.jpg',GHMEDIA);
   paso&&paso('Creando la publicación…');
   const c=await fetch('https://graph.instagram.com/v23.0/'+IGUSER+'/media',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({image_url:url,caption:caption,access_token:IGTOKEN})});
