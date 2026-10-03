@@ -104,7 +104,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
 .b-und{background:none;border:1px solid #2F5A48;color:var(--green);font-size:13px;padding:10px 12px;min-height:40px;min-width:40px;border-radius:9px;font-weight:700;cursor:pointer}
 .xlist{margin-top:10px;border-top:1px dashed var(--line);padding-top:9px}
-.xrow{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--ink2)}
+.xrow{display:flex;justify-content:space-between;font-size:12.5px;padding:3px 0;color:var(--ink2);align-items:center;gap:10px}
+/* 03/10/2026 (filas .xrow): lo de la derecha con botones (monto + ✎ ✕) queda siempre junto en una línea y el texto
+   de la izquierda es el que baja; las filas con casillas (Embarque) pasan los controles abajo a la derecha en vez de salirse de la pantalla. */
+.xrow>:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child){flex:0 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)){flex:0 0 auto;white-space:nowrap}
+.xrow>:last-child button{vertical-align:middle}
+.xrow>:last-child>button:not(.btn){min-height:30px;min-width:30px;padding:4px 9px;font-size:12.5px;border-radius:8px;line-height:1.1}   /* ✎ y ✕ del mismo tamaño */
+.xrow:has(input,select,textarea){flex-wrap:wrap;row-gap:6px}
+.xrow:has(input,select,textarea)>:last-child{margin-left:auto;max-width:100%}
+.xrow:has(input,select,textarea)>:last-child span[style*="flex"]{flex-wrap:wrap;justify-content:flex-end}
 .xrow span{font-family:var(--mono);font-size:12px}
 .empty{padding:44px 16px;text-align:center;color:var(--mute);background:var(--card);border:1px dashed var(--line);border-radius:13px}
 .loading{padding:60px 16px;text-align:center;color:var(--mute)}
@@ -685,7 +695,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-10-2026 21:59<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-10-2026 14:22<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>

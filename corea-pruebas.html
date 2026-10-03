@@ -126,6 +126,16 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .dmlist{max-height:46vh;overflow-y:auto;overscroll-behavior:contain}
 .xrow{padding:9px 0;border-top:1px solid var(--line);font-size:14px}
 .xrow:first-child{border-top:none;padding-top:0}
+/* 03/10/2026 (filas .xrow / .frow, igual que en Sistema): lo de la derecha con botones (monto + ✎ ✕) queda siempre junto
+   en una línea y el texto de la izquierda es el que baja; con casillas, los controles pasan abajo a la derecha sin salirse. */
+.xrow,.frow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.xrow>:first-child,.frow>:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child),.frow>:last-child:not(:first-child){flex:0 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)),.frow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)){flex:0 0 auto;white-space:nowrap}
+.xrow>:last-child button,.frow>:last-child button{vertical-align:middle}
+.xrow:has(input,select,textarea),.frow:has(input,select,textarea){flex-wrap:wrap;row-gap:6px}
+.xrow:has(input,select,textarea)>:last-child,.frow:has(input,select,textarea)>:last-child{margin-left:auto;max-width:100%}
+
 .steps{display:flex;gap:6px;margin:0 0 13px;padding:4px;background:var(--seaL);border:1px solid var(--line);border-radius:12px}
 .steps button{flex:1;border:none;background:none;color:var(--ink2);font-weight:700;font-size:13.5px;padding:10px 6px;border-radius:9px;cursor:pointer}
 .steps button[aria-selected="true"]{background:var(--sea);color:#fff}

@@ -52,6 +52,16 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .sp-sv{background:rgba(70,201,125,.13);border-color:rgba(70,201,125,.35);color:var(--green)}
 .thumb{height:5px;border-radius:4px 4px 0 0;margin:-13px -13px 11px}
 .r1{display:flex;justify-content:space-between;gap:9px;align-items:flex-start}
+/* 03/10/2026 (filas .xrow / .frow, igual que en Sistema): lo de la derecha con botones (monto + ✎ ✕) queda siempre junto
+   en una línea y el texto de la izquierda es el que baja; con casillas, los controles pasan abajo a la derecha sin salirse. */
+.xrow,.frow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.xrow>:first-child,.frow>:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child),.frow>:last-child:not(:first-child){flex:0 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
+.xrow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)),.frow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)){flex:0 0 auto;white-space:nowrap}
+.xrow>:last-child button,.frow>:last-child button{vertical-align:middle}
+.xrow:has(input,select,textarea),.frow:has(input,select,textarea){flex-wrap:wrap;row-gap:6px}
+.xrow:has(input,select,textarea)>:last-child,.frow:has(input,select,textarea)>:last-child{margin-left:auto;max-width:100%}
+
 .tt{font-family:var(--disp);font-weight:800;font-size:16px;text-transform:uppercase;color:#EAF0F1}.tt .y{color:var(--mute)}
 .ch{font-family:var(--mono);font-size:12px;color:var(--mute);letter-spacing:.03em;margin-top:2px}
 .cover{width:52px;height:39px;border-radius:7px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto}
@@ -641,7 +651,7 @@ function pintaSueldo(){
   const qs=SUELDO.quincenas.slice().reverse();
   const deu=(SUELDO.deudas||[]).filter(d=>d.saldo>0);
   const deuHtml=deu.length?`<div style="margin-top:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px"><div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Lo que debes hoy: ${clp(deu.reduce((a,d)=>a+d.saldo,0))}</div>`
-    +deu.map(d=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${String(d.nom).replace(/</g,'&lt;')}${d.estaQ?' <span style="color:var(--mute);font-size:12px">(esta quincena −'+clp(d.estaQ)+')</span>':''}</span><b>${clp(d.saldo)}</b></div>`).join('')+'</div>':'';
+    +deu.map(d=>`<div class="frow" style="display:flex;justify-content:space-between;font-size:13px;padding:2px 0"><span>${String(d.nom).replace(/</g,'&lt;')}${d.estaQ?' <span style="color:var(--mute);font-size:12px">(esta quincena −'+clp(d.estaQ)+')</span>':''}</span><b>${clp(d.saldo)}</b></div>`).join('')+'</div>':'';
   el.innerHTML=qs.map((x,i)=>{
     const det=[];
     if(x.comida) det.push('− '+clp(x.comida)+' comida');
@@ -650,7 +660,7 @@ function pintaSueldo(){
     if(x.adelantos) det.push('− '+clp(x.adelantos)+' adelantos');
     if(x.prestamos) det.push('− '+clp(x.prestamos)+' préstamo');
     return `<div style="padding:7px 0;${i===0?'border-bottom:1px dashed var(--line)':''}">
-      <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <div class="frow" style="display:flex;justify-content:space-between;align-items:baseline">
         <span style="font-family:var(--body);font-weight:600">${i===0?'Esta quincena':'Quincena anterior'}</span>
         <span style="font-weight:700">${clp(x.neto)}</span></div>
       <div style="color:var(--mute);font-size:12px">${x.etiqueta||''}${det.length?' · '+det.join(' · '):''}</div>
@@ -681,7 +691,7 @@ function pintaInsMios(){
     .sort((a,b)=>(a.atendido-b.atendido)||(b.ts-a.ts));
   const otros=insLista().filter(x=>!x.atendido&&yo&&String(x.vendedor||'').trim().toLowerCase()!==yo);
   const f=t=>{ const d=new Date(+t); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'); };
-  const fila=(x,quien)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px">
+  const fila=(x,quien)=>`<div class="frow" style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px">
      <span>${String(x.item||'—').replace(/</g,'&lt;')}<br><span style="color:var(--mute);font-size:12px">${quien?x.vendedor+' · ':''}pedido ${f(x.ts)}</span></span>
      <span style="white-space:nowrap;font-size:12.5px;font-weight:700;color:${x.atendido?'var(--green)':(x.sinEnviar?'var(--amber)':'var(--ink2)')}">${x.atendido?(x.noNec?'no hacía falta':'✓ comprado'+(x.compradoFe?' '+x.compradoFe.slice(8,10)+'/'+x.compradoFe.slice(5,7):'')):(x.sinEnviar?'sin enviar aún':'por comprar')}</span></div>`;
   el.innerHTML=(L.length?`<div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Lo que has pedido${yo?'':' (todos)'}</div>`+L.map(x=>fila(x,!yo)).join(''):'<p style="color:var(--mute);font-size:13px;margin:0">Todavía no has pedido insumos.</p>')
@@ -783,7 +793,7 @@ function csFila(c){
   const segTxt=ab&&c.seg?(venc?'⚠ Seguimiento atrasado (era el '+fd(c.seg).slice(0,5)+')':esHoy?'Escribirle hoy':'Próximo seguimiento: '+fd(c.seg).slice(0,5)):'';
   const auto=v?rrAuto(v):(c.vtxt||'');
   return `<div class="box" style="padding:12px 13px;margin-bottom:9px">
-   <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">${csEsc(c.nom||c.tel||'Sin nombre')}</b>
+   <div class="frow" style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b style="font-size:15px">${csEsc(c.nom||c.tel||'Sin nombre')}</b>
    <span style="font-size:12px;font-weight:700;white-space:nowrap;color:${c.est==='compro'?'var(--green)':c.est==='perdida'?'var(--mute)':'var(--ink2)'}">${est}</span></div>
    <div style="color:var(--mute);font-size:12.5px;margin-top:2px">${[ori,auto,c.vendedor,c.ts?fd(isoDe(c.ts)).slice(0,5):''].filter(Boolean).map(csEsc).join(' · ')}</div>
    ${c.nota?`<div style="font-size:13.5px;margin-top:5px">${csEsc(c.nota)}</div>`:''}
@@ -813,7 +823,7 @@ function pintaConsRes(){
   const m={}; L.forEach(c=>{ const k=c.ori||'otro'; m[k]=m[k]||{n:0,c:0}; m[k].n++; if(c.est==='compro') m[k].c++; });
   const max=Math.max(...Object.values(m).map(x=>x.n));
   el.innerHTML=Object.entries(m).sort((a,b)=>b[1].n-a[1].n).map(([k,x])=>`<div style="margin:8px 0">
-    <div style="display:flex;justify-content:space-between;font-size:13.5px"><span>${(CS_ORI.find(o=>o[0]===k)||[k,k])[1]}</span>
+    <div class="frow" style="display:flex;justify-content:space-between;font-size:13.5px"><span>${(CS_ORI.find(o=>o[0]===k)||[k,k])[1]}</span>
     <span><b>${x.n}</b> ${x.n===1?'consulta':'consultas'}${x.c?` · <span style="color:var(--green);font-weight:700">${x.c} ${x.c===1?'compró':'compraron'}</span>`:''}</span></div>
     <div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:6px;border-radius:3px;background:var(--ink2);opacity:.75;width:${Math.max(4,Math.round(x.n/max*100))}%"></div></div></div>`).join('');
 }
@@ -1199,8 +1209,12 @@ async function fbInit(){
     }
     fbSinSDK=false;
     fbEstado('Conectando…');
-    if(!(firebase.apps&&firebase.apps.length)) firebase.initializeApp(FB_CONFIG);
-    fbAuth=firebase.auth(); fbDb=firebase.firestore();
+    /* 2026-10-03: Vendedores usa su PROPIA app de Firebase ('amkVend'). Antes compartía la sesión con Sistema, PRUEBAS y DEMO
+       (todas viven en amkvehiculos.github.io/amk-app/): abrir otra de esas apps en el mismo teléfono reemplazaba o cerraba la sesión de Víctor. */
+    const fbApp=(firebase.apps||[]).find(a=>a.name===FB_APPN)||firebase.initializeApp(FB_CONFIG,FB_APPN);
+    fbAuth=fbApp.auth(); fbDb=fbApp.firestore();
+    try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{}); }catch(_){}
+    try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{}); }catch(_){}   /* pide al teléfono no borrar los datos de la app */
     try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     clearTimeout(fbEsperaT); fbEsperaLarga=false;
     fbEsperaT=setTimeout(()=>{ if(!fbSnapOk){ fbEsperaLarga=true; pintaSync(); } },15000);   /* si en 15 s no llegó el stock, se avisa */
@@ -1212,11 +1226,47 @@ async function fbInit(){
       }else{
         fbReady=false; fbEscuchando=false; fbSnapOk=false; fbEsperaLarga=true;   /* siempre: sin sesión el stock queda viejo y el vendedor no se enteraría */
         if(fbUnsubStock){ try{ fbUnsubStock(); }catch(_){} fbUnsubStock=null; }
-        fbEstado('Sin sesión iniciada'); fbMuestraLogin(true);
+        fbEstado('Reconectando…');
+        fbRecupera().then(ok=>{ if(!ok&&!fbReady){ fbEstado('Sin sesión iniciada'); fbMuestraLogin(true); } pintaSync(); });   /* solo pide la clave si no se pudo volver a entrar sola */
       }
       pintaSync();
     });
   }catch(e){ console.error('fbInit',e); fbReady=false; fbEsperaLarga=true; fbEstado('No se pudo conectar: '+(e.message||e)); pintaSync(); }
+}
+/* 2026-10-03 (pedido de Andre): que Víctor no tenga que escribir la contraseña cada vez.
+   Si el teléfono pierde la sesión, la app vuelve a entrar sola: (1) con la sesión que haya quedado en el espacio compartido
+   de versiones anteriores, o (2) con la clave que se guardó en ESTE aparato la última vez que se entró bien (en la despensa
+   local IndexedDB, no en localStorage). Solo si la clave ya no sirve (se cambió) se borra y se muestra la pantalla de inicio. */
+const FB_APPN='amkVend', SES_K='amkv_ses';
+let fbRecuperando=null, fbRecIntentos=0;
+function fbRecupera(){
+  if(fbRecuperando) return fbRecuperando;
+  fbRecuperando=(async()=>{
+    try{
+      try{
+        const d=(firebase.apps||[]).find(a=>a.name==='[DEFAULT]')||firebase.initializeApp(FB_CONFIG);
+        const da=d.auth();
+        const du=await new Promise(r=>{ let off=null; const t=setTimeout(()=>{ if(off) off(); r(null); },4000); off=da.onAuthStateChanged(x=>{ clearTimeout(t); if(off) off(); r(x); }); });
+        if(du&&du.email===FB_USER){ await fbAuth.updateCurrentUser(du); return true; }
+      }catch(e){ console.warn('recupera (sesión compartida)',e&&e.code); }
+      let s=null;
+      try{ const r=await window.storage.get(SES_K); if(r&&r.value) s=JSON.parse(decodeURIComponent(atob(r.value))); }catch(_){}
+      if(!s||!s.u||!s.p||fbRecIntentos>=3) return false;
+      fbRecIntentos++;
+      try{ await fbAuth.signInWithEmailAndPassword(s.u,s.p); fbRecIntentos=0; return true; }
+      catch(e){
+        const c=String(e&&e.code||'');
+        if(c.includes('network')){   /* sin internet: no se pide la clave, se reintenta solo al volver la señal */
+          fbEstado('Sin internet · vuelve a entrar sola al haber señal');
+          window.addEventListener('online',()=>{ fbRecIntentos=0; fbRecupera().then(ok=>{ if(!ok&&!fbReady){ fbEstado('Sin sesión iniciada'); fbMuestraLogin(true); } pintaSync(); }); },{once:true});
+          return true;
+        }
+        if(c.includes('wrong-password')||c.includes('invalid-credential')||c.includes('user-not-found')||c.includes('user-disabled')){ try{ await window.storage.delete(SES_K); }catch(_){} }
+        return false;
+      }
+    }finally{ setTimeout(()=>{ fbRecuperando=null; },0); }
+  })();
+  return fbRecuperando;
 }
 async function fbEntrar(){
   const el=document.getElementById('logEstado');
@@ -1227,6 +1277,8 @@ async function fbEntrar(){
   el.textContent='Entrando…';
   try{
     await fbAuth.signInWithEmailAndPassword(u,p);
+    try{ await window.storage.set(SES_K, btoa(encodeURIComponent(JSON.stringify({u,p})))); }catch(_){}   /* para volver a entrar sola si el teléfono pierde la sesión */
+    fbRecIntentos=0;
     document.getElementById('logPass').value='';
     el.innerHTML='<span style="color:var(--green)">✓ Sesión iniciada</span>';
   }catch(e){
@@ -2143,7 +2195,7 @@ function pintaAV(){
   const tot=L.filter(x=>(x.f||'').slice(0,7)===mes).reduce((a,x)=>a+x.m,0);
   $('#avList').innerHTML=L.length
     ?'<div class="mtr" style="margin-bottom:7px">Este mes: '+clp(tot)+'</div>'
-      +L.slice().reverse().slice(0,8).map(x=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+      +L.slice().reverse().slice(0,8).map(x=>`<div class="frow" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
         <span>${fd(x.f)}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}${x.quien?'':' · sin identificar'}${(!x.atendido&&enCola('adel',x.ts))?' · <b style="color:var(--amber)">⚠ sin enviar</b>':''}</span><span>${x.atendido?'✓ visto':clp(x.m)}</span></div>`).join('')
     :'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin adelantos de sueldo anotados.</p>';
 }
@@ -2154,7 +2206,7 @@ function pintaVT(){
     ?L.slice().reverse().slice(0,8).map(x=>{
         const v=IDX[x.ch];
         const nom=(v?`${v.ma} ${v.mo} ${v.an||''}`:x.ch).trim();
-        return `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+        return `<div class="frow" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
           <span>${nom}${x.precio?' · '+clp(x.precio):''}</span>
           <span>${x.atendido?'✓ visto por Andre':(enCola('venta',x.ts)?'<b style="color:var(--amber)">⚠ sin enviar</b>':'enviada')}</span></div>`;
       }).join('')
@@ -2196,9 +2248,9 @@ function pintaCB(){
   const filas=(venta?[['Valor de venta',venta]]:[])
     .concat([['Base imponible',base],['Impuesto '+String(CBTASA).replace('.',',')+'%',imp]])
     .concat(CBFIJOS).concat(tras?[['Traslado',tras]]:[]);
-  $('#cbDet').innerHTML=filas.map(([n,v])=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
+  $('#cbDet').innerHTML=filas.map(([n,v])=>`<div class="frow" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
       <span>${n}</span><span style="font-family:var(--mono)">${clp(v)}</span></div>`).join('')
-    +`<div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
+    +`<div class="frow" style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
       <span style="font-weight:700">Total a pagar</span><span style="font-weight:700;font-size:16px;font-family:var(--mono)">${clp(tot)}</span></div>`;
   window.__CBTOT=tot;
 }
