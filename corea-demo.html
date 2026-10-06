@@ -223,6 +223,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->06-10-2026 10:17<!--/VER--></b></p>
   </section>
 </main>
 
@@ -516,7 +517,7 @@ function migraModelosPorterBongo(){
 /* ---------- DATOS DE DEMOSTRACIÓN (todo inventado) ---------- */
 function dDia(n){ const d=new Date(); d.setDate(d.getDate()+n); return iso(d); }
 function demoReinicia(){ if(!confirm('¿Volver a los datos de ejemplo? Se borra lo que hayas probado.')) return;
-  try{ indexedDB.deleteDatabase('amk_kv_DEMOC'); }catch(_){} try{ localStorage.clear(); }catch(_){} setTimeout(()=>location.reload(),400); }
+  try{ indexedDB.deleteDatabase('amk_kv_DEMOC'); }catch(_){} setTimeout(()=>location.reload(),400); }
 async function demoSeed(){
   try{ const r=await window.storage.get('demo_v1'); if(r&&r.value) return; }catch(_){}
   const t=Date.now();
@@ -542,6 +543,7 @@ async function demoSeed(){
 
 async function boot(){
   await demoSeed();
+  await pendCarga();
   try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
   migraModelosPorterBongo();
   /* 01/10: trabajo ya cargados sin cabina → 6 pasajeros doble cabina, 3 cabina y media (Andre) */
@@ -726,9 +728,24 @@ async function fbSyncRemesasPend(){
   for(const x of RE.filter(y=>y.nube!==undefined && y.nube!==remFirma(y))){ await fbSyncRemesa(x); }
 }
 /* 2026-09-29: los borrados también esperan en el aparato si no hay internet (antes se perdían). */
+/* 06/10/2026: los pendientes (borrados, fecha de embarque, accesorios) se guardan en la despensa del aparato
+   (amk_kv / amk_kv_PRUEBAS / amk_kv_DEMOC), no en localStorage: así la copia real y la de PRUEBAS no se
+   pisan los pendientes aunque estén publicadas en el mismo sitio, y "Reiniciar demostración" no los borra. */
 const BORR_KEY='amkc_borrar_pend';
-function borrPend(){ try{ return JSON.parse(localStorage.getItem(BORR_KEY)||'[]'); }catch(_){ return []; } }
-function borrGuarda(l){ try{ localStorage.setItem(BORR_KEY,JSON.stringify(l)); }catch(_){} }
+let BORR_PEND=[];
+function pendGuarda(k,val){ window.storage.set(k,JSON.stringify(val)).catch(e=>console.error('pendGuarda',k,e)); }
+async function pendCarga(){
+  const lee=async k=>{ try{ const r=await window.storage.get(k); return r&&r.value?JSON.parse(r.value):null; }catch(_){ return null; } };
+  /* Una sola vez: lo que quedó en localStorage de antes se pasa a la despensa y se quita de ahí. */
+  const viejo=k=>{ try{ const x=localStorage.getItem(k); if(x===null) return null; localStorage.removeItem(k); return JSON.parse(x); }catch(_){ return null; } };
+  const b=[...((await lee(BORR_KEY))||[]),...(viejo(BORR_KEY)||[]),...BORR_PEND];
+  BORR_PEND=b.filter((x,i)=>x&&b.findIndex(y=>y&&y.col===x.col&&y.id===x.id)===i);
+  ZARPE_PEND=Object.assign({},(await lee('amkc_zarpe_pend'))||{},viejo('amkc_zarpe_pend')||{},ZARPE_PEND);
+  CARGA_PEND=Object.assign({},(await lee('amkc_carga_pend'))||{},viejo('amkc_carga_pend')||{},CARGA_PEND);
+  pendGuarda(BORR_KEY,BORR_PEND); zarpeGuardaPend(); cargaGuardaPend();
+}
+function borrPend(){ return BORR_PEND.slice(); }
+function borrGuarda(l){ BORR_PEND=l; pendGuarda(BORR_KEY,l); }
 async function fbBorrarDoc(col,id){
   if(fbReady&&navigator.onLine!==false){ try{ await fbDb.collection(col).doc(String(id)).delete(); return true; }catch(e){ console.error('fbBorrarDoc',col,id,e); } }
   const l=borrPend(); if(!l.some(x=>x.col===col&&x.id===String(id))){ l.push({col,id:String(id)}); borrGuarda(l); } return false;
@@ -981,12 +998,12 @@ document.addEventListener('click',async e=>{ const b=e.target.closest('[data-ctz
   zarpeGuardaPend(); await guardaL(); draw(); fbZarpeEnvia(); });
 /* La fecha de embarque se sube SOLA (solo el campo zarpe), sin reenviar el resto de la ficha: así no pisa correcciones
    que Andre haya hecho en Sistema. Sin internet queda pendiente en el teléfono y sale sola al volver. */
-let ZARPE_PEND={}; try{ ZARPE_PEND=JSON.parse(localStorage.getItem('amkc_zarpe_pend')||'{}')||{}; }catch(_){}
-function zarpeGuardaPend(){ try{ localStorage.setItem('amkc_zarpe_pend',JSON.stringify(ZARPE_PEND)); }catch(_){} }
+let ZARPE_PEND={};
+function zarpeGuardaPend(){ pendGuarda('amkc_zarpe_pend',ZARPE_PEND); }
 /* 01/10/2026: accesorios (cromados, pisaderas…) que la mamá manda DENTRO de un auto (Porter con cajón freezer, Starex,
    Carnival…). En Chile se marca en rojo para cuidar la descarga. Se sube solo ese campo (igual que la fecha de embarque). */
-let CARGA_PEND={}; try{ CARGA_PEND=JSON.parse(localStorage.getItem('amkc_carga_pend')||'{}')||{}; }catch(_){}
-function cargaGuardaPend(){ try{ localStorage.setItem('amkc_carga_pend',JSON.stringify(CARGA_PEND)); }catch(_){} }
+let CARGA_PEND={};
+function cargaGuardaPend(){ pendGuarda('amkc_carga_pend',CARGA_PEND); }
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-carga]'); if(!b) return; const v=L.find(x=>x.ch===b.dataset.carga); if(!v) return;
   const r=prompt('¿Qué accesorios van DENTRO de '+v.ma+' '+v.mo+' '+(v.an||'')+'?\nEj: 4 juegos de cromados, 2 pisaderas, 1 parabrisas.\nDeja vacío si no lleva nada.', v.carga||'');
   if(r===null) return; const t=r.trim(); if(t) v.carga=t; else delete v.carga; CARGA_PEND[v.ch]=t; cargaGuardaPend();
