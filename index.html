@@ -348,6 +348,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Pendiente para SMDA (Zofri)</h3>
         <button class="b-und" style="flex:0 0 auto" id="smdaCopiaTodo">⧉ Copiar los listos</button></div>
       <p class="cnt" id="smdaCnt" style="margin:0 0 9px"></p>
+      <button class="btn b-sec" id="zCompAbre" style="width:100%;margin:0 0 9px">🔎 Comparar con el Z de Zofri</button>
+      <div id="zCompWrap" hidden style="margin:0 0 10px">
+        <div class="mtr" style="margin:0 0 5px">En ZOFRI Virtual abre el documento, selecciona toda la página (Cmd+A), cópiala (Cmd+C) y pégala aquí.</div>
+        <textarea id="zCompTxt" data-noup rows="4" style="width:100%;font-size:12px;font-family:var(--mono);text-transform:none" placeholder="Pega aquí el texto del Z"></textarea>
+        <button class="btn b-pri" id="zCompGo" style="width:100%;margin-top:6px">Comparar</button>
+        <div id="zCompRes"></div>
+      </div>
       <div id="smdaList"></div>
     </div>
     <div class="box" id="boxGen" style="margin-top:13px">
@@ -700,7 +707,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 16:00<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 16:20<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8054,6 +8061,9 @@ async function cargaEmb(){
   $('#dlEmV').innerHTML=V.map(v=>`<option value="${v.ma} ${v.mo} ${v.an||''} · ${v.ch}">`).join('');
   pintaEmb();
 }
+document.addEventListener('click',async ev=>{ const b=ev.target.closest('[data-zpres]'); if(!b) return; const em=E(); if(!em) return;
+  if(b.dataset.zpres==='1') em.zPres=iso(); else { if(!confirm('¿Desmarcar el Z como presentado?')) return; em.zPres=''; }
+  await guardaEmb(); pintaEmZofri(); draw(); toast(em.zPres?'Z marcado como presentado · desde ahora los cambios van a SMDA':'Desmarcado'); });
 async function guardaEmb(){
   const st=$('#emSaveStatus');
   if(st){st.textContent='Guardando…'; st.style.color='var(--amber)'}
@@ -8311,7 +8321,10 @@ function zofEf(v){
    enviar, queda uno (con el "antes" original); si vuelve al valor original, se borra. */
 const SMDA_CAMPOS=[['marca','Marca'],['modelo','Modelo'],['anio','Año'],['color','Color'],['vin','Chasis (VIN)'],['motor','N° de motor'],
   ['cilind','Cilindrada'],['combustible','Combustible'],['traccion','Tracción'],['trans','Transmisión'],['pa','Pasajeros'],['tveh','Tipo de vehículo'],['cab','Cabina'],['peso','Peso bruto']];
-const smdaAplica=v=>!!v&&(v.st==='IQQ'||!!(v.zof&&v.zof.docIngreso));
+/* Desde cuándo un cambio va a SMDA: en cuanto el Z (ingreso a Zofri) de su embarque se presentó (em.zPres, se marca en
+   Embarque → Zofri), aunque el auto siga en camino o en la desconsolidación; o si ya está en patio o tiene N° de ingreso. */
+const zPresDe=v=>{ try{ const em=embDeVeh(v.ch); return em&&em.zPres||''; }catch(_){ return ''; } };
+const smdaAplica=v=>!!v&&(v.st==='IQQ'||!!(v.zof&&v.zof.docIngreso)||!!zPresDe(v));
 function smdaFoto(v){ try{ const ef=zofEf(v), o={}; SMDA_CAMPOS.forEach(([k])=>{ o[k]=String(ef[k]??'').trim().toUpperCase(); }); return o; }catch(_){ return null; } }
 function smdaAnota(v,antes){
   if(!v||!antes||!smdaAplica(v)) return [];
@@ -8337,14 +8350,64 @@ const SMDA_DESDE='2026-10-01';
 const motorDe=v=>{ try{ return String(zofEf(v).motor||'').trim().toUpperCase(); }catch(_){ return String((v.zof||{}).motor||'').trim().toUpperCase(); } };
 const motorOk=v=>{ const m=motorDe(v); return m.length>=8&&!m.endsWith('-'); };
 function smdaAutos(){
-  return V.filter(v=>v&&v.ch&&!v.baja&&!v.creando&&(smdaPend(v.ch).length||(v.st==='IQQ'&&!sold(v.ch)&&String(v.llp||'')>=SMDA_DESDE&&!motorOk(v))))
+  return V.filter(v=>v&&v.ch&&!v.baja&&!v.creando&&(smdaPend(v.ch).length||(!sold(v.ch)&&!motorOk(v)&&((v.st==='IQQ'&&String(v.llp||'')>=SMDA_DESDE)||(v.st==='ORIGEN'&&!!zPresDe(v))))))
     .map(v=>v.ch);
 }
+/* 07/10/2026: "Comparar con el Z". Se pega el texto del Z tal como se ve en ZOFRI Virtual (Cmd+A, Cmd+C en la página
+   del documento): cada ítem es una línea "Nombre: VEHICULO USADOModelo: …Chassis: …Motor: …". Se compara dato por dato
+   con lo que hoy tiene la app (zofEf) y las diferencias se pueden anotar para SMDA con el "antes" = lo declarado en el Z.
+   Sirve para recuperar cambios hechos antes de que existiera el registro, y para revisar cualquier embarque. */
+const Z_LBL=['Nombre','Modelo','Tipo de Combustible','Tipo','Marca','Año del modelo','Año','Encend','N° Serie','Chassis','Motor','Cilind','Peso.Tot.Carg.Max.','Asientos','Cabina','Cap.Carg.Util.Kg.','Tracción','T.Vehic','Color Marca','Color','Inf.Adic.','Puertas','Nuevo o Usado','Número de Pasajeros','Peso Bruto Vehicular'];
+const Z_RE=new RegExp('('+Z_LBL.slice().sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+'): ','g');
+function zParseItems(txt){
+  return String(txt||'').split(/\n/).map(l=>l.trim()).filter(l=>/^Nombre: /.test(l)&&/Chassis: /.test(l)).map(l=>{
+    const ms=[...l.matchAll(Z_RE)], o={};
+    ms.forEach((m,i)=>{ const ini=m.index+m[0].length, fin=i+1<ms.length?ms[i+1].index:l.length; o[m[1]]=l.slice(ini,fin).trim(); });
+    const tr=(String(o['Inf.Adic.']||'').match(/TRANSMISION:\s*([A-ZÁÉÍÓÚ]+)/i)||[])[1]||'';
+    return {marca:o['Marca'],modelo:o['Modelo'],anio:o['Año del modelo'],color:o['Color'],vin:o['Chassis'],motor:o['Motor'],cilind:o['Cilind'],
+      combustible:o['Tipo de Combustible'],traccion:o['Tracción'],trans:tr,pa:o['Número de Pasajeros'],tveh:o['T.Vehic'],cab:o['Cabina'],peso:o['Peso Bruto Vehicular']};
+  });
+}
+function zNorm(k,x){ let t=zofSinTilde(x);
+  if(k==='peso'||k==='anio'||k==='pa') t=t.replace(/[^0-9]/g,'');
+  if(k==='cilind'){ const n=parseFloat(t.replace(',','.')); t=n>0?String(Math.round(n<20?n*1000:n)):''; }
+  if(k==='modelo') t=t.replace(/\s+/g,'');
+  return t; }
+let zComp=null;   /* resultado de la última comparación (en memoria) */
+function zComparar(txt){
+  const items=zParseItems(txt), difs=[], sin=[]; let n=0;
+  items.forEach(z=>{ const vin=String(z.vin||'').toUpperCase();
+    const v=V.find(x=>x.ch&&(String((x.zof||{}).vin||x.vin||'').toUpperCase()===vin||vin.endsWith(String(x.ch).toUpperCase())));
+    if(!v){ sin.push(vin); return; } n++;
+    const app=smdaFoto(v)||{};
+    SMDA_CAMPOS.forEach(([k])=>{ const a=zNorm(k,z[k]), b=zNorm(k,app[k]); if(!a&&!b) return; if(a!==b) difs.push({ch:v.ch,campo:k,antes:String(z[k]||'').toUpperCase(),despues:app[k]||''}); });
+  });
+  return {items:items.length,n,difs,sin};
+}
+function pintaZComp(){
+  const box=$('#zCompRes'); if(!box) return; const r=zComp; if(!r){ box.innerHTML=''; return; }
+  const esc=t=>String(t||'').replace(/</g,'&lt;');
+  if(!r.items){ box.innerHTML='<p class="mtr" style="color:var(--red)">No encontré vehículos en el texto. Copia la página completa del documento en ZOFRI Virtual (Cmd+A, Cmd+C) y pégala aquí.</p>'; return; }
+  const g={}; r.difs.forEach((d,i)=>{ (g[d.ch]=g[d.ch]||[]).push([d,i]); });
+  box.innerHTML=`<p class="mtr" style="margin:6px 0">${r.items} vehículos en el Z · ${r.n} encontrados en la app · <b>${r.difs.length} diferencia${r.difs.length===1?'':'s'}</b>${r.sin.length?` · <span style="color:var(--red)">sin encontrar: ${r.sin.join(', ')}</span>`:''}</p>`
+   +Object.keys(g).map(c=>{const v=IDX[c]||{}; return `<div style="border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:7px"><b style="font-size:13.5px">${esc(v.ma)} ${esc(v.mo)} ${v.an||''}</b> <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">${c}</span>
+      ${g[c].map(([d,i])=>`<label style="display:flex;gap:8px;align-items:center;padding:3px 0;font-size:13px"><input type="checkbox" data-zdif="${i}" ${d.campo==='motor'&&!motorOk(IDX[c])?'':'checked'}><span style="flex:1">${smdaNom(d.campo)}</span><span style="font-family:var(--mono);font-size:12px">Z: <s style="color:var(--mute)">${esc(d.antes)||'(vacío)'}</s> → app: <b>${esc(d.despues)||'(vacío)'}</b></span></label>`).join('')}</div>`}).join('')
+   +(r.difs.length?`<p class="mtr" style="margin:4px 0">Desmarca lo que NO corresponda (por ejemplo, si la app está mal y el Z bien). Un N° de motor incompleto en la app queda desmarcado.</p><button class="btn b-pri" id="zCompOk" style="width:100%">Anotar marcados para SMDA</button>`:'<p class="mtr">La app y el Z coinciden en todo.</p>');
+}
+document.addEventListener('click',async e=>{
+  if(e.target.closest('#zCompAbre')){ const w=$('#zCompWrap'); w.hidden=!w.hidden; return; }
+  if(e.target.closest('#zCompGo')){ zComp=zComparar($('#zCompTxt').value); pintaZComp(); return; }
+  if(e.target.closest('#zCompOk')){ if(!zComp) return; let n=0;
+    zComp.difs.forEach((d,i)=>{ const ck=document.querySelector(`[data-zdif="${i}"]`); if(!ck||!ck.checked) return;
+      const t=st(d.ch); t.smda=t.smda||[]; const e0=t.smda.find(x=>x.campo===d.campo&&!x.env);
+      if(e0){ e0.antes=d.antes; e0.despues=d.despues; e0.fe=iso(); e0.origenZ=true; } else t.smda.push({campo:d.campo,antes:d.antes,despues:d.despues,fe:iso(),env:false,origenZ:true}); n++; });
+    await save(); zComp=null; $('#zCompTxt').value=''; $('#zCompWrap').hidden=true; pintaZComp(); draw(); toast(n+' cambio'+(n===1?'':'s')+' anotado'+(n===1?'':'s')+' para SMDA'); }
+});
 function pintaSmda(){
   const box=$('#smdaList'), cnt=$('#smdaCnt'); if(!box) return;
   const cs=smdaAutos(), ok=cs.filter(c=>motorOk(IDX[c])), falta=cs.length-ok.length;
-  $('#boxSmda').hidden=!cs.length;
-  if(cnt) cnt.innerHTML=cs.length?(`<b style="color:var(--green)">${ok.length} listo${ok.length===1?'':'s'} para SMDA</b>`+(falta?` · <b style="color:#C98A12">${falta} sin N° de motor</b> (revísalo en el auto)`:'')):'';
+  $('#boxSmda').hidden=false;
+  if(cnt) cnt.innerHTML=!cs.length?'Sin cambios pendientes.':(`<b style="color:var(--green)">${ok.length} listo${ok.length===1?'':'s'} para SMDA</b>`+(falta?` · <b style="color:#C98A12">${falta} sin N° de motor</b> (revísalo en el auto)`:''));
   const esc=t=>String(t||'').replace(/</g,'&lt;');
   box.innerHTML=cs.sort((a,b)=>motorOk(IDX[a])-motorOk(IDX[b])).map(c=>{const v=IDX[c], mOk=motorOk(v), L=smdaPend(c);
     return `<div style="border:1px solid ${mOk?'var(--line)':'#C98A12'};border-radius:11px;padding:11px;margin-bottom:9px">
@@ -8834,7 +8897,10 @@ function pintaEmZofri(){
         <p class="mtr" style="margin:0">Si faltan filas en "Detalle de Items", agrégalas con el + de Zofri y vuelve a tocar el favorito. Cuando se actualice la app, vuelve a arrastrar el botón por si cambió.</p>
       </details>
     </div>`;
-  box.innerHTML=resumen+tarjetas;
+  const zBox=e.zPres
+    ?`<div class="card plain" style="padding:10px;margin:0 0 10px;border-color:var(--green)"><div style="font-size:13px"><b style="color:var(--green)">✓ Z presentado a Zofri el ${fd(e.zPres)}</b><br><span style="color:var(--mute);font-size:12px">Desde ahí, cualquier corrección a estos autos (color, VIN, N° de motor, tracción…) queda anotada para la SMDA, aunque sigan en camino.</span></div><button class="b-und" data-zpres="0" style="margin-top:6px">Deshacer</button></div>`
+    :`<div style="margin:0 0 10px"><button class="btn b-sec" data-zpres="1" style="width:100%">Marcar: Z presentado a Zofri</button><div class="mtr" style="margin:4px 0 0">Márcalo al presentar el Z: desde ese momento, lo que corrijas en estos autos se anota para la SMDA.</div></div>`;
+  box.innerHTML=zBox+resumen+tarjetas;
 }
 function embCalc(){
   const e=E(); if(!e) return null;
