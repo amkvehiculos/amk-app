@@ -259,7 +259,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-10-2026 10:17 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-10-2026 16:27 · PRUEBAS<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -476,6 +476,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="chips" id="pdCat" style="margin-bottom:12px"></div>
   <div class="fld" id="pdOtroWrap" hidden><label for="pdOtro">Otro (escribe qué es)</label><input id="pdOtro" placeholder="Ej: cambiar bujías"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="pdOk">Reportar</button></div>
+</div>
+
+<div class="sheet" id="shDato">
+  <h3 id="dtT"></h3><div class="sb">Anota el N° de motor que ves en el auto. Si algo no coincide con lo anotado, corrígelo aquí: Andre lo revisa antes de mandarlo a Zofri. Deja en blanco lo que esté bien.</div>
+  <div class="fld"><label for="dtMotor">N° de motor</label><input id="dtMotor" placeholder="Ej: D4HA-1234567" autocapitalize="characters"></div>
+  <div class="fld"><label for="dtTr">Tracción <span id="dtTrAct" style="color:var(--mute);font-weight:400"></span></label><select id="dtTr"><option value="">Está bien / no sé</option><option value="4X2">4X2</option><option value="4X4">4X4</option></select></div>
+  <div class="fld"><label for="dtTrans">Transmisión <span id="dtTransAct" style="color:var(--mute);font-weight:400"></span></label><select id="dtTrans"><option value="">Está bien / no sé</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
+  <div class="fld"><label for="dtCe">Color <span id="dtCeAct" style="color:var(--mute);font-weight:400"></span></label><input id="dtCe" placeholder="Solo si es distinto"></div>
+  <div class="fld"><label for="dtPa">Pasajeros <span id="dtPaAct" style="color:var(--mute);font-weight:400"></span></label><input id="dtPa" inputmode="numeric" placeholder="Solo si es distinto"></div>
+  <div class="fld"><label for="dtOtro">Otra cosa distinta</label><input id="dtOtro" placeholder="Ej: tiene techo panorámico, es cabina doble"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="dtOk">Enviar a Andre</button></div>
 </div>
 
 <div class="sheet" id="shInsumo">
@@ -988,6 +999,39 @@ $('#pdOk').addEventListener('click',()=>{
   }
   toast(msgEnvio(items.length>1?(items.length+' reportados · se envían a Andre'):'Reportado · se envía a Andre'));
   $('#pdOtro').value=''; pdCats=new Set(); closeAll();
+});
+/* 07/10/2026 (Andre): Víctor/Bryan anotan el N° de motor (lo ven físicamente; vindecoderz ya no lo muestra) y corrigen
+   datos que no coinciden (tracción, transmisión, color, pasajeros, otro). Cada dato va como aviso tipo 'dato' a Andre:
+   el N° de motor entra solo a Sistema; lo demás Andre lo confirma antes de la SMDA a Zofri. */
+let dtCh=null;
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-dato]'); if(!b) return; const v=IDX[b.dataset.dato]; if(!v) return;
+  if(pideQuien('anotar datos del vehículo')) return;
+  dtCh=v.ch; $('#dtT').textContent=v.ma+' '+v.mo+' '+(v.an||'')+' · '+v.ch;
+  ['dtMotor','dtCe','dtPa','dtOtro'].forEach(id=>{$('#'+id).value=''}); $('#dtTr').value=''; $('#dtTrans').value='';
+  const t=(String(v.tr||'').toUpperCase().includes('4X4'))?'4X4':'4X2';
+  $('#dtTrAct').textContent='(dice '+t+')'; $('#dtTransAct').textContent=v.trans?'(dice '+String(v.trans).toLowerCase().replace('automatica','automática').replace('mecanica','mecánica')+')':'';
+  $('#dtCeAct').textContent=v.ce?'(dice '+String(v.ce).toUpperCase()+')':''; $('#dtPaAct').textContent=v.pa?'(dice '+v.pa+')':'';
+  openSheet('shDato'); });
+$('#dtOk').addEventListener('click',()=>{
+  const v=IDX[dtCh]; if(!v){toast('Elige un vehículo');return}
+  const items=[], up=x=>String(x||'').trim().toUpperCase();
+  const mo=up($('#dtMotor').value).replace(/\s+/g,'');
+  if(mo){ if(mo.length<8||mo.endsWith('-')){ toast('El N° de motor va completo: código y número (ej: D4HA-1234567)'); return; } items.push(['motor',mo,'']); }
+  const trAct=(up(v.tr).includes('4X4'))?'4X4':'4X2';
+  if($('#dtTr').value&&$('#dtTr').value!==trAct) items.push(['traccion',$('#dtTr').value,trAct]);
+  if($('#dtTrans').value&&$('#dtTrans').value!==up(v.trans)) items.push(['trans',$('#dtTrans').value,up(v.trans)]);
+  const ce=up($('#dtCe').value); if(ce&&ce!==up(v.ce)) items.push(['color',ce,up(v.ce)]);
+  const pa=String($('#dtPa').value||'').replace(/[^0-9]/g,''); if(pa&&pa!==String(v.pa||'')) items.push(['pa',pa,String(v.pa||'')]);
+  const ot=$('#dtOtro').value.trim(); if(ot) items.push(['otro',up(ot),'']);
+  if(!items.length){ toast('No anotaste nada distinto'); return; }
+  if(pideQuien('anotar datos del vehículo')) return;
+  if(rebote()) return;
+  const vend=(ST.vend||'').trim(); let ts=Date.now();
+  for(const [campo,valor,actual] of items){
+    outEncola({col:AVISOSVEND_COL, doc:String(ts), unico:true, lbl:'dato', data:{tipo:'dato', ch:dtCh, campo, valor, actual, vendedor:vend, ts, atendido:false}});
+    ts++; }
+  toast(msgEnvio(items.length>1?(items.length+' datos anotados · se envían a Andre'):'Anotado · se envía a Andre'));
+  dtCh=null; closeAll();
 });
 let inCat=null;
 function pintaInCat(){
@@ -1880,7 +1924,8 @@ const carsC=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(
    <div class="acts a3">${(v.f360&&v.f360.length)?`<button class="btn b-sec" data-v360="${v.ch}">🔄 Ver 360°</button>`:''}
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
-   <div class="acts"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
+   <div class="acts a3"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
+    <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos</button>
     <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`};
  if(ordenStock==='cont'){ $('#list').innerHTML=L.length?ctrHTML(L,!!toks.length,cardV):'<div class="empty">Sin resultados.</div>'; return; }
  $('#list').innerHTML=L.length?L.map(cardV).join('')
