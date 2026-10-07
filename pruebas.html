@@ -695,7 +695,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-10-2026 10:17 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 14:56 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1049,6 +1049,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="fld" id="scVwrap"><label for="scV">Vehículo</label><select id="scV"></select></div>
   <div id="scIqWrap" style="margin-bottom:13px">
     <div class="money" id="scIqReal" style="margin-bottom:6px"></div>
+    <div id="scRev"></div>
+    <div hidden id="scEstViejo"><!-- 07/10/2026: reemplazado por el resumen #scRev (se calcula solo); se deja oculto porque el código viejo lo usa -->
     <div class="xrow" style="align-items:center;margin-bottom:5px">
       <span style="font-family:var(--body);font-size:12.5px">Costo estimado 1 <span style="color:var(--mute);font-size:11px">(al crear el embarque)</span></span>
       <input id="scEst1" inputmode="numeric" placeholder="$0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
@@ -1056,6 +1058,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="xrow" style="align-items:center">
       <span style="font-family:var(--body);font-size:12.5px">Costo estimado 2 <span style="color:var(--mute);font-size:11px">(al llegar el vehículo)</span></span>
       <input id="scEst2" inputmode="numeric" placeholder="$0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
+    </div>
     </div>
   </div>
   <div class="segs" id="scSegs">
@@ -1070,6 +1073,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <input id="tkNota" placeholder="Ej: golpe puerta trasera derecha"></div>
   <div class="fld"><label for="tkEst">Costo estimado (opcional)</label>
     <input id="tkEst" inputmode="numeric" placeholder="$0"><div class="sug" id="tkSug"></div></div>
+  <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="tkImp" style="width:18px;height:18px"> ⚡ Imprevisto <span style="color:var(--mute);font-size:12px">— salió después (probándolo, en ruta), no estaba previsto</span></label>
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="tkAdd">Agregar</button></div>
   <div id="tkList"></div>
   </div>
@@ -1520,6 +1524,27 @@ const imp18=v=>{
 };
 /* ctIncCC: el costo hasta Chile (ct) ya trae el taller en Corea adentro (aplicado desde Embarque desde 2026-09-29); los aplicados antes no. */
 const ctot=v=>(v.ct?v.ct+(v.ctIncCC?0:ccCLP(v)):((v.cif||0)+xls(v))+ccCLP(v))+app(v.ch)+imp18(v);
+/* 07/10/2026 (Andre): "Obligatorio" se agrega solo a todos los vehículos sin vender, como costo real ya pagado:
+   lavado $20.000 (silicona, desengrasante, renovador de goma; antes ~$16.000) + pisos $9.000 si no es Porter ni Bongo.
+   Solo si el vehículo no tiene ya un Obligatorio (en Costos o en el Excel). Lleva auto:true: NO cuenta en "Gastado"
+   de Hoy, porque esos materiales ya se anotan como insumos en gastos generales (si no, se contaría dos veces).
+   Si se borra a mano, no se vuelve a poner (S[c].obligNo). Corre solo después de bajar los costos de la nube. */
+const OBLIG_AUTO={lavado:20000,pisos:9000};
+const fbCostosOk=new Set();   /* vehículos cuyos costos ya se bajaron de la nube en esta sesión: solo a esos se les agrega (así nunca se pisa la nube con datos viejos) */
+const esPorterBongo=v=>/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase().trim());
+function aseguraOblig(){
+  let n=0;
+  for(const v of V){ const c=v.ch;
+    if(!c||sold(c)||v.baja||v.creando||!fbCostosOk.has(c)) continue;
+    const t=st(c); if(t.obligNo) continue;
+    if((t.costs||[]).some(x=>x.cat==='OBLIG')||((v.xc||{}).OBLIG>0)) continue;
+    const pb=esPorterBongo(v), m=OBLIG_AUTO.lavado+(pb?0:OBLIG_AUTO.pisos), f=iso();
+    t.costs=(t.costs||[]).concat([{ts:Date.now()+n,cat:'OBLIG',acor:m,date:f,prov:pb?'LAVADO $20.000 (AUTOMÁTICO)':'LAVADO $20.000 + PISOS $9.000 (AUTOMÁTICO)',post:false,abonos:[{m,f}],auto:true}]);
+    n++;
+  }
+  if(n){ save(); draw(); }
+  return n;
+}
 
 /* ---------- Sincronización en la nube (Firebase / Firestore) — APP REAL ----------
    Usa las colecciones reales ("vehiculos"). Nada se sube solo: al abrir la app se
@@ -1542,7 +1567,7 @@ const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof',
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs'];
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo'];  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -1805,10 +1830,12 @@ function fbStartListening(){
         try{
           const ps=await fbDb.collection(FB_COL).doc(chg.doc.id).collection('privado').doc('costos').get();
           if(ps.exists) fbApplyRemote(chg.doc.id, null, ps.data());
+          fbCostosOk.add(chg.doc.id);   /* costos de este vehículo ya confirmados con la nube */
         }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
       }));
       fbDibujaPronto();
     }
+    try{ aseguraOblig(); }catch(e){ console.error('aseguraOblig',e); }   /* 07/10/2026: lavado + pisos, con los costos ya bajados */
   }, e=>console.error('fbListen', e));
 }
 
@@ -2854,7 +2881,7 @@ function cardS(v){
   else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;}
   else if(v.st==='ORIGEN'){estado=v.enCorea?'#C9A227':'var(--fAzul)'; chip=v.enCorea?'<span class="est e-deu" data-zarpe="'+v.ch+'" style="cursor:pointer" title="Marcar que se embarcó">En Corea · 🚢 ¿se embarcó?</span>':'<span class="est e-cam" data-zarpe="'+v.ch+'" style="cursor:pointer">En camino'+(v.zarpe?' · zarpó '+fd(v.zarpe).slice(0,5):'')+'</span>';}
   else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
-  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>';}
+  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>'; const rv=revEstado(v.ch); if(rv){ if(rv.k!=='ok') estado=rv.col; chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+'<span class="est" data-cost="'+v.ch+'" style="cursor:pointer;color:#fff;background:'+rv.col+'" title="Abrir costos del vehículo">'+rv.txt+'</span></span>'; }}
 
   const filas=[];
   if(isS&&s.price){
@@ -2969,7 +2996,8 @@ function cardSV(v){
   if(STEXP.has(v.ch)) return `<div><button class="b-und" type="button" data-scmp="${v.ch}" style="font-size:12px;margin:0 0 4px">▴ Achicar</button>${cardS(v)}</div>`;
   const s=st(v.ch), isS=sold(v.ch), esc=t=>String(t||'').replace(/</g,'&lt;');
   const dm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
-  const [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
+  let [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
+  { const rv=(!isS&&!resAct(v.ch)&&v.st==='IQQ'&&!debe(v.ch))?revEstado(v.ch):null; if(rv){ est+=' · '+rv.txt; if(rv.k!=='ok') col=rv.col; } }
   const pr=isS?(s.price?clp(enCLP(s)):''):(s.pventa?clp(s.pventa):'');
   return `<div class="card cmp" data-sexp="${v.ch}"><span class="strip" style="background:${col}"></span>
     <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span> <span style="font-family:var(--mono);font-size:11.5px;color:var(--mute);font-weight:400">${esc(v.ch)}</span></div>
@@ -3100,6 +3128,7 @@ function drawResumen(){
     const t=S[c];
     if(t.sold&&inPer(t.date)) ven.push({ch:c,price:enCLP(t),date:t.date});
     for(const x of (t.costs||[])){
+      if(x.auto) continue;   /* lavado+pisos automático: los materiales ya están en gastos generales */
       const ab=x.abonos||(x.amt?[{m:x.amt,f:x.date}]:[]);
       for(const a of ab) if(inPer(a.f)) cos.push({cat:x.cat,amt:a.m,date:a.f,ts:x.ts,ch:c,post:!!x.post});
     }
@@ -3218,7 +3247,7 @@ function draw(){
   const ven=V.filter(v=>sold(v.ch)&&!v.baja&&!v.creando).length;
   const pub=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando&&st(v.ch).pub).length;
   let hoy=0; const t=iso();
-  for(const c in S) for(const x of (S[c].costs||[])) if(x.date===t) hoy+=x.amt;
+  for(const c in S) for(const x of (S[c].costs||[])) if(!x.auto) for(const a of (x.abonos||(x.amt?[{m:x.amt,f:x.date}]:[]))) if(a.f===t) hoy+=(+a.m||0);   /* antes sumaba x.amt, que los registros nuevos no tienen (daba NaN) */
   $('#kPatio').textContent=pat;$('#kVend').textContent=ven;$('#kPub').textContent=pub;
   $('#kCost').textContent=hoy?clp(hoy).replace('$',''):'0';
   drawStock();drawResumen();drawVit();drawTaller();pintaPendCambiar();pintaFlujo();
@@ -3560,6 +3589,7 @@ document.addEventListener('click',async e=>{
   const dl=e.target.closest('[data-cdel]');
   if(dl){const x=(S[ch].costs||[]).find(y=>String(y.ts)===dl.dataset.cdel);
     if(x&&!confirm('¿Eliminar este costo?\n\n'+(CN[x.cat]||x.cat)+' · '+clp(acor(x))+(abo(x)?' (pagado '+clp(abo(x))+')':'')+'\n\nNo se puede deshacer.'))return;
+    if(x&&x.auto) st(ch).obligNo=true;   /* borró el lavado+pisos automático: no se vuelve a agregar */
     S[ch].costs=(S[ch].costs||[]).filter(y=>String(y.ts)!==dl.dataset.cdel);
     await save();draw();drawCostList();toast('Costo eliminado');return}
 });
@@ -4216,6 +4246,7 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[]; CATS_CUSTOM.forEach(([k,n])=>CN[k]=n) }}catch(e){}
   /* 02/10/2026: la publicidad se paga por vehículo -> categoría fija 'Publicidad' en los costos de cada vehículo */
   if(!CATS_CUSTOM.some(([k])=>k==='PUBLICIDAD')){ CATS_CUSTOM=CATS_CUSTOM.concat([['PUBLICIDAD','Publicidad']]); CN.PUBLICIDAD='Publicidad'; }
+  if(!CATS_CUSTOM.some(([k])=>k==='CUBREVOLANTE')){ CATS_CUSTOM=CATS_CUSTOM.concat([['CUBREVOLANTE','Cubrevolante']]); CN.CUBREVOLANTE='Cubrevolante'; }   /* 07/10/2026: botón fijo por vehículo */
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
   try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_fijos_krw');
@@ -6589,6 +6620,86 @@ function tasks(c){const t=st(c); if(!t.tasks)t.tasks=[]; return t.tasks}
    en el costo estimado, pero no en "Trabajos pendientes" ni en los contadores. */
 const esEstSinVer=x=>x&&x.origen==='emb'&&!x.visto&&!x.hecho;
 function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)).length}
+/* 07/10/2026 (Andre): tres capas de estimado + imprevistos.
+   - est1 = lo estimado en el Embarque antes de ver el auto. Queda congelado como referencia (antes se pisaba).
+   - est  = estimado vigente. Si el auto ya se vio (visto) o el trabajo se anotó a mano en el auto, es el Estimado 2 (en patio).
+   - imprevisto = salió después (probándolo, en ruta): siempre es un trabajo aparte, nunca se fusiona con otro.
+   - S[c].revFin = fecha en que se apretó "Terminé de estimar".
+   Colores (solo autos en patio): 🔴 sin revisar · 🟡 con pendientes / en revisión · 🟢 revisado y sin pendientes. */
+let tkImpCh=null;
+const esEst2=x=>x&&!x.imprevisto&&x.origen!=='vendedor'&&!esEstSinVer(x)&&(x.origen!=='emb'||x.visto);
+function revEstado(c){
+  const v=IDX[c]; if(!v||v.st!=='IQQ'||sold(c)||v.baja||v.creando) return null;
+  const T=tasks(c), s=S[c]||{}, p=pend(c);
+  if(!T.some(x=>x.origen==='emb')&&!s.revFin&&!p) return null;   /* stock antiguo sin nada anotado: no se marca */
+  if(p) return {k:'pend',col:'#C98A12',txt:'🟡 '+p+' pendiente'+(p===1?'':'s')};
+  if(s.revFin) return {k:'ok',col:'#2E8B57',txt:'🟢 Revisado'};
+  if(T.some(x=>esEst2(x)||x.imprevisto)) return {k:'rev',col:'#C98A12',txt:'🟡 En revisión'};
+  return {k:'sin',col:'#C0392B',txt:'🔴 Sin revisar'};
+}
+function pintaScRev(){
+  const box=$('#scRev'); if(!box) return;
+  const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null;
+  if(!v){box.innerHTML='';return}
+  const T=tasks(ch).filter(x=>+x.est>0||+x.est1>0);
+  const e1v=x=>x.est1!=null?+x.est1:(x.origen==='emb'&&!x.est1Perdido?(+x.est||0):null);
+  const f=n=>n==null?'—':clp(n), td='style="text-align:right;padding:3px 0 3px 8px;font-family:var(--mono);font-size:12px;white-space:nowrap"';
+  let t1=0,t2=0,ti=0;
+  const fil=T.map(x=>{ const a=e1v(x), b=(esEst2(x)&&!x.noAplica)?(+x.est||0):null, c=x.imprevisto&&!x.noAplica?(+x.est||0):null;
+    if(a) t1+=a; if(b) t2+=b; if(c) ti+=c;
+    return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td></tr>`; });
+  const rv=revEstado(ch), enPatio=v.st==='IQQ'&&!sold(ch), s=S[ch]||{};
+  const btn=enPatio?(s.revFin?'<button class="btn b-sec" id="scRevAbre" style="flex:0 0 auto">↺ Reabrir revisión</button>':'<button class="btn b-pri" id="scRevFin" style="flex:0 0 auto">✓ Terminé de estimar</button>'):'';
+  box.innerHTML=(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
+   +(T.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td></tr></tfoot></table>`:'')
+   +`<div class="mtr" style="margin:0">Real anotado: <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
+}
+document.addEventListener('click',async e=>{
+  const fin=e.target.closest('#scRevFin'), ab=e.target.closest('#scRevAbre'); if(!fin&&!ab) return;
+  const ch=editing||($('#scV')?$('#scV').value:null); if(!ch||!IDX[ch]) return;
+  const s=st(ch);
+  if(fin){ const sv=tasks(ch).filter(esEstSinVer);
+    if(sv.length&&!confirm('Quedan '+sv.length+' estimado'+(sv.length===1?'':'s')+' del embarque sin confirmar: '+sv.map(x=>TN[x.cat]||x.cat).join(', ')+'.\n\nAceptar = los viste y van (pasan a Estimado 2, como pendientes).\nCancelar = volver a revisarlos (en los que no van, marca "No se necesitó").')) return;
+    sv.forEach(x=>{ if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); });
+    s.revFin=iso(); }
+  else s.revFin='';
+  await save(); drawTaskSheet(); draw();
+  toast(fin?'Revisión cerrada · lo que salga después, anótalo como ⚡ Imprevisto':'Revisión reabierta');
+});
+/* 07/10/2026: arreglo de lo anotado antes de esta corrección. Desde el 02/10, anotar en el auto un costo de una
+   categoría que ya venía del embarque pisaba el estimado del embarque y lo dejaba "sin ver" (no salía en Hoy).
+   Se detectan: estimados del embarque sin ver, tocados desde el 02/10, que tienen nota (el embarque no pone nota)
+   o cuya hora de guardado no coincide con la del resto del embarque (el embarque los guarda todos juntos). */
+const REP_DESDE=new Date('2026-10-02T00:00:00-03:00').getTime();
+function revRepCand(){
+  const ek={}; for(const k in EMB) (EMB[k].veh||[]).forEach(x=>{ ek[x.ch]=k; });
+  const g={};
+  for(const c in S){ if(!IDX[c]||sold(c)||!ek[c]) continue;
+    (S[c].tasks||[]).forEach(x=>{ if(x.origen==='emb'&&!x.visto&&!x.hecho&&!x.repNo) (g[ek[c]+'|'+x.cat]=g[ek[c]+'|'+x.cat]||[]).push({c,x}); }); }
+  const out=[];
+  Object.values(g).forEach(L=>{
+    const ts=L.map(o=>+o.x.ts||0).sort((a,b)=>a-b); let best=0,hi=0;
+    for(let i=0,j=0;i<ts.length;i++){ while(ts[i]-ts[j]>120000) j++; if(i-j+1>best){ best=i-j+1; hi=ts[i]; } }
+    L.forEach(o=>{ const t=+o.x.ts||0, fuera=L.length>1&&!(t>=hi-120000&&t<=hi);
+      if(t>=REP_DESDE&&((o.x.nota||'').trim()||fuera)) out.push(o); });
+  });
+  return out;
+}
+function pintaRevRep(box){
+  if(!box) return; const L=revRepCand(); if(!L.length) return;
+  const esc=t=>String(t||'').replace(/</g,'&lt;');
+  box.insertAdjacentHTML('afterbegin',`<div class="card plain" style="padding:11px;margin-bottom:10px;border-color:#C98A12">
+   <div style="font-size:13.5px;font-weight:700;color:#C98A12">Revisa: ${L.length} costo${L.length===1?'':'s'} que anotaste al ver el auto quedaron como "sin ver"</div>
+   <div class="mtr" style="margin:4px 0 6px">Antes de esta corrección, si anotabas en el auto un costo de una categoría que ya venía del embarque, la app pisaba el estimado del embarque y no lo dejaba como pendiente. Estos parecen ser de esos:</div>
+   <div style="font-size:12.5px;line-height:1.6">${L.map(o=>{const v=IDX[o.c];return `${esc(v.ma)} ${esc(v.mo)} <span style="color:var(--mute);font-family:var(--mono);font-size:11px">${o.c}</span> · ${TN[o.x.cat]||o.x.cat} ${clp(+o.x.est||0)}${o.x.nota?' · '+esc(o.x.nota):''}`}).join('<br>')}</div>
+   <div class="acts" style="margin-top:8px"><button class="btn b-pri" id="revRepSi">Sí, pasarlos a Estimado 2</button><button class="btn b-sec" id="revRepNo">No, dejarlos como están</button></div>
+   <div class="mtr" style="margin:6px 0 0">El valor original del embarque de estos ya no se puede recuperar: en la columna Est. 1 aparecerán con "?".</div></div>`);
+}
+document.addEventListener('click',async e=>{ const si=e.target.closest('#revRepSi'), no=e.target.closest('#revRepNo'); if(!si&&!no) return;
+  const L=revRepCand();
+  L.forEach(o=>{ if(si){ o.x.visto=true; o.x.vistoFe=iso(); o.x.est1Perdido=true; } else { o.x.repNo=true; if(o.x.est1==null) o.x.est1=+o.x.est||0; } });
+  await save(); draw(); toast(si?(L.length+' pasado'+(L.length===1?'':'s')+' a Estimado 2 · ahora salen como pendientes'):'Dejados como están');
+});
 /* Una vez: marca como 'emb' los estimados que ya se habían guardado desde el embarque (sin nota, con monto, auto en un embarque). */
 function migraEstEmb(){ let n=0; try{ for(const c in S){ const T=S[c].tasks; if(!T||!embDeVeh(c)) continue; T.forEach(x=>{ if(!x.origen&&!x.nota&&+x.est>0&&!x.hecho){ x.origen='emb'; n++; } }); } }catch(_){} if(n){ save(); } return n; }
 const saldo=x=>(x.est||0);
@@ -6618,10 +6729,12 @@ $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
   $('#tkCat').innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
+  pintaScRev();
   if(!tkCh){$('#tkList').innerHTML='';return}
+  if(tkCh!==tkImpCh){ tkImpCh=tkCh; const ck=$('#tkImp'); if(ck) ck.checked=!!((S[tkCh]||{}).revFin); }   /* revisión cerrada → lo nuevo es imprevisto por defecto */
   const L=tasks(tkCh);
   $('#tkList').innerHTML=L.length?L.map(x=>`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
-    <div class="r1"><div><div class="tt" style="font-size:15px">${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}</div>
+    <div class="r1"><div><div class="tt" style="font-size:15px">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}${!esEstSinVer(x)&&x.est1!=null&&+x.est1!==+x.est?` <span style="font-size:11.5px;color:var(--mute)">(Est. 1 ${clp(x.est1)})</span>`:''}${x.imprevisto?' <span style="font-size:11.5px;color:#C98A12">imprevisto</span>':''}</div>
     ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}
     ${x.reportadoPor?`<div class="ch" style="color:var(--mute)">Reportado por ${nomPersona(vendedorKey(x.reportadoPor)||x.reportadoPor)}</div>`:''}</div>
     <span class="tag ${x.noAplica?'':(x.hecho?'t-sold':(esEstSinVer(x)?'':'t-or'))}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':(esEstSinVer(x)?'Estimado (sin ver)':'Pendiente'))}</span></div>
@@ -6658,19 +6771,23 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-sest]');
 $('#tkAdd').addEventListener('click',async()=>{
   if(!tkCh){toast('Elige un vehículo');return}
   /* Regla (André, 2026-09-28): un vehículo no puede tener dos estimados pendientes de la misma categoría
-     -- se sumaban dos veces al costo. Si ya hay uno, se actualiza ese en vez de agregar otro. */
-  const nota=$('#tkNota').value.trim(), est=pnum($('#tkEst').value)||0;
-  const ya=tasks(tkCh).find(x=>x.cat===tkCat&&!x.hecho);
-  if(ya){
-    if(est) ya.est=est;
-    if(nota&&nota!==(ya.nota||'')) ya.nota=ya.nota?(ya.nota+' · '+nota):nota;
-    ya.ts=Date.now();
-  } else { const prev=tasks(tkCh).find(x=>esEstSinVer(x)&&x.cat===tkCat);
-    /* si había un estimado del embarque de la misma categoría, se reemplaza por lo que viste (no se cuenta dos veces) */
-    if(prev){ prev.visto=true; prev.vistoFe=iso(); if(nota) prev.nota=nota; if(est) prev.est=est; }
-    else tasks(tkCh).push({ts:Date.now(),cat:tkCat,nota,est,hecho:false}); }
-  $('#tkNota').value=''; $('#tkEst').value=''; await save(); drawTaskSheet(); draw();
-  toast(ya?('Ya había '+(TN[tkCat]||tkCat)+' pendiente: se actualizó ese (no se duplica)'):('Anotado en '+(IDX[tkCh]?IDX[tkCh].mo:'el vehículo')));
+     -- se sumaban dos veces al costo. Si ya hay uno, se actualiza ese en vez de agregar otro.
+     07/10/2026 (Andre): (1) si lo que hay es el estimado del EMBARQUE sin ver, anotarlo en el auto lo pasa a
+     Estimado 2: queda visto (pendiente, sale en Hoy) y el monto del embarque se guarda aparte en est1.
+     Antes se pisaba el monto del embarque y seguía "sin ver". (2) Un ⚡ Imprevisto siempre es un trabajo aparte. */
+  const nota=$('#tkNota').value.trim(), est=pnum($('#tkEst').value)||0, imp=!!($('#tkImp')&&$('#tkImp').checked);
+  const T=tasks(tkCh); let msg;
+  const sv=imp?null:T.find(x=>esEstSinVer(x)&&x.cat===tkCat);
+  const ya=(imp||sv)?null:T.find(x=>x.cat===tkCat&&!x.hecho&&!x.imprevisto);
+  if(imp){ T.push({ts:Date.now(),cat:tkCat,nota,est,hecho:false,imprevisto:true,impFe:iso()}); msg='⚡ Imprevisto anotado: queda pendiente'; }
+  else if(sv){ if(sv.est1==null) sv.est1=+sv.est||0; sv.visto=true; sv.vistoFe=iso();
+    if(nota) sv.nota=sv.nota?(sv.nota+' · '+nota):nota; if(est) sv.est=est; sv.ts=Date.now();
+    msg=(TN[tkCat]||tkCat)+': Estimado 2 anotado · el del embarque ('+clp(sv.est1)+') queda guardado aparte'; }
+  else if(ya){ if(ya.origen==='emb'&&ya.est1==null&&!ya.est1Perdido) ya.est1=+ya.est||0;
+    if(est) ya.est=est; if(nota&&nota!==(ya.nota||'')) ya.nota=ya.nota?(ya.nota+' · '+nota):nota; ya.ts=Date.now();
+    msg='Ya había '+(TN[tkCat]||tkCat)+' pendiente: se actualizó ese (no se duplica)'; }
+  else { T.push({ts:Date.now(),cat:tkCat,nota,est,hecho:false}); msg='Anotado en '+(IDX[tkCh]?IDX[tkCh].mo:'el vehículo'); }
+  $('#tkNota').value=''; $('#tkEst').value=''; tkImpCh=null; await save(); drawTaskSheet(); draw(); toast(msg);
 });
 
 function drawTaller(){
@@ -6680,6 +6797,8 @@ function drawTaller(){
   const pen=items.filter(x=>!x.hecho&&!esEstSinVer(x)), lis=items.filter(x=>x.hecho);
   $('#tlCnt').textContent=pen.length+' pendiente'+(pen.length===1?'':'s')+' · '+lis.length+' terminado'+(lis.length===1?'':'s')
     +(sinVer.length?' · '+sinVer.length+' estimado'+(sinVer.length===1?'':'s')+' del embarque sin revisar (no cuentan hasta que veas el auto)':'');
+  const nSin=V.filter(v=>{const r=revEstado(v.ch);return r&&r.k==='sin'}).length;
+  if(nSin) $('#tlCnt').textContent+=' · '+nSin+' auto'+(nSin===1?'':'s')+' en patio sin revisar';
   const box=$('#tlList');
   const linea=x=>{const v=IDX[x.ch];
     return `<div class="xrow" style="padding:7px 0;align-items:flex-start">
@@ -6687,7 +6806,7 @@ function drawTaller(){
         <span style="color:var(--mute);font-family:var(--mono);font-size:11px">· ${x.ch}</span>
         ${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</span>
       <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
-        <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':'Pendiente'}</span>
+        <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':(x.imprevisto?'⚡ Imprevisto':'Pendiente')}</span>
         <button class="b-und" style="padding:6px 10px" data-tdone2="${x.ch}|${x.ts}">${x.hecho?'↺ Reabrir':'✓ Marcar listo'}</button></span></div>`};
 
   if(tlView==='grupo'){
@@ -6716,13 +6835,14 @@ function drawTaller(){
     box.innerHTML=lis.length?`<div style="border:1px solid var(--line);border-radius:11px;padding:11px">${lis.slice().reverse().map(linea).join('')}</div>`
       :'<div class="empty">Todavía no marcas trabajos terminados.</div>';
   }
+  pintaRevRep(box);
 }
 $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#tlChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true'); tlView=c.dataset.tv; drawTaller()}));
 
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-tvisto]'); if(!b||!tkCh) return; const x=tasks(tkCh).find(t=>String(t.ts)===b.dataset.tvisto); if(!x) return;
-  x.visto=true; x.vistoFe=iso(); await save(); drawTaskSheet(); draw(); toast('Confirmado: ahora es un trabajo pendiente'); });
+  if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); await save(); drawTaskSheet(); draw(); toast('Confirmado: ahora es un trabajo pendiente'); });
 document.addEventListener('click',async e=>{
   const d1=e.target.closest('[data-tdone]');
   /* 2026-09-29: "No se necesitó" -- se estimó un gasto que al final no hizo falta. Queda en el historial (tachado),
@@ -7994,10 +8114,10 @@ function emEstDraftCat(){ const d=emEstDraft[embId]||(emEstDraft[embId]={}); ret
 /* Estimados ya guardados (2026-09-28): son las Tareas pendientes de esa categoría sin nota -- así las crea
    este cuadro. Antes el cuadro no las mostraba (solo la mediana sugerida) y al volver a guardar se creaban
    duplicadas, sumando el costo dos veces. Ahora se muestran y al guardar se reemplazan en vez de agregarse. */
-const emEstEsSuya=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&!(ta.nota||'').trim();
+const emEstEsSuya=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&!ta.imprevisto&&!(ta.nota||'').trim();
 /* Pendiente de esa categoría, con o sin nota: al guardar desde este cuadro se actualiza esa en vez de crear otra. */
-const emEstPend=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&ta.origen!=='vendedor';
-function emEstGuardado(ch,k){ const l=((S[ch]||{}).tasks||[]).filter(ta=>emEstPend(ta,k)&&ta.est); return l.length?l[l.length-1].est||0:null; }
+const emEstPend=(ta,k)=>ta&&ta.cat===k&&!ta.hecho&&!ta.imprevisto&&ta.origen!=='vendedor';
+function emEstGuardado(ch,k){ const l=((S[ch]||{}).tasks||[]).filter(ta=>emEstPend(ta,k)&&ta.est); if(!l.length) return null; const x=l[l.length-1]; return x.est1!=null?(+x.est1||0):(x.est||0); }   /* muestra el Est. 1 (lo del embarque), no lo visto en patio */
 function emEstDuplicados(){
   const e=E(); if(!e) return [];
   const out=[];
@@ -8074,8 +8194,8 @@ $('#emEstGuardar').addEventListener('click',async()=>{
     const tl=tasks(x.ch);
     if(tl.some(ta=>ta&&ta.cat===emEstCat&&ta.noAplica)){ saltados.push(x.ch); continue; }   /* ya se vio en persona que no hacía falta */
     const ya=tl.find(ta=>emEstPend(ta,emEstCat));
-    if(ya){ ya.est=est; ya.ts=Date.now(); for(let i=tl.length-1;i>=0;i--) if(tl[i]!==ya&&emEstEsSuya(tl[i],emEstCat)) tl.splice(i,1); }   /* reemplaza, no suma */
-    else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,hecho:false,origen:'emb'});
+    if(ya){ if(ya.visto||ya.origen!=='emb'){ ya.est1=est; } else { ya.est=est; ya.est1=est; ya.ts=Date.now(); } for(let i=tl.length-1;i>=0;i--) if(tl[i]!==ya&&emEstEsSuya(tl[i],emEstCat)) tl.splice(i,1); }   /* reemplaza, no suma */
+    else tl.push({ts:Date.now(),cat:emEstCat,nota:'',est,est1:est,hecho:false,origen:'emb'});   /* 07/10: si el auto ya se vio, el embarque solo cambia el Est. 1 (no pisa lo visto en patio) */
     n++;
   }
   if(!n){toast('Nada para guardar — completa algún monto');return}
