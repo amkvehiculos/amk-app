@@ -694,7 +694,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 14:56<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 15:21<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1541,6 +1541,10 @@ function aseguraOblig(){
     t.costs=(t.costs||[]).concat([{ts:Date.now()+n,cat:'OBLIG',acor:m,date:f,prov:pb?'LAVADO $20.000 (AUTOMÁTICO)':'LAVADO $20.000 + PISOS $9.000 (AUTOMÁTICO)',post:false,abonos:[{m,f}],auto:true}]);
     n++;
   }
+  /* 07/10/2026: un estimado de Lavado pendiente (del embarque o anotado) ya está cubierto por el Obligatorio
+     automático: se marca "No se necesitó" para que no se cuente dos veces. Queda en el historial. */
+  for(const v of V){ const c=v.ch; if(!fbCostosOk.has(c)||sold(c)) continue; const t=S[c]; if(!t||!(t.costs||[]).some(x=>x.cat==='OBLIG')) continue;
+    (t.tasks||[]).forEach(x=>{ if(x.cat==='LAVADO'&&!x.hecho){ x.hecho=true; x.noAplica=true; x.fechaNoAp=iso(); x.lavAuto=true; n++; } }); }
   if(n){ save(); draw(); }
   return n;
 }
@@ -3398,7 +3402,7 @@ function pintaScIq(){
   if(document.activeElement!==$('#scEst2')) $('#scEst2').value=v.est2?Math.round(v.est2).toLocaleString('es-CL'):'';
 }
 function openCost(ch,pcat,pamt,seg){
-  editing=ch||null;
+  editing=ch||null; tkCostDe=null;
   const w=$('#scVwrap');
   if(ch){const v=IDX[ch];w.hidden=true;
     $('#scT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#scC').textContent=v.ch}
@@ -3544,6 +3548,7 @@ $('#scOk').addEventListener('click',async()=>{
   await recuerdaTaller(prov);
   const nuevo={ts:Date.now(),cat:catFinal,acor:ac,date:f,prov,post:sold(ch),abonos:pago?[{m:pago,f}]:[]};
   st(ch).costs.push(nuevo);
+  if(tkCostDe!=null){ const tk=tasks(ch).find(y=>String(y.ts)===String(tkCostDe)); if(tk){ tk.hecho=true; tk.costTs=nuevo.ts; tk.realFe=f; if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } } tkCostDe=null; drawTaskSheet(); }
   await save();draw();drawCostList();
   ultimo={ch,ts:nuevo.ts};
   $('#scA').value='';$('#scAb').value='';
@@ -6625,7 +6630,10 @@ function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)).length}
    - imprevisto = salió después (probándolo, en ruta): siempre es un trabajo aparte, nunca se fusiona con otro.
    - S[c].revFin = fecha en que se apretó "Terminé de estimar".
    Colores (solo autos en patio): 🔴 sin revisar · 🟡 con pendientes / en revisión · 🟢 revisado y sin pendientes. */
-let tkImpCh=null;
+let tkImpCh=null, tkCostDe=null;   /* tkCostDe: trabajo desde el que se abrió "Pagado: anotar costo real" */
+/* 07/10/2026: el costo real anotado desde un trabajo queda enlazado (x.costTs) y cierra el trabajo -- antes "Registrar costo"
+   no lo cerraba (se contaban estimado + real) y "Marcar listo" sin costo hacía desaparecer el estimado del total. */
+const tkReal=(c,x)=>{ if(!x||!x.costTs) return null; const k=((S[c]||{}).costs||[]).find(y=>String(y.ts)===String(x.costTs)); return k?acor(k):null; };
 const esEst2=x=>x&&!x.imprevisto&&x.origen!=='vendedor'&&!esEstSinVer(x)&&(x.origen!=='emb'||x.visto);
 function revEstado(c){
   const v=IDX[c]; if(!v||v.st!=='IQQ'||sold(c)||v.baja||v.creando) return null;
@@ -6643,15 +6651,15 @@ function pintaScRev(){
   const T=tasks(ch).filter(x=>+x.est>0||+x.est1>0);
   const e1v=x=>x.est1!=null?+x.est1:(x.origen==='emb'&&!x.est1Perdido?(+x.est||0):null);
   const f=n=>n==null?'—':clp(n), td='style="text-align:right;padding:3px 0 3px 8px;font-family:var(--mono);font-size:12px;white-space:nowrap"';
-  let t1=0,t2=0,ti=0;
+  let t1=0,t2=0,ti=0,tr=0;
   const fil=T.map(x=>{ const a=e1v(x), b=(esEst2(x)&&!x.noAplica)?(+x.est||0):null, c=x.imprevisto&&!x.noAplica?(+x.est||0):null;
-    if(a) t1+=a; if(b) t2+=b; if(c) ti+=c;
-    return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td></tr>`; });
+    const r=tkReal(ch,x); if(a) t1+=a; if(b) t2+=b; if(c) ti+=c; if(r) tr+=r;
+    return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td><td ${td}>${r!=null?'<b>'+clp(r)+'</b>':'—'}</td></tr>`; });
   const rv=revEstado(ch), enPatio=v.st==='IQQ'&&!sold(ch), s=S[ch]||{};
   const btn=enPatio?(s.revFin?'<button class="btn b-sec" id="scRevAbre" style="flex:0 0 auto">↺ Reabrir revisión</button>':'<button class="btn b-pri" id="scRevFin" style="flex:0 0 auto">✓ Terminé de estimar</button>'):'';
   box.innerHTML=(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
-   +(T.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td></tr></tfoot></table>`:'')
-   +`<div class="mtr" style="margin:0">Real anotado: <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
+   +(T.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th><th style="text-align:right;font-weight:500">Real</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td><td ${td}>${clp(tr)}</td></tr></tfoot></table>`:'')
+   +`<div class="mtr" style="margin:0">Real anotado en total (incluye lo anotado directo, como el Obligatorio): <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
 }
 document.addEventListener('click',async e=>{
   const fin=e.target.closest('#scRevFin'), ab=e.target.closest('#scRevAbre'); if(!fin&&!ab) return;
@@ -6704,6 +6712,7 @@ function migraEstEmb(){ let n=0; try{ for(const c in S){ const T=S[c].tasks; if(
 const saldo=x=>(x.est||0);
 
 function cseg(k){
+ if(k!=='real') tkCostDe=null;   /* salió de Costo real sin guardar: ya no cierra ese trabajo */
  alturaFluida(MAIN,()=>{
   $('#secEst').hidden = k!=='est';
   $('#secReal').hidden= k!=='real';
@@ -6727,20 +6736,25 @@ $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
-  $('#tkCat').innerHTML=TCAT.map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
+  $('#tkCat').innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
   pintaScRev();
   if(!tkCh){$('#tkList').innerHTML='';return}
   if(tkCh!==tkImpCh){ tkImpCh=tkCh; const ck=$('#tkImp'); if(ck) ck.checked=!!((S[tkCh]||{}).revFin); }   /* revisión cerrada → lo nuevo es imprevisto por defecto */
-  const L=tasks(tkCh);
-  $('#tkList').innerHTML=L.length?L.map(x=>`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
-    <div class="r1"><div><div class="tt" style="font-size:15px">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}${!esEstSinVer(x)&&x.est1!=null&&+x.est1!==+x.est?` <span style="font-size:11.5px;color:var(--mute)">(Est. 1 ${clp(x.est1)})</span>`:''}${x.imprevisto?' <span style="font-size:11.5px;color:#C98A12">imprevisto</span>':''}</div>
+  /* 07/10/2026: ordenado y con títulos -- primero lo del embarque que falta confirmar al ver el auto, después los
+     pendientes (Est. 2 e imprevistos), al final lo terminado. */
+  const grp=x=>esEstSinVer(x)?0:(x.hecho?2:1);
+  const L=tasks(tkCh).slice().sort((a,b)=>grp(a)-grp(b));
+  const TKH=['Del embarque · confírmalos al ver el auto (✓ Lo vi: va / No se necesitó)','Pendientes · Estimado 2 e imprevistos','Terminados o descartados'];
+  const tkHdr=i=>(i===0||grp(L[i])!==grp(L[i-1]))?`<div class="mtr" style="margin:12px 0 6px;font-weight:700">${TKH[grp(L[i])]}</div>`:'';
+  $('#tkList').innerHTML=L.length?L.map((x,i)=>tkHdr(i)+`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
+    <div class="r1"><div><div class="tt" style="font-size:15px">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.est?` <span style="font-family:var(--mono);font-size:13px;color:var(--mute);${x.noAplica?'text-decoration:line-through':''}">≈${clp(x.est)}</span>`:''}${!esEstSinVer(x)&&x.est1!=null&&+x.est1!==+x.est?` <span style="font-size:11.5px;color:var(--mute)">(Est. 1 ${clp(x.est1)})</span>`:''}${x.imprevisto?' <span style="font-size:11.5px;color:#C98A12">imprevisto</span>':''}${tkReal(tkCh,x)!=null?` <span style="font-size:11.5px;color:var(--green)">real ${clp(tkReal(tkCh,x))}</span>`:''}</div>
     ${x.nota?`<div class="ch" style="text-transform:none;letter-spacing:0">${x.nota.replace(/</g,'&lt;')}</div>`:''}
     ${x.reportadoPor?`<div class="ch" style="color:var(--mute)">Reportado por ${nomPersona(vendedorKey(x.reportadoPor)||x.reportadoPor)}</div>`:''}</div>
     <span class="tag ${x.noAplica?'':(x.hecho?'t-sold':(esEstSinVer(x)?'':'t-or'))}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':(esEstSinVer(x)?'Estimado (sin ver)':'Pendiente'))}</span></div>
     ${esEstSinVer(x)?`<div class="mtr" style="margin:4px 0 0">Calculado en el embarque antes de que llegue. Cuando veas el auto, confírmalo o márcalo "No se necesitó".</div>`:''}
-    <div class="acts">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}">✓ Lo vi: va</button>`:''}<button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>
+    <div class="acts">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}">✓ Lo vi: va</button>`:''}${(x.hecho||!(+x.est>0))?`<button class="btn b-sec" data-tdone="${x.ts}">${x.hecho?'Reabrir':'Marcar listo'}</button>`:''}
     ${x.hecho?'':`<button class="btn b-sec" data-tnoap="${x.ts}" title="Al verlo en persona o al trabajarlo, este gasto no hizo falta: el estimado deja de contar en el costo (queda en el historial)">No se necesitó</button>`}
-    ${x.noAplica?'':`<button class="btn b-pri" data-tcost="${x.ts}">＄ Registrar costo</button>`}
+    ${(x.noAplica||x.costTs)?'':`<button class="btn b-pri" data-tcost="${x.ts}" title="Anota lo que realmente costó: pasa a Costo real y este trabajo queda listo">＄ Pagado: anotar costo real</button>`}
     <button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}">✕</button></div></div>`).join('')
    :'<div class="empty" style="padding:22px">Sin trabajos anotados.</div>';
 }
@@ -6855,11 +6869,11 @@ document.addEventListener('click',async e=>{
       if(x.hecho) toast('Listo · anótalo como costo si corresponde')} return}
   const tc=e.target.closest('[data-tcost]');
   if(tc){const x=tasks(tkCh).find(y=>String(y.ts)===tc.dataset.tcost);
-    if(x){scCat=COSTMAP[x.cat]||x.cat;
+    if(x){scCat=COSTMAP[x.cat]||x.cat; tkCostDe=x.ts;
       $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
       $('#scCatOtroWrap').hidden=true;
       $('#scA').value=x.est?clp(x.est):'';
-      $('#scSug').innerHTML=x.est?`Estimado del taller ${clp(x.est)}`:'';
+      $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo`;
       llenaProv(); cseg('real');}
     return}
   const dd=e.target.closest('[data-tdel]');
@@ -8131,7 +8145,7 @@ function emEstCatGuardada(k){
 }
 function pintaEmEst(){
   const catBox=$('#emEstCat'); if(!catBox) return;
-  catBox.innerHTML=TCAT.map(([k,n])=>{const ok=emEstCatGuardada(k); return `<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${ok?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${ok?' ✓':''}</button>`}).join('');
+  catBox.innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>{const ok=emEstCatGuardada(k); return `<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${ok?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${ok?' ✓':''}</button>`}).join('');
   const e=E(); const lista=$('#emEstLista'); if(!lista) return;
   if(!e||!e.veh.length){ lista.innerHTML='<p style="color:var(--mute);font-size:13px;margin:8px 0 0">Sin vehículos en este embarque.</p>'; return; }
   const draft=emEstDraftCat();
