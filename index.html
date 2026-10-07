@@ -344,6 +344,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <p class="cnt" id="tlCnt"></p>
       <div id="tlList"></div>
     </div>
+    <div class="box" id="boxSmda" style="margin-top:13px" hidden>
+      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Pendiente para SMDA (Zofri)</h3>
+        <button class="b-und" style="flex:0 0 auto" id="smdaCopiaTodo">⧉ Copiar los listos</button></div>
+      <p class="cnt" id="smdaCnt" style="margin:0 0 9px"></p>
+      <div id="smdaList"></div>
+    </div>
     <div class="box" id="boxGen" style="margin-top:13px">
       <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Gastos generales</h3>
         <button class="b-und" style="flex:0 0 auto" id="genAdd">＋ Anotar</button></div>
@@ -694,7 +700,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 15:21<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 16:00<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1156,6 +1162,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="fld" id="evCabWrap" hidden><label for="evCab">Cabina</label><select id="evCab"><option value="">— Elige —</option><option value="SIMPLE">Cabina simple</option><option value="MEDIA">Cabina y media</option><option value="DOBLE">Doble cabina</option></select></div>
   </div>
   <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="fld"><label for="evNMotor">N° de motor <span style="color:var(--mute);font-size:11px">(el que va a Zofri)</span></label><input id="evNMotor" placeholder="Ej: D4HA-1234567" autocapitalize="characters" style="text-transform:uppercase"></div>
     <div class="fld"><label for="evMotor">Motor</label><select id="evMotor"><option value="">Sin especificar</option><option value="DIESEL">Diésel</option><option value="BENCINA">Bencina</option></select></div>
     <div class="fld"><label for="evCilSel">Cilindrada</label><select id="evCilSel"><option value="">Sin especificar</option><option value="1.6">1.6</option><option value="1.7">1.7</option><option value="2.0">2.0</option><option value="2.2">2.2</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="__otro__">Otro…</option></select>
       <input id="evCil" inputmode="decimal" placeholder="Ej: 2.4" style="margin-top:6px" hidden></div>
@@ -1543,7 +1550,7 @@ function aseguraOblig(){
   }
   /* 07/10/2026: un estimado de Lavado pendiente (del embarque o anotado) ya está cubierto por el Obligatorio
      automático: se marca "No se necesitó" para que no se cuente dos veces. Queda en el historial. */
-  for(const v of V){ const c=v.ch; if(!fbCostosOk.has(c)||sold(c)) continue; const t=S[c]; if(!t||!(t.costs||[]).some(x=>x.cat==='OBLIG')) continue;
+  for(const v of V){ const c=v.ch; if(!fbCostosOk.has(c)||sold(c)) continue; const t=S[c]; if(!t) continue;
     (t.tasks||[]).forEach(x=>{ if(x.cat==='LAVADO'&&!x.hecho){ x.hecho=true; x.noAplica=true; x.fechaNoAp=iso(); x.lavAuto=true; n++; } }); }
   if(n){ save(); draw(); }
   return n;
@@ -1570,7 +1577,7 @@ const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof',
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo'];  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda'];  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -2866,7 +2873,7 @@ function cardS(v){
   const marg=(isS&&s.price)?ventaCLP-cost:null;
   const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
   const ccT=v.cc?Object.keys(v.cc).map(k=>(CCN[k]||k)+' ₩'+Number(v.cc[k]).toLocaleString('es-CL')).join(' · '):'';
-  const pest=tasks(v.ch).filter(x=>!x.hecho).reduce((a,x)=>a+(x.est||0),0);
+  const pest=tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((a,x)=>a+(x.est||0),0);
   const deb=debe(v.ch), pv=postv(v.ch), nf=s.nf||0;
   const CARN={'BARANDA':'Baranda','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer',
     'GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
@@ -3253,7 +3260,7 @@ function draw(){
   for(const c in S) for(const x of (S[c].costs||[])) if(!x.auto) for(const a of (x.abonos||(x.amt?[{m:x.amt,f:x.date}]:[]))) if(a.f===t) hoy+=(+a.m||0);   /* antes sumaba x.amt, que los registros nuevos no tienen (daba NaN) */
   $('#kPatio').textContent=pat;$('#kVend').textContent=ven;$('#kPub').textContent=pub;
   $('#kCost').textContent=hoy?clp(hoy).replace('$',''):'0';
-  drawStock();drawResumen();drawVit();drawTaller();pintaPendCambiar();pintaFlujo();
+  drawStock();drawResumen();drawVit();drawTaller();try{pintaSmda()}catch(e){console.error('pintaSmda',e)}pintaPendCambiar();pintaFlujo();
 }
 
 /* ---------- INTERACCIONES ---------- */
@@ -6623,7 +6630,7 @@ function tasks(c){const t=st(c); if(!t.tasks)t.tasks=[]; return t.tasks}
    trabajo pendiente hasta que él lo ve en persona y lo confirma ("✓ Lo vi: va") o anota el trabajo a mano. Sigue contando
    en el costo estimado, pero no en "Trabajos pendientes" ni en los contadores. */
 const esEstSinVer=x=>x&&x.origen==='emb'&&!x.visto&&!x.hecho;
-function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)).length}
+function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)&&x.cat!=='LAVADO').length}   /* 07/10: Lavado va siempre en Obligatorio (costo real), nunca como trabajo */
 /* 07/10/2026 (Andre): tres capas de estimado + imprevistos.
    - est1 = lo estimado en el Embarque antes de ver el auto. Queda congelado como referencia (antes se pisaba).
    - est  = estimado vigente. Si el auto ya se vio (visto) o el trabajo se anotó a mano en el auto, es el Estimado 2 (en patio).
@@ -6648,7 +6655,7 @@ function pintaScRev(){
   const box=$('#scRev'); if(!box) return;
   const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null;
   if(!v){box.innerHTML='';return}
-  const T=tasks(ch).filter(x=>+x.est>0||+x.est1>0);
+  const T=tasks(ch).filter(x=>x.cat!=='LAVADO'&&(+x.est>0||+x.est1>0));
   const e1v=x=>x.est1!=null?+x.est1:(x.origen==='emb'&&!x.est1Perdido?(+x.est||0):null);
   const f=n=>n==null?'—':clp(n), td='style="text-align:right;padding:3px 0 3px 8px;font-family:var(--mono);font-size:12px;white-space:nowrap"';
   let t1=0,t2=0,ti=0,tr=0;
@@ -6743,7 +6750,7 @@ function drawTaskSheet(){
   /* 07/10/2026: ordenado y con títulos -- primero lo del embarque que falta confirmar al ver el auto, después los
      pendientes (Est. 2 e imprevistos), al final lo terminado. */
   const grp=x=>esEstSinVer(x)?0:(x.hecho?2:1);
-  const L=tasks(tkCh).slice().sort((a,b)=>grp(a)-grp(b));
+  const L=tasks(tkCh).filter(x=>x.cat!=='LAVADO').slice().sort((a,b)=>grp(a)-grp(b));
   const TKH=['Del embarque · confírmalos al ver el auto (✓ Lo vi: va / No se necesitó)','Pendientes · Estimado 2 e imprevistos','Terminados o descartados'];
   const tkHdr=i=>(i===0||grp(L[i])!==grp(L[i-1]))?`<div class="mtr" style="margin:12px 0 6px;font-weight:700">${TKH[grp(L[i])]}</div>`:'';
   $('#tkList').innerHTML=L.length?L.map((x,i)=>tkHdr(i)+`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
@@ -6805,7 +6812,7 @@ $('#tkAdd').addEventListener('click',async()=>{
 
 function drawTaller(){
   const items=[];
-  for(const c in S) for(const x of (S[c].tasks||[])) if(IDX[c]&&!sold(c)) items.push({...x,ch:c});
+  for(const c in S) for(const x of (S[c].tasks||[])) if(IDX[c]&&!sold(c)&&x.cat!=='LAVADO') items.push({...x,ch:c});
   const sinVer=items.filter(esEstSinVer);
   const pen=items.filter(x=>!x.hecho&&!esEstSinVer(x)), lis=items.filter(x=>x.hecho);
   $('#tlCnt').textContent=pen.length+' pendiente'+(pen.length===1?'':'s')+' · '+lis.length+' terminado'+(lis.length===1?'':'s')
@@ -8297,6 +8304,67 @@ function zofEf(v){
     traccion:zofTraccion(v),color:zofSinTilde(v.ce),anio:v.an||'',pa:v.pa||'',
     modelo:ZOF_MODELO_NOMBRE[zofMoKey(v)]||zofSinTilde(v.mo),marca:zofSinTilde(v.ma),auto:A};
 }
+/* 07/10/2026 (Andre): SMDA (Solicitud de Modificación de Documento Aduanero). Cuando el auto ya llegó (o ya tiene
+   N° de ingreso a Zofri) y se corrige un dato que va en la declaración (color, N° de motor, tracción, año, VIN...),
+   el cambio queda anotado en S[c].smda = [{campo,antes,despues,fe,env}] para pedir la modificación a Zofri sin olvidar
+   nada. Techo panorámico y otros datos que no van a Zofri no se anotan. Si el mismo dato se cambia dos veces antes de
+   enviar, queda uno (con el "antes" original); si vuelve al valor original, se borra. */
+const SMDA_CAMPOS=[['marca','Marca'],['modelo','Modelo'],['anio','Año'],['color','Color'],['vin','Chasis (VIN)'],['motor','N° de motor'],
+  ['cilind','Cilindrada'],['combustible','Combustible'],['traccion','Tracción'],['trans','Transmisión'],['pa','Pasajeros'],['tveh','Tipo de vehículo'],['cab','Cabina'],['peso','Peso bruto']];
+const smdaAplica=v=>!!v&&(v.st==='IQQ'||!!(v.zof&&v.zof.docIngreso));
+function smdaFoto(v){ try{ const ef=zofEf(v), o={}; SMDA_CAMPOS.forEach(([k])=>{ o[k]=String(ef[k]??'').trim().toUpperCase(); }); return o; }catch(_){ return null; } }
+function smdaAnota(v,antes){
+  if(!v||!antes||!smdaAplica(v)) return [];
+  const desp=smdaFoto(v); if(!desp) return [];
+  const t=st(v.ch); t.smda=t.smda||[]; const cambios=[];
+  SMDA_CAMPOS.forEach(([k,n])=>{ if(antes[k]===desp[k]) return;
+    if(!antes[k]&&k!=='motor') return;   /* la app no tenía ese dato (p. ej. lo sugirió solo al editar): no se sabe si en Zofri está distinto, no se anota */
+    let e=t.smda.find(x=>x.campo===k&&!x.env);
+    if(e){ e.despues=desp[k]; e.fe=iso(); if(e.antes===e.despues) t.smda=t.smda.filter(x=>x!==e); }
+    else t.smda.push({campo:k,antes:antes[k],despues:desp[k],fe:iso(),env:false});
+    cambios.push(n); });
+  if(cambios.length) save();
+  return cambios;
+}
+const smdaPend=c=>((S[c]||{}).smda||[]).filter(x=>!x.env);
+const smdaNom=k=>(SMDA_CAMPOS.find(([a])=>a===k)||[k,k])[1];
+function smdaTexto(c){ const v=IDX[c]||{}, L=smdaPend(c), doc=(v.zof||{}).docIngreso;
+  return `${v.ma||''} ${v.mo||''} ${v.an||''} · chasis ${c}${doc?' · doc. ingreso '+doc:''}\n`+L.map(x=>`  - ${smdaNom(x.campo)}: dice ${x.antes||'(vacío)'} → debe decir ${x.despues||'(vacío)'}`).join('\n'); }
+/* 07/10/2026 (Andre): vindecoderz ya no muestra el N° de motor, así que hay que verlo en cada auto. Un auto no queda
+   "Listo para SMDA" hasta tener el N° de motor completo (no solo el código, ej. "D4HA-"). Entran a la lista los autos que
+   llegaron a patio desde SMDA_DESDE (o que ya tienen algún cambio anotado), sin vender ni archivar. */
+const SMDA_DESDE='2026-10-01';
+const motorDe=v=>{ try{ return String(zofEf(v).motor||'').trim().toUpperCase(); }catch(_){ return String((v.zof||{}).motor||'').trim().toUpperCase(); } };
+const motorOk=v=>{ const m=motorDe(v); return m.length>=8&&!m.endsWith('-'); };
+function smdaAutos(){
+  return V.filter(v=>v&&v.ch&&!v.baja&&!v.creando&&(smdaPend(v.ch).length||(v.st==='IQQ'&&!sold(v.ch)&&String(v.llp||'')>=SMDA_DESDE&&!motorOk(v))))
+    .map(v=>v.ch);
+}
+function pintaSmda(){
+  const box=$('#smdaList'), cnt=$('#smdaCnt'); if(!box) return;
+  const cs=smdaAutos(), ok=cs.filter(c=>motorOk(IDX[c])), falta=cs.length-ok.length;
+  $('#boxSmda').hidden=!cs.length;
+  if(cnt) cnt.innerHTML=cs.length?(`<b style="color:var(--green)">${ok.length} listo${ok.length===1?'':'s'} para SMDA</b>`+(falta?` · <b style="color:#C98A12">${falta} sin N° de motor</b> (revísalo en el auto)`:'')):'';
+  const esc=t=>String(t||'').replace(/</g,'&lt;');
+  box.innerHTML=cs.sort((a,b)=>motorOk(IDX[a])-motorOk(IDX[b])).map(c=>{const v=IDX[c], mOk=motorOk(v), L=smdaPend(c);
+    return `<div style="border:1px solid ${mOk?'var(--line)':'#C98A12'};border-radius:11px;padding:11px;margin-bottom:9px">
+    <div class="r1" style="margin-bottom:6px"><h3 style="font-family:var(--disp);font-size:15px;margin:0">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-size:12px">${c}</span></h3>
+      <span class="tag" style="color:#fff;background:${mOk?'#2E8B57':'#C98A12'}">${mOk?'✓ Listo':'Falta N° de motor'}</span></div>
+    ${mOk?'':`<div class="xrow" style="gap:8px;align-items:center;margin:0 0 6px"><input data-smdamot="${c}" value="${esc(motorDe(v))}" placeholder="N° de motor, ej: D4HA-1234567" style="flex:1;text-transform:uppercase;font-family:var(--mono)"><button class="btn b-pri" data-smdamotok="${c}" style="flex:0 0 auto">Guardar</button></div>`}
+    ${L.map(x=>`<div class="xrow" style="padding:4px 0"><span style="font-family:var(--body);font-size:13.5px">${smdaNom(x.campo)}</span><span style="font-family:var(--mono);font-size:12.5px"><s style="color:var(--mute)">${esc(x.antes)||'(vacío)'}</s> → <b>${esc(x.despues)||'(vacío)'}</b></span></div>`).join('')||'<div class="mtr" style="margin:0">Sin otros cambios anotados.</div>'}
+    ${mOk&&L.length?`<div class="acts" style="margin-top:6px"><button class="btn b-sec" data-smdacp="${c}">⧉ Copiar</button><button class="btn b-pri" data-smdaenv="${c}">✓ SMDA enviada</button></div>`:''}</div>`}).join('');
+}
+document.addEventListener('click',async e=>{ const b=e.target.closest('[data-smdamotok]'); if(!b) return;
+  const c=b.dataset.smdamotok, inp=document.querySelector(`[data-smdamot="${c}"]`); const val=(inp?inp.value:'').trim().toUpperCase();
+  if(!(val.length>=8&&!val.endsWith('-'))){ toast('Escribe el N° de motor completo (código y número)'); return; }
+  await setZof(c,'motor',val); draw(); });
+document.addEventListener('click',async e=>{
+  const cp1=e.target.closest('[data-smdacp]'), en=e.target.closest('[data-smdaenv]'), all=e.target.closest('#smdaCopiaTodo'); if(!cp1&&!en&&!all) return;
+  if(all){ const cs=smdaAutos().filter(c=>motorOk(IDX[c])&&smdaPend(c).length); if(!cs.length){ toast('Todavía no hay autos listos (falta N° de motor)'); return; } if(cs.length) await cp('MODIFICACIONES PARA SMDA\n\n'+cs.map(smdaTexto).join('\n\n'),'Copiado: '+cs.length+' vehículo'+(cs.length===1?'':'s')); return; }
+  if(cp1){ await cp(smdaTexto(cp1.dataset.smdacp),'Copiado para la SMDA'); return; }
+  const c=en.dataset.smdaenv; if(!confirm('¿Ya enviaste a Zofri la SMDA de '+c+'?\n\nLos cambios quedan como enviados (siguen en el historial).')) return;
+  smdaPend(c).forEach(x=>{ x.env=true; x.envFe=iso(); }); await save(); draw(); toast('SMDA marcada como enviada');
+});
 function zofPuertas(v,ef){
   ef=ef||zofEf(v); const tv=ef.tveh;
   if(tv==='CAMIONETA'){ if(ef.cab==='REGULAR') return 2; if(ef.cab==='DOBLE') return 4; return null; }
@@ -8652,8 +8720,10 @@ document.addEventListener('click',async e=>{
 function zofMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+zofMarcador.toString()+')())'); }
 async function setZof(ch,key,val){
   const v=IDX[ch]; if(!v) return;
+  const smdaAntes=smdaFoto(v);
   v.zof=v.zof||{};
   if(val!==''&&val!=null) v.zof[key]=val; else delete v.zof[key];
+  { const sc=smdaAnota(v,smdaAntes); if(sc.length) toast('Anotado para SMDA: '+sc.join(', ')); }
   let prevZ=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prevZ=JSON.parse(r.value)}catch(_){}
   const iPrevZ=prevZ.findIndex(x=>x.ch===ch);
   if(iPrevZ>=0){prevZ[iPrevZ].zof=v.zof} else {prevZ.push({ch,zof:v.zof,soloZof:true})}
@@ -9613,7 +9683,7 @@ function emSimil(v){
       return {precio:Math.round(med/100000)*100000,n:L.length,txt,min:L[0],max:L[L.length-1]}; } }
   return null;
 }
-const emEstSuma=ch=>((S[ch]||{}).tasks||[]).filter(ta=>ta&&!ta.hecho&&+ta.est>0).reduce((a,ta)=>a+(+ta.est||0),0);
+const emEstSuma=ch=>((S[ch]||{}).tasks||[]).filter(ta=>ta&&!ta.hecho&&ta.cat!=='LAVADO'&&+ta.est>0).reduce((a,ta)=>a+(+ta.est||0),0);
 const emRealSuma=ch=>((S[ch]||{}).costs||[]).reduce((a,x)=>a+acor(x),0);
 function emResTot(f){ return f.lleg+emEstSuma(f.ch)+emRealSuma(f.ch); }
 /* Margen contra el costo total del vehículo, en pesos y en % sobre el costo (2026-09-29). */
@@ -10138,6 +10208,7 @@ function abrirEditVeh(ch){
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
   evSvActualizar();
   $('#evTrans').value=(v.zof&&v.zof.trans)||'';
+  if($('#evNMotor')) $('#evNMotor').value=(()=>{ try{ return zofEf(v).motor||''; }catch(_){ return (v.zof&&v.zof.motor)||''; } })();
   evTransTocado=false; evMotorTocado=!!v.motor; evCilTocado=!!v.cil; evPaTocado=!!v.pa;
   evSugerir();
   if(typeof listasNv==='function') listasNv();
@@ -10157,6 +10228,7 @@ $('#evOk').addEventListener('click',()=>{
   const ch=editing, v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
   const ma=$('#evMa').value.trim().toUpperCase(), mo=normalizaModelo($('#evMo').value.trim().toUpperCase());
   if(!ma||!mo){toast('Falta marca o modelo');return}
+  const smdaAntes=smdaFoto(v);   /* 07/10: para anotar lo que cambia en la declaración de Zofri */
   v.ma=ma; v.mo=mo;
   v.an=pnum($('#evAn').value)||null;
   const ceNuevo=$('#evCe').value.trim().toUpperCase();
@@ -10172,11 +10244,13 @@ $('#evOk').addEventListener('click',()=>{
   v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
   const evTransVal=$('#evTrans').value;
   if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
+  { const nm=$('#evNMotor')?$('#evNMotor').value.trim().toUpperCase():''; if(nm&&nm!==(smdaAntes||{}).motor){ v.zof=v.zof||{}; v.zof.motor=nm; } }
+  const smdaCambios=smdaAnota(v,smdaAntes);
   guardaCacheV(); draw();
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
   closeAll();
-  toast('Vehículo actualizado');
+  toast(smdaCambios.length?('Vehículo actualizado · anotado para SMDA: '+smdaCambios.join(', ')):'Vehículo actualizado');
 });
 
 /* ---------- EXPORTS ---------- */
