@@ -258,7 +258,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-10-2026 16:27<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-10-2026 20:09<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -479,6 +479,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shDato">
   <h3 id="dtT"></h3><div class="sb">Anota el N° de motor que ves en el auto. Si algo no coincide con lo anotado, corrígelo aquí: Andre lo revisa antes de mandarlo a Zofri. Deja en blanco lo que esté bien.</div>
+  <div id="dtEnv"></div>
   <div class="fld"><label for="dtMotor">N° de motor</label><input id="dtMotor" placeholder="Ej: D4HA-1234567" autocapitalize="characters"></div>
   <div class="fld"><label for="dtTr">Tracción <span id="dtTrAct" style="color:var(--mute);font-weight:400"></span></label><select id="dtTr"><option value="">Está bien / no sé</option><option value="4X2">4X2</option><option value="4X4">4X4</option></select></div>
   <div class="fld"><label for="dtTrans">Transmisión <span id="dtTransAct" style="color:var(--mute);font-weight:400"></span></label><select id="dtTrans"><option value="">Está bien / no sé</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
@@ -688,6 +689,10 @@ const AVISOSVEND_COL='avisosVend';
 let fbAvisosEscuchando=false;
 /* Insumos pedidos (de todos): para que cada vendedor vea su lista y no pida dos veces lo mismo */
 let INS={}, tocaIns=false;
+/* 07/10/2026: datos de vehículo enviados (tipo 'dato'), leídos de la nube: así Víctor/Bryan ven lo que mandaron y si Andre ya lo aplicó. */
+let DATOS={}; try{ const r0=localStorage.getItem('amkv_datos'); if(r0) DATOS=JSON.parse(r0)||{}; }catch(_){}
+const normMotor=x=>{ let t=String(x||'').toUpperCase().replace(/\s+/g,''); if(!t.includes('-')){ const m=t.match(/^([A-Z][0-9][A-Z]{2})([A-Z0-9]{4,})$/); if(m) t=m[1]+'-'+m[2]; } return t; };
+const datosDe=ch=>Object.values(DATOS).filter(x=>x.ch===ch).sort((a,b)=>b.ts-a.ts);
 try{ Promise.resolve(window.storage.get('amkv_ins')).then(r=>{ if(r&&r.value){ INS=Object.assign(JSON.parse(r.value),INS); pintaInsMios(); } }).catch(()=>{}); }catch(_){}
 function insLista(){
   const m=Object.assign({},INS);
@@ -718,6 +723,7 @@ function fbAvisosVendListen(){
       if(String(chg.doc.id).indexOf('cons_')===0){ csDeNube(chg); return; }
       if(chg.type==='removed') return;
       const d=chg.doc.data()||{}; const ts=Number(chg.doc.id);
+      if(d.tipo==='dato'){ DATOS[ts]={ts, ch:d.ch||'', campo:d.campo||'', valor:d.valor||'', actual:d.actual||'', vendedor:d.vendedor||'', atendido:!!d.atendido, aplicado:!!d.aplicado, descartado:!!d.descartado}; try{localStorage.setItem('amkv_datos',JSON.stringify(DATOS))}catch(_){} if(typeof pintaDtEnv==='function') pintaDtEnv(); }
       if(d.tipo==='insumo'){ INS[ts]={ts, item:d.item||'', vendedor:d.vendedor||'', atendido:!!d.atendido, compradoFe:d.compradoFe||'', noNec:!!d.noNec}; tocaIns=true; }
       if(!d.atendido) return;
       if(d.tipo==='venta'&&ST.ventas){ const it=ST.ventas.find(x=>x.ts===ts); if(it&&!it.atendido){it.atendido=true;tocado=true} }
@@ -1003,6 +1009,12 @@ $('#pdOk').addEventListener('click',()=>{
    datos que no coinciden (tracción, transmisión, color, pasajeros, otro). Cada dato va como aviso tipo 'dato' a Andre:
    el N° de motor entra solo a Sistema; lo demás Andre lo confirma antes de la SMDA a Zofri. */
 let dtCh=null;
+const DT_NOM={motor:'N° de motor',traccion:'Tracción',trans:'Transmisión',color:'Color',pa:'Pasajeros',otro:'Otro'};
+function pintaDtEnv(){ const el=document.getElementById('dtEnv'); if(!el||!dtCh) return; const L=datosDe(dtCh);
+  const f=t=>{ const d=new Date(+t); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+  el.innerHTML=L.length?`<div style="border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin:0 0 12px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">Ya enviado de este auto</div>`
+    +L.map(x=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:13px"><span><b>${DT_NOM[x.campo]||x.campo}:</b> <span style="font-family:var(--mono)">${String(x.valor).replace(/</g,'&lt;')}</span><br><span style="color:var(--mute);font-size:11.5px">${x.vendedor} · ${f(x.ts)}</span></span><span style="white-space:nowrap;font-size:12px;font-weight:700;color:${x.aplicado?'var(--green)':(x.descartado?'var(--red)':'var(--amber)')}">${x.aplicado?'✓ Andre lo aplicó':(x.descartado?'✕ Andre lo descartó':(x.atendido?'✓ visto':'⏳ por revisar'))}</span></div>`).join('')
+    +`<div style="color:var(--mute);font-size:11.5px;margin-top:4px">¿Te equivocaste? Escribe el dato correcto abajo y envíalo de nuevo: si Andre todavía no lo revisa, reemplaza al anterior.</div></div>`:''; }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-dato]'); if(!b) return; const v=IDX[b.dataset.dato]; if(!v) return;
   if(pideQuien('anotar datos del vehículo')) return;
   dtCh=v.ch; $('#dtT').textContent=v.ma+' '+v.mo+' '+(v.an||'')+' · '+v.ch;
@@ -1010,11 +1022,11 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-dato]'); 
   const t=(String(v.tr||'').toUpperCase().includes('4X4'))?'4X4':'4X2';
   $('#dtTrAct').textContent='(dice '+t+')'; $('#dtTransAct').textContent=v.trans?'(dice '+String(v.trans).toLowerCase().replace('automatica','automática').replace('mecanica','mecánica')+')':'';
   $('#dtCeAct').textContent=v.ce?'(dice '+String(v.ce).toUpperCase()+')':''; $('#dtPaAct').textContent=v.pa?'(dice '+v.pa+')':'';
-  openSheet('shDato'); });
+  pintaDtEnv(); openSheet('shDato'); });
 $('#dtOk').addEventListener('click',()=>{
   const v=IDX[dtCh]; if(!v){toast('Elige un vehículo');return}
   const items=[], up=x=>String(x||'').trim().toUpperCase();
-  const mo=up($('#dtMotor').value).replace(/\s+/g,'');
+  const mo=normMotor($('#dtMotor').value);
   if(mo){ if(mo.length<8||mo.endsWith('-')){ toast('El N° de motor va completo: código y número (ej: D4HA-1234567)'); return; } items.push(['motor',mo,'']); }
   const trAct=(up(v.tr).includes('4X4'))?'4X4':'4X2';
   if($('#dtTr').value&&$('#dtTr').value!==trAct) items.push(['traccion',$('#dtTr').value,trAct]);
@@ -1027,7 +1039,11 @@ $('#dtOk').addEventListener('click',()=>{
   if(rebote()) return;
   const vend=(ST.vend||'').trim(); let ts=Date.now();
   for(const [campo,valor,actual] of items){
-    outEncola({col:AVISOSVEND_COL, doc:String(ts), unico:true, lbl:'dato', data:{tipo:'dato', ch:dtCh, campo, valor, actual, vendedor:vend, ts, atendido:false}});
+    /* si ya mandó ese mismo dato y Andre no lo ha revisado, se reemplaza ese (no se acumulan dos) */
+    const prev=datosDe(dtCh).find(x=>x.campo===campo&&!x.atendido&&campo!=='otro'); const id=prev?prev.ts:ts;
+    const data={tipo:'dato', ch:dtCh, campo, valor, actual, vendedor:vend, ts:id, atendido:false};
+    DATOS[id]=Object.assign({},data); try{localStorage.setItem('amkv_datos',JSON.stringify(DATOS))}catch(_){}
+    outEncola({col:AVISOSVEND_COL, doc:String(id), unico:true, lbl:'dato', data});
     ts++; }
   toast(msgEnvio(items.length>1?(items.length+' datos anotados · se envían a Andre'):'Anotado · se envía a Andre'));
   dtCh=null; closeAll();
@@ -1924,7 +1940,7 @@ const carsC=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
    <div class="acts a3"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
-    <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos</button>
+    <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos${datosDe(v.ch).some(x=>x.campo==='motor')?' ✓':''}</button>
     <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`};
  if(ordenStock==='cont'){ $('#list').innerHTML=L.length?ctrHTML(L,!!toks.length,cardV):'<div class="empty">Sin resultados.</div>'; return; }
  $('#list').innerHTML=L.length?L.map(cardV).join('')

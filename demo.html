@@ -335,7 +335,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     <div class="dash" id="dash"></div>
     <div class="box" id="boxTaller" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Trabajos pendientes</h3>
+      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Trabajos pendientes <span id="tlHd" style="color:var(--mute);font-family:var(--mono);font-size:13px;font-weight:400"></span></h3>
         <button class="b-und" style="flex:0 0 auto" id="tlAdd">＋ Anotar</button></div>
       <div class="chips" role="tablist" id="tlChips" style="margin-top:0">
         <button class="chip" data-tv="grupo" aria-selected="true">Por trabajo</button>
@@ -346,7 +346,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="tlList"></div>
     </div>
     <div class="box" id="boxSmda" style="margin-top:13px" hidden>
-      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Pendiente para SMDA (Zofri)</h3>
+      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Pendiente para SMDA <span id="smdaHd" style="color:var(--mute);font-family:var(--mono);font-size:13px;font-weight:400"></span></h3>
         <button class="b-und" style="flex:0 0 auto" id="smdaCopiaTodo">⧉ Copiar los listos</button></div>
       <p class="cnt" id="smdaCnt" style="margin:0 0 9px"></p>
       <button class="btn b-sec" id="zCompAbre" style="width:100%;margin:0 0 9px">🔎 Comparar con el Z de Zofri</button>
@@ -359,13 +359,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="smdaList"></div>
     </div>
     <div class="box" id="boxGen" style="margin-top:13px">
-      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Gastos generales</h3>
+      <div class="r1" style="margin-bottom:8px"><h3 style="margin:0">Gastos generales <span id="genHd" style="color:var(--mute);font-family:var(--mono);font-size:13px;font-weight:400"></span></h3>
         <button class="b-und" style="flex:0 0 auto" id="genAdd">＋ Anotar</button></div>
       <p class="cnt" style="margin:0 0 9px">Combustible, insumos de aseo o taller, y otros gastos que no son de un vehículo en particular.</p>
       <div id="genList"></div>
     </div>
-    <h2 style="font-size:17px;margin-top:18px">Movimientos</h2>
-    <div id="lMov"></div>
+    <div class="box" id="boxMov" style="margin-top:13px">
+      <h3 style="margin:0 0 8px">Movimientos <span id="movHd" style="color:var(--mute);font-family:var(--mono);font-size:13px;font-weight:400"></span></h3>
+      <div id="lMov"></div>
+    </div>
   </section>
 
   <section class="panel" id="pVitrina">
@@ -708,7 +710,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 16:20<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 20:09<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1853,7 +1855,8 @@ function fbStartListening(){
       }));
       fbDibujaPronto();
     }
-    try{ aseguraOblig(); }catch(e){ console.error('aseguraOblig',e); }   /* 07/10/2026: lavado + pisos, con los costos ya bajados */
+    try{ aseguraOblig(); }catch(e){ console.error('aseguraOblig',e); }
+    try{ aplicaMotoresVend(); }catch(e){ console.error('aplicaMotoresVend',e); }   /* 07/10/2026: lavado + pisos, con los costos ya bajados */
   }, e=>console.error('fbListen', e));
 }
 
@@ -3210,7 +3213,8 @@ function drawResumen(){
       for(const a of ab) if(inPer(a.f)) cos.push({cat:x.cat,amt:a.m,date:a.f,ts:x.ts,ch:c,post:!!x.post});
     }
   }
-  const gen=GEN.filter(g=>inPer(g.fecha));   /* combustible, insumos de aseo/taller, otros: no son de un vehículo */
+  const gen=GEN.filter(g=>inPer(g.fecha));
+  { const h=$('#genHd'); if(h) h.textContent=gen.length?'· '+gen.length:''; const m=$('#movHd'); if(m) m.textContent=(cos.length+ven.length)?'· '+(cos.length+ven.length):''; }   /* combustible, insumos de aseo/taller, otros: no son de un vehículo */
   const tv2=ven.reduce((a,b)=>a+b.price,0), tc=cos.reduce((a,b)=>a+b.amt,0)+gen.reduce((a,b)=>a+b.monto,0);
   const tpv=cos.filter(x=>x.post).reduce((a,b)=>a+b.amt,0);
   const lbl={hoy:'hoy','7':'en 7 días',mes:'este mes',all:'en total'}[per];
@@ -5364,12 +5368,13 @@ function fbAvisosVendListen(){
         const d=chg.doc.data()||{};
         AVISOSVEND.push({ts:Number(ts)||ts, tipo:d.tipo||'', ch:d.ch||'', precio:d.precio||0,
           monto:d.monto||0, fecha:d.fecha||'', nota:d.nota||'', vendedor:d.vendedor||'', atendido:!!d.atendido,
-          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo, montoCompra:d.montoCompra||0, compradoFe:d.compradoFe||'', noNec:!!d.noNec});
+          cat:d.cat||'', key:d.key||'', item:d.item||'', esNuevo:!!d.esNuevo, montoCompra:d.montoCompra||0, compradoFe:d.compradoFe||'', noNec:!!d.noNec, campo:d.campo||'', valor:d.valor||'', actual:d.actual||'', aplicado:!!d.aplicado, descartado:!!d.descartado});
         if(d.tipo==='pendiente') procesaPendienteVend({ts:Number(ts)||ts, ch:d.ch||'', nota:d.nota||'', cat:d.cat||'', vendedor:d.vendedor||''});
       }
     });
     try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
     pintaPendientes(); pintaInsumos(); sincNombresInsumos();
+    try{ aplicaMotoresVend(); pintaSmda(); }catch(e){ console.error('datosVend',e); }
     if(tocaCons){ try{window.storage.set('amk_consultas_cache', JSON.stringify(CONSULTAS))}catch(_){} pintaConsultas(); }
   }, e=>console.error('fbAvisosVendListen', e));
 }
@@ -5791,6 +5796,8 @@ function pendientesGlobales(){
   if(pendVeh.length) p.push({texto:pendVeh.length+' pendiente'+(pendVeh.length===1?'':'s')+' de vehículo reportado'+(pendVeh.length===1?'':'s'), ir:()=>abrirAvisoPendiente(pendVeh[0])});
   const pendIns=AVISOSVEND.filter(x=>x.tipo==='insumo'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendIns.length) p.push({texto:pendIns.length+' insumo'+(pendIns.length===1?'':'s')+' bajo'+(pendIns.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('mes'); setTimeout(()=>{const b=$('#boxInsumos'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
+  const pendDato=datosVendPend();
+  if(pendDato.length) p.push({texto:pendDato.length+' dato'+(pendDato.length===1?'':'s')+' de vehículo anotado'+(pendDato.length===1?'':'s')+' por Víctor/Bryan por confirmar', ir:()=>{show('pResumen'); setTimeout(()=>{const b=$('#boxSmda'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth'}); }},250);}});
   const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
@@ -6877,6 +6884,10 @@ $('#tkAdd').addEventListener('click',async()=>{
   $('#tkNota').value=''; $('#tkEst').value=''; tkImpCh=null; await save(); drawTaskSheet(); draw(); toast(msg);
 });
 
+/* 07/10/2026 (Andre): en Hoy todo es plegable. PLG recuerda qué grupos internos (<details data-plg>) dejó abiertos,
+   para que no se cierren solos cada vez que la pantalla se redibuja. */
+const PLG=new Set((()=>{ try{ return JSON.parse(localStorage.getItem('amk_plg')||'[]'); }catch(_){ return []; } })());
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.dataset||!d.dataset.plg) return; if(d.open) PLG.add(d.dataset.plg); else PLG.delete(d.dataset.plg); try{ localStorage.setItem('amk_plg',JSON.stringify([...PLG])); }catch(_){} },true);
 function drawTaller(){
   const items=[];
   for(const c in S) for(const x of (S[c].tasks||[])) if(IDX[c]&&!sold(c)&&x.cat!=='LAVADO') items.push({...x,ch:c});
@@ -6885,6 +6896,7 @@ function drawTaller(){
   $('#tlCnt').textContent=pen.length+' pendiente'+(pen.length===1?'':'s')+' · '+lis.length+' terminado'+(lis.length===1?'':'s')
     +(sinVer.length?' · '+sinVer.length+' estimado'+(sinVer.length===1?'':'s')+' del embarque sin revisar (no cuentan hasta que veas el auto)':'');
   const nSin=V.filter(v=>{const r=revEstado(v.ch);return r&&r.k==='sin'}).length;
+  { const h=$('#tlHd'); if(h) h.textContent=pen.length?'· '+pen.length:''; }
   if(nSin) $('#tlCnt').textContent+=' · '+nSin+' auto'+(nSin===1?'':'s')+' en patio sin revisar';
   const box=$('#tlList');
   const linea=x=>{const v=IDX[x.ch];
@@ -6899,24 +6911,24 @@ function drawTaller(){
   if(tlView==='grupo'){
     const g={}; for(const x of pen)(g[x.cat]=g[x.cat]||[]).push(x);
     const ks=Object.keys(g).sort((a,b)=>g[b].length-g[a].length);
-    box.innerHTML=ks.length?ks.map(k=>`<div style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px">
-      <div class="r1" style="margin-bottom:6px"><h3 style="margin:0">${TN[k]||k} <span style="color:var(--mute);font-family:var(--mono);font-size:13px">${g[k].length}</span></h3>
-      <button class="b-und" style="flex:0 0 auto" data-tshare="${k}">➦ Enviar lista</button></div>
-      ${g[k].some(x=>x.est)?`<div class="mtr" style="margin:-2px 0 6px">Saldo del grupo: ${clp(g[k].reduce((a,x)=>a+saldo(x),0))}</div>`:''}
-      ${g[k].map(linea).join('')}</div>`).join('')
+    box.innerHTML=ks.length?ks.map(k=>`<details data-plg="tg_${k}" ${PLG.has('tg_'+k)?'open':''} style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px">
+      <summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:15px">${TN[k]||k} <span style="color:var(--mute);font-family:var(--mono);font-size:13px">${g[k].length}</span></b>
+      <span style="color:var(--mute);font-size:12.5px">${g[k].some(x=>x.est)?clp(g[k].reduce((a,x)=>a+saldo(x),0))+' ':''}▾</span></summary>
+      <div class="r1" style="margin:8px 0 6px;justify-content:flex-end"><button class="b-und" style="flex:0 0 auto" data-tshare="${k}">➦ Enviar lista</button></div>
+      ${g[k].map(linea).join('')}</details>`).join('')
      :'<div class="empty">No hay trabajos pendientes.<br>Usa “Anotar pendiente” arriba.</div>';
   }else if(tlView==='auto'){
     const g={}; for(const x of pen)(g[x.ch]=g[x.ch]||[]).push(x);
     const ks=Object.keys(g).sort((a,b)=>g[b].length-g[a].length);
     box.innerHTML=ks.length?ks.map(c=>{const v=IDX[c];
-      return `<div style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px"><h3 style="font-family:var(--disp);font-size:15px;margin:0 0 6px">${v.ma} ${v.mo} ${v.an||''}
-        <span style="color:var(--mute);font-family:var(--mono);font-size:12px">${c}</span></h3>
+      return `<details data-plg="ta_${c}" ${PLG.has('ta_'+c)?'open':''} style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px"><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-family:var(--disp);font-size:15px">${v.ma} ${v.mo} ${v.an||''}
+        <span style="color:var(--mute);font-family:var(--mono);font-size:12px;font-weight:400">${c}</span></b><span style="color:var(--mute);font-size:12.5px">${g[c].length} ▾</span></summary>
         ${g[c].map(x=>`<div class="xrow" style="padding:6px 0;align-items:flex-start">
           <span style="font-family:var(--body);font-size:13.5px">${TN[x.cat]||x.cat}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span>
           <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
             <span class="tag t-or">Pendiente</span>
             <button class="b-und" style="padding:6px 10px" data-tdone2="${c}|${x.ts}">✓ Marcar listo</button></span></div>`).join('')}
-      </div>`}).join('')
+      </details>`}).join('')
      :'<div class="empty">No hay trabajos pendientes.</div>';
   }else{
     box.innerHTML=lis.length?`<div style="border:1px solid var(--line);border-radius:11px;padding:11px">${lis.slice().reverse().map(linea).join('')}</div>`
@@ -8463,22 +8475,78 @@ document.addEventListener('click',async e=>{
       if(e0){ e0.antes=d.antes; e0.despues=d.despues; e0.fe=iso(); e0.origenZ=true; } else t.smda.push({campo:d.campo,antes:d.antes,despues:d.despues,fe:iso(),env:false,origenZ:true}); n++; });
     await save(); zComp=null; $('#zCompTxt').value=''; $('#zCompWrap').hidden=true; pintaZComp(); draw(); toast(n+' cambio'+(n===1?'':'s')+' anotado'+(n===1?'':'s')+' para SMDA'); }
 });
+/* 07/10/2026 (Andre): datos que anotan Víctor/Bryan desde Vendedores ("🔧 Motor / datos", aviso tipo 'dato').
+   El N° de motor entra solo (si el auto no tenía uno completo, o ya era el mismo) -- y queda en la SMDA con quién lo anotó.
+   Lo demás (tracción, transmisión, color, pasajeros, otro) espera que Andre lo confirme: ✓ aplica el cambio (y se anota
+   para SMDA), ✕ lo descarta. Solo se aplica a autos cuyos costos ya bajaron de la nube (fbCostosOk), para no pisarla. */
+const datosVendPend=()=>AVISOSVEND.filter(x=>x.tipo==='dato'&&!x.atendido&&IDX[x.ch]);
+/* N° de motor con guion entre código y número, como va en Zofri: "D4HAEU027920" → "D4HA-EU027920". */
+const normMotor=x=>{ let t=String(x||'').toUpperCase().replace(/\s+/g,''); if(!t.includes('-')){ const m=t.match(/^([A-Z][0-9][A-Z]{2})([A-Z0-9]{4,})$/); if(m) t=m[1]+'-'+m[2]; } return t; };
+async function marcaDato(ts,extra){ const av=AVISOSVEND.find(x=>String(x.ts)===String(ts)); if(av) Object.assign(av,extra);
+  try{ window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND)); }catch(_){}
+  if(fbReady){ try{ await fbDb.collection(AVISOSVEND_COL).doc(String(ts)).set(extra,{merge:true}); }catch(e){ console.error('marcaDato',e); } } }
+async function aplicaDatoVend(av){
+  const v=IDX[av.ch]; if(!v) return false;
+  const val=av.campo==='motor'?normMotor(av.valor):String(av.valor||'').trim().toUpperCase(), antes=smdaFoto(v);
+  if(av.campo==='motor') await setZof(v.ch,'motor',val);
+  else if(av.campo==='trans') await setZof(v.ch,'trans',val);
+  else { if(av.campo==='traccion') v.tr=val; else if(av.campo==='color') v.ce=val; else if(av.campo==='pa') v.pa=pnum(val)||v.pa; else return false;
+    smdaAnota(v,antes); guardaCacheV(); if(typeof fbSchedulePush==='function') fbSchedulePush(); if(typeof webSyncPronto==='function') webSyncPronto(); }
+  const k={motor:'motor',trans:'trans',traccion:'traccion',color:'color',pa:'pa'}[av.campo];
+  (st(v.ch).smda||[]).forEach(x=>{ if(!x.env&&x.campo===k) x.por=av.vendedor||''; });
+  await save(); await marcarAvisoAtendido(av.ts); await marcaDato(av.ts,{aplicado:true}); return true;
+}
+let aplicandoMot=false;
+async function aplicaMotoresVend(){
+  if(aplicandoMot) return; aplicandoMot=true;
+  try{ for(const av of datosVendPend().filter(x=>x.campo==='motor')){ const v=IDX[av.ch];
+      if(!fbCostosOk.has(av.ch)) continue;
+      const val=normMotor(av.valor);
+      if(!motorOk(v)||motorDe(v)===val){ await aplicaDatoVend(av); toast('N° de motor de '+av.ch+' anotado por '+(av.vendedor||'vendedor')); } }
+  } finally { aplicandoMot=false; draw(); }
+}
+document.addEventListener('click',async e=>{
+  const ok=e.target.closest('[data-dtap]'), no=e.target.closest('[data-dtno]'); if(!ok&&!no) return;
+  const av=AVISOSVEND.find(x=>String(x.ts)===(ok||no).dataset[ok?'dtap':'dtno']); if(!av) return;
+  if(ok&&av.campo!=='otro'){ await aplicaDatoVend(av); toast('Aplicado'+(smdaAplica(IDX[av.ch])?' · anotado para SMDA':'')); }
+  else { await marcarAvisoAtendido(av.ts); if(no) await marcaDato(av.ts,{descartado:true}); toast(no?'Descartado':'Visto'); }
+  draw();
+});
+function pintaDatosHist(){
+  const L=AVISOSVEND.filter(x=>x.tipo==='dato').sort((a,b)=>b.ts-a.ts); if(!L.length) return '';
+  const esc=t=>String(t||'').replace(/</g,'&lt;'), nom=k=>k==='otro'?'Otro':smdaNom(k);
+  const f=t=>{ const d=new Date(+t); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+  return `<details style="margin:0 0 10px"><summary style="cursor:pointer;font-size:13px;font-weight:700">Todo lo que enviaron Víctor / Bryan (${L.length})</summary>`
+   +L.map(x=>{const v=IDX[x.ch]||{}; return `<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:12.5px"><span>${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="font-family:var(--mono);color:var(--mute)">${x.ch}</span><br><b>${nom(x.campo)}:</b> <span style="font-family:var(--mono)">${esc(x.campo==='motor'?normMotor(x.valor):x.valor)}</span> <span style="color:var(--mute)">· ${esc(x.vendedor)} · ${f(x.ts)}</span></span><span style="white-space:nowrap;font-weight:700;color:${x.aplicado?'var(--green)':(x.descartado?'var(--red)':(x.atendido?'var(--mute)':'#C98A12'))}">${x.aplicado?'✓ aplicado':(x.descartado?'✕ descartado':(x.atendido?'visto':'⏳ por revisar'))}</span></div>`}).join('')+'</details>';
+}
+function pintaDatosVend(){
+  const L=datosVendPend(); if(!L.length) return pintaDatosHist();
+  const esc=t=>String(t||'').replace(/</g,'&lt;'), nom=k=>k==='otro'?'Otro':smdaNom(k);
+  return `<div style="border:1px solid #C98A12;border-radius:11px;padding:11px;margin-bottom:10px"><div style="font-weight:700;font-size:13.5px;margin:0 0 6px">📲 Anotado por Víctor / Bryan · confírmalo</div>`
+   +L.map(av=>{const v=IDX[av.ch]; return `<div style="padding:6px 0;border-top:1px solid var(--line)"><div style="font-size:13px">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">${av.ch}</span> · <span style="color:var(--mute)">${esc(av.vendedor)}</span></div>
+     <div style="font-size:13.5px;margin:2px 0 4px"><b>${nom(av.campo)}</b>: ${av.actual?`dice <s style="color:var(--mute)">${esc(av.actual)}</s> → `:''}<b>${esc(av.campo==='motor'?normMotor(av.valor):av.valor)}</b>${av.campo==='motor'&&motorOk(v)&&motorDe(v)!==normMotor(av.valor)?` <span style="color:var(--red);font-size:12px">(la app ya tiene ${esc(motorDe(v))})</span>`:''}</div>
+     <div class="acts"><button class="btn b-pri" data-dtap="${av.ts}">${av.campo==='otro'?'✓ Visto':'✓ Es correcto, aplicar'}</button>${av.campo==='otro'?'':`<button class="btn b-sec" data-dtno="${av.ts}">✕ No</button>`}</div></div>`}).join('')+'</div>'+pintaDatosHist();
+}
 function pintaSmda(){
   const box=$('#smdaList'), cnt=$('#smdaCnt'); if(!box) return;
   const cs=smdaAutos(), ok=cs.filter(c=>motorOk(IDX[c])), falta=cs.length-ok.length;
   $('#boxSmda').hidden=false;
   if(cnt) cnt.innerHTML=!cs.length?'Sin cambios pendientes.':(`<b style="color:var(--green)">${ok.length} listo${ok.length===1?'':'s'} para SMDA</b>`+(falta?` · <b style="color:#C98A12">${falta} sin N° de motor</b> (revísalo en el auto)`:''));
   const esc=t=>String(t||'').replace(/</g,'&lt;');
-  box.innerHTML=cs.sort((a,b)=>motorOk(IDX[a])-motorOk(IDX[b])).map(c=>{const v=IDX[c], mOk=motorOk(v), L=smdaPend(c);
+  { const h=$('#smdaHd'); if(h) h.textContent=(cs.length||datosVendPend().length)?'· '+(cs.length+datosVendPend().length):''; }
+  const tarj=c=>{const v=IDX[c], mOk=motorOk(v), L=smdaPend(c);
     return `<div style="border:1px solid ${mOk?'var(--line)':'#C98A12'};border-radius:11px;padding:11px;margin-bottom:9px">
     <div class="r1" style="margin-bottom:6px"><h3 style="font-family:var(--disp);font-size:15px;margin:0">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-size:12px">${c}</span></h3>
       <span class="tag" style="color:#fff;background:${mOk?'#2E8B57':'#C98A12'}">${mOk?'✓ Listo':'Falta N° de motor'}</span></div>
     ${mOk?'':`<div class="xrow" style="gap:8px;align-items:center;margin:0 0 6px"><input data-smdamot="${c}" value="${esc(motorDe(v))}" placeholder="N° de motor, ej: D4HA-1234567" style="flex:1;text-transform:uppercase;font-family:var(--mono)"><button class="btn b-pri" data-smdamotok="${c}" style="flex:0 0 auto">Guardar</button></div>`}
-    ${L.map(x=>`<div class="xrow" style="padding:4px 0"><span style="font-family:var(--body);font-size:13.5px">${smdaNom(x.campo)}</span><span style="font-family:var(--mono);font-size:12.5px"><s style="color:var(--mute)">${esc(x.antes)||'(vacío)'}</s> → <b>${esc(x.despues)||'(vacío)'}</b></span></div>`).join('')||'<div class="mtr" style="margin:0">Sin otros cambios anotados.</div>'}
-    ${mOk&&L.length?`<div class="acts" style="margin-top:6px"><button class="btn b-sec" data-smdacp="${c}">⧉ Copiar</button><button class="btn b-pri" data-smdaenv="${c}">✓ SMDA enviada</button></div>`:''}</div>`}).join('');
+    ${L.map(x=>`<div class="xrow" style="padding:4px 0"><span style="font-family:var(--body);font-size:13.5px">${smdaNom(x.campo)}</span><span style="font-family:var(--mono);font-size:12.5px"><s style="color:var(--mute)">${esc(x.antes)||'(vacío)'}</s> → <b>${esc(x.despues)||'(vacío)'}</b>${x.por?` <span style="color:var(--mute);font-size:11px">· ${esc(x.por)}</span>`:''}</span></div>`).join('')||'<div class="mtr" style="margin:0">Sin otros cambios anotados.</div>'}
+    ${mOk&&L.length?`<div class="acts" style="margin-top:6px"><button class="btn b-sec" data-smdacp="${c}">⧉ Copiar</button><button class="btn b-pri" data-smdaenv="${c}">✓ SMDA enviada</button></div>`:''}</div>`};
+  const sinM=cs.filter(c=>!motorOk(IDX[c])), listos=cs.filter(c=>motorOk(IDX[c]));
+  const grp=(id,tit,L,col)=>L.length?`<details data-plg="${id}" ${PLG.has(id)?'open':''} style="border:1px solid var(--line);border-radius:11px;padding:10px 11px;margin-bottom:9px"><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:14px;color:${col}">${tit} <span style="font-family:var(--mono);font-size:13px">${L.length}</span></b><span style="color:var(--mute)">▾</span></summary><div style="margin-top:8px">${L.map(tarj).join('')}</div></details>`:'';
+  box.innerHTML=pintaDatosVend()+grp('smda_sin','Falta N° de motor',sinM,'#C98A12')+grp('smda_ok','Listos para SMDA',listos,'var(--green)');
 }
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-smdamotok]'); if(!b) return;
-  const c=b.dataset.smdamotok, inp=document.querySelector(`[data-smdamot="${c}"]`); const val=(inp?inp.value:'').trim().toUpperCase();
+  const c=b.dataset.smdamotok, inp=document.querySelector(`[data-smdamot="${c}"]`); const val=normMotor(inp?inp.value:'');
   if(!(val.length>=8&&!val.endsWith('-'))){ toast('Escribe el N° de motor completo (código y número)'); return; }
   await setZof(c,'motor',val); draw(); });
 document.addEventListener('click',async e=>{
@@ -8852,7 +8920,7 @@ async function setZof(ch,key,val){
   if(iPrevZ>=0){prevZ[iPrevZ].zof=v.zof} else {prevZ.push({ch,zof:v.zof,soloZof:true})}
   try{await window.storage.set(EXK,JSON.stringify(prevZ))}catch(_){}
   if(typeof guardaCacheV==='function') guardaCacheV();
-  pintaEmZofri();
+  try{ pintaEmZofri(); }catch(e){ console.error('pintaEmZofri',e); }   /* que un error al repintar no corte lo que viene después (p. ej. marcar el aviso de Víctor como aplicado) */
 }
 /* Pega varios VIN de una vez: cada VIN de 17 caracteres se asigna al vehículo del embarque cuyo chasis (últimos 8) coincide. */
 async function zofGuardarVins(texto){
@@ -10370,7 +10438,7 @@ $('#evOk').addEventListener('click',()=>{
   v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
   const evTransVal=$('#evTrans').value;
   if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
-  { const nm=$('#evNMotor')?$('#evNMotor').value.trim().toUpperCase():''; if(nm&&nm!==(smdaAntes||{}).motor){ v.zof=v.zof||{}; v.zof.motor=nm; } }
+  { const nm=$('#evNMotor')?normMotor($('#evNMotor').value):''; if(nm&&nm!==(smdaAntes||{}).motor){ v.zof=v.zof||{}; v.zof.motor=nm; } }
   const smdaCambios=smdaAnota(v,smdaAntes);
   guardaCacheV(); draw();
   if(typeof fbSchedulePush==='function') fbSchedulePush();
@@ -10707,7 +10775,7 @@ function secBarArma(pane){
 function secMuestra(box){ if(box&&box.classList.contains('colp')) colPon(box,false); if(!box||!box.classList.contains('secOff')) return; const pane=box.closest('.secPane'); if(pane&&pane._secVer) pane._secVer(box.dataset.secId); }
 function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
 
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes']);
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen']);
 </script>
 </body>
 </html>
