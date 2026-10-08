@@ -5,6 +5,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+/* 08/10/2026 (Andre): al girar el celular a horizontal, iPhone agrandaba las letras solo y la app se descuadraba. Esto lo impide. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
  --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#93A4A7;--paper:#152B35;--card:#183640;--line:#3D5D6B;
  --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
@@ -258,7 +260,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-10-2026 20:09<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->08-10-2026 15:44<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>

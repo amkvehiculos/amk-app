@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+/* 08/10/2026 (Andre): al girar el celular a horizontal, iPhone agrandaba las letras solo y la app se descuadraba. Esto lo impide. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
  --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#93A4A7;--paper:#152B35;--card:#183640;--line:#3D5D6B;
  --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
@@ -710,7 +712,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 14:59<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 15:44<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1083,14 +1085,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
 
   <div id="secEst" hidden>
-<div class="fld"><label>Agregar trabajo pendiente</label><div class="catg" id="tkCat"></div></div>
+  <div id="tkList"></div>
+<div class="fld" style="margin-top:14px"><label>Agregar trabajo pendiente</label><div class="catg" id="tkCat"></div></div>
   <div class="fld"><label for="tkNota">Detalle (opcional)</label>
     <input id="tkNota" placeholder="Ej: golpe puerta trasera derecha"></div>
   <div class="fld"><label for="tkEst">Costo estimado (opcional)</label>
     <input id="tkEst" inputmode="numeric" placeholder="$0"><div class="sug" id="tkSug"></div></div>
   <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="tkImp" style="width:18px;height:18px"> ⚡ Imprevisto <span style="color:var(--mute);font-size:12px">— salió después (probándolo, en ruta), no estaba previsto</span></label>
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="tkAdd">Agregar</button></div>
-  <div id="tkList"></div>
   </div>
 
   <div id="secCorea" hidden>
@@ -1106,6 +1108,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
   <div id="secReal">
   <div class="note" id="scAviso" hidden style="margin-bottom:12px">Este vehículo ya está vendido. Lo que registres se contará como <b>gasto posventa</b> y se descontará del margen.</div>
+  <div id="scPend"></div>
   <div class="fld"><label>Categoría</label><div class="catg" id="scCat"></div></div>
   <div class="fld" id="scCatOtroWrap" hidden><label for="scCatOtro">Nombre de la categoría</label>
     <input id="scCatOtro" placeholder="Ej: Bencina" autocomplete="off"></div>
@@ -3558,7 +3561,38 @@ async function compartirComprobante(ch,ts,auto){
   cp(txt, auto?'Comprobante copiado · pégalo en WhatsApp':'Copiado ✓');
 }
 let ultimo=null;
-function drawCostList(){
+/* 08/10/2026 (Andre): trabajos abiertos cuyo pago ya parece anotado directo en Costo real (misma categoría, costo no
+   enlazado a ningún trabajo). Cada costo se ofrece a un solo trabajo. Sirve para arreglar lo anotado antes de la regla
+   anti-duplicado: mientras no se enlacen, el estimado sigue sumando junto al real. */
+function tkLinkCand(c){
+  const T=((S[c]||{}).tasks||[]), CS=((S[c]||{}).costs||[]);
+  const lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs))), usado=new Set(), out=[];
+  T.filter(x=>!x.hecho&&!x.costTs&&x.cat!=='LAVADO').forEach(x=>{
+    const ck=COSTMAP[x.cat]||x.cat;
+    const k=CS.find(y=>y.cat===ck&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
+    if(k){ usado.add(String(k.ts)); out.push({c,x,k}); } });
+  return out;
+}
+function tkLinkCandTodos(){ const L=[]; for(const c in S) if(IDX[c]&&!sold(c)) L.push(...tkLinkCand(c)); return L; }
+const tkLinkTxt=o=>`¿El ${CN[o.k.cat]||o.k.cat} de ${clp(acor(o.k))}${o.k.date?' del '+fd(o.k.date):''}${o.k.prov?' ('+String(o.k.prov).replace(/</g,'&lt;')+')':''} es el pago de este trabajo?`;
+function pintaScPend(){
+  const box=$('#scPend'); if(!box) return;
+  const ch=editing||($('#scV')?$('#scV').value:null);
+  if(!ch||!IDX[ch]){ box.innerHTML=''; return; }
+  const T=tasks(ch).filter(x=>!x.hecho&&x.cat!=='LAVADO'), cand=tkLinkCand(ch);
+  if(!T.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
+    <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Pendiente en este vehículo (${T.length})</div>
+    <div class="mtr" style="margin:0 0 6px">Si ya lo pagaste, toca <b>＄ Pagado</b> y anota cuánto costó abajo. Si al final no hizo falta, <b>No se necesitó</b>.</div>
+    ${T.map(x=>{ const o=cand.find(z=>z.x===x);
+      return `<div style="border-top:1px solid var(--line);padding:7px 0">
+      <div style="font-size:13.5px"><b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</div>
+      ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
+        <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
+      <div class="acts" style="margin-top:5px"><button class="btn ${o?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button></div></div>`; }).join('')}
+  </div>`;
+}
+function drawCostList(){ try{ pintaScPend(); }catch(_){}
   const c=editing||$('#scV').value;
   const L=(S[c]&&S[c].costs)?S[c].costs:[];
   $('#scList').innerHTML=L.length?'<div class="mtr" style="margin-bottom:7px">Costos registrados</div>'+
@@ -6835,7 +6869,7 @@ $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
   $('#tkCat').innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
-  pintaScRev();
+  pintaScRev(); pintaScPend();
   if(!tkCh){$('#tkList').innerHTML='';return}
   if(tkCh!==tkImpCh){ tkImpCh=tkCh; const ck=$('#tkImp'); if(ck) ck.checked=!!((S[tkCh]||{}).revFin); }   /* revisión cerrada → lo nuevo es imprevisto por defecto */
   /* 07/10/2026: ordenado y con títulos -- primero lo del embarque que falta confirmar al ver el auto, después los
@@ -6960,6 +6994,12 @@ function drawTaller(){
       :'<div class="empty">Todavía no marcas trabajos terminados.</div>';
   }
   pintaRevRep(box);
+  const LK=tkLinkCandTodos();
+  if(LK.length) box.insertAdjacentHTML('afterbegin',`<div class="card plain" style="padding:11px;margin-bottom:10px;border-color:var(--red)">
+    <div style="font-size:13.5px;font-weight:700;color:var(--red)">Revisa: ${LK.length} pendiente${LK.length===1?'':'s'} que parece${LK.length===1?'':'n'} ya pagado${LK.length===1?'':'s'}</div>
+    <div class="mtr" style="margin:4px 0 6px">Tienen un costo real anotado directo de la misma categoría. Mientras no se enlacen, el estimado y el real se suman los dos.</div>
+    ${LK.map(o=>{const v=IDX[o.c];return `<div style="border-top:1px solid var(--line);padding:7px 0;font-size:13px"><b>${v.ma} ${v.mo} ${v.an||''}</b> <span style="color:var(--mute);font-family:var(--mono);font-size:11px">${o.c}</span><br>${TN[o.x.cat]||o.x.cat} pendiente${o.x.est?' (est. '+clp(o.x.est)+')':''} · ${tkLinkTxt(o)}
+      <div class="acts" style="margin-top:5px"><button class="btn b-pri" data-tlink="${o.c}|${o.x.ts}|${o.k.ts}">Sí, es ese pago</button><button class="btn b-sec" data-cost="${o.c}">Abrir el vehículo</button></div></div>`}).join('')}</div>`);
 }
 $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#tlChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
@@ -6992,6 +7032,11 @@ document.addEventListener('click',async e=>{
     if(x&&!confirm('¿Eliminar este trabajo pendiente?\n\n'+(CN[x.cat]||x.cat||'')+(x.nota?' · '+x.nota:'')+(x.est?' · estimado '+clp(x.est):'')+'\n\nNo se puede deshacer.'))return;
     t.tasks=t.tasks.filter(y=>String(y.ts)!==dd.dataset.tdel);
     await save(); drawTaskSheet(); draw(); return}
+  const lk=e.target.closest('[data-tlink]');
+  if(lk){const [c,ts,kts]=lk.dataset.tlink.split('|'); const x=((S[c]||{}).tasks||[]).find(y=>String(y.ts)===ts), k=((S[c]||{}).costs||[]).find(y=>String(y.ts)===kts);
+    if(!x||!k) return;
+    x.hecho=true; x.costTs=k.ts; x.realFe=k.date||iso(); if(x.origen==='emb'&&!x.visto){ if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); }
+    await save(); draw(); if(editing===c) drawTaskSheet(); toast((TN[x.cat]||x.cat)+': listo con su costo real '+clp(acor(k))+' · ya no se cuenta dos veces'); return}
   const tl=e.target.closest('[data-tlisto]');
   if(tl){const [c,ts]=tl.dataset.tlisto.split('|'); if(!IDX[c]) return;
     const x=(S[c].tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;

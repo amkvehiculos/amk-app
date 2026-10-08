@@ -5,6 +5,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+/* 08/10/2026 (Andre): al girar el celular a horizontal, iPhone agrandaba las letras solo y la app se descuadraba. Esto lo impide. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 :root{
  --ink:#EAF0F1;--ink2:#B4BCBE;--mute:#98A8AB;--paper:#152B35;--card:#183640;--line:#3D5D6B;
  --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
@@ -223,7 +225,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->06-10-2026 10:17<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->08-10-2026 15:44<!--/VER--></b></p>
   </section>
 </main>
 
