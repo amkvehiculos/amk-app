@@ -212,6 +212,40 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .dc .vl{font-family:var(--disp);font-weight:800;font-size:25px;letter-spacing:-.02em;line-height:1.1;margin-top:5px;font-variant-numeric:tabular-nums}
 .dc .ft{font-size:12px;color:var(--mute);margin-top:3px}
 .dc.pos .vl{color:var(--green)}.dc.neg .vl{color:var(--red)}
+
+/* === Movimiento y orden (08/10/2026, pedido de Andre: transiciones más fluidas y filtros ordenados) ===
+   Una sola curva para toda la app (sale rápido y frena suave) y duraciones cortas. Solo se anima opacidad y
+   desplazamiento (lo barato para el teléfono); el alto lo maneja alturaFluida()/plegar() y solo cuando se ve. */
+:root{--ease:cubic-bezier(.22,.8,.26,1);--easeHoja:cubic-bezier(.32,.72,0,1);--dMov:.28s}
+@keyframes vEntra{from{opacity:0;transform:translate3d(var(--dx,0px),8px,0)}to{opacity:1;transform:none}}
+.panel.on{animation:vEntra var(--dMov) var(--ease)}
+/* Fondo oscuro de las hojas: se funde en vez de aparecer de golpe. */
+.scrim{display:block!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s var(--ease),visibility 0s linear .26s}
+.scrim.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s var(--ease),visibility 0s}
+/* Hojas: suben con la curva de iOS y bajan un poco más rápido. */
+.sheet{transition:transform .38s var(--easeHoja)}
+.sheet:not(.on){transition:transform .24s cubic-bezier(.4,0,1,1)}
+/* Botones y chips: cambio de color suave y un leve "hundirse" al tocar. */
+.chip,.btn,.tb,.stSel,.secBar button,.opt button,.b-und{transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease),transform .14s var(--ease),box-shadow .2s var(--ease)}
+.chip:active,.btn:active,.stSel:active,.secBar button:active,.opt button:active{transform:scale(.96)}
+/* Barra de abajo: una sola franja plateada que se desliza a la pestaña elegida (antes saltaba). */
+.tabbar.conInd .tb::before{display:none!important}
+.tbInd{position:absolute;top:0;left:0;height:3px;width:0;background:var(--plata);border-radius:0 0 3px 3px;pointer-events:none;transition:transform .34s var(--ease),width .34s var(--ease),opacity .2s}
+.tb i{transition:transform .26s var(--ease)}
+.tb[aria-selected="true"] i{transform:translateY(-1px) scale(1.08)}
+/* Filtros en UNA fila que se desliza con el dedo (antes se partían en 2-3 filas desparejas). */
+.fila{display:flex;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+ margin-left:-15px;margin-right:-15px;padding:2px 15px 3px;scroll-padding:0 15px;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 24px),transparent)}
+.fila::-webkit-scrollbar{display:none}
+.fila>*{flex:0 0 auto;white-space:nowrap}
+@media(min-width:760px){.fila{flex-wrap:wrap!important;overflow:visible;margin-left:0;margin-right:0;padding:2px 0;-webkit-mask-image:none;mask-image:none}}
+/* Herramientas de la lista: selectores del mismo alto en una grilla pareja, y "Lista compacta" junto al conteo. */
+.stTools{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.stTools select{width:100%;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:13.5px;background:var(--card);color:var(--ink);text-overflow:ellipsis}
+.cntRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:13px 0 9px}
+.cntRow .cnt{margin:0}
+.cntRow .cntVista{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:32px}
 </style>
 </head>
 <body>
@@ -257,7 +291,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <section class="panel" id="pStock">
     <h2>Stock</h2><p class="sub">Marca ventas y registra costos.</p>
     <input class="search" id="q" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
-    <div class="chips" role="tablist">
+    <div class="chips fila" role="tablist" aria-label="Filtro de stock">
       <button class="chip" data-f="patio" aria-selected="true">En patio</button>
       <button class="chip" data-f="corea" aria-selected="false">En Corea</button>
       <button class="chip" data-f="camino" aria-selected="false">En camino</button>
@@ -273,15 +307,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-pri" id="stDepGo" type="button" style="display:none">Archivar seleccionados</button>
       <button class="btn b-sec" id="stDepCancel" type="button">Cancelar</button>
     </div>
-    <div style="margin:8px 0 0"><label style="font-size:12.5px;color:var(--mute)">Orden
-      <select id="stOrden" style="margin-left:6px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)">
+    <div class="stTools">
+      <select id="stOrden" aria-label="Orden de la lista">
         <option value="estado">Estado (como siempre)</option>
         <option value="recientes">Más recientes primero</option>
         <option value="antiguos">Más antiguos primero</option>
         <option value="contenedor">Por contenedor</option>
-      </select></label>
-      <button class="b-und" id="stVista" type="button" style="float:right;font-size:12.5px">☰ Lista compacta</button></div>
-    <p class="cnt" id="cStock"></p>
+      </select>
+    </div>
+    <div class="cntRow"><p class="cnt" id="cStock"></p><button class="cntVista" id="stVista" type="button" aria-label="Cambiar vista">☰ Compacta</button></div>
     <div id="lStock"></div>
     <details class="box" id="boxNv" style="margin-top:14px"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">＋ Cargar vehículo a mano</h3></summary>
       <p>Por si tu mamá no alcanza a subirlo desde su app. Entra como “En camino”.</p>
@@ -712,7 +746,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 16:36<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 16:05<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1085,14 +1119,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
 
   <div id="secEst" hidden>
-  <div id="tkList"></div>
-<div class="fld" style="margin-top:14px"><label>Agregar trabajo pendiente</label><div class="catg" id="tkCat"></div></div>
+<div class="fld"><label>Agregar trabajo pendiente</label><div class="catg" id="tkCat"></div></div>
   <div class="fld"><label for="tkNota">Detalle (opcional)</label>
     <input id="tkNota" placeholder="Ej: golpe puerta trasera derecha"></div>
   <div class="fld"><label for="tkEst">Costo estimado (opcional)</label>
     <input id="tkEst" inputmode="numeric" placeholder="$0"><div class="sug" id="tkSug"></div></div>
   <label style="display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:13.5px;cursor:pointer"><input type="checkbox" id="tkImp" style="width:18px;height:18px"> ⚡ Imprevisto <span style="color:var(--mute);font-size:12px">— salió después (probándolo, en ruta), no estaba previsto</span></label>
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="tkAdd">Agregar</button></div>
+  <div id="tkList" style="margin-top:12px"></div>
   </div>
 
   <div id="secCorea" hidden>
@@ -2848,28 +2882,95 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clea
 /* Anima de forma fluida un cambio de alto dentro de `el` (evita el "salto brusco"
    al cambiar de pestaña o de sección: fotos <-> vista 360 <-> video, Stock <-> Hoy,
    etc). `cambiar` hace el cambio real de contenido (mostrar/ocultar hijos). */
+/* === Movimiento (08/10/2026) ===
+   alturaFluida(el, cambiar): hace el cambio y anima el alto de `el` desde el viejo al nuevo.
+   - Solo anima si el borde que cambia se ve en pantalla (si queda abajo, fuera de la vista, no se nota y
+     animarlo solo gastaba batería y daba tirones con listas largas).
+   - Usa la animación nativa del navegador (el.animate): termina siempre, aunque el alto no cambie. La versión
+     anterior esperaba "transitionend", que nunca llegaba cuando el alto era igual, y la caja quedaba con el
+     alto fijo y recortada hasta el siguiente cambio. */
+const MOV_RED=(()=>{ try{ return window.matchMedia('(prefers-reduced-motion: reduce)'); }catch(_){ return {matches:false}; } })();
+const movOk=el=>!!(el&&el.animate&&!MOV_RED.matches&&el.getClientRects().length);
+const movDur=(a,b)=>Math.round(Math.min(360,Math.max(200,170+Math.abs(b-a)*.22)));
+const MOV_EASE='cubic-bezier(.22,.8,.26,1)';
+function movAlto(el,h0,h1,alFin){
+  const ov=el._movOv!=null?el._movOv:el.style.overflow; el._movOv=ov;
+  el.style.overflow='hidden';
+  const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:movDur(h0,h1),easing:MOV_EASE});
+  el._movAnim=a;
+  const fin=ok=>{ if(el._movAnim!==a) return; el._movAnim=null; el.style.overflow=ov; el._movOv=null; if(ok&&alFin) alFin(); };
+  a.onfinish=()=>fin(true); a.oncancel=()=>fin(false);
+  return a;
+}
 function alturaFluida(el, cambiar){
-  if(!el){ cambiar(); return; }
-  if(el._afFin){ el.removeEventListener('transitionend', el._afFin); el._afFin=null; }
-  const h0=el.getBoundingClientRect().height;
-  el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
+  if(!movOk(el)){ cambiar(); return; }
+  const h0=el.getBoundingClientRect().height;   /* se mide ANTES de cortar una animación en curso: sigue desde donde iba */
+  if(el._movAnim) el._movAnim.cancel();
   cambiar();
-  el.style.height='auto';  /* suelta el alto fijo: si no, al achicar el contenido scrollHeight sigue midiendo el alto viejo y no se anima */
-  const h1=el.scrollHeight;
-  el.style.height=h0+'px';  /* vuelve a fijar el alto viejo (mismo instante, no se alcanza a ver) para animar desde ahí */
-  void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
-  el.style.transition='height .22s ease';
-  el.style.height=h1+'px';
-  const fin=()=>{ el.style.transition=''; el.style.height=''; el.style.overflow=''; el.removeEventListener('transitionend',fin); el._afFin=null; };
-  el._afFin=fin;
-  el.addEventListener('transitionend',fin);
+  const r=el.getBoundingClientRect(), h1=r.height;
+  if(Math.abs(h1-h0)<2) return;
+  if(r.top+Math.min(h0,h1)>=window.innerHeight) return;
+  movAlto(el,h0,h1);
+}
+/* plegar(el, cerrar, poner): abre o cierra una caja con el alto animado. `poner(true)` la deja cerrada y
+   `poner(false)` abierta. Al cerrar, el contenido se ve mientras la caja se achica y recién al final se oculta. */
+function plegar(el, cerrar, poner){
+  el._movCerr=false;   /* true mientras se está cerrando (el contenido sigue a la vista hasta el final) */
+  if(!movOk(el)){ poner(cerrar); return; }
+  const h0=el.getBoundingClientRect().height;
+  if(el._movAnim) el._movAnim.cancel();
+  poner(cerrar); const h1=el.getBoundingClientRect().height;
+  if(Math.abs(h1-h0)<2) return;
+  if(cerrar){ poner(false); el._movCerr=true; }
+  movAlto(el,h0,h1,cerrar?()=>{ el._movCerr=false; poner(true); }:null);
+  if(!cerrar) [...el.children].forEach((c,i)=>{ if(i&&c.tagName!=='SUMMARY'&&!c.classList.contains('colHead')) try{ c.animate([{opacity:0,transform:'translateY(-4px)'},{opacity:1,transform:'none'}],{duration:260,delay:40,easing:MOV_EASE,fill:'backwards'}); }catch(_){} });
+}
+/* Contenido que se reemplaza (lista filtrada, sección elegida): entra con un leve fundido. */
+function entraSuave(el){ if(!movOk(el)) return; try{ el.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:MOV_EASE}); }catch(_){} }
+/* Todos los <details> de la app se abren y cierran suave (antes era de golpe). Si se toca un botón o un campo
+   dentro del título, se deja tal cual. Para excluir uno: data-sin-anim. */
+document.addEventListener('click',e=>{
+  const s=e.target.closest&&e.target.closest('summary'); if(!s) return;
+  const d=s.parentElement; if(!d||d.tagName!=='DETAILS'||d.hasAttribute('data-sin-anim')) return;
+  const ctl=e.target.closest('button,input,select,textarea,a,label'); if(ctl&&s.contains(ctl)) return;
+  if(!movOk(d)) return;
+  e.preventDefault();
+  plegar(d,d._movCerr?false:d.open,v=>{ d.open=!v; });   /* tocar de nuevo mientras se cierra = volver a abrir */
+});
+/* Dirección del cambio de pantalla: la pestaña de la derecha entra desde la derecha, y al revés. */
+function movDir(de,a){
+  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>b.dataset.p===de), i1=tbs.findIndex(b=>b.dataset.p===a);
+  const m=document.querySelector('main'); if(m) m.style.setProperty('--dx',(i0<0||i1<0||i0===i1)?'0px':((i1>i0?14:-14)+'px'));
+}
+/* Franja de la pestaña activa que se desliza. Se acomoda sola cuando cambia la pestaña o el ancho. */
+function tbInd(){
+  const bar=document.querySelector('.tabbar'); if(!bar) return;
+  let ind=bar.querySelector(':scope>.tbInd');
+  if(!ind){ ind=document.createElement('span'); ind.className='tbInd'; ind.setAttribute('aria-hidden','true'); ind.style.transition='none'; bar.appendChild(ind); bar.classList.add('conInd'); requestAnimationFrame(()=>requestAnimationFrame(()=>{ ind.style.transition=''; })); }
+  const b=bar.querySelector('.tb[aria-selected="true"]');
+  if(!b||!b.offsetWidth){ ind.style.opacity='0'; return; }
+  ind.style.opacity='1'; ind.style.width=Math.max(12,b.offsetWidth-28)+'px'; ind.style.transform='translateX('+(b.offsetLeft+14)+'px)';
+}
+(()=>{ const ini=()=>{ const bar=document.querySelector('.tabbar'); if(!bar) return; tbInd();
+  try{ new MutationObserver(ms=>{ if(ms.some(m=>!(m.target.classList&&m.target.classList.contains('tbInd')))) requestAnimationFrame(tbInd); }).observe(bar,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden','style','class']}); }catch(_){}
+  window.addEventListener('resize',()=>requestAnimationFrame(tbInd)); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ini); else ini(); })();
+/* Filtros de la lista: el elegido queda a la vista en su fila y la lista entra suave. */
+function movFiltro(lista){
+  return e=>{ const b=e.target.closest&&e.target.closest('.fila>button'); if(!b) return;
+    const fila=b.parentElement;   /* la fila queda aunque los botones se redibujen */
+    requestAnimationFrame(()=>{ const sel=fila.querySelector('[aria-selected="true"],[aria-pressed="true"]')||(b.isConnected?b:null);
+      if(sel&&fila&&fila.scrollWidth>fila.clientWidth){ const x=sel.offsetLeft-(fila.clientWidth-sel.offsetWidth)/2; try{ fila.scrollTo({left:Math.max(0,x),behavior:MOV_RED.matches?'auto':'smooth'}); }catch(_){ fila.scrollLeft=x; } }
+      entraSuave(document.querySelector(lista)); }); };
 }
 const MAIN=$('main');
-function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
+function show(p){movDir(tab,p);tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
  $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
  $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
 })}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+document.addEventListener('click',movFiltro('#lStock'));
+{ const s=document.getElementById('stOrden'); if(s) s.addEventListener('change',()=>requestAnimationFrame(()=>entraSuave(document.getElementById('lStock')))); }
 
 function openSheet(id){const sh=$('#'+id);delete sh.dataset.sucia;$('#scrim').classList.add('on');sh.classList.add('on')}
 function closeAll(){$('#scrim').classList.remove('on');$$('.sheet').forEach(s=>{s.classList.remove('on');delete s.dataset.sucia});askCierra(null);editing=null;avisoVentaActivo=null;avisoAdelantoActivo=null;if(typeof stopSpin==='function')stopSpin()}
@@ -3056,7 +3157,7 @@ function drawStock(){
     });
   } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
-  { const b=$('#stVista'); if(b) b.textContent=stCompacto?'▦ Vista completa':'☰ Lista compacta'; }
+  { const b=$('#stVista'); if(b) b.textContent=stCompacto?'▦ Completa':'☰ Compacta'; }
   if(orden==='contenedor'){ $('#lStock').innerHTML=L.length?ctrHTML(L,!!toks.length,cardSV):'<div class="empty">Sin resultados.</div>'; return; }
   $('#lStock').innerHTML=L.length?L.map(cardSV).join(''):'<div class="empty">Sin resultados.</div>';
 }
@@ -3492,7 +3593,10 @@ function openCost(ch,pcat,pamt,seg){
     $('#scV').innerHTML=V.filter(v=>!sold(v.ch)).map(v=>`<option value="${v.ch}">${v.ma} ${v.mo} ${v.an||''} · ${v.ch}</option>`).join('');
     editing=$('#scV').value||null}
   tkCh=editing; tkCat='PINTURA'; $('#tkNota').value=''; $('#tkEst').value='';
-  drawTaskSheet(); sugEst(); cseg(seg||'real'); pintaScIq();
+  /* 08/10/2026 (Andre): pestaña por defecto según la etapa del auto. Mientras se está estimando (en camino, o en patio sin
+     haber apretado "Terminé de estimar") abre en Estimado; con la estimación cerrada, vendido o stock antiguo, en Costo real. */
+  const segDef=c=>{ const v=IDX[c]; if(!v||sold(c)||(S[c]||{}).revFin) return 'real'; if(v.st==='ORIGEN') return 'est'; const r=revEstado(c); return (r&&r.k!=='ok')?'est':'real'; };
+  drawTaskSheet(); sugEst(); cseg(seg||(editing?segDef(editing):'real')); pintaScIq();
   scCat=pcat||'OBLIG';
   $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value=''; llenaProv();
@@ -3564,10 +3668,13 @@ let ultimo=null;
 /* 08/10/2026 (Andre): trabajos abiertos cuyo pago ya parece anotado directo en Costo real (misma categoría, costo no
    enlazado a ningún trabajo). Cada costo se ofrece a un solo trabajo. Sirve para arreglar lo anotado antes de la regla
    anti-duplicado: mientras no se enlacen, el estimado sigue sumando junto al real. */
+/* 08/10/2026 (Andre): "abierto" = sin terminar, o terminado a ciegas (Marcar listo antiguo) sin costo real anotado y con
+   estimado. Esos últimos también salen arriba en Costo real: antes se escondían y el trabajo parecía perdido. */
+const tkAbierto=x=>!!x&&x.cat!=='LAVADO'&&(!x.hecho||(!x.noAplica&&!x.costTs&&!x.sinCosto&&+x.est>0));
 function tkLinkCand(c){
   const T=((S[c]||{}).tasks||[]), CS=((S[c]||{}).costs||[]);
   const lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs))), usado=new Set(), out=[];
-  T.filter(x=>!x.hecho&&!x.costTs&&x.cat!=='LAVADO').forEach(x=>{
+  T.filter(x=>tkAbierto(x)&&!x.costTs).forEach(x=>{
     const ck=COSTMAP[x.cat]||x.cat;
     const k=CS.find(y=>y.cat===ck&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
     if(k){ usado.add(String(k.ts)); out.push({c,x,k}); } });
@@ -3580,7 +3687,7 @@ function pintaScPend(){
   const box=$('#scPend'); if(!box) return;
   const ch=editing||($('#scV')?$('#scV').value:null);
   if(!ch||!IDX[ch]){ box.innerHTML=''; return; }
-  const T=tasks(ch).filter(x=>!x.hecho&&x.cat!=='LAVADO'), cand=tkLinkCand(ch);
+  const T=tasks(ch).filter(tkAbierto), cand=tkLinkCand(ch);
   /* 08/10/2026 (Andre): si ya se está anotando el pago de un trabajo, se marca en el recuadro y el botón de abajo lo dice
      (antes "＄ Pagado" no cambiaba nada a la vista porque el formulario ya estaba lleno, y parecía que no funcionaba). */
   const act=tkCostDe!=null?T.find(x=>String(x.ts)===String(tkCostDe)):null;
@@ -3588,14 +3695,14 @@ function pintaScPend(){
   if(!T.length){ box.innerHTML=''; return; }
   box.innerHTML=`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
     <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Pendiente en este vehículo (${T.length})</div>
-    <div class="mtr" style="margin:0 0 6px">Si ya lo pagaste, toca <b>＄ Pagado</b> y anota cuánto costó abajo. Si al final no hizo falta, <b>No se necesitó</b>.</div>
+    <div class="mtr" style="margin:0 0 6px">Si ya lo pagaste, toca <b>＄ Pagado</b> y anota cuánto costó abajo. Si al final no hizo falta, <b>No se necesitó</b>. Para agregar uno nuevo, ve a <b>Estimado</b>.</div>
     ${T.map(x=>{ const o=cand.find(z=>z.x===x);
       return `<div style="border-top:1px solid var(--line);padding:7px 0">
-      <div style="font-size:13.5px"><b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</div>
+      <div style="font-size:13.5px"><b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</div>
       ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
         <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
       ${x===act?`<div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>`
-        :`<div class="acts" style="margin-top:5px"><button class="btn ${o?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button></div>`}</div>`; }).join('')}
+        :`<div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-sec" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div>`}</div>`; }).join('')}
   </div>`;
 }
 function drawCostList(){ try{ pintaScPend(); }catch(_){}
@@ -6870,6 +6977,7 @@ function ngseg(k){
 }
 $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');if(b)ngseg(b.dataset.ng)});
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
+$('#tkList').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){cseg(b.dataset.cseg); try{$('#scPend').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
 $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
@@ -6881,7 +6989,10 @@ function drawTaskSheet(){
   /* 07/10/2026: ordenado y con títulos -- primero lo del embarque que falta confirmar al ver el auto, después los
      pendientes (Est. 2 e imprevistos), al final lo terminado. */
   const grp=x=>esEstSinVer(x)?0:(x.hecho?2:1);
-  const L=tasks(tkCh).filter(x=>x.cat!=='LAVADO').slice().sort((a,b)=>grp(a)-grp(b));
+  /* 08/10/2026 (Andre): los trabajos ABIERTOS se muestran en un solo lugar: arriba de Costo real (#scPend). Acá en
+     Estimado queda solo el formulario para agregar y, debajo, el historial de terminados/descartados. */
+  const nAb=tasks(tkCh).filter(tkAbierto).length;
+  const L=tasks(tkCh).filter(x=>x.cat!=='LAVADO'&&x.hecho&&!tkAbierto(x)).slice().sort((a,b)=>grp(a)-grp(b));
   const TKH=['Del embarque · confírmalos al ver el auto (✓ Lo vi: va / No se necesitó)','Pendientes · Estimado 2 e imprevistos','Terminados o descartados'];
   const tkHdr=i=>(i===0||grp(L[i])!==grp(L[i-1]))?`<div class="mtr" style="margin:12px 0 6px;font-weight:700">${TKH[grp(L[i])]}</div>`:'';
   $('#tkList').innerHTML=L.length?L.map((x,i)=>tkHdr(i)+`<div class="card plain" style="padding:11px;${x.noAplica?'opacity:.7':(x.hecho?'background:var(--greenBg);border-color:#2F5A48':'')}">
@@ -6894,7 +7005,8 @@ function drawTaskSheet(){
     ${x.hecho?'':`<button class="btn b-sec" data-tnoap="${x.ts}" title="Al verlo en persona o al trabajarlo, este gasto no hizo falta: el estimado deja de contar en el costo (queda en el historial)">No se necesitó</button>`}
     ${(x.noAplica||x.costTs)?'':`<button class="btn b-pri" data-tcost="${x.ts}" title="Anota lo que realmente costó: pasa a Costo real y este trabajo queda listo">＄ Pagado: anotar costo real</button>`}
     <button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}">✕</button></div></div>`).join('')
-   :'<div class="empty" style="padding:22px">Sin trabajos anotados.</div>';
+     :'';
+  $('#tkList').insertAdjacentHTML('afterbegin',nAb?`<button class="btn b-sec" data-cseg="real" style="width:100%;margin:0 0 10px">${nAb} pendiente${nAb===1?'':'s'} de este vehículo · ver en Costo real →</button>`:'');
 }
 $('#tkEst').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 function medianaHist(cat,mo){
@@ -10827,9 +10939,9 @@ function colArma(b,key,abierta){
   head.classList.add('colHead'); h.classList.add('colTit'); b.dataset.col=key;
   let cerr=!abierta; try{ const x=localStorage.getItem('amk_col_'+key); if(x!==null) cerr=x==='1'; }catch(_){}
   b.classList.toggle('colp',cerr);
-  h.addEventListener('click',e=>{ if(e.target.closest('button,input,select,a')) return; colPon(b,!b.classList.contains('colp')); });
+  h.addEventListener('click',e=>{ if(e.target.closest('button,input,select,a')) return; colPon(b,!(b.classList.contains('colp')||b._movCerr)); });
 }
-function colPon(b,cerr){ if(!b||!b.dataset.col) return; b.classList.toggle('colp',cerr); try{localStorage.setItem('amk_col_'+b.dataset.col,cerr?'1':'0')}catch(_){} }
+function colPon(b,cerr){ if(!b||!b.dataset.col) return; if(typeof plegar!=='function') b.classList.toggle('colp',cerr); else if((b.classList.contains('colp')||!!b._movCerr)!==!!cerr) plegar(b,!!cerr,v=>b.classList.toggle('colp',v)); try{localStorage.setItem('amk_col_'+b.dataset.col,cerr?'1':'0')}catch(_){} }
 function secBarArma(pane){
   if(!pane||pane.querySelector(':scope > .secBar')) return;
   const cajas=()=>[...pane.querySelectorAll('.box')].filter(b=>!b.parentElement.closest('.box')&&b.closest('[id]')&&(b.closest('.secPane')===pane));
@@ -10851,7 +10963,7 @@ function secBarArma(pane){
     L.forEach(b=>b.classList.toggle('secOff',!!sel&&b.dataset.secId!==sel));
     if(sel){ const b=L.find(x=>x.dataset.secId===sel); if(b&&b.tagName==='DETAILS') b.open=true; if(b&&b.classList.contains('colp')) colPon(b,false); }
   };
-  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center'}); });
+  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'}); if(typeof entraSuave==='function') [...pane.children].forEach(c=>{ if(c!==bar&&!c.classList.contains('secOff')&&c.offsetParent) entraSuave(c); }); });
   pane._secVer=id=>{ sel=id; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); };
   pinta();
   /* Si la app muestra u oculta una sección sola (ej. "Gastos generales de Corea"), la fila se actualiza. */

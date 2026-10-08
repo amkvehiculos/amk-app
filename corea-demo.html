@@ -147,6 +147,40 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 #fltRow{margin:0 0 4px}
 @media(max-width:350px){.acts{gap:6px}.acts .btn{padding:12px 9px}}   /* teléfonos muy angostos: la fila de 5 botones se salía de la tarjeta */
 @media(max-width:380px){.steps button{font-size:12.5px;padding:10px 3px}}   /* que “2 · Compra y gastos” quepa en una línea */
+
+/* === Movimiento y orden (08/10/2026, pedido de Andre: transiciones más fluidas y filtros ordenados) ===
+   Una sola curva para toda la app (sale rápido y frena suave) y duraciones cortas. Solo se anima opacidad y
+   desplazamiento (lo barato para el teléfono); el alto lo maneja alturaFluida()/plegar() y solo cuando se ve. */
+:root{--ease:cubic-bezier(.22,.8,.26,1);--easeHoja:cubic-bezier(.32,.72,0,1);--dMov:.28s}
+@keyframes vEntra{from{opacity:0;transform:translate3d(var(--dx,0px),8px,0)}to{opacity:1;transform:none}}
+.panel.on{animation:vEntra var(--dMov) var(--ease)}
+/* Fondo oscuro de las hojas: se funde en vez de aparecer de golpe. */
+.scrim{display:block!important;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .26s var(--ease),visibility 0s linear .26s}
+.scrim.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s var(--ease),visibility 0s}
+/* Hojas: suben con la curva de iOS y bajan un poco más rápido. */
+.sheet{transition:transform .38s var(--easeHoja)}
+.sheet:not(.on){transition:transform .24s cubic-bezier(.4,0,1,1)}
+/* Botones y chips: cambio de color suave y un leve "hundirse" al tocar. */
+.chip,.btn,.tb,.stSel,.secBar button,.opt button,.b-und{transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease),transform .14s var(--ease),box-shadow .2s var(--ease)}
+.chip:active,.btn:active,.stSel:active,.secBar button:active,.opt button:active{transform:scale(.96)}
+/* Barra de abajo: una sola franja plateada que se desliza a la pestaña elegida (antes saltaba). */
+.tabbar.conInd .tb::before{display:none!important}
+.tbInd{position:absolute;top:0;left:0;height:3px;width:0;background:var(--plata);border-radius:0 0 3px 3px;pointer-events:none;transition:transform .34s var(--ease),width .34s var(--ease),opacity .2s}
+.tb i{transition:transform .26s var(--ease)}
+.tb[aria-selected="true"] i{transform:translateY(-1px) scale(1.08)}
+/* Filtros en UNA fila que se desliza con el dedo (antes se partían en 2-3 filas desparejas). */
+.fila{display:flex;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+ margin-left:-15px;margin-right:-15px;padding:2px 15px 3px;scroll-padding:0 15px;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 13px,#000 calc(100% - 24px),transparent)}
+.fila::-webkit-scrollbar{display:none}
+.fila>*{flex:0 0 auto;white-space:nowrap}
+@media(min-width:760px){.fila{flex-wrap:wrap!important;overflow:visible;margin-left:0;margin-right:0;padding:2px 0;-webkit-mask-image:none;mask-image:none}}
+/* Herramientas de la lista: selectores del mismo alto en una grilla pareja, y "Lista compacta" junto al conteo. */
+.stTools{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px}
+.stTools select{width:100%;min-width:0;height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:13.5px;background:var(--card);color:var(--ink);text-overflow:ellipsis}
+.cntRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:13px 0 9px}
+.cntRow .cnt{margin:0}
+.cntRow .cntVista{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:32px}
 </style></head><body>
 <div style="background:#5B3FA0;color:#fff;text-align:center;padding:8px 12px;font-size:13px;font-weight:700">DEMOSTRACIÓN COREA · datos inventados · no envía nada a Chile <button onclick="demoReinicia()" style="margin-left:8px;background:#fff;color:#5B3FA0;border:none;border-radius:6px;padding:3px 9px;font-weight:700;cursor:pointer">Reiniciar</button></div>
 
@@ -187,7 +221,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
         <div id="contList" class="dmlist"></div></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
-    <div class="opt" id="fltRow"></div>
+    <div class="opt fila" id="fltRow" aria-label="Filtro"></div>
     <p class="cnt" id="cnt"></p>
     <div id="list"></div>
   </section>
@@ -225,7 +259,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->08-10-2026 15:44<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->08-10-2026 16:05<!--/VER--></b></p>
   </section>
 </main>
 
@@ -1129,28 +1163,94 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* Anima de forma fluida un cambio de alto dentro de `el` (evita el "salto brusco"
    al cambiar de pestaña). `cambiar` hace el cambio real de contenido. */
+/* === Movimiento (08/10/2026) ===
+   alturaFluida(el, cambiar): hace el cambio y anima el alto de `el` desde el viejo al nuevo.
+   - Solo anima si el borde que cambia se ve en pantalla (si queda abajo, fuera de la vista, no se nota y
+     animarlo solo gastaba batería y daba tirones con listas largas).
+   - Usa la animación nativa del navegador (el.animate): termina siempre, aunque el alto no cambie. La versión
+     anterior esperaba "transitionend", que nunca llegaba cuando el alto era igual, y la caja quedaba con el
+     alto fijo y recortada hasta el siguiente cambio. */
+const MOV_RED=(()=>{ try{ return window.matchMedia('(prefers-reduced-motion: reduce)'); }catch(_){ return {matches:false}; } })();
+const movOk=el=>!!(el&&el.animate&&!MOV_RED.matches&&el.getClientRects().length);
+const movDur=(a,b)=>Math.round(Math.min(360,Math.max(200,170+Math.abs(b-a)*.22)));
+const MOV_EASE='cubic-bezier(.22,.8,.26,1)';
+function movAlto(el,h0,h1,alFin){
+  const ov=el._movOv!=null?el._movOv:el.style.overflow; el._movOv=ov;
+  el.style.overflow='hidden';
+  const a=el.animate([{height:h0+'px'},{height:h1+'px'}],{duration:movDur(h0,h1),easing:MOV_EASE});
+  el._movAnim=a;
+  const fin=ok=>{ if(el._movAnim!==a) return; el._movAnim=null; el.style.overflow=ov; el._movOv=null; if(ok&&alFin) alFin(); };
+  a.onfinish=()=>fin(true); a.oncancel=()=>fin(false);
+  return a;
+}
 function alturaFluida(el, cambiar){
-  if(!el){ cambiar(); return; }
-  if(el._afFin){ el.removeEventListener('transitionend', el._afFin); el._afFin=null; }
-  const h0=el.getBoundingClientRect().height;
-  el.style.transition=''; el.style.height=h0+'px'; el.style.overflow='hidden';
+  if(!movOk(el)){ cambiar(); return; }
+  const h0=el.getBoundingClientRect().height;   /* se mide ANTES de cortar una animación en curso: sigue desde donde iba */
+  if(el._movAnim) el._movAnim.cancel();
   cambiar();
-  el.style.height='auto';  /* suelta el alto fijo: si no, al achicar el contenido scrollHeight sigue midiendo el alto viejo y no se anima */
-  const h1=el.scrollHeight;
-  el.style.height=h0+'px';  /* vuelve a fijar el alto viejo (mismo instante, no se alcanza a ver) para animar desde ahí */
-  void el.offsetHeight;  /* fuerza reflow para que el cambio de alto se anime */
-  el.style.transition='height .22s ease';
-  el.style.height=h1+'px';
-  const fin=()=>{ el.style.transition=''; el.style.height=''; el.style.overflow=''; el.removeEventListener('transitionend',fin); el._afFin=null; };
-  el._afFin=fin;
-  el.addEventListener('transitionend',fin);
+  const r=el.getBoundingClientRect(), h1=r.height;
+  if(Math.abs(h1-h0)<2) return;
+  if(r.top+Math.min(h0,h1)>=window.innerHeight) return;
+  movAlto(el,h0,h1);
+}
+/* plegar(el, cerrar, poner): abre o cierra una caja con el alto animado. `poner(true)` la deja cerrada y
+   `poner(false)` abierta. Al cerrar, el contenido se ve mientras la caja se achica y recién al final se oculta. */
+function plegar(el, cerrar, poner){
+  el._movCerr=false;   /* true mientras se está cerrando (el contenido sigue a la vista hasta el final) */
+  if(!movOk(el)){ poner(cerrar); return; }
+  const h0=el.getBoundingClientRect().height;
+  if(el._movAnim) el._movAnim.cancel();
+  poner(cerrar); const h1=el.getBoundingClientRect().height;
+  if(Math.abs(h1-h0)<2) return;
+  if(cerrar){ poner(false); el._movCerr=true; }
+  movAlto(el,h0,h1,cerrar?()=>{ el._movCerr=false; poner(true); }:null);
+  if(!cerrar) [...el.children].forEach((c,i)=>{ if(i&&c.tagName!=='SUMMARY'&&!c.classList.contains('colHead')) try{ c.animate([{opacity:0,transform:'translateY(-4px)'},{opacity:1,transform:'none'}],{duration:260,delay:40,easing:MOV_EASE,fill:'backwards'}); }catch(_){} });
+}
+/* Contenido que se reemplaza (lista filtrada, sección elegida): entra con un leve fundido. */
+function entraSuave(el){ if(!movOk(el)) return; try{ el.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:240,easing:MOV_EASE}); }catch(_){} }
+/* Todos los <details> de la app se abren y cierran suave (antes era de golpe). Si se toca un botón o un campo
+   dentro del título, se deja tal cual. Para excluir uno: data-sin-anim. */
+document.addEventListener('click',e=>{
+  const s=e.target.closest&&e.target.closest('summary'); if(!s) return;
+  const d=s.parentElement; if(!d||d.tagName!=='DETAILS'||d.hasAttribute('data-sin-anim')) return;
+  const ctl=e.target.closest('button,input,select,textarea,a,label'); if(ctl&&s.contains(ctl)) return;
+  if(!movOk(d)) return;
+  e.preventDefault();
+  plegar(d,d._movCerr?false:d.open,v=>{ d.open=!v; });   /* tocar de nuevo mientras se cierra = volver a abrir */
+});
+/* Dirección del cambio de pantalla: la pestaña de la derecha entra desde la derecha, y al revés. */
+function movDir(de,a){
+  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>b.dataset.p===de), i1=tbs.findIndex(b=>b.dataset.p===a);
+  const m=document.querySelector('main'); if(m) m.style.setProperty('--dx',(i0<0||i1<0||i0===i1)?'0px':((i1>i0?14:-14)+'px'));
+}
+/* Franja de la pestaña activa que se desliza. Se acomoda sola cuando cambia la pestaña o el ancho. */
+function tbInd(){
+  const bar=document.querySelector('.tabbar'); if(!bar) return;
+  let ind=bar.querySelector(':scope>.tbInd');
+  if(!ind){ ind=document.createElement('span'); ind.className='tbInd'; ind.setAttribute('aria-hidden','true'); ind.style.transition='none'; bar.appendChild(ind); bar.classList.add('conInd'); requestAnimationFrame(()=>requestAnimationFrame(()=>{ ind.style.transition=''; })); }
+  const b=bar.querySelector('.tb[aria-selected="true"]');
+  if(!b||!b.offsetWidth){ ind.style.opacity='0'; return; }
+  ind.style.opacity='1'; ind.style.width=Math.max(12,b.offsetWidth-28)+'px'; ind.style.transform='translateX('+(b.offsetLeft+14)+'px)';
+}
+(()=>{ const ini=()=>{ const bar=document.querySelector('.tabbar'); if(!bar) return; tbInd();
+  try{ new MutationObserver(ms=>{ if(ms.some(m=>!(m.target.classList&&m.target.classList.contains('tbInd')))) requestAnimationFrame(tbInd); }).observe(bar,{subtree:true,attributes:true,attributeFilter:['aria-selected','hidden','style','class']}); }catch(_){}
+  window.addEventListener('resize',()=>requestAnimationFrame(tbInd)); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',ini); else ini(); })();
+/* Filtros de la lista: el elegido queda a la vista en su fila y la lista entra suave. */
+function movFiltro(lista){
+  return e=>{ const b=e.target.closest&&e.target.closest('.fila>button'); if(!b) return;
+    const fila=b.parentElement;   /* la fila queda aunque los botones se redibujen */
+    requestAnimationFrame(()=>{ const sel=fila.querySelector('[aria-selected="true"],[aria-pressed="true"]')||(b.isConnected?b:null);
+      if(sel&&fila&&fila.scrollWidth>fila.clientWidth){ const x=sel.offsetLeft-(fila.clientWidth-sel.offsetWidth)/2; try{ fila.scrollTo({left:Math.max(0,x),behavior:MOV_RED.matches?'auto':'smooth'}); }catch(_){ fila.scrollLeft=x; } }
+      entraSuave(document.querySelector(lista)); }); };
 }
 const MAIN=$('main');
-function show(p){tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
+function show(p){movDir(tab,p);tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
  $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
  $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
 })}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+document.addEventListener('click',movFiltro('#list'));
 /* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
 let snap0='', step='A';
 function formSnap(){
@@ -1900,11 +2000,11 @@ document.addEventListener('click',e=>{
 });
 $('#dmToggle').addEventListener('click',()=>{
   const b=$('#dmToggle'), abre=b.getAttribute('aria-expanded')!=='true';
-  alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#demandaBody').hidden=!abre; });
+  const cj=$('#demandaBody').parentElement; plegar(cj,!abre,v=>{ b.setAttribute('aria-expanded',v?'false':'true'); $('#demandaBody').hidden=v; });
 });
 $('#ctToggle').addEventListener('click',()=>{
   const b=$('#ctToggle'), abre=b.getAttribute('aria-expanded')!=='true';
-  alturaFluida(MAIN,()=>{ b.setAttribute('aria-expanded',abre?'true':'false'); $('#contBody').hidden=!abre; });
+  const cj=$('#contBody').parentElement; plegar(cj,!abre,v=>{ b.setAttribute('aria-expanded',v?'false':'true'); $('#contBody').hidden=v; });
 });
 /* 2026-09-29: lo anotado sin internet queda guardado en el teléfono y se sube SOLO apenas vuelve la conexión:
    al volver internet, al volver a abrir la app y cada 30 s si quedó algo pendiente. */
