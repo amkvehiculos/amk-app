@@ -709,7 +709,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-10-2026 20:09<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 14:59<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2898,7 +2898,8 @@ function cardS(v){
 
   let estado, chip;
   if(isS){estado='var(--fPlata)'; chip='<span class="est e-ven">Vendido</span>';}
-  else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;}
+  else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;
+    if(+r.precio>0&&!resSaldo(r)){ estado='var(--red)'; chip='<span class="est e-resv" data-reserva="'+v.ch+'" style="cursor:pointer" title="Abrir la reserva para marcarlo vendido">Pagado completo · ⚠ falta marcar vendido</span>'; }}
   else if(v.st==='ORIGEN'){estado=v.enCorea?'#C9A227':'var(--fAzul)'; chip=v.enCorea?'<span class="est e-deu" data-zarpe="'+v.ch+'" style="cursor:pointer" title="Marcar que se embarcó">En Corea · 🚢 ¿se embarcó?</span>':'<span class="est e-cam" data-zarpe="'+v.ch+'" style="cursor:pointer">En camino'+(v.zarpe?' · zarpó '+fd(v.zarpe).slice(0,5):'')+'</span>';}
   else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
   else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>'; const rv=revEstado(v.ch); if(rv){ if(rv.k!=='ok') estado=rv.col; chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+'<span class="est" data-cost="'+v.ch+'" style="cursor:pointer;color:#fff;background:'+rv.col+'" title="Abrir costos del vehículo">'+rv.txt+'</span></span>'; }}
@@ -3565,6 +3566,11 @@ $('#scOk').addEventListener('click',async()=>{
   const prov=$('#scProv').value.trim();
   await recuerdaTaller(prov);
   const nuevo={ts:Date.now(),cat:catFinal,acor:ac,date:f,prov,post:sold(ch),abonos:pago?[{m:pago,f}]:[]};
+  /* 08/10/2026 (Andre): regla anti-duplicado. Si el costo se anota directo en Costo real (no desde el botón del trabajo)
+     y el vehículo tiene un trabajo abierto de la misma categoría, se pregunta si es ese pago: si sí, el trabajo se cierra
+     con el costo enlazado. Antes el estimado seguía sumando junto al real y el costo quedaba contado dos veces. */
+  if(tkCostDe==null){ const ab=tasks(ch).filter(y=>!y.hecho&&!y.costTs&&y.cat!=='LAVADO'&&(COSTMAP[y.cat]||y.cat)===catFinal);
+    if(ab.length&&confirm('Este vehículo tiene '+(ab.length===1?'un trabajo abierto':ab.length+' trabajos abiertos')+' de '+(CN[catFinal]||catFinal)+': '+ab.map(y=>(y.imprevisto?'⚡ ':'')+(TN[y.cat]||y.cat)+(y.est?' (est. '+clp(y.est)+')':'')+(y.nota?' · '+y.nota:'')).join(' / ')+'.\n\n¿Este pago corresponde a '+(ab.length===1?'ese trabajo':'el primero')+'?\nAceptar = queda listo con este costo (el estimado deja de sumarse, no se cuenta dos veces).\nCancelar = es un gasto aparte.')) tkCostDe=ab[0].ts; }
   st(ch).costs.push(nuevo);
   if(tkCostDe!=null){ const tk=tasks(ch).find(y=>String(y.ts)===String(tkCostDe)); if(tk){ tk.hecho=true; tk.costTs=nuevo.ts; tk.realFe=f; if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } } tkCostDe=null; drawTaskSheet(); }
   await save();draw();drawCostList();
@@ -3705,6 +3711,9 @@ $('#rvOk').addEventListener('click',async()=>{
       if(dia>lim&&!confirm('Ese día suma '+clp(dia)+' por transferencia (lo normal es máx. '+clp(lim)+'). ¿Guardar igual?')) return; } }
   t.res=nr; await rvGuarda(pm?'Pago de '+clp(pm)+' registrado · saldo '+clp(resSaldo(nr)):'Reserva actualizada');
   $('#rvPm').value=''; rvPinta();
+  /* 08/10/2026 (Andre): registrar el pago que completa el saldo NO es la venta: el vehículo seguía "Reservado" si no se
+     apretaba "Marcar vendido". Ahora, al quedar saldo $0, se abre altiro la ficha de venta con los datos de la reserva. */
+  if(pm&&!resSaldo(nr)&&+nr.precio>0){ toast('Saldo pagado completo · confirma la venta'); $('#rvVender').click(); }
 });
 $('#rvExt').addEventListener('click',async()=>{ const r=resAct(rvCh); if(!r) return; const base=r.vence<iso()?iso():r.vence;
   S[rvCh].res=Object.assign({},r,{vence:sumaDias(base,RES_DIAS)}); await rvGuarda('Reserva extendida hasta '+fd(S[rvCh].res.vence)); rvPinta(); });
@@ -6669,17 +6678,25 @@ function pintaScRev(){
   const box=$('#scRev'); if(!box) return;
   const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null;
   if(!v){box.innerHTML='';return}
-  const T=tasks(ch).filter(x=>x.cat!=='LAVADO'&&(+x.est>0||+x.est1>0));
+  const T=tasks(ch).filter(x=>x.cat!=='LAVADO'&&(+x.est>0||+x.est1>0||x.costTs));
   const e1v=x=>x.est1!=null?+x.est1:(x.origen==='emb'&&!x.est1Perdido?(+x.est||0):null);
   const f=n=>n==null?'—':clp(n), td='style="text-align:right;padding:3px 0 3px 8px;font-family:var(--mono);font-size:12px;white-space:nowrap"';
   let t1=0,t2=0,ti=0,tr=0;
+  /* 08/10/2026 (Andre): la columna Real muestra todo lo anotado en Costo real, cada costo UNA sola vez: primero los enlazados
+     a su trabajo; lo anotado directo se pone en la fila de su misma categoría y, si no hay fila, en una fila aparte. */
+  const CS=((S[ch]||{}).costs||[]), lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs)));
+  const suelto={}; CS.forEach(k=>{ if(!lig.has(String(k.ts))){ (suelto[k.cat]=suelto[k.cat]||[]).push(k); } });
+  const realFila=x=>{ const r=tkReal(ch,x); if(r!=null) return r; if(x.noAplica) return null;
+    const ck=COSTMAP[x.cat]||x.cat, g=suelto[ck]; if(!g||!g.length) return null; delete suelto[ck]; return g.reduce((a,k)=>a+acor(k),0); };
   const fil=T.map(x=>{ const a=e1v(x), b=(esEst2(x)&&!x.noAplica)?(+x.est||0):null, c=x.imprevisto&&!x.noAplica?(+x.est||0):null;
-    const r=tkReal(ch,x); if(a) t1+=a; if(b) t2+=b; if(c) ti+=c; if(r) tr+=r;
+    const r=realFila(x); if(a) t1+=a; if(b) t2+=b; if(c) ti+=c; if(r) tr+=r;
     return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td><td ${td}>${r!=null?'<b>'+clp(r)+'</b>':'—'}</td></tr>`; });
+  Object.keys(suelto).forEach(k=>{ const r=suelto[k].reduce((a,y)=>a+acor(y),0); if(!r) return; tr+=r;
+    fil.push(`<tr><td style="padding:3px 0">${CN[k]||k} <span style="color:var(--mute);font-size:11px">(anotado directo)</span></td><td ${td}>—</td><td ${td}>—</td><td ${td}>—</td><td ${td}><b>${clp(r)}</b></td></tr>`); });
   const rv=revEstado(ch), enPatio=v.st==='IQQ'&&!sold(ch), s=S[ch]||{};
   const btn=enPatio?(s.revFin?'<button class="btn b-sec" id="scRevAbre" style="flex:0 0 auto">↺ Reabrir revisión</button>':'<button class="btn b-pri" id="scRevFin" style="flex:0 0 auto">✓ Terminé de estimar</button>'):'';
   box.innerHTML=(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
-   +(T.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th><th style="text-align:right;font-weight:500">Real</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td><td ${td}>${clp(tr)}</td></tr></tfoot></table>`:'')
+   +(fil.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th><th style="text-align:right;font-weight:500">Real</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td><td ${td}>${clp(tr)}</td></tr></tfoot></table>`:'')
    +`<div class="mtr" style="margin:0">Real anotado en total (incluye lo anotado directo, como el Obligatorio): <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
 }
 document.addEventListener('click',async e=>{
@@ -6839,14 +6856,23 @@ function drawTaller(){
   { const h=$('#tlHd'); if(h) h.textContent=pen.length?'· '+pen.length:''; }
   if(nSin) $('#tlCnt').textContent+=' · '+nSin+' auto'+(nSin===1?'':'s')+' en patio sin revisar';
   const box=$('#tlList');
+  /* 08/10/2026 (Andre): cada pendiente va en su propia tarjeta con el vehículo bien marcado (antes era un solo bloque y se
+     confundía). "Marcar listo" ya no cierra el trabajo a ciegas: abre Costo real del vehículo y al guardar queda listo
+     con su costo enlazado (antes desaparecía sin pedir el costo y el estimado dejaba de contar). */
+  const sinCostoTk=x=>x.hecho&&!x.noAplica&&!x.costTs&&!x.sinCosto&&+x.est>0;
+  const btnTk=x=>x.hecho
+    ?(sinCostoTk(x)?`<button class="b-und" style="padding:6px 10px" data-tlisto="${x.ch}|${x.ts}">＄ Anotar costo real</button>`:'')
+      +`<button class="b-und" style="padding:6px 10px" data-tdone2="${x.ch}|${x.ts}">↺ Reabrir</button>`
+    :`<button class="b-und" style="padding:6px 10px" data-tlisto="${x.ch}|${x.ts}">✓ Listo · anotar costo</button>`;
+  const tagTk=x=>`<span class="tag ${x.hecho?'t-sold':'t-or'}">${x.noAplica?'No se necesitó':(x.hecho?'Listo':(x.imprevisto?'⚡ Imprevisto':'Pendiente'))}</span>`
+    +(sinCostoTk(x)?'<span style="color:var(--red);font-size:11.5px">sin costo anotado</span>':'')
+    +(x.costTs&&tkReal(x.ch,x)!=null?`<span style="color:var(--green);font-size:11.5px">real ${clp(tkReal(x.ch,x))}</span>`:'');
   const linea=x=>{const v=IDX[x.ch];
-    return `<div class="xrow" style="padding:7px 0;align-items:flex-start">
-      <span style="font-family:var(--body);font-size:13.5px">${v.ma} ${v.mo} ${v.an||''}
-        <span style="color:var(--mute);font-family:var(--mono);font-size:11px">· ${x.ch}</span>
+    return `<div style="border:1px solid var(--line);border-left:4px solid ${x.hecho?'var(--green)':(x.imprevisto?'#C98A12':'var(--plata)')};border-radius:9px;padding:9px 10px;margin:7px 0;display:flex;gap:8px;justify-content:space-between;align-items:flex-start">
+      <span style="font-family:var(--body);font-size:13.5px"><b style="font-family:var(--disp);font-size:14.5px">${v.ma} ${v.mo} ${v.an||''}</b>
+        <br><span style="color:var(--mute);font-family:var(--mono);font-size:11px">${x.ch}</span>${tlView==='listo'?` <span style="font-size:12.5px">· ${TN[x.cat]||x.cat}</span>`:''}${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">· est. ${clp(x.est)}</span>`:''}
         ${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</span>
-      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
-        <span class="tag ${x.hecho?'t-sold':'t-or'}">${x.hecho?'Listo':(x.imprevisto?'⚡ Imprevisto':'Pendiente')}</span>
-        <button class="b-und" style="padding:6px 10px" data-tdone2="${x.ch}|${x.ts}">${x.hecho?'↺ Reabrir':'✓ Marcar listo'}</button></span></div>`};
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">${tagTk(x)}${btnTk(x)}</span></div>`};
 
   if(tlView==='grupo'){
     const g={}; for(const x of pen)(g[x.cat]=g[x.cat]||[]).push(x);
@@ -6863,15 +6889,14 @@ function drawTaller(){
     box.innerHTML=ks.length?ks.map(c=>{const v=IDX[c];
       return `<details data-plg="ta_${c}" ${PLG.has('ta_'+c)?'open':''} style="border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px"><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-family:var(--disp);font-size:15px">${v.ma} ${v.mo} ${v.an||''}
         <span style="color:var(--mute);font-family:var(--mono);font-size:12px;font-weight:400">${c}</span></b><span style="color:var(--mute);font-size:12.5px">${g[c].length} ▾</span></summary>
-        ${g[c].map(x=>`<div class="xrow" style="padding:6px 0;align-items:flex-start">
-          <span style="font-family:var(--body);font-size:13.5px">${TN[x.cat]||x.cat}${x.nota?' · '+x.nota.replace(/</g,'&lt;'):''}</span>
-          <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">
-            <span class="tag t-or">Pendiente</span>
-            <button class="b-und" style="padding:6px 10px" data-tdone2="${c}|${x.ts}">✓ Marcar listo</button></span></div>`).join('')}
+        ${g[c].map(x=>`<div style="border:1px solid var(--line);border-left:4px solid ${x.imprevisto?'#C98A12':'var(--plata)'};border-radius:9px;padding:9px 10px;margin:7px 0;display:flex;gap:8px;justify-content:space-between;align-items:flex-start">
+          <span style="font-family:var(--body);font-size:13.5px"><b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">· est. ${clp(x.est)}</span>`:''}${x.nota?'<br><span style="color:var(--mute);font-size:12.5px">'+x.nota.replace(/</g,'&lt;')+'</span>':''}</span>
+          <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex:0 0 auto">${tagTk(x)}${btnTk(x)}</span></div>`).join('')}
       </details>`}).join('')
      :'<div class="empty">No hay trabajos pendientes.</div>';
   }else{
-    box.innerHTML=lis.length?`<div style="border:1px solid var(--line);border-radius:11px;padding:11px">${lis.slice().reverse().map(linea).join('')}</div>`
+    const lisO=lis.slice().reverse().sort((a,b)=>(sinCostoTk(b)?1:0)-(sinCostoTk(a)?1:0)), nSC=lis.filter(sinCostoTk).length;
+    box.innerHTML=lis.length?(nSC?`<div class="mtr" style="margin:0 0 6px;color:var(--red)">${nSC} terminado${nSC===1?'':'s'} sin costo real anotado: su estimado ya no se cuenta en el costo. Anota cuánto costó.</div>`:'')+`<div>${lisO.map(linea).join('')}</div>`
       :'<div class="empty">Todavía no marcas trabajos terminados.</div>';
   }
   pintaRevRep(box);
@@ -6907,10 +6932,20 @@ document.addEventListener('click',async e=>{
     if(x&&!confirm('¿Eliminar este trabajo pendiente?\n\n'+(CN[x.cat]||x.cat||'')+(x.nota?' · '+x.nota:'')+(x.est?' · estimado '+clp(x.est):'')+'\n\nNo se puede deshacer.'))return;
     t.tasks=t.tasks.filter(y=>String(y.ts)!==dd.dataset.tdel);
     await save(); drawTaskSheet(); draw(); return}
+  const tl=e.target.closest('[data-tlisto]');
+  if(tl){const [c,ts]=tl.dataset.tlisto.split('|'); if(!IDX[c]) return;
+    const x=(S[c].tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;
+    openCost(c,COSTMAP[x.cat]||x.cat,x.est||null,'real'); tkCostDe=x.ts;
+    $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo con su costo · <button class="b-und" data-tsincosto="${c}|${x.ts}">No costó nada: marcar listo sin costo</button>`;
+    return}
+  const sc0=e.target.closest('[data-tsincosto]');
+  if(sc0){const [c,ts]=sc0.dataset.tsincosto.split('|'); const x=((S[c]||{}).tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;
+    if(!confirm('¿Marcar '+(TN[x.cat]||x.cat)+' como listo SIN costo?\n\nEl estimado'+(x.est?' de '+clp(x.est):'')+' deja de contar en el costo del vehículo. Úsalo solo si de verdad no se pagó nada.')) return;
+    x.hecho=true; x.sinCosto=true; x.realFe=iso(); tkCostDe=null; await save(); closeAll(); draw(); toast((TN[x.cat]||x.cat)+': listo sin costo'); return}
   const d2=e.target.closest('[data-tdone2]');
   if(d2){const [c,ts]=d2.dataset.tdone2.split('|');
     const x=(S[c].tasks||[]).find(y=>String(y.ts)===ts);
-    if(x){x.hecho=!x.hecho; await save(); draw()} return}
+    if(x){x.hecho=!x.hecho; if(!x.hecho){ delete x.noAplica; delete x.fechaNoAp; delete x.sinCosto; } await save(); draw()} return}
   const sh2=e.target.closest('[data-tshare]');
   if(sh2){
     const k=sh2.dataset.tshare, out=[];
