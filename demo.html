@@ -17,7 +17,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  --sea:#51686E;--seaD:#0B1C23;--seaL:#223B46;--green:#46C97D;--greenBg:#12332A;
  --amber:#E8B04B;--amberBg:#332914;--red:#EF867D;--redBg:#331F1D;
  --azul:#6AA9E0;--azulBg:#132B3C;--plata:#C8D2D4;--btn2:#3D5D6B;--btn2b:#618292;
- --fVerde:#3FAE72;--fAzul:#5E97C7;--fAmbar:#CE9C45;--fPlata:#8C9DA3;
+ --fVerde:#3FAE72;--fAzul:#D9709E;--fAmbar:#CE9C45;--fPlata:#8C9DA3;
  --disp:'Archivo',system-ui,sans-serif;--body:'Instrument Sans',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -72,7 +72,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .card.plain{padding:13px 13px 13px 17px}
 .est{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-radius:999px;white-space:nowrap;border:1px solid}
 .e-pat{background:rgba(70,201,125,.15);color:var(--green);border-color:rgba(70,201,125,.4)}
-.e-cam{background:rgba(106,169,224,.14);color:var(--azul);border-color:rgba(106,169,224,.36)}
+.e-cam{background:rgba(217,112,158,.14);color:#E58DB5;border-color:rgba(217,112,158,.4)}
 .e-deu{background:rgba(232,176,75,.15);color:var(--amber);border-color:rgba(232,176,75,.38)}
 .e-res{background:rgba(176,132,232,.15);color:#C3A2F0;border-color:rgba(176,132,232,.42)}
 .e-resv{background:rgba(224,96,96,.15);color:var(--red);border-color:rgba(224,96,96,.42)}
@@ -293,6 +293,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <input class="search" id="q" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
     <div class="chips fila" role="tablist" aria-label="Filtro de stock">
       <button class="chip" data-f="patio" aria-selected="true">En patio</button>
+      <button class="chip" data-f="falta" aria-selected="false">Falta estimar</button>
+      <button class="chip" data-f="porhacer" aria-selected="false">Por hacer</button>
       <button class="chip" data-f="corea" aria-selected="false">En Corea</button>
       <button class="chip" data-f="camino" aria-selected="false">En camino</button>
       <button class="chip" data-f="vend" aria-selected="false">Vendidos</button>
@@ -746,7 +748,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->08-10-2026 16:05<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-10-2026 17:43<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1031,7 +1033,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="fld" id="tcWrap" hidden><label for="ssTC">Tipo de cambio (CLP por USD)</label>
     <input id="ssTC" inputmode="numeric" placeholder="945"></div>
   <div class="fld"><label for="ssP" id="ssPL">Precio de venta</label><input id="ssP" inputmode="numeric" placeholder="$0">
-    <div class="sug" id="ssS"></div></div>
+    <div class="sug" id="ssS"></div>
+    <div class="mtr" id="ssG" style="margin-top:6px"></div></div>
   <div class="fld"><label>Dólar observado · para ingresar en Zofri</label>
     <div style="display:flex;gap:8px;align-items:center">
       <div id="ssObs" style="flex:1;font-family:var(--mono);font-weight:600;font-size:20px;
@@ -1241,10 +1244,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="fld"><label for="spVenta">Precio de venta · lo que deben pedir</label>
     <input id="spVenta" inputmode="numeric" placeholder="$0">
     <div class="mtr" style="margin-top:5px">~ <b id="spVentaUSD">US$0</b> <span style="color:var(--mute)">(para cotizar a Paraguay, se calcula solo)</span></div>
+    <div class="mtr" id="spVentaG" style="margin-top:5px"></div>
     <div class="mtr" style="margin-top:5px">Lo ven Víctor y Bryan para cotizar y armar sus publicaciones (Marketplace, Instagram, etc). No es el precio de la web — para eso usa "Oferta" arriba.</div></div>
   <div class="fld"><label for="spMin">Precio mínimo · solo para tu equipo</label>
     <input id="spMin" inputmode="numeric" placeholder="$0">
     <div class="mtr" style="margin-top:5px">~ <b id="spMinUSD">US$0</b></div>
+    <div class="mtr" id="spMinG" style="margin-top:5px"></div>
     <div class="mtr" id="spMinT" style="margin-top:5px">Lo verán Víctor y Bryan en su app. Nunca aparece en la web.</div></div>
   <div class="sact fija"><button class="cx" data-close>Cancelar</button><button class="ok" id="spOk">Guardar</button></div>
 </div>
@@ -1485,9 +1490,9 @@ function guardaCacheV(inmediato){
   if(inmediato) gu(); else vCacheTimer=setTimeout(gu, 1200);   /* inmediato: hay cambios sin enviar a la nube, no arriesgar 1,2 s */
 }
 const KEY='amk_sistema_v2', OLD='amk_ventas_v1';
-const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánico'],['REPNUE','Rep. nuevos'],
- ['ELECT','TV / Eléct.'],['PARB','Parabrisas'],['NEUMAT','Neumáticos'],['ASIENTOS','Asientos'],
- ['REPUSA','Rep. usados'],['BATERIA','Batería'],['ALERON','Alerón'],['LAVADO','Lavado'],['CHASIS','Chasis/planchas'],
+const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánica'],['REPNUE','Repuestos'],
+ ['ELECT','Eléctrico'],['TV','TV'],['PARB','Parabrisas'],['NEUMAT','Neumáticos'],['ASIENTOS','Asientos'],
+ ['REPUSA','Rep. usados'],['BATERIA','Batería'],['ALERON','Alerón'],['LAVADO','Lavado'],['CHASIS','Chasis / planchas'],
  ['OTRO','Otro']];
 const CN=Object.fromEntries(CATS);
 let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- solo de este computador/teléfono */
@@ -1624,7 +1629,7 @@ const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof',
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda'];  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk'];  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -3027,6 +3032,8 @@ function passS(v){
   if(fS==='creando') return !!v.creando;
   if(v.creando) return false;
   if(fS==='patio') return v.st==='IQQ'&&!sold(v.ch);
+  if(fS==='porhacer'){ if(v.st!=='IQQ'||sold(v.ch)) return false; const r=revEstado(v.ch); return !!r&&r.k==='por'; }   /* 10/10/2026: estimación terminada, con trabajos por hacer/pagar */
+  if(fS==='falta'){ if(v.st!=='IQQ'||sold(v.ch)) return false; const r=revEstado(v.ch); return !!r&&r.k!=='ok'&&r.k!=='por'&&!(S[v.ch]||{}).revFin; }   /* 10/10/2026: autos en patio con la estimación sin terminar */
   if(fS==='corea') return v.st==='ORIGEN'&&!!v.enCorea&&!sold(v.ch);
   if(fS==='camino')return v.st==='ORIGEN'&&!v.enCorea&&!sold(v.ch);
   if(fS==='vend')  return sold(v.ch);
@@ -3040,6 +3047,10 @@ function diasEnPatioTexto(v){
   const meses=Math.round(dias/30);
   return meses+(meses===1?' mes':' meses')+' en patio';
 }
+/* 10/10/2026 (Andre): ganancia estimada = precio − costo proyectado (costo total + por pagar + estimado de taller pendiente). */
+const costoProy=v=>{ const d=debe(v.ch)||0, pe=tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((a,x)=>a+(x.est||0),0); return ctot(v)+d+pe; };
+const ganHTML=(p,c)=>{ p=+p||0; if(!(p>0)) return ''; const g=p-c, pc=c?Math.round(g/c*1000)/10:0;
+  return `<span style="color:${g>=0?'var(--green)':'var(--red)'}">${g>=0?'ganas':'pierdes'} <b>${clp(Math.abs(g))}</b> (${String(Math.abs(pc)).replace('.',',')}%)</span>`; };
 function cardS(v){
   const s=st(v.ch), isS=sold(v.ch), c=colorDe(v.ce);
   const cost=ctot(v), ac=app(v.ch);
@@ -3049,16 +3060,9 @@ function cardS(v){
   const ccT=v.cc?Object.keys(v.cc).map(k=>(CCN[k]||k)+' ₩'+Number(v.cc[k]).toLocaleString('es-CL')).join(' · '):'';
   const pest=tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((a,x)=>a+(x.est||0),0);
   const deb=debe(v.ch), pv=postv(v.ch), nf=s.nf||0;
-  const CARN={'BARANDA':'Baranda','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer',
-    'GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
-  const cars=[];
-  if(v.trab && CARN[v.ca]) cars.push(CARN[v.ca]);
-  if(!v.trab && v.tp) cars.push('T. panorámico');
-  if(v.tr) cars.push(v.tr);
-  if(v.pa && v.pa>=7) cars.push(v.pa+' pasajeros');
-  if(v.sv) cars.push('Sello verde');
-  const carsHtml=cars.length?`<div class="specs">${cars.map(x=>
-    `<span class="sp${x==='Sello verde'?' sp-sv':''}">${x}</span>`).join('')}</div>`:'';
+  const capCe=String(v.ce||'').charAt(0)+String(v.ce||'').slice(1).toLowerCase();
+  const carsHtml=`<div class="specs">${etiquetasV(v).map(x=>
+    `<span class="sp${x==='Sello verde'?' sp-sv':''}">${(v.ce&&x===capCe)?`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:5px;border:1px solid rgba(255,255,255,.35)"></i>`:''}${x}</span>`).join('')}</div>`;
 
   let estado, chip;
   if(isS){estado='var(--fPlata)'; chip='<span class="est e-ven">Vendido</span>';}
@@ -3066,7 +3070,7 @@ function cardS(v){
     if(+r.precio>0&&!resSaldo(r)){ estado='var(--red)'; chip='<span class="est e-resv" data-reserva="'+v.ch+'" style="cursor:pointer" title="Abrir la reserva para marcarlo vendido">Pagado completo · ⚠ falta marcar vendido</span>'; }}
   else if(v.st==='ORIGEN'){estado=v.enCorea?'#C9A227':'var(--fAzul)'; chip=v.enCorea?'<span class="est e-deu" data-zarpe="'+v.ch+'" style="cursor:pointer" title="Marcar que se embarcó">En Corea · 🚢 ¿se embarcó?</span>':'<span class="est e-cam" data-zarpe="'+v.ch+'" style="cursor:pointer">En camino'+(v.zarpe?' · zarpó '+fd(v.zarpe).slice(0,5):'')+'</span>';}
   else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
-  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>'; const rv=revEstado(v.ch); if(rv){ if(rv.k!=='ok') estado=rv.col; chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+'<span class="est" data-cost="'+v.ch+'" style="cursor:pointer;color:#fff;background:'+rv.col+'" title="Abrir costos del vehículo">'+rv.txt+'</span></span>'; }}
+  else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>'; const rv=revEstado(v.ch); if(rv){ if(rv.k!=='ok') estado=rv.col; chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+'<span class="est" data-cost="'+v.ch+'" style="cursor:pointer;color:#fff;background:'+rv.col+'" title="'+(rv.det||'Abrir costos del vehículo')+'">'+rv.txt+'</span></span>'; }}
 
   const filas=[];
   if(isS&&s.price){
@@ -3074,8 +3078,8 @@ function cardS(v){
     filas.push(`Margen <b style="color:${marg>=0?'var(--green)':'var(--red)'}">${clp(marg)}</b>`);
   } else {
     if(v.vev && !s.pmin) filas.push(`Estimado <b>${clp(v.vev)}</b>`);
-    filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}${conUSD(s.pventa,s.pventaUSD)}</b>`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
-    filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}${conUSD(s.pmin,s.pminUSD)}</b>`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
+    filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}${conUSD(s.pventa,s.pventaUSD)}</b> · ${ganHTML(s.pventa,cost+deb+pest)}`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
+    filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}${conUSD(s.pmin,s.pminUSD)}</b> · ${ganHTML(s.pmin,cost+deb+pest)}`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
   }
   if(deb)  filas.push(`Por pagar <b style="color:var(--amber)">${clp(deb)}</b>`);
   if(pest) filas.push(`Estimado taller <b>${clp(pest)}</b>`);
@@ -3097,7 +3101,7 @@ function cardS(v){
   return `<div class="card"><div class="strip" style="background:${estado}"></div><div class="cin">
    <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
      <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
-     <div class="ch">${v.ch} · ${v.ce}<span class="sw" style="background:${c}"></span></div></div></div>${chip}</div>
+     <div class="ch">${v.ch}</div></div></div>${chip}</div>
    ${carsHtml}
    <div class="bignum"><b>${clp(cost)}</b><span>costo total</span></div>
    ${filas.length?`<div class="money">${filas.map(f=>'<div>'+f+'</div>').join('')}</div>`:''}
@@ -3166,16 +3170,20 @@ function drawStock(){
 /* Lista compacta en Stock (02/10/2026, igual que en Vendedores): una línea por vehículo; al tocarla se abre su ficha completa. */
 let stCompacto=false; const STEXP=new Set();
 setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); if(r&&r.value==='1'){ stCompacto=true; try{drawStock()}catch(_){} } }catch(_){} },1200);
-const carsC=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
+/* 10/10/2026 (Andre): las mismas etiquetas en la lista compacta y en la ficha desglosada (la desglosada nunca debe mostrar menos).
+   Para vehículos de trabajo, el tipo (baranda baja, alas de gaviota, frigorífico...) va primero. */
+const carNom=v=>{ if(!v.trab||!v.ca||v.ca==='S/N') return ''; const k=String(v.ca).trim(); return k.charAt(0).toUpperCase()+k.slice(1).toLowerCase(); };   /* tal como está guardado (Baranda, Freezer, Gaviota...): sin renombrar ni duplicar nombres */
+const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
+  const cn=carNom(v); if(cn) t.push(cn);
   if(v.ce) t.push(cap(v.ce));
-  if(v.trab&&v.ca&&v.ca!=='S/N') t.push(cap(v.ca));
   if(v.cab) t.push({SIMPLE:'Cab. simple',MEDIA:'Cab. y media',DOBLE:'Doble cabina'}[v.cab]||'');
   else if(+v.pa>=7) t.push(v.pa+' pasajeros');
   if(!v.trab&&v.tp) t.push('T. panorámico');
   if(v.tr) t.push(v.tr);
   if(v.km) t.push(Number(v.km).toLocaleString('es-CL')+' km');
   if(v.sv) t.push('Sello verde');
-  return t.filter(Boolean).join(' · '); };   /* 2.ª línea de la lista compacta: lo relevante del vehículo */
+  return t.filter(Boolean); };
+const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta: lo relevante del vehículo */
 function cardSV(v){
   if(!stCompacto) return cardS(v);
   if(STEXP.has(v.ch)) return `<div><button class="b-und" type="button" data-scmp="${v.ch}" style="font-size:12px;margin:0 0 4px">▴ Achicar</button>${cardS(v)}</div>`;
@@ -3499,7 +3507,7 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     cargaComunas(); chkRut();
     vseg('venta'); loadCarnet(v.ch);
     { const mw=$('#ssModoWrap'); if(mw) mw.hidden=!!resAct(v.ch)||sold(v.ch); $('#ssModoVenta').setAttribute('aria-pressed','true'); $('#ssModoRes').setAttribute('aria-pressed','false'); }
-    openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
+    pintaVentaGan(); openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-sell],[data-cost],[data-und],[data-pub],[data-delx],[data-edit],[data-lleg],[data-restaura],[data-confcrea],[data-descartacrea]');
   if(!b)return;
@@ -3564,7 +3572,7 @@ document.addEventListener('click',e=>{
       ? `Costo total ${clp(cst)}. Lo verán Víctor y Bryan; nunca aparece en la web.`
       : 'Lo verán Víctor y Bryan en su app. Nunca aparece en la web.';
     $('#spS').innerHTML=v.vev?`Estimado ${clp(v.vev)}<button data-sug2="${v.vev}">Usar</button>`:'';
-    openSheet('shPub');}
+    pintaPubGan(); openSheet('shPub');}
   if(b.dataset.delx)  {const [c,ts]=b.dataset.delx.split('|');
     const x=(S[c].costs||[]).find(y=>String(y.ts)===ts), v0=IDX[c];
     if(x&&!confirm('¿Eliminar este registro de costo?\n\n'+(v0?v0.ma+' '+v0.mo+' · ':'')+(CN[x.cat]||x.cat)+' · '+clp(abo(x)||acor(x))+'\n\nNo se puede deshacer.'))return;
@@ -3595,7 +3603,8 @@ function openCost(ch,pcat,pamt,seg){
   tkCh=editing; tkCat='PINTURA'; $('#tkNota').value=''; $('#tkEst').value='';
   /* 08/10/2026 (Andre): pestaña por defecto según la etapa del auto. Mientras se está estimando (en camino, o en patio sin
      haber apretado "Terminé de estimar") abre en Estimado; con la estimación cerrada, vendido o stock antiguo, en Costo real. */
-  const segDef=c=>{ const v=IDX[c]; if(!v||sold(c)||(S[c]||{}).revFin) return 'real'; if(v.st==='ORIGEN') return 'est'; const r=revEstado(c); return (r&&r.k!=='ok')?'est':'real'; };
+  /* 10/10/2026 (Andre): vuelve a abrir SIEMPRE en Estimado (arriba), también con la revisión cerrada; solo los vendidos abren en Costo real. */
+  const segDef=c=>{ const v=IDX[c]; return (!v||sold(c))?'real':'est'; };
   drawTaskSheet(); sugEst(); cseg(seg||(editing?segDef(editing):'real')); pintaScIq();
   scCat=pcat||'OBLIG';
   $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
@@ -4088,6 +4097,19 @@ $('#spMin').addEventListener('input',()=>{
   $('#spMinUSD').textContent=usd?('US$'+usd.toLocaleString('es-CL')):'US$0';
 });
 ['#ssTC'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':String(n))}));
+/* 10/10/2026: ganancia en vivo al escribir el precio de venta / mínimo (hoja de precios) y el precio de venta (hoja de venta). */
+function pintaPubGan(){ const v=IDX[editing]; if(!v||!$('#spVentaG')) return; const c=costoProy(v);
+  const f=(id,n)=>{ $(id).innerHTML=n>0?ganHTML(n,c)+' <span style="color:var(--mute)">· costo proyectado '+clp(c)+'</span>':''; };
+  f('#spVentaG',pnum($('#spVenta').value)||0); f('#spMinG',pnum($('#spMin').value)||0); }
+function pintaVentaGan(){ const v=IDX[editing]; const box=$('#ssG'); if(!v||!box) return; const c=costoProy(v), t=st(v.ch);
+  const n=pnum($('#ssP').value)||0, tc=moneda==='USD'?(pnum($('#ssTC').value)||0):0, clpv=moneda==='USD'?Math.round(n*tc):n;
+  const L=[]; L.push('Costo del auto <b>'+clp(c)+'</b>');
+  if(t.pventa) L.push('A pedir <b>'+clp(t.pventa)+'</b> · '+ganHTML(t.pventa,c));
+  if(t.pmin) L.push('Mínimo <b style="color:var(--amber)">'+clp(t.pmin)+'</b> · '+ganHTML(t.pmin,c));
+  if(clpv>0) L.push('<b>Con este precio</b> · '+ganHTML(clpv,c));
+  else if(moneda==='USD'&&n>0) L.push('Pon el tipo de cambio para ver la ganancia');
+  box.innerHTML=L.map(x=>'<div>'+x+'</div>').join(''); }
+['#spVenta','#spMin','#ssP','#ssTC'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',()=>{ try{ pintaPubGan(); pintaVentaGan(); }catch(_){} }); });
 ['#ssP','#scA','#spP'].forEach(s=>$(s).addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))}));
 $('#q').addEventListener('input',e=>{q=e.target.value;drawStock()});
 $('#stOrden').addEventListener('change',drawStock);
@@ -6731,6 +6753,7 @@ function setMoneda(m){
   $('#tcWrap').hidden = m!=='USD';
   $('#ssPL').textContent = m==='USD'?'Precio de venta (USD)':'Precio de venta';
   $('#ssP').placeholder = m==='USD'?'0':'$0';
+  try{ pintaVentaGan(); }catch(_){}
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-tipo]'); if(b) setTipo(b.dataset.tipo);
@@ -6848,7 +6871,7 @@ $('#ssNota').addEventListener('click',async()=>{
 });
 
 /* ---------- TALLER ---------- */
-const TCAT=[['PINTURA','Pintura'],['MECANICO','Mecánica'],['CHASIS','Chasis / planchas'],['SUSP','Suspensión'],['ELECT','Eléctrico'],
+const TCAT=[['PINTURA','Pintura'],['MECANICO','Mecánica'],['CHASIS','Chasis / planchas'],['SUSP','Suspensión'],['ELECT','Eléctrico'],['TV','TV'],
  ['NEUMAT','Neumáticos'],['PARB','Parabrisas'],['ASIENTOS','Asientos'],['BATERIA','Batería'],
  ['REPNUE','Repuestos'],['LAVADO','Lavado'],['FLUIDOS','Niveles y fluidos'],['OTRO','Otro']];
 const TN=Object.fromEntries(TCAT);
@@ -6872,13 +6895,33 @@ let tkImpCh=null, tkCostDe=null;   /* tkCostDe: trabajo desde el que se abrió "
    no lo cerraba (se contaban estimado + real) y "Marcar listo" sin costo hacía desaparecer el estimado del total. */
 const tkReal=(c,x)=>{ if(!x||!x.costTs) return null; const k=((S[c]||{}).costs||[]).find(y=>String(y.ts)===String(x.costTs)); return k?acor(k):null; };
 const esEst2=x=>x&&!x.imprevisto&&x.origen!=='vendedor'&&!esEstSinVer(x)&&(x.origen!=='emb'||x.visto);
+/* 10/10/2026 (Andre): mini checklist de lo que se mide al estimar un auto en patio. Pintura, Susp./mecánica y Pantalla se marcan
+   solas cuando hay un trabajo anotado (o "no se necesitó") de esa categoría; Escáner se marca a mano; KM se marca solo si el auto tiene km.
+   Todo se puede marcar a mano también (S[c].chk) para decir "ya lo vi y no necesita nada". */
+const CHK_ITEMS=[['PINTURA','Pintura',['PINTURA']],['MEC','Susp./mecánica',['MECANICO','SUSP']],['PANT','Pantalla',['TV']],['ESC','Escáner',[]],['KM','KM',[]]];
+function chkEstado(c){
+  const v=IDX[c]||{}, s=S[c]||{}, m=s.chk||{}, T=(s.tasks||[]).filter(x=>x.cat!=='LAVADO');
+  return CHK_ITEMS.map(([k,n,cats])=>{
+    let auto=false;
+    if(k==='KM') auto=+v.km>0;
+    else if(cats.length) auto=T.some(x=>cats.includes(x.cat)&&(x.noAplica||x.imprevisto||x.hecho||esEst2(x)));
+    return {k,n,auto,man:!!m[k],ok:auto||!!m[k]};
+  });
+}
 function revEstado(c){
   const v=IDX[c]; if(!v||v.st!=='IQQ'||sold(c)||v.baja||v.creando) return null;
-  const T=tasks(c), s=S[c]||{}, p=pend(c);
-  if(!T.some(x=>x.origen==='emb')&&!s.revFin&&!p) return null;   /* stock antiguo sin nada anotado: no se marca */
-  if(p) return {k:'pend',col:'#C98A12',txt:'🟡 '+p+' pendiente'+(p===1?'':'s')};
-  if(s.revFin) return {k:'ok',col:'#2E8B57',txt:'🟢 Revisado'};
-  if(T.some(x=>esEst2(x)||x.imprevisto)) return {k:'rev',col:'#C98A12',txt:'🟡 En revisión'};
+  const T=tasks(c), s=S[c]||{}, p=pend(c), m=s.chk||{};
+  if(!T.some(x=>x.origen==='emb')&&!s.revFin&&!p&&!Object.keys(m).some(k=>m[k])) return null;   /* stock antiguo sin nada anotado: no se marca */
+  /* 10/10/2026 (Andre): "Terminé de estimar" es solo la 1.ª etapa. Con trabajos aún por hacer/pagar queda 🔵 (con la plata estimada que falta);
+     recién 🟢 Listo cuando todo está hecho y pagado. Etapas: 🔴 sin revisar · 🟡 estimando · 🔵 estimado, por hacer · 🟢 listo. */
+  if(s.revFin){
+    if(p){ const por=T.filter(x=>!x.hecho&&!esEstSinVer(x)&&x.cat!=='LAVADO').reduce((a,x)=>a+(+x.est||0),0);
+      return {k:'por',col:'#2F7FC1',txt:'🔵 '+p+' por hacer'+(por?' · '+clp(por):''),det:'Estimación terminada · '+p+' trabajo'+(p===1?'':'s')+' por hacer o pagar'+(por?' ('+clp(por)+' estimado)':'')}; }
+    return {k:'ok',col:'#2E8B57',txt:'🟢 Listo'}; }
+  const ck=chkEstado(c), nOk=ck.filter(x=>x.ok).length, falta=ck.filter(x=>!x.ok).map(x=>x.n);
+  /* empezó a estimar = hay un trabajo pendiente/estimado, o algo del checklist marcado (el KM solo no cuenta: es un dato, no una revisión) */
+  if(p||T.some(x=>esEst2(x)||x.imprevisto)||ck.some(x=>x.ok&&x.k!=='KM'))
+    return {k:p?'pend':'rev',col:'#C98A12',txt:'🟡 Estimando '+nOk+'/'+ck.length+' · falta terminar',det:'Falta terminar de estimar'+(falta.length?' · sin revisar: '+falta.join(', '):'')};
   return {k:'sin',col:'#C0392B',txt:'🔴 Sin revisar'};
 }
 function pintaScRev(){
@@ -6902,15 +6945,24 @@ function pintaScRev(){
     fil.push(`<tr><td style="padding:3px 0">${CN[k]||k} <span style="color:var(--mute);font-size:11px">(anotado directo)</span></td><td ${td}>—</td><td ${td}>—</td><td ${td}>—</td><td ${td}><b>${clp(r)}</b></td></tr>`); });
   const rv=revEstado(ch), enPatio=v.st==='IQQ'&&!sold(ch), s=S[ch]||{};
   const btn=enPatio?(s.revFin?'<button class="btn b-sec" id="scRevAbre" style="flex:0 0 auto">↺ Reabrir revisión</button>':'<button class="btn b-pri" id="scRevFin" style="flex:0 0 auto">✓ Terminé de estimar</button>'):'';
-  box.innerHTML=(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
+  const ckH=enPatio?`<div style="margin:4px 0 8px"><div style="font-family:var(--body);font-size:11.5px;color:var(--mute);margin-bottom:5px">Checklist de estimado · toca para marcar lo que ya viste</div><div style="display:flex;gap:6px;flex-wrap:wrap">${chkEstado(ch).map(x=>`<button type="button" class="cg" data-chk="${x.k}" data-auto="${x.auto?1:0}" aria-pressed="${x.ok}" style="flex:1 1 auto;padding:8px 10px">${x.ok?'✓ ':''}${x.n}</button>`).join('')}</div></div>`:'';
+  box.innerHTML=ckH+(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
    +(fil.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th><th style="text-align:right;font-weight:500">Real</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td><td ${td}>${clp(tr)}</td></tr></tfoot></table>`:'')
    +`<div class="mtr" style="margin:0">Real anotado en total (incluye lo anotado directo, como el Obligatorio): <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
 }
 document.addEventListener('click',async e=>{
+  const kb=e.target.closest('[data-chk]');
+  if(kb){ const ch=editing||($('#scV')?$('#scV').value:null); if(!ch||!IDX[ch]) return;
+    const it=chkEstado(ch).find(x=>x.k===kb.dataset.chk); if(!it) return;
+    if(it.auto){ toast(it.n+' ya está marcado '+(it.k==='KM'?'porque el auto tiene kilometraje':'porque hay un trabajo anotado de eso')); return; }
+    const s=st(ch); s.chk=Object.assign({},s.chk); if(s.chk[it.k]) delete s.chk[it.k]; else s.chk[it.k]=true;
+    await save(); drawTaskSheet(); draw(); return; }
   const fin=e.target.closest('#scRevFin'), ab=e.target.closest('#scRevAbre'); if(!fin&&!ab) return;
   const ch=editing||($('#scV')?$('#scV').value:null); if(!ch||!IDX[ch]) return;
   const s=st(ch);
   if(fin){ const sv=tasks(ch).filter(esEstSinVer);
+    const fl=chkEstado(ch).filter(x=>!x.ok).map(x=>x.n);
+    if(fl.length&&!confirm('Todavía no marcaste: '+fl.join(', ')+'.\n\nAceptar = terminar de estimar igual.\nCancelar = seguir estimando.')) return;
     if(sv.length&&!confirm('Quedan '+sv.length+' estimado'+(sv.length===1?'':'s')+' del embarque sin confirmar: '+sv.map(x=>TN[x.cat]||x.cat).join(', ')+'.\n\nAceptar = los viste y van (pasan a Estimado 2, como pendientes).\nCancelar = volver a revisarlos (en los que no van, marca "No se necesitó").')) return;
     sv.forEach(x=>{ if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); });
     s.revFin=iso(); }
@@ -10813,9 +10865,9 @@ function descargaRespaldoExcel(auto){
   const sheets=[];
 
   const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
-    'Alerón','Pintura','Eléctrico','Parabrisas','Mecánico','Obligatorio','Rep. nuevos','Rep. usados','Batería','Neumáticos','Asientos'];
+    'Alerón','Pintura','Eléctrico','TV','Parabrisas','Mecánica','Obligatorio','Repuestos','Rep. usados','Batería','Neumáticos','Asientos'];
   const vehRows=[vehHead, ...V.map(v=>[v.ch,v.st,v.ma,v.mo,v.an,v.ce,v.cat,v.tr,v.pa,v.ca,v.tp?'Sí':'No',v.km,v.cif,v.fob,v.cifusd,v.ct,v.vev,v.trab?'Sí':'No',v.sv?'Sí':'No',
-    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0])];
+    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0])];
   sheets.push({name:'Vehículos',rows:vehRows});
 
   const rmHead=['Fecha','Tipo','USD enviados','Comisión (USD)','IVA comisión (%)','KRW estimado','KRW recibido','Cambio real (KRW/USD)','Embarque vinculado','Vehículos vinculados'];
