@@ -748,7 +748,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-10-2026 17:43<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 10:49<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8671,8 +8671,12 @@ function smdaTexto(c){ const v=IDX[c]||{}, L=smdaPend(c), doc=(v.zof||{}).docIng
 const SMDA_DESDE='2026-10-01';
 const motorDe=v=>{ try{ return String(zofEf(v).motor||'').trim().toUpperCase(); }catch(_){ return String((v.zof||{}).motor||'').trim().toUpperCase(); } };
 const motorOk=v=>{ const m=motorDe(v); return m.length>=8&&!m.endsWith('-'); };
+/* 13/10/2026 (Andre): un auto recién vendido sigue declarado en el Z y puede necesitar SMDA (le faltaba el N° de motor
+   a una Santa Fe vendida ese día y desapareció de la lista). Los vendidos en los últimos 45 días siguen apareciendo. */
+const SMDA_VEND_DIAS=45;
+const smdaVendReciente=c=>{ const d=String((S[c]||{}).date||''); if(!sold(c)||!d) return false; const t=new Date(d+'T12:00:00'); return !isNaN(t)&&(Date.now()-t.getTime())<=SMDA_VEND_DIAS*864e5; };
 function smdaAutos(){
-  return V.filter(v=>v&&v.ch&&!v.baja&&!v.creando&&(smdaPend(v.ch).length||(!sold(v.ch)&&!motorOk(v)&&((v.st==='IQQ'&&String(v.llp||'')>=SMDA_DESDE)||(v.st==='ORIGEN'&&!!zPresDe(v))))))
+  return V.filter(v=>v&&v.ch&&!v.baja&&!v.creando&&(smdaPend(v.ch).length||((!sold(v.ch)||smdaVendReciente(v.ch))&&!motorOk(v)&&((v.st==='IQQ'&&String(v.llp||'')>=SMDA_DESDE)||(v.st==='ORIGEN'&&!!zPresDe(v))))))
     .map(v=>v.ch);
 }
 /* 07/10/2026: "Comparar con el Z". Se pega el texto del Z tal como se ve en ZOFRI Virtual (Cmd+A, Cmd+C en la página
@@ -8787,7 +8791,7 @@ function pintaSmda(){
   const tarj=c=>{const v=IDX[c], mOk=motorOk(v), L=smdaPend(c);
     return `<div style="border:1px solid ${mOk?'var(--line)':'#C98A12'};border-radius:11px;padding:11px;margin-bottom:9px">
     <div class="r1" style="margin-bottom:6px"><h3 style="font-family:var(--disp);font-size:15px;margin:0">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-size:12px">${c}</span></h3>
-      <span class="tag" style="color:#fff;background:${mOk?'#2E8B57':'#C98A12'}">${mOk?'✓ Listo':'Falta N° de motor'}</span></div>
+      <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${sold(c)?`<span class="tag" style="color:var(--plata);background:rgba(200,210,212,.14)">Vendido${(S[c]||{}).date?' '+fd((S[c]||{}).date):''}</span>`:''}<span class="tag" style="color:#fff;background:${mOk?'#2E8B57':'#C98A12'}">${mOk?'✓ Listo':'Falta N° de motor'}</span></span></div>
     ${mOk?'':`<div class="xrow" style="gap:8px;align-items:center;margin:0 0 6px"><input data-smdamot="${c}" value="${esc(motorDe(v))}" placeholder="N° de motor, ej: D4HA-1234567" style="flex:1;text-transform:uppercase;font-family:var(--mono)"><button class="btn b-pri" data-smdamotok="${c}" style="flex:0 0 auto">Guardar</button></div>`}
     ${L.map(x=>`<div class="xrow" style="padding:4px 0"><span style="font-family:var(--body);font-size:13.5px">${smdaNom(x.campo)}</span><span style="font-family:var(--mono);font-size:12.5px"><s style="color:var(--mute)">${esc(x.antes)||'(vacío)'}</s> → <b>${esc(x.despues)||'(vacío)'}</b>${x.por?` <span style="color:var(--mute);font-size:11px">· ${esc(x.por)}</span>`:''}</span></div>`).join('')||'<div class="mtr" style="margin:0">Sin otros cambios anotados.</div>'}
     ${mOk&&L.length?`<div class="acts" style="margin-top:6px"><button class="btn b-sec" data-smdacp="${c}">⧉ Copiar</button><button class="btn b-pri" data-smdaenv="${c}">✓ SMDA enviada</button></div>`:''}</div>`};
