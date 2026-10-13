@@ -294,7 +294,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->13-10-2026 16:22<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->13-10-2026 19:05<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -354,10 +354,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div class="mtr" id="ivTplT" style="margin-top:8px"></div></div>
     <div class="box"><h3>Cotización de liberación</h3>
       <p>Para clientes con cupo de discapacidad.</p>
-      <div class="fld"><label for="cbV">Vehículo (opcional)</label>
-        <input id="cbV" list="dlCbV" autocomplete="off" placeholder="Escribe marca, modelo o chasis">
+      <div class="fld"><label for="cbQ">Vehículo</label>
+        <input type="hidden" id="cbV">
+        <input class="search" id="cbQ" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
+        <div id="cbRes" style="margin-top:8px"></div>
+        <div id="cbSel" hidden></div>
         <datalist id="dlCbV"></datalist></div>
-      <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="$0"></div>
+      <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="Lo que se acuerde con el cliente"></div>
       <div class="fld"><label for="cbBase">Base imponible</label><input id="cbBase" inputmode="numeric" placeholder="$0">
         <div class="mtr" id="cbBaseNota">Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.</div></div>
       <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
@@ -2411,15 +2414,16 @@ function pintaCB(){
   const tras=pnum($('#cbTras').value)||0;
   const imp=Math.round(base*CBTASA/100);
   const fij=CBFIJOS.reduce((a,x)=>a+x[1],0);
-  const tot=(venta||base)+imp+fij+tras;
+  const extra=imp+fij+tras, tot=venta?venta+extra:0;   /* sin valor de venta no se inventa uno */
   const filas=(venta?[['Valor de venta',venta]]:[])
     .concat([['Base imponible',base],['Impuesto '+String(CBTASA).replace('.',',')+'%',imp]])
     .concat(CBFIJOS).concat(tras?[['Traslado',tras]]:[]);
   $('#cbDet').innerHTML=filas.map(([n,v])=>`<div class="frow" style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--ink2)">
       <span>${n}</span><span style="font-family:var(--mono)">${clp(v)}</span></div>`).join('')
     +`<div class="frow" style="display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
-      <span style="font-weight:700">Total a pagar</span><span style="font-weight:700;font-size:16px;font-family:var(--mono)">${clp(tot)}</span></div>`;
-  window.__CBTOT=tot;
+      <span style="font-weight:700">${venta?'Total a pagar':'Impuesto y trámites'}</span><span style="font-weight:700;font-size:16px;font-family:var(--mono)">${clp(venta?tot:extra)}</span></div>`
+    +(venta?'':'<div class="mtr" style="margin-top:4px">Escribe el valor de venta para ver el total a pagar.</div>');
+  window.__CBTOT=tot; window.__CBEXTRA=extra;
 }
 ['#cbVenta','#cbBase','#cbTras'].forEach(sel=>$(sel).addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaCB()}));
@@ -2432,7 +2436,44 @@ function cbAutoBase(){
     nota.textContent=v?'Este vehículo aún no tiene base imponible: consúltala con la administración.':'Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.'; }
   pintaCB();
 }
-$('#cbV').addEventListener('input',cbAutoBase);
+/* Buscador de vehículo de la cotización (13/10/2026): igual que el de Stock (todas las palabras, en marca, modelo,
+   chasis y año). Al elegir, queda la tarjeta del vehículo con "Cambiar" y el valor de venta se deja en blanco
+   (no tiene por qué ser el mínimo: se escribe lo que se acuerde con el cliente). */
+function cbBusca(){
+  const s=$('#cbQ').value.trim().toLowerCase(), el=$('#cbRes');
+  if(!s){ el.innerHTML=''; return; }
+  const toks=s.split(/\s+/);
+  const L=V.filter(v=>(true)&&toks.every(tk=>(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(tk)));
+  el.innerHTML=L.length?L.slice(0,6).map(v=>{ const c=(fst(v.ch).cov||(v.fotos&&v.fotos[0])||'');
+    return `<div class="pk" data-cbpick="${v.ch}">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><div style="color:var(--ink2);font-weight:700">→</div></div>`; }).join('')
+    +(L.length>6?`<div class="cnt" style="margin:4px 0 0">…y ${L.length-6} más. Sigue escribiendo para acotar.</div>`:'')
+    :'<p class="mtr" style="margin:4px 0 0">Sin resultados.</p>';
+}
+function cbElige(ch){
+  const v=IDX[ch]; if(!v) return;
+  const c=(fst(ch).cov||(v.fotos&&v.fotos[0])||'');
+  alturaFluida(MAIN,()=>{
+    $('#cbV').value=`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`;
+    $('#cbVenta').value='';
+    $('#cbQ').value=''; $('#cbQ').hidden=true; $('#cbRes').innerHTML='';
+    $('#cbSel').innerHTML=`<div class="pk" style="cursor:default;margin:0">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><button type="button" class="b-und" data-cbcambia="1" style="flex:0 0 auto">Cambiar</button></div>`;
+    $('#cbSel').hidden=false;
+    cbAutoBase();
+  });
+}
+function cbQuita(){
+  alturaFluida(MAIN,()=>{
+    $('#cbV').value=''; $('#cbBase').value=''; $('#cbVenta').value='';
+    $('#cbSel').hidden=true; $('#cbSel').innerHTML=''; $('#cbQ').hidden=false;
+    cbAutoBase();
+  });
+  $('#cbQ').focus();
+}
+$('#cbQ').addEventListener('input',()=>alturaFluida(MAIN,cbBusca));
+document.addEventListener('click',e=>{
+  const pk=e.target.closest('[data-cbpick]'); if(pk){ cbElige(pk.dataset.cbpick); return; }
+  if(e.target.closest('[data-cbcambia]')) cbQuita();
+});
 $('#cbEnv').addEventListener('click',async()=>{
   const base=pnum($('#cbBase').value)||0;
   if(!base){toast('Ingresa la base imponible');return}
@@ -2444,7 +2485,7 @@ $('#cbEnv').addEventListener('click',async()=>{
   L.push(`Base imponible: ${clp(base)}`,`Impuesto ${String(CBTASA).replace('.',',')}%: ${clp(imp)}`);
   CBFIJOS.forEach(([n,m])=>L.push(`${n}: ${clp(m)}`));
   if(tras) L.push(`Traslado: ${clp(tras)}`);
-  L.push('',`TOTAL: ${clp(window.__CBTOT||0)}`,'',
+  L.push('',venta?`TOTAL: ${clp(window.__CBTOT||0)}`:`Impuesto y trámites: ${clp(window.__CBEXTRA||0)} (más el valor del vehículo)`,'',
     'AMK Vehículos Selectos · Iquique');
   if(ST.vend) L.push('',ST.vend+' · AMK Vehículos Selectos');
   const txt=L.join('\n');

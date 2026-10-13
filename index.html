@@ -132,6 +132,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .fld label{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);margin-bottom:5px}
 .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px;font-size:17px;background:var(--paper);color:var(--ink)}
 .catg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.ckg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.ckg .cg{padding:8px 2px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.ckg .cg i{display:block;font-style:normal;font-size:9.5px;color:#C98A12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ckg .cg i.ok{color:inherit;opacity:.85}
 .cmp{display:flex;align-items:center;gap:10px;padding:9px 11px 9px 15px;margin-bottom:6px;cursor:pointer}
 .cmp .cm-t{flex:1;min-width:0}.cmp .cm-t .tt{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cmp .cm-s{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -680,12 +684,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div id="ngVentas" hidden>
     <div class="box" id="boxLib" style="margin-top:13px"><h3>Cotización de liberación</h3>
       <p>Para cotizarle a un cliente con cupo de discapacidad. Víctor y Bryan ven la misma base imponible en su app.</p>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Vehículo (opcional)</div>
-        <input id="lbV" list="dlVeh" autocomplete="off" placeholder="Escribe marca, modelo o chasis"
-          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)">
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Vehículo</div>
+        <input type="hidden" id="lbV">
+        <input class="search" id="lbQ" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
+        <div id="lbRes" style="margin-top:8px"></div>
+        <div id="lbSel" hidden></div>
         <datalist id="dlVeh"></datalist></div>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Valor de venta al cliente</div>
-        <input id="lbVenta" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <input id="lbVenta" inputmode="numeric" placeholder="Lo que se acuerde con el cliente" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Base imponible</div>
         <input id="lbBase" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
         <div class="mtr" id="lbBaseNota" style="margin:5px 0 0;font-size:12px">Al elegir el vehículo se calcula sola: (CIF US$ del Z + US$1.000) × dólar observado, redondeada hacia arriba a los $100.000.</div></div>
@@ -764,7 +770,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 16:22<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 19:05<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1138,6 +1144,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
 
   <div id="secEst" hidden>
+  <div id="tkChk"></div>
+  <div id="tkPend"></div>
 <div class="fld"><label>Agregar trabajo pendiente</label><div class="catg" id="tkCat"></div></div>
   <div class="fld"><label for="tkNota">Detalle (opcional)</label>
     <input id="tkNota" placeholder="Ej: golpe puerta trasera derecha"></div>
@@ -3660,26 +3668,33 @@ function tkLinkCandTodos(){ const L=[]; for(const c in S) if(IDX[c]&&!sold(c)) L
 const tkLinkTxt=o=>`¿El ${CN[o.k.cat]||o.k.cat} de ${clp(acor(o.k))}${o.k.date?' del '+fd(o.k.date):''}${o.k.prov?' ('+String(o.k.prov).replace(/</g,'&lt;')+')':''} es el pago de este trabajo?`;
 function irAlMonto(){ setTimeout(()=>{ const a=$('#scA'); if(!a) return; try{ a.scrollIntoView({behavior:'smooth',block:'center'}); a.focus({preventScroll:true}); a.select(); }catch(_){} },120); }
 function pintaScPend(){
-  const box=$('#scPend'); if(!box) return;
+  const box=$('#scPend'), tb=$('#tkPend'); if(!box) return;
   const ch=editing||($('#scV')?$('#scV').value:null);
-  if(!ch||!IDX[ch]){ box.innerHTML=''; return; }
+  if(!ch||!IDX[ch]){ box.innerHTML=''; if(tb) tb.innerHTML=''; return; }
   const T=tasks(ch).filter(tkAbierto), cand=tkLinkCand(ch);
   /* 08/10/2026 (Andre): si ya se está anotando el pago de un trabajo, se marca en el recuadro y el botón de abajo lo dice
      (antes "＄ Pagado" no cambiaba nada a la vista porque el formulario ya estaba lleno, y parecía que no funcionaba). */
   const act=tkCostDe!=null?T.find(x=>String(x.ts)===String(tkCostDe)):null;
   const ok=$('#scOk'); if(ok) ok.textContent=act?'Guardar costo · '+(TN[act.cat]||act.cat)+' queda listo':'Guardar costo';
-  if(!T.length){ box.innerHTML=''; return; }
-  box.innerHTML=`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
+  /* 13/10/2026 (Andre): la lista completa de pendientes vive en Estimado (#tkPend): ahí se confirma (✓ Lo vi: va), se descarta
+     (No se necesitó) o se paga (＄ Pagado lleva a Costo real con el monto listo). En Costo real (#scPend) solo se ve el trabajo
+     que se está pagando, o un acceso de vuelta a los pendientes. */
+  const fila=x=>`<b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}`;
+  if(tb) tb.innerHTML=T.length?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
     <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Pendiente en este vehículo (${T.length})</div>
-    <div class="mtr" style="margin:0 0 6px">Si ya lo pagaste, toca <b>＄ Pagado</b> y anota cuánto costó abajo. Si al final no hizo falta, <b>No se necesitó</b>. Para agregar uno nuevo, ve a <b>Estimado</b>.</div>
+    <div class="mtr" style="margin:0 0 6px">Lo del embarque, confírmalo al ver el auto (<b>✓ Lo vi: va</b>). Si al final no hizo falta, <b>No se necesitó</b>. Si ya lo pagaste, <b>＄ Pagado</b> y anota cuánto costó.</div>
     ${T.map(x=>{ const o=cand.find(z=>z.x===x);
       return `<div style="border-top:1px solid var(--line);padding:7px 0">
-      <div style="font-size:13.5px"><b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}</div>
+      <div style="font-size:13.5px">${fila(x)}</div>
       ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
         <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
-      ${x===act?`<div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>`
-        :`<div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-sec" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div>`}</div>`; }).join('')}
-  </div>`;
+      <div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o||esEstSinVer(x)?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div></div>`; }).join('')}
+  </div>`:'';
+  box.innerHTML=act?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
+      <div style="font-size:13.5px">${fila(act)}</div>
+      <div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>
+      ${T.length>1?`<button class="b-und" data-cseg="est" style="margin-top:7px">← Ver los ${T.length} pendientes en Estimado</button>`:''}</div>`
+    :(T.length?`<button class="btn b-sec" data-cseg="est" style="width:100%;margin:0 0 12px">← ${T.length} pendiente${T.length===1?'':'s'} de este vehículo · ver en Estimado</button>`:'');
 }
 function drawCostList(){ try{ pintaScPend(); }catch(_){}
   const c=editing||$('#scV').value;
@@ -4415,7 +4430,7 @@ function pintaLbConf(){
     +`<p class="mtr" style="margin:8px 0 0;font-size:12px">Revisados ${conCif} con CIF del Z, dólar observado ${obs2(TC.obs||0)}.${sinCif?` ${sinCif} sin CIF del Z (no se puede calcular).`:''}${sinPrecio?` ${sinPrecio} con CIF pero sin mínimo ni precio de venta.`:''}</p>`;
 }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-lbusar]'); if(!b) return; const v=IDX[b.dataset.lbusar]; if(!v) return;
-  $('#lbV').value=`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`; lbAutoBase(); $('#lbV').scrollIntoView({behavior:'smooth',block:'center'}); });
+  lbElige(v.ch); $('#lbSel').scrollIntoView({behavior:'smooth',block:'center'}); });
 /* Al elegir vehículo: rellena la base (se puede corregir a mano) y avisa si queda sobre el mínimo. */
 function lbAutoBase(){
   const v=lbVeh(), nota=$('#lbBaseNota'); const b=v?calcBaseLib(v):null;
@@ -4434,24 +4449,62 @@ function pintaLB(){
   const tras=pnum($('#lbTras').value)||0;
   const imp=Math.round(base*tasa/100);
   const fij=Object.values(LB).reduce((a,b)=>a+(b||0),0);
-  const tot=(pnum($('#lbVenta').value)||base)+imp+fij+tras;
-  const venta=pnum($('#lbVenta').value)||0;
+  const venta=pnum($('#lbVenta').value)||0, extra=imp+fij+tras;
+  const tot=venta?venta+extra:0;   /* sin valor de venta no se inventa uno (antes se usaba la base) */
   const filas=(venta?[['Valor de venta',venta]]:[])
     .concat([['Base imponible',base],['Impuesto '+String(tasa).replace('.',',')+'%',imp]])
     .concat(Object.keys(LB).map(k=>[nombreLB(k),LB[k]||0]))
     .concat(tras?[['Traslado',tras]]:[]);
   $('#lbDet').innerHTML=filas.map(([n,v])=>`<div class="xrow"><span style="font-family:var(--body)">${n}</span><span>${clp(v)}</span></div>`).join('')
     +`<div class="xrow" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px">
-      <span style="font-family:var(--body);font-weight:700">Total a pagar</span>
-      <span style="font-weight:700;font-size:16px">${clp(tot)}</span></div>`;
-  window.__LBTOT=tot;
+      <span style="font-family:var(--body);font-weight:700">${venta?'Total a pagar':'Impuesto y trámites'}</span>
+      <span style="font-weight:700;font-size:16px">${clp(venta?tot:extra)}</span></div>`
+    +(venta?'':'<p class="mtr" style="margin:4px 0 0;font-size:12px">Escribe el valor de venta para ver el total a pagar.</p>');
+  window.__LBTOT=tot; window.__LBEXTRA=extra;
 }
 ['#lbBase','#lbTras','#lbVenta'].forEach(sel=>$(sel).addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaLB()}));
 $('#lbTasa').addEventListener('input',async()=>{lbTasa=pdec($('#lbTasa').value)||0; await guardaLB(); pintaLB()});
 $('#lbT18').addEventListener('input',async()=>{t18=pdec($('#lbT18').value)||0; await guardaLB(); draw()});
 $('#lbDA').addEventListener('input',async()=>{dolAd=pdec($('#lbDA').value)||0; await guardaLB(); draw()});
-$('#lbV').addEventListener('input',lbAutoBase);
+/* Buscador de vehículo de la cotización (13/10/2026): igual que el de Stock (todas las palabras, en marca, modelo,
+   chasis y año). Al elegir, queda la tarjeta del vehículo con "Cambiar" y el valor de venta se deja en blanco
+   (no tiene por qué ser el mínimo: se escribe lo que se acuerde con el cliente). */
+function lbBusca(){
+  const s=$('#lbQ').value.trim().toLowerCase(), el=$('#lbRes');
+  if(!s){ el.innerHTML=''; return; }
+  const toks=s.split(/\s+/);
+  const L=V.filter(v=>(!sold(v.ch)&&!v.baja&&!v.creando)&&toks.every(tk=>(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(tk)));
+  el.innerHTML=L.length?L.slice(0,6).map(v=>{ const c=(S[v.ch]||{}).cov||'';
+    return `<div class="pk" data-lbpick="${v.ch}">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><div style="color:var(--ink2);font-weight:700">→</div></div>`; }).join('')
+    +(L.length>6?`<div class="cnt" style="margin:4px 0 0">…y ${L.length-6} más. Sigue escribiendo para acotar.</div>`:'')
+    :'<p class="mtr" style="margin:4px 0 0">Sin resultados.</p>';
+}
+function lbElige(ch){
+  const v=IDX[ch]; if(!v) return;
+  const c=(S[ch]||{}).cov||'';
+  alturaFluida(MAIN,()=>{
+    $('#lbV').value=`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`;
+    $('#lbVenta').value='';
+    $('#lbQ').value=''; $('#lbQ').hidden=true; $('#lbRes').innerHTML='';
+    $('#lbSel').innerHTML=`<div class="pk" style="cursor:default;margin:0">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><button type="button" class="b-und" data-lbcambia="1" style="flex:0 0 auto">Cambiar</button></div>`;
+    $('#lbSel').hidden=false;
+    lbAutoBase();
+  });
+}
+function lbQuita(){
+  alturaFluida(MAIN,()=>{
+    $('#lbV').value=''; $('#lbBase').value=''; $('#lbVenta').value='';
+    $('#lbSel').hidden=true; $('#lbSel').innerHTML=''; $('#lbQ').hidden=false;
+    lbAutoBase();
+  });
+  $('#lbQ').focus();
+}
+$('#lbQ').addEventListener('input',()=>alturaFluida(MAIN,lbBusca));
+document.addEventListener('click',e=>{
+  const pk=e.target.closest('[data-lbpick]'); if(pk){ lbElige(pk.dataset.lbpick); return; }
+  if(e.target.closest('[data-lbcambia]')) lbQuita();
+});
 function lbVeh(){
   const t=$('#lbV').value.trim(); if(!t) return null;
   const m=t.match(/([A-Z0-9]{6,})\s*$/i);
@@ -4486,7 +4539,7 @@ $('#lbEnv').addEventListener('click',async()=>{
   L.push(`Base imponible: ${clp(base)}`,`Impuesto ${String(tasa).replace('.',',')}%: ${clp(imp)}`);
   Object.keys(LB).forEach(k=>{ if(LB[k]) L.push(`${nombreLB(k)}: ${clp(LB[k])}`) });
   if(tras) L.push(`Traslado: ${clp(tras)}`);
-  L.push('',`TOTAL: ${clp(window.__LBTOT||0)}`,'',
+  L.push('',venta?`TOTAL: ${clp(window.__LBTOT||0)}`:`Impuesto y trámites: ${clp(window.__LBEXTRA||0)} (más el valor del vehículo)`,'',
     'AMK Vehículos Selectos · Iquique');
   const txt=L.join('\n');
   if(navigator.share){try{await navigator.share({text:txt,title:'Cotización AMK'});return}
@@ -6974,7 +7027,7 @@ const esEst2=x=>x&&!x.imprevisto&&x.origen!=='vendedor'&&!esEstSinVer(x)&&(x.ori
 /* 10/10/2026 (Andre): mini checklist de lo que se mide al estimar un auto en patio. Pintura, Susp./mecánica y Pantalla se marcan
    solas cuando hay un trabajo anotado (o "no se necesitó") de esa categoría; Escáner se marca a mano; KM se marca solo si el auto tiene km.
    Todo se puede marcar a mano también (S[c].chk) para decir "ya lo vi y no necesita nada". */
-const CHK_ITEMS=[['PINTURA','Pintura',['PINTURA']],['MEC','Susp./mecánica',['MECANICO','SUSP']],['PANT','Pantalla',['TV']],['ESC','Escáner',[]],['KM','KM',[]]];
+const CHK_ITEMS=[['PINTURA','Pintura',['PINTURA']],['MEC','Mecánica',['MECANICO','SUSP']],['PANT','Pantalla',['TV']],['ESC','Escáner',[]],['KM','KM',[]]];
 function chkEstado(c){
   const v=IDX[c]||{}, s=S[c]||{}, m=s.chk||{}, T=(s.tasks||[]).filter(x=>x.cat!=='LAVADO');
   return CHK_ITEMS.map(([k,n,cats])=>{
@@ -7021,8 +7074,13 @@ function pintaScRev(){
     fil.push(`<tr><td style="padding:3px 0">${CN[k]||k} <span style="color:var(--mute);font-size:11px">(anotado directo)</span></td><td ${td}>—</td><td ${td}>—</td><td ${td}>—</td><td ${td}><b>${clp(r)}</b></td></tr>`); });
   const rv=revEstado(ch), enPatio=v.st==='IQQ'&&!sold(ch), s=S[ch]||{};
   const btn=enPatio?(s.revFin?'<button class="btn b-sec" id="scRevAbre" style="flex:0 0 auto">↺ Reabrir revisión</button>':'<button class="btn b-pri" id="scRevFin" style="flex:0 0 auto">✓ Terminé de estimar</button>'):'';
-  const ckH=enPatio?`<div style="margin:4px 0 8px"><div style="font-family:var(--body);font-size:11.5px;color:var(--mute);margin-bottom:5px">Checklist de estimado · toca para marcar lo que ya viste</div><div style="display:flex;gap:6px;flex-wrap:wrap">${chkEstado(ch).map(x=>`<button type="button" class="cg" data-chk="${x.k}" data-auto="${x.auto?1:0}" aria-pressed="${x.ok}" style="flex:1 1 auto;padding:8px 10px">${x.ok?'✓ ':''}${x.n}</button>`).join('')}</div></div>`:'';
-  box.innerHTML=ckH+(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
+  /* 13/10/2026 (Andre): el checklist va dentro de Estimado, justo arriba de los pendientes (antes quedaba arriba de las
+     pestañas, suelto de lo de abajo). Grilla fija de 5: antes con flex-wrap el KM caía solo a una segunda línea. */
+  const sv=new Set(tasks(ch).filter(esEstSinVer).map(x=>x.cat));
+  const ckH=enPatio?`<div style="margin:0 0 12px"><div style="font-family:var(--body);font-size:11.5px;color:var(--mute);margin-bottom:5px">Checklist de estimado · se marca solo al confirmar, anotar o descartar un trabajo de eso; toca para marcar lo que viste y no necesita nada</div><div class="ckg">${chkEstado(ch).map(x=>{ const pc=!x.ok&&(CHK_ITEMS.find(i=>i[0]===x.k)[2]).some(c=>sv.has(c));
+    return `<button type="button" class="cg" data-chk="${x.k}" data-auto="${x.auto?1:0}" aria-pressed="${x.ok}"${pc?' title="Hay un estimado del embarque de esto por confirmar abajo"':''}>${x.n}<i${x.ok?' class="ok"':''}>${x.ok?'✓ visto':(pc?'por confirmar':'&nbsp;')}</i></button>`; }).join('')}</div></div>`:'';
+  const tkc=$('#tkChk'); if(tkc) tkc.innerHTML=ckH;
+  box.innerHTML=(enPatio?`<div class="xrow" style="align-items:center;margin:4px 0 8px;gap:8px;flex-wrap:wrap"><span style="font-family:var(--body);font-size:13px">Revisión en patio: <b style="color:${rv?rv.col:'var(--mute)'}">${rv?rv.txt:'—'}</b>${s.revFin?` <span style="color:var(--mute);font-size:11.5px">· cerrada ${fd(s.revFin)}</span>`:''}</span>${btn}</div>`:'')
    +(fil.length?`<table style="width:100%;border-collapse:collapse;font-family:var(--body);font-size:12.5px;margin:0 0 6px"><thead><tr style="color:var(--mute);font-size:11px"><th style="text-align:left;font-weight:500">Ítem</th><th style="text-align:right;font-weight:500">Est. 1 <span style="font-size:10px">(embarque)</span></th><th style="text-align:right;font-weight:500">Est. 2 <span style="font-size:10px">(en patio)</span></th><th style="text-align:right;font-weight:500">Imprevisto</th><th style="text-align:right;font-weight:500">Real</th></tr></thead><tbody>${fil.join('')}</tbody><tfoot><tr style="border-top:1px solid var(--line);font-weight:700"><td style="padding:4px 0">Total</td><td ${td}>${clp(t1)}</td><td ${td}>${clp(t2)}</td><td ${td}>${clp(ti)}</td><td ${td}>${clp(tr)}</td></tr></tfoot></table>`:'')
    +`<div class="mtr" style="margin:0">Real anotado en total (incluye lo anotado directo, como el Obligatorio): <b>${clp(emRealSuma(ch))}</b>${(v.est1||v.est2)?` · anotado a mano antes: ${v.est1?'Est. 1 '+clp(v.est1):''}${v.est1&&v.est2?' · ':''}${v.est2?'Est. 2 '+clp(v.est2):''}`:''}</div>`;
 }
@@ -7031,6 +7089,9 @@ document.addEventListener('click',async e=>{
   if(kb){ const ch=editing||($('#scV')?$('#scV').value:null); if(!ch||!IDX[ch]) return;
     const it=chkEstado(ch).find(x=>x.k===kb.dataset.chk); if(!it) return;
     if(it.auto){ toast(it.n+' ya está marcado '+(it.k==='KM'?'porque el auto tiene kilometraje':'porque hay un trabajo anotado de eso')); return; }
+    const cats=CHK_ITEMS.find(i=>i[0]===it.k)[2];
+    if(!it.ok&&tasks(ch).some(x=>esEstSinVer(x)&&cats.includes(x.cat))){ toast(it.n+': confírmalo abajo (✓ Lo vi: va o No se necesitó) y se marca solo');
+      try{$('#tkPend').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){} return; }
     const s=st(ch); s.chk=Object.assign({},s.chk); if(s.chk[it.k]) delete s.chk[it.k]; else s.chk[it.k]=true;
     await save(); drawTaskSheet(); draw(); return; }
   const fin=e.target.closest('#scRevFin'), ab=e.target.closest('#scRevAbre'); if(!fin&&!ab) return;
@@ -7085,7 +7146,7 @@ function migraEstEmb(){ let n=0; try{ for(const c in S){ const T=S[c].tasks; if(
 const saldo=x=>(x.est||0);
 
 function cseg(k){
- if(k!=='real') tkCostDe=null;   /* salió de Costo real sin guardar: ya no cierra ese trabajo */
+ if(k!=='real'&&tkCostDe!=null){ tkCostDe=null; try{pintaScPend()}catch(_){} }   /* salió de Costo real sin guardar: ya no cierra ese trabajo */
  alturaFluida(MAIN,()=>{
   $('#secEst').hidden = k!=='est';
   $('#secReal').hidden= k!=='real';
@@ -7114,7 +7175,7 @@ function ctseg(k){
 $('#ctSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ct]');if(b)ctseg(b.dataset.ct)});
 $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');if(b)ngseg(b.dataset.ng)});
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
-$('#tkList').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){cseg(b.dataset.cseg); try{$('#scPend').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
+$('#scPend').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){tkCostDe=null; cseg(b.dataset.cseg); pintaScPend(); try{$('#tkChk').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
 $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
@@ -7126,9 +7187,8 @@ function drawTaskSheet(){
   /* 07/10/2026: ordenado y con títulos -- primero lo del embarque que falta confirmar al ver el auto, después los
      pendientes (Est. 2 e imprevistos), al final lo terminado. */
   const grp=x=>esEstSinVer(x)?0:(x.hecho?2:1);
-  /* 08/10/2026 (Andre): los trabajos ABIERTOS se muestran en un solo lugar: arriba de Costo real (#scPend). Acá en
-     Estimado queda solo el formulario para agregar y, debajo, el historial de terminados/descartados. */
-  const nAb=tasks(tkCh).filter(tkAbierto).length;
+  /* 13/10/2026 (Andre): los trabajos ABIERTOS se muestran en Estimado (#tkPend, arriba del formulario), donde se decide
+     si van, si no se necesitaron o si ya se pagaron. Debajo del formulario, el historial de terminados/descartados. */
   const L=tasks(tkCh).filter(x=>x.cat!=='LAVADO'&&x.hecho&&!tkAbierto(x)).slice().sort((a,b)=>grp(a)-grp(b));
   const TKH=['Del embarque · confírmalos al ver el auto (✓ Lo vi: va / No se necesitó)','Pendientes · Estimado 2 e imprevistos','Terminados o descartados'];
   const tkHdr=i=>(i===0||grp(L[i])!==grp(L[i-1]))?`<div class="mtr" style="margin:12px 0 6px;font-weight:700">${TKH[grp(L[i])]}</div>`:'';
@@ -7143,7 +7203,6 @@ function drawTaskSheet(){
     ${(x.noAplica||x.costTs)?'':`<button class="btn b-pri" data-tcost="${x.ts}" title="Anota lo que realmente costó: pasa a Costo real y este trabajo queda listo">＄ Pagado: anotar costo real</button>`}
     <button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}">✕</button></div></div>`).join('')
      :'';
-  $('#tkList').insertAdjacentHTML('afterbegin',nAb?`<button class="btn b-sec" data-cseg="real" style="width:100%;margin:0 0 10px">${nAb} pendiente${nAb===1?'':'s'} de este vehículo · ver en Costo real →</button>`:'');
 }
 $('#tkEst').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 function medianaHist(cat,mo){
