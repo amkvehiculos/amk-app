@@ -295,7 +295,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->10-10-2026 17:43 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->13-10-2026 16:22 · PRUEBAS<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -360,7 +360,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
         <datalist id="dlCbV"></datalist></div>
       <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="$0"></div>
       <div class="fld"><label for="cbBase">Base imponible</label><input id="cbBase" inputmode="numeric" placeholder="$0">
-        <div class="mtr">Si no la sabes, consúltala con la administración.</div></div>
+        <div class="mtr" id="cbBaseNota">Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.</div></div>
       <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
       <div id="cbDet"></div>
       <button class="btn b-pri" id="cbEnv" style="width:100%;margin-top:11px">➦ Enviar cotización</button></div>
@@ -1262,11 +1262,14 @@ function fbAplica(ch, d){
   FB_CAMPOS.forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; });
   FB_LIMPIABLES.forEach(k=>{ if(d[k]===null) delete v[k]; });
   v.oferta = !!d.of;
+  if(d.pub!==undefined) v.pub = !!d.pub;   /* publicado en la web (13/10/2026): para decirle al subir fotos si queda esperando a André */
   if(d.res!==undefined){ if(d.res&&d.res.est==='activa') v.res={vence:d.res.vence||'',fecha:d.res.fecha||''}; else delete v.res; }
   if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin; else if(d.pmin===null) delete v.pmin;
   if(d.pventa!==undefined && d.pventa!==null) v.pventa=d.pventa; else if(d.pventa===null) delete v.pventa;
   if(d.pventaUSD!==undefined && d.pventaUSD!==null) v.pventaUSD=d.pventaUSD; else if(d.pventaUSD===null) delete v.pventaUSD;
   if(d.pminUSD!==undefined && d.pminUSD!==null) v.pminUSD=d.pminUSD; else if(d.pminUSD===null) delete v.pminUSD;
+  /* baseLib = base imponible de liberación que calcula Sistema (13/10/2026). */
+  if(d.baseLib!==undefined && d.baseLib!==null) v.baseLib=d.baseLib; else if(d.baseLib===null) delete v.baseLib;
   if(d.of && d.pprice) v.vev=d.pprice;
   v.pendPub = Array.isArray(d.pendPub) ? d.pendPub : [];
 }
@@ -1876,7 +1879,8 @@ async function subirFotosWeb(){
    await avisaFotoPendiente(ch,'fotos');
    toast('Subido, pero queda pendiente de revisión de André: ya hay fotos de otra fuente');
   }else{
-   toast('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')');
+   const vv=IDX[ch];
+   toast(vv&&vv.pub===false?('Fotos subidas ✓ ('+urls.length+') · le llegó el aviso a André para publicarlo en la web'):('Subido a la web ✓ ('+urls.length+' foto'+(urls.length===1?'':'s')+')'));
   }
  }catch(e){
   console.error('subirFotosWeb',e);
@@ -2034,6 +2038,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
    ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
    ${!v.pventa?'<div class="sinprecio">Sin precio todavía · consulta a André antes de dar un valor</div>':''}
    ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${v.baseLib?`<div class="sinprecio">Liberación (discapacidad): base imponible <b style="font-family:var(--mono);color:var(--ink)">${clp(v.baseLib)}</b> · impuesto ${String(CBTASA||23.57).replace('.',',')}% <b style="font-family:var(--mono);color:var(--ink)">${clp(Math.round(v.baseLib*(CBTASA||23.57)/100))}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
    <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos${nf?' ('+nf+')':''}</button>
     <button class="btn b-sec" data-mi360="${v.ch}">📷 Mi 360°${sin360?' ⚠':(t.n360?' ✓':'')}</button></div>
@@ -2391,7 +2396,7 @@ $('#avOk').addEventListener('click',async()=>{
   /* 01/10/2026 (Andre): ya no se abre WhatsApp: el aviso le llega a Andre directo en Sistema. */
   closeAll(); toast(msgEnvio('Adelanto avisado · le llega a Andre en Sistema'));
 });
-const CBTASA=23.57;
+var CBTASA=23.57;  /* var (no const): la ficha de stock lo usa y puede pintarse antes de llegar a esta línea */
 const CBFIJOS=[['Patente',90000],['Revisión técnica',24000],['Seguro obligatorio',14000],
   ['Permiso de circulación',40000],['Grabado de patente',15000]];
 function cbVeh(){
@@ -2419,7 +2424,16 @@ function pintaCB(){
 }
 ['#cbVenta','#cbBase','#cbTras'].forEach(sel=>$(sel).addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaCB()}));
-$('#cbV').addEventListener('input',pintaCB);
+/* Al elegir el vehículo se pone la base imponible que dejó la administración (no se edita). */
+function cbAutoBase(){
+  const v=cbVeh(), b=$('#cbBase'), nota=$('#cbBaseNota');
+  if(v&&v.baseLib){ b.value=clp(v.baseLib); b.readOnly=true; b.style.opacity='.75';
+    nota.textContent='Base imponible definida por la administración para este vehículo.'; }
+  else { if(b.readOnly){ b.value=''; } b.readOnly=false; b.style.opacity='';
+    nota.textContent=v?'Este vehículo aún no tiene base imponible: consúltala con la administración.':'Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.'; }
+  pintaCB();
+}
+$('#cbV').addEventListener('input',cbAutoBase);
 $('#cbEnv').addEventListener('click',async()=>{
   const base=pnum($('#cbBase').value)||0;
   if(!base){toast('Ingresa la base imponible');return}

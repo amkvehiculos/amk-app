@@ -420,7 +420,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </section>
 
   <section class="panel" id="pConten">
-    <h2>Contenido</h2><p class="sub">Elige un vehículo y copia lo que necesites para cada red.</p>
+    <h2>Contenido</h2><p class="sub">Textos, imágenes y publicaciones para redes sociales.</p>
+    <div class="segs" id="ctSegs">
+      <button data-ct="pub" aria-pressed="true">Publicar</button>
+      <button data-ct="marca" aria-pressed="false">Ideas de marca</button>
+      <button data-ct="cons" aria-pressed="false">Resultados</button>
+    </div>
+    <div id="ctPub">
+    <p class="mtr" id="ctPubAyuda" style="margin:0 0 10px">Elige un vehículo y copia lo que necesites para cada red.</p>
     <input class="search" id="qc" placeholder="Buscar vehículo…" autocomplete="off">
     <div id="lPick"></div>
     <div id="genWrap" hidden>
@@ -452,35 +459,18 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div id="genOut"></div>
     </div>
-    <div class="box" id="boxCons"><h3>Clientes y consultas</h3>
-      <p class="mtr" style="margin:0 0 10px">Lo que anotan Víctor y Bryan en su pestaña Clientes: de qué red llega cada cliente y si termina comprando. Úsalo para decidir dónde publicar más.</p>
-      <div class="chips" id="consPer" style="margin-bottom:8px"><button class="chip" data-cper="30" aria-selected="true">30 días</button><button class="chip" data-cper="90" aria-selected="false">90 días</button><button class="chip" data-cper="0" aria-selected="false">Todo</button></div>
-      <div id="consRes"></div><div id="consPend" style="margin-top:12px"></div></div>
+    </div>
+    <div id="ctMarca" hidden>
     <div class="box" id="boxBrand"><h3>Ideas de contenido de marca</h3>
       <p class="mtr" style="margin:0 0 10px">No van sobre un auto puntual — son para ir construyendo la marca AMK de a poco. Ve rotando entre estas y los videos de autos.</p>
       <div id="brandIdeas"></div></div>
-    <div class="box"><h3>Cotización de liberación</h3>
-      <p>Uso interno. Para cotizarle a un cliente con cupo de discapacidad.</p>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Vehículo (opcional)</div>
-        <input id="lbV" list="dlVeh" autocomplete="off" placeholder="Escribe marca, modelo o chasis"
-          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)">
-        <datalist id="dlVeh"></datalist></div>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Valor de venta al cliente</div>
-        <input id="lbVenta" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
-      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Base imponible (la defines tú)</div>
-        <input id="lbBase" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="mtr" style="margin:0 0 4px">Tasa (%)</div>
-          <input id="lbTasa" inputmode="decimal" placeholder="23,57" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
-        <div><div class="mtr" style="margin:0 0 4px">Traslado</div>
-          <input id="lbTras" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
-      </div>
-      <div id="lbDet"></div>
-      <div class="acts" style="margin-top:10px">
-        <button class="btn b-sec" id="lbFijos">Editar costos fijos</button>
-        <button class="btn b-pri" id="lbEnv">➦ Enviar</button></div></div>
-    <div class="box" id="boxLbFijos" hidden><h3>Costos de puesta en marcha</h3>
-      <div id="lbCampos"></div></div>
+    </div>
+    <div id="ctCons" hidden>
+    <div class="box" id="boxCons"><h3>¿De dónde llegan los clientes?</h3>
+      <p class="mtr" style="margin:0 0 10px">Lo que anotan Víctor y Bryan en su pestaña Clientes: de qué red llega cada cliente y si termina comprando. Úsalo para decidir dónde publicar más.</p>
+      <div class="chips" id="consPer" style="margin-bottom:8px"><button class="chip" data-cper="30" aria-selected="true">30 días</button><button class="chip" data-cper="90" aria-selected="false">90 días</button><button class="chip" data-cper="0" aria-selected="false">Todo</button></div>
+      <div id="consRes"></div><div id="consPend" style="margin-top:12px"></div></div>
+    </div>
   </section>
 
   <section class="panel" id="pDatos">
@@ -689,7 +679,34 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngVentas" hidden>
-    <div class="box" id="boxCom" style="margin-top:13px">
+    <div class="box" id="boxLib" style="margin-top:13px"><h3>Cotización de liberación</h3>
+      <p>Para cotizarle a un cliente con cupo de discapacidad. Víctor y Bryan ven la misma base imponible en su app.</p>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Vehículo (opcional)</div>
+        <input id="lbV" list="dlVeh" autocomplete="off" placeholder="Escribe marca, modelo o chasis"
+          style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)">
+        <datalist id="dlVeh"></datalist></div>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Valor de venta al cliente</div>
+        <input id="lbVenta" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Base imponible</div>
+        <input id="lbBase" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+        <div class="mtr" id="lbBaseNota" style="margin:5px 0 0;font-size:12px">Al elegir el vehículo se calcula sola: (CIF US$ del Z + US$1.000) × dólar observado, redondeada hacia arriba a los $100.000.</div></div>
+      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="mtr" style="margin:0 0 4px">Tasa (%)</div>
+          <input id="lbTasa" inputmode="decimal" placeholder="23,57" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+        <div><div class="mtr" style="margin:0 0 4px">Traslado</div>
+          <input id="lbTras" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+      </div>
+      <div id="lbDet"></div>
+      <div class="acts" style="margin-top:10px">
+        <button class="btn b-sec" id="lbFijos">Editar costos fijos</button>
+        <button class="btn b-pri" id="lbEnv">➦ Enviar</button></div>
+      <div id="boxLbFijos" hidden style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:4px">Costos de puesta en marcha</div>
+        <div id="lbCampos"></div></div>
+      <details id="lbConfBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
+        <summary style="cursor:pointer;font-weight:600;font-size:14px" id="lbConfSum">Revisión del stock: base imponible vs. mínimo</summary>
+        <div id="lbConf" style="margin-top:8px"></div></details></div>
+    <div class="box" id="boxCom">
       <h3>Ventas por comuna</h3>
       <div id="byCom"></div>
     </div>
@@ -748,7 +765,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 10:49 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 16:22 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1164,6 +1181,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="scOk">Guardar costo</button></div>
   <div id="scList"></div>
   </div>
+</div>
+
+<div class="sheet" id="shFotosPub">
+  <h3>Fotos nuevas para la web</h3><div class="sb">Víctor o Bryan subieron fotos de vehículos que todavía no están publicados.</div>
+  <div id="fpList"></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="fpTodos">Publicar todos</button></div>
 </div>
 
 <div class="sheet" id="shReserva">
@@ -1620,7 +1643,7 @@ const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res'];  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -1629,7 +1652,7 @@ const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof',
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk'];  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk','fotoVisto'];  /* fotoVisto = hasta qué subida de fotos de Víctor/Bryan ya revisó Andre (ts), ver fotosParaPublicar */  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -1923,8 +1946,10 @@ function fbFotosVendListen(){
       const d=chg.doc.data()||{};
       const ch=d.ch; if(!ch || !d.fuente) return;
       if(!fotosVendCache[ch]) fotosVendCache[ch]={};
-      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], hd:Array.isArray(d.hd)?d.hd:[], pendiente:!!d.pendiente};
+      fotosVendCache[ch][d.fuente]={nombre:d.nombre||'', fotos:Array.isArray(d.fotos)?d.fotos:[], hd:Array.isArray(d.hd)?d.hd:[], pendiente:!!d.pendiente,
+        ts:(d.ts&&typeof d.ts.toMillis==='function')?d.ts.toMillis():(+d.ts||1)};
     });
+    try{ avisaFotosNuevas(); }catch(_){}
     webSyncPronto();
     fbDibujaPronto();
     if(typeof podaAuto==='function') podaAuto();  /* por si llega recien la cache de un vehiculo vendido hace rato */
@@ -3021,6 +3046,7 @@ function cardS(v){
     if(v.vev && !s.pmin) filas.push(`Estimado <b>${clp(v.vev)}</b>`);
     filas.push(s.pventa?`Precio de venta <b>${clp(s.pventa)}${conUSD(s.pventa,s.pventaUSD)}</b> · ${ganHTML(s.pventa,cost+deb+pest)}`:'<span style="color:var(--red)">⚠ Falta precio de venta</span>');
     filas.push(s.pmin?`Precio mínimo <b style="color:var(--amber)">${clp(s.pmin)}${conUSD(s.pmin,s.pminUSD)}</b> · ${ganHTML(s.pmin,cost+deb+pest)}`:'<span style="color:var(--red)">⚠ Falta valor mínimo</span>');
+    const lc=libConflicto(v); if(lc) filas.push(`<span style="color:var(--red)">⚠ Base liberación <b>${clp(lc.base)}</b> sobre el ${lc.nom}</span>`);
   }
   if(deb)  filas.push(`Por pagar <b style="color:var(--amber)">${clp(deb)}</b>`);
   if(pest) filas.push(`Estimado taller <b>${clp(pest)}</b>`);
@@ -3378,6 +3404,7 @@ document.addEventListener('click',async e=>{ if(!e.target.closest('#irZarpe')) r
   zarpeGuarda(L,f); toast(L.length+' marcados en camino'); });
 function draw(){
   try{ coreaSync(); }catch(_){}
+  try{ refrescaBaseLib(); }catch(_){}
   const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)&&!v.baja&&!v.creando).length;
   const ven=V.filter(v=>sold(v.ch)&&!v.baja&&!v.creando).length;
   const pub=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando&&st(v.ch).pub).length;
@@ -4353,6 +4380,54 @@ async function cargaLB(){
 async function guardaLB(){
   try{await window.storage.set('amk_liberacion',JSON.stringify({fijos:LB,tasa:lbTasa,t18,dolAd}))}catch(e){}
 }
+/* Base imponible de la liberación (Andre, 13/10/2026): (CIF US$ declarado en el Z + US$1.000) × dólar
+   observado, redondeada HACIA ARRIBA a los $100.000 (es el monto redondo que se le dice al cliente).
+   Se guarda en S[ch].baseLib (público) para que Víctor y Bryan vean la base y el impuesto, nunca el CIF.
+   Si un vehículo no tiene CIF del Z, no se inventa: queda sin base y se escribe a mano. */
+function calcBaseLib(v){ const cu=+(v&&v.cifusd)||0, o=+TC.obs||0; if(!(cu>0&&o>0)) return null; return Math.ceil((cu+1000)*o/1e5)*1e5; }
+/* Conflicto (solo lo ve Andre): la base imponible queda sobre el mínimo (o sobre el precio de venta si aún no hay mínimo). */
+function libConflicto(v){ const t=S[v.ch]||{}, b=calcBaseLib(v), lim=+t.pmin||+t.pventa||0;
+  return (b&&lim&&b>lim)?{base:b,lim,nom:t.pmin?'mínimo':'precio de venta'}:null; }
+let tcListo=false, baseLibT=null;
+/* Mantiene S[ch].baseLib al día (cambia el dólar observado o llega el CIF del Z). Solo escribe cuando se puede
+   calcular: nunca manda null a la nube por no tener el CIF cargado todavía en este aparato. */
+function refrescaBaseLib(){
+  if(!tcListo) return;
+  clearTimeout(baseLibT); baseLibT=setTimeout(async()=>{
+    let n=0;
+    V.forEach(v=>{ if(sold(v.ch)||v.baja) return; const b=calcBaseLib(v); if(!b) return;
+      if(((S[v.ch]||{}).baseLib||null)===b) return; st(v.ch).baseLib=b; n++; });
+    if(n) await save();
+    pintaLbConf();
+  },1200);
+}
+function pintaLbConf(){
+  const box=$('#lbConf'); if(!box) return;
+  const vivos=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando);
+  const conf=vivos.map(v=>[v,libConflicto(v)]).filter(x=>x[1]).sort((a,b)=>(b[1].base-b[1].lim)-(a[1].base-a[1].lim));
+  const conCif=vivos.filter(v=>calcBaseLib(v)).length, sinCif=vivos.length-conCif;
+  const sinPrecio=vivos.filter(v=>calcBaseLib(v)&&!(+(S[v.ch]||{}).pmin||+(S[v.ch]||{}).pventa)).length;
+  $('#lbConfSum').innerHTML='Revisión del stock: base imponible vs. mínimo '+(conf.length?`<span style="color:var(--red)">· ⚠ ${conf.length}</span>`:'<span style="color:var(--green)">· ✓</span>');
+  box.innerHTML=(conf.length?conf.map(([v,c])=>`<div class="xrow" style="align-items:flex-start">
+      <span style="font-family:var(--body)"><b>${v.ma} ${v.mo} ${v.an||''}</b> <span style="font-size:11.5px;color:var(--mute)">${v.ch}</span><br>
+      <span style="font-size:12px;color:var(--red)">Base ${clp(c.base)} > ${c.nom} ${clp(c.lim)} · faltan ${clp(c.base-c.lim)}</span></span>
+      <span><button class="b-und" data-lbusar="${v.ch}">Cotizar</button></span></div>`).join('')
+    :`<p class="mtr" style="margin:0;color:var(--green)">✓ Ningún vehículo en stock tiene la base imponible sobre su mínimo.</p>`)
+    +`<p class="mtr" style="margin:8px 0 0;font-size:12px">Revisados ${conCif} con CIF del Z, dólar observado ${obs2(TC.obs||0)}.${sinCif?` ${sinCif} sin CIF del Z (no se puede calcular).`:''}${sinPrecio?` ${sinPrecio} con CIF pero sin mínimo ni precio de venta.`:''}</p>`;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-lbusar]'); if(!b) return; const v=IDX[b.dataset.lbusar]; if(!v) return;
+  $('#lbV').value=`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`; lbAutoBase(); $('#lbV').scrollIntoView({behavior:'smooth',block:'center'}); });
+/* Al elegir vehículo: rellena la base (se puede corregir a mano) y avisa si queda sobre el mínimo. */
+function lbAutoBase(){
+  const v=lbVeh(), nota=$('#lbBaseNota'); const b=v?calcBaseLib(v):null;
+  if(v&&b){ $('#lbBase').value=clp(b);
+    const c=libConflicto(v);
+    nota.innerHTML=`(CIF US$${obs2(v.cifusd)} + US$1.000) × ${obs2(TC.obs)} = ${clp(Math.round((+v.cifusd+1000)*TC.obs))} → <b>${clp(b)}</b>`
+      +(c?`<div style="color:var(--red);font-weight:600;margin-top:4px">⚠ Queda sobre el ${c.nom} (${clp(c.lim)}) por ${clp(c.base-c.lim)}. Solo lo ves tú.</div>`:'');
+  } else if(v){ nota.innerHTML='<span style="color:var(--amber)">Este vehículo no tiene CIF del Z todavía: escribe la base a mano.</span>'; }
+  else nota.textContent='Al elegir el vehículo se calcula sola: (CIF US$ del Z + US$1.000) × dólar observado, redondeada hacia arriba a los $100.000.';
+  pintaLB();
+}
 function nombreLB(k){const d=LBDEF.find(x=>x[0]===k); return d?d[1]:k}
 function pintaLB(){
   const base=pnum($('#lbBase').value)||0;
@@ -4377,7 +4452,7 @@ function pintaLB(){
 $('#lbTasa').addEventListener('input',async()=>{lbTasa=pdec($('#lbTasa').value)||0; await guardaLB(); pintaLB()});
 $('#lbT18').addEventListener('input',async()=>{t18=pdec($('#lbT18').value)||0; await guardaLB(); draw()});
 $('#lbDA').addEventListener('input',async()=>{dolAd=pdec($('#lbDA').value)||0; await guardaLB(); draw()});
-$('#lbV').addEventListener('input',()=>pintaLB());
+$('#lbV').addEventListener('input',lbAutoBase);
 function lbVeh(){
   const t=$('#lbV').value.trim(); if(!t) return null;
   const m=t.match(/([A-Z0-9]{6,})\s*$/i);
@@ -4396,8 +4471,8 @@ $('#lbFijos').addEventListener('click',()=>{
       const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n));
       LB[el.dataset.lb]=n||0; await guardaLB(); pintaLB()}));
   }
-  box.hidden=!box.hidden;
-  $('#lbFijos').textContent=box.hidden?'Editar costos fijos':'Ocultar';
+  alturaFluida(MAIN,()=>{ box.hidden=!box.hidden; });
+  $('#lbFijos').textContent=box.hidden?'Editar costos fijos':'Ocultar costos fijos';
 });
 $('#lbEnv').addEventListener('click',async()=>{
   const v=lbVeh();
@@ -5003,7 +5078,7 @@ const obs2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumF
 let TC={medio:925,spread:8,obs:925.25,fecha:'',fuente:'',krwSpread:15};
 async function cargaTC(){
   try{const r=await window.storage.get('amk_tc'); if(r&&r.value) TC=Object.assign(TC,JSON.parse(r.value))}catch(e){}
-  pintaTC();
+  tcListo=true; pintaTC();
   fetchDolarAuto();
   fetchTCMedioAuto();
 }
@@ -5083,6 +5158,7 @@ async function fetchTCMedioAuto(){
   }
 }
 function pintaTC(){
+  try{ refrescaBaseLib(); }catch(_){}
   const a=$('#tcMedio'), b=$('#tcSpread'), o=$('#tcObs');
   if(a) a.value=TC.medio||''; if(b) b.value=(TC.spread||TC.spread===0)?obs2(TC.spread):'';
   if(o) o.value=TC.obs?obs2(TC.obs):'';
@@ -5624,6 +5700,64 @@ function abrirAvisoPendiente(av){
    (alguien subió estando otra fuente ya arriba). NO marca el aviso como atendido acá -- eso
    solo pasa cuando André realmente decide algo (elegirFuente/descartarAvisoFuente), para que
    quede como pendiente hasta que él elija. */
+/* Fotos de Víctor/Bryan para publicar (Andre, 13/10/2026): cuando suben fotos de un vehículo que NO está publicado
+   en la web, aparece un aviso en "cosas por revisar" para publicarlo. Se apaga al publicar o con "Ahora no"
+   (S[ch].fotoVisto = ts de esa subida; si vuelven a subir fotos, avisa de nuevo). Las fotos "pendientes" (ya había
+   fotos de otra fuente) tienen su propio aviso (fotoPend) y no se cuentan acá. Corea no avisa: son fotos en camino. */
+function fotosParaPublicar(){
+  const L=[];
+  V.forEach(v=>{ if(sold(v.ch)||v.baja||v.creando||st(v.ch).pub) return;
+    const c=fotosVendCache[v.ch]||{}, visto=+(S[v.ch]||{}).fotoVisto||0;
+    let mejor=null;
+    for(const fu in c){ const x=c[fu]; if(fu==='corea'||!x||x.pendiente||!(x.fotos&&x.fotos.length)) continue;
+      if((x.ts||1)>visto && (!mejor||(x.ts||1)>mejor.ts)) mejor={fu,ts:x.ts||1,n:x.fotos.length,nombre:x.nombre,img:x.fotos[0]}; }
+    if(mejor) L.push(Object.assign({v},mejor)); });
+  return L.sort((a,b)=>b.ts-a.ts);
+}
+let fpConocidos=null;
+/* Aviso al momento (si la app está abierta) cuando llega una subida nueva; la primera carga no avisa. */
+function avisaFotosNuevas(){
+  const L=fotosParaPublicar(), claves=new Set(L.map(x=>x.v.ch+'|'+x.ts));
+  if(fpConocidos){ const nuevo=L.find(x=>!fpConocidos.has(x.v.ch+'|'+x.ts));
+    if(nuevo) toast('📷 '+fpQuien(nuevo)+' subió fotos de '+nuevo.v.ma+' '+nuevo.v.mo+' · toca el aviso de arriba para publicarlo'); }
+  fpConocidos=claves;
+  if($('#shFotosPub').classList.contains('on')) pintaFotosPub();
+}
+function pintaFotosPub(){
+  const L=fotosParaPublicar(), el=$('#fpList');
+  $('#fpTodos').hidden=L.length<2;
+  el.innerHTML=L.length?L.map(x=>`<div style="padding:11px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <img src="${x.img}" alt="" data-fpver="${x.v.ch}" style="width:62px;height:62px;object-fit:cover;border-radius:10px;flex:0 0 auto;cursor:pointer">
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${x.v.ma} ${x.v.mo} <span style="color:var(--mute)">${x.v.an||''}</span></div>
+          <div style="font-size:12.5px;color:var(--mute);margin-top:2px">${fpQuien(x)} · ${x.n} foto${x.n===1?'':'s'} · ${fd(isoDe(x.ts))}</div></div></div>
+      <div class="acts" style="margin-top:9px">
+        <button class="btn b-pri" data-fppub="${x.v.ch}" style="flex:1">Publicar</button>
+        <button class="btn b-sec" data-fpver="${x.v.ch}">Ver fotos</button>
+        <button class="btn b-sec" data-fpno="${x.v.ch}">Ahora no</button></div></div>`).join('')
+    :'<p class="mtr" style="margin:6px 0;color:var(--green)">✓ No quedan fotos nuevas por publicar.</p>';
+}
+function fpQuien(x){ return FUENTE_ETIQUETA[x.fu]||String(x.nombre||x.fu).replace(/</g,'&lt;'); }
+function abrirFotosPub(){ pintaFotosPub(); openSheet('shFotosPub'); }
+async function fpMarca(ch,publicar){
+  const x=fotosParaPublicar().find(y=>y.v.ch===ch); const t=st(ch);
+  t.fotoVisto=x?x.ts:Date.now(); if(publicar) t.pub=true;
+  await save();
+  alturaFluida($('#fpList'),pintaFotosPub); draw(); pintaPendientes();
+  if(publicar) webSyncPronto();
+}
+document.addEventListener('click',async e=>{
+  const pb=e.target.closest('[data-fppub]'), no=e.target.closest('[data-fpno]'), ver=e.target.closest('[data-fpver]');
+  if(pb){ if(pb.disabled) return; pb.disabled=true; const v=IDX[pb.dataset.fppub]; await fpMarca(pb.dataset.fppub,true); toast('Publicado en la web: '+(v?v.ma+' '+v.mo:'')); }
+  else if(no){ await fpMarca(no.dataset.fpno,false); }
+  else if(ver){ const ch=ver.dataset.fpver; closeAll(); show('pStock'); await openPhotos(ch); try{ segShow('fotos'); }catch(_){} }
+});
+$('#fpTodos').addEventListener('click',async()=>{
+  const L=fotosParaPublicar(); if(!L.length) return;
+  L.forEach(x=>{ const t=st(x.v.ch); t.pub=true; t.fotoVisto=x.ts; });
+  await save(); draw(); pintaPendientes(); webSyncPronto();
+  toast('Publicados en la web: '+L.length+' vehículos'); closeAll();
+});
 async function abrirAvisoFoto(av){
   const v=IDX[av.ch];
   if(!v){ marcarAvisoAtendido(av.ts); toast('Ese vehículo ya no está en el stock'); return; }
@@ -5919,6 +6053,8 @@ function pendientesGlobales(){
   if(pendDato.length) p.push({texto:pendDato.length+' dato'+(pendDato.length===1?'':'s')+' de vehículo anotado'+(pendDato.length===1?'':'s')+' por Víctor/Bryan por confirmar', ir:()=>{show('pResumen'); setTimeout(()=>{const b=$('#boxSmda'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth'}); }},250);}});
   const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
+  const fpPub=fotosParaPublicar();
+  if(fpPub.length) p.push({texto:fpPub.length===1?('📷 Fotos nuevas de '+fpPub[0].v.ma+' '+fpPub[0].v.mo+' ('+fpQuien(fpPub[0])+') · publicar en la web'):('📷 '+fpPub.length+' vehículos con fotos nuevas de Víctor/Bryan · publicar en la web'), ir:abrirFotosPub});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   return p;
 }
@@ -6968,6 +7104,15 @@ function ngseg(k){
     $$('#ngSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ng===k?'true':'false'));
   });
 }
+/* Contenido en tres partes (13/10/2026): Publicar (por vehículo), Ideas de marca y Resultados (de qué red llegan los clientes). */
+function ctseg(k){
+  alturaFluida(MAIN,()=>{
+    [['pub','ctPub'],['marca','ctMarca'],['cons','ctCons']].forEach(([n,id])=>{ const el=$('#'+id); if(el) el.hidden = n!==k; });
+    $$('#ctSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ct===k?'true':'false'));
+    if(k==='marca'&&$('#brandIdeas')&&!$('#brandIdeas').childElementCount) drawBrandIdeas();
+  });
+}
+$('#ctSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ct]');if(b)ctseg(b.dataset.ct)});
 $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');if(b)ngseg(b.dataset.ng)});
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
 $('#tkList').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){cseg(b.dataset.cseg); try{$('#scPend').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
@@ -7856,8 +8001,8 @@ function pintaPubArch(){
     : 'Sin video: se publicará la foto de portada.';
 }
 function drawGen(){
-  if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;return}
-  $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;
+  if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;$('#ctPubAyuda').hidden=false;return}
+  $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;$('#ctPubAyuda').hidden=true;
   $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
   $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
   const v2=ttTpl==='comp'?IDX[ttV2]:null;
@@ -10078,6 +10223,7 @@ function emResTot(f){ return f.lleg+emEstSuma(f.ch)+emRealSuma(f.ch); }
 /* Margen contra el costo total del vehículo, en pesos y en % sobre el costo (2026-09-29). */
 function emMgTxt(p,tot,nom){ if(!(+p>0)) return ''; const m=p-tot, pc=tot?Math.round(m/tot*1000)/10:0;
   return `<span style="color:${m>=0?'var(--green)':'var(--red)'}">margen ${nom}: <b>${m<0?'−':''}${clp(Math.abs(m))}</b> (${String(pc).replace('.',',')}%)</span>`; }
+function emLibTxt(ch,lim){ const b=calcBaseLib(IDX[ch]); return (b&&lim&&b>lim)?`⚠ Base liberación ${clp(b)} sobre el precio (${clp(b-lim)} más)`:''; }
 function pintaEmRes(r){
   const box=document.getElementById('emRes'); if(!box) return;
   if(!r||!r.filas.length){ box.innerHTML='<p class="mtr">Sin vehículos.</p>'; return; }
@@ -10094,6 +10240,7 @@ function pintaEmRes(r){
         <span data-emmg="pventa|${f.ch}" style="font-size:11.5px;min-width:130px;justify-self:start">${emMgTxt(pv,tot,'venta')}</span>
         <input data-emres="pmin|${f.ch}" inputmode="numeric" placeholder="Mínimo" title="Valor mínimo" value="${pm?pm.toLocaleString('es-CL'):''}" style="${est}">
         <span data-emmg="pmin|${f.ch}" style="font-size:11.5px;min-width:130px;justify-self:start">${emMgTxt(pm,tot,'mínimo')}</span>
+        <span data-emlib="${f.ch}" style="grid-column:1 / -1;font-size:11.5px;color:var(--red);justify-self:end">${emLibTxt(f.ch,pm||pv)}</span>
         <span data-emresest="${f.ch}" style="grid-column:1 / -1;font-size:11px;color:var(--mute);justify-self:end"></span></span></div>`; });
   box.innerHTML=filas.join('')+`<div class="money" style="margin-top:10px">
     <div>Costo hasta Chile (sin redondear) <b>${clp(tB)}</b></div>
@@ -10109,6 +10256,8 @@ document.addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':n.toLocaleString('es-CL'));
   const [k]=e.target.dataset.emres.split('|'), card=e.target.closest('[data-emtot]'), mg=document.querySelector(`[data-emmg="${e.target.dataset.emres}"]`);
   if(card&&mg) mg.innerHTML=emMgTxt(+n||0,+card.dataset.emtot||0,k==='pventa'?'venta':'mínimo');
+  const ch=e.target.dataset.emres.split('|')[1], lb=document.querySelector(`[data-emlib="${ch}"]`);
+  if(lb&&card){ const iv=k2=>pnum((card.querySelector(`[data-emres="${k2}|${ch}"]`)||{}).value||'')||0; lb.textContent=emLibTxt(ch,iv('pmin')||iv('pventa')); }
 });
 async function emResGuarda(inp){
   const [k,ch]=inp.dataset.emres.split('|'); if(!IDX[ch]) return;
