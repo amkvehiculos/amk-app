@@ -771,7 +771,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->13-10-2026 19:05<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->14-10-2026 11:14<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -3224,12 +3224,12 @@ function cardSV(v){
   const s=st(v.ch), isS=sold(v.ch), esc=t=>String(t||'').replace(/</g,'&lt;');
   const dm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
   let [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
-  { const rv=(!isS&&!resAct(v.ch)&&v.st==='IQQ'&&!debe(v.ch))?revEstado(v.ch):null; if(rv){ est+=' · '+rv.txt; if(rv.k!=='ok') col=rv.col; } }
+  { const rv=(!isS&&!resAct(v.ch)&&v.st==='IQQ'&&!debe(v.ch))?revEstado(v.ch):null; if(rv){ est=rv.cort||rv.txt; if(rv.k!=='ok') col=rv.col; } }   /* 14/10/2026: solo la etiqueta corta (sin "En patio" ni montos): la larga apretaba las características */
   const pr=isS?(s.price?clp(enCLP(s)):''):(s.pventa?clp(s.pventa):'');
   return `<div class="card cmp" data-sexp="${v.ch}"><span class="strip" style="background:${col}"></span>
     <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span> <span style="font-family:var(--mono);font-size:11.5px;color:var(--mute);font-weight:400">${esc(v.ch)}</span></div>
     <div class="cm-s" style="white-space:normal">${esc(carsC(v))}</div></div>
-    <div style="text-align:right">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div></div></div>`;
+    <div style="text-align:right;flex:0 1 auto;max-width:40%;min-width:0">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div></div></div>`;
 }
 document.addEventListener('click',async e=>{
   if(e.target.closest('#stVista')){ stCompacto=!stCompacto; STEXP.clear(); try{ await window.storage.set('amk_stCompacto',stCompacto?'1':'0'); }catch(_){} drawStock(); return; }
@@ -3639,7 +3639,9 @@ function openCost(ch,pcat,pamt,seg){
   /* 08/10/2026 (Andre): pestaña por defecto según la etapa del auto. Mientras se está estimando (en camino, o en patio sin
      haber apretado "Terminé de estimar") abre en Estimado; con la estimación cerrada, vendido o stock antiguo, en Costo real. */
   /* 10/10/2026 (Andre): vuelve a abrir SIEMPRE en Estimado (arriba), también con la revisión cerrada; solo los vendidos abren en Costo real. */
-  const segDef=c=>{ const v=IDX[c]; return (!v||sold(c))?'real':'est'; };
+  /* 14/10/2026 (Andre): con "Terminé de estimar" apretado abre en Costo real (ahí quedan los pendientes por pagar);
+     mientras se estima, en Estimado. Los imprevistos se agregan a mano en Estimado. */
+  const segDef=c=>{ const v=IDX[c]; return (!v||sold(c)||(S[c]||{}).revFin)?'real':'est'; };
   drawTaskSheet(); sugEst(); cseg(seg||(editing?segDef(editing):'real')); pintaScIq();
   scCat=pcat||'OBLIG';
   $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
@@ -3740,16 +3742,22 @@ function pintaScPend(){
      (No se necesitó) o se paga (＄ Pagado lleva a Costo real con el monto listo). En Costo real (#scPend) solo se ve el trabajo
      que se está pagando, o un acceso de vuelta a los pendientes. */
   const fila=x=>`<b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}`;
-  if(tb) tb.innerHTML=T.length?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
+  /* 14/10/2026 (Andre): la lista completa va en Estimado mientras se estima; con "Terminé de estimar" pasa a Costo real. */
+  const fin=!!(S[ch]||{}).revFin;
+  const lista=T.length?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
     <div style="font-weight:700;font-size:13.5px;margin-bottom:4px">Pendiente en este vehículo (${T.length})</div>
-    <div class="mtr" style="margin:0 0 6px">Lo del embarque, confírmalo al ver el auto (<b>✓ Lo vi: va</b>). Si al final no hizo falta, <b>No se necesitó</b>. Si ya lo pagaste, <b>＄ Pagado</b> y anota cuánto costó.</div>
+    <div class="mtr" style="margin:0 0 6px">${fin?'Si ya lo pagaste, <b>＄ Pagado</b> y anota cuánto costó abajo. Si al final no hizo falta, <b>No se necesitó</b>. Un imprevisto nuevo se agrega en <b>Estimado</b>.':'Lo del embarque, confírmalo al ver el auto (<b>✓ Lo vi: va</b>). Si al final no hizo falta, <b>No se necesitó</b>. Si ya lo pagaste, <b>＄ Pagado</b> y anota cuánto costó.'}</div>
     ${T.map(x=>{ const o=cand.find(z=>z.x===x);
       return `<div style="border-top:1px solid var(--line);padding:7px 0">
       <div style="font-size:13.5px">${fila(x)}</div>
       ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
         <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
-      <div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o||esEstSinVer(x)?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div></div>`; }).join('')}
+      ${fin&&x===act?`<div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>`:`<div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o||esEstSinVer(x)?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div>`}</div>`; }).join('')}
   </div>`:'';
+  if(fin){
+    if(tb) tb.innerHTML=T.length?`<button class="btn b-sec" data-cseg="real" style="width:100%;margin:0 0 12px">${T.length} pendiente${T.length===1?'':'s'} por pagar · ver en Costo real →</button>`:'';
+    box.innerHTML=lista; return; }
+  if(tb) tb.innerHTML=lista;
   box.innerHTML=act?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
       <div style="font-size:13.5px">${fila(act)}</div>
       <div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>
@@ -7105,13 +7113,13 @@ function revEstado(c){
      recién 🟢 Listo cuando todo está hecho y pagado. Etapas: 🔴 sin revisar · 🟡 estimando · 🔵 estimado, por hacer · 🟢 listo. */
   if(s.revFin){
     if(p){ const por=T.filter(x=>!x.hecho&&!esEstSinVer(x)&&x.cat!=='LAVADO').reduce((a,x)=>a+(+x.est||0),0);
-      return {k:'por',col:'#2F7FC1',txt:'🔵 '+p+' por hacer'+(por?' · '+clp(por):''),det:'Estimación terminada · '+p+' trabajo'+(p===1?'':'s')+' por hacer o pagar'+(por?' ('+clp(por)+' estimado)':'')}; }
-    return {k:'ok',col:'#2E8B57',txt:'🟢 Listo'}; }
+      return {k:'por',col:'#2F7FC1',cort:'🔵 '+p+' por hacer',txt:'🔵 '+p+' por hacer'+(por?' · '+clp(por):''),det:'Estimación terminada · '+p+' trabajo'+(p===1?'':'s')+' por hacer o pagar'+(por?' ('+clp(por)+' estimado)':'')}; }
+    return {k:'ok',col:'#2E8B57',cort:'🟢 Listo',txt:'🟢 Listo'}; }
   const ck=chkEstado(c), nOk=ck.filter(x=>x.ok).length, falta=ck.filter(x=>!x.ok).map(x=>x.n);
   /* empezó a estimar = hay un trabajo pendiente/estimado, o algo del checklist marcado (el KM solo no cuenta: es un dato, no una revisión) */
   if(p||T.some(x=>esEst2(x)||x.imprevisto)||ck.some(x=>x.ok&&x.k!=='KM'))
-    return {k:p?'pend':'rev',col:'#C98A12',txt:'🟡 Estimando '+nOk+'/'+ck.length+' · falta terminar',det:'Falta terminar de estimar'+(falta.length?' · sin revisar: '+falta.join(', '):'')};
-  return {k:'sin',col:'#C0392B',txt:'🔴 Sin revisar'};
+    return {k:p?'pend':'rev',col:'#C98A12',cort:'🟡 Estimando',txt:'🟡 Estimando '+nOk+'/'+ck.length+' · falta terminar',det:'Falta terminar de estimar'+(falta.length?' · sin revisar: '+falta.join(', '):'')};
+  return {k:'sin',col:'#C0392B',cort:'🔴 Sin revisar',txt:'🔴 Sin revisar'};
 }
 function pintaScRev(){
   const box=$('#scRev'); if(!box) return;
@@ -7164,7 +7172,7 @@ document.addEventListener('click',async e=>{
     sv.forEach(x=>{ if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); });
     s.revFin=iso(); }
   else s.revFin='';
-  await save(); drawTaskSheet(); draw();
+  await save(); drawTaskSheet(); draw(); cseg(fin?'real':'est');
   toast(fin?'Revisión cerrada · lo que salga después, anótalo como ⚡ Imprevisto':'Revisión reabierta');
 });
 /* 07/10/2026: arreglo de lo anotado antes de esta corrección. Desde el 02/10, anotar en el auto un costo de una
@@ -7235,6 +7243,7 @@ function ctseg(k){
 $('#ctSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ct]');if(b)ctseg(b.dataset.ct)});
 $('#ngSegs').addEventListener('click',e=>{const b=e.target.closest('[data-ng]');if(b)ngseg(b.dataset.ng)});
 $('#scSegs').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b)cseg(b.dataset.cseg)});
+$('#tkPend').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){cseg(b.dataset.cseg); try{$('#scPend').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
 $('#scPend').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){tkCostDe=null; cseg(b.dataset.cseg); pintaScPend(); try{$('#tkChk').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
 $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
