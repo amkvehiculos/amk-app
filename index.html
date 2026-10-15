@@ -770,7 +770,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 10:48<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 13:18<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -975,7 +975,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Dólar observado del Banco Central (el que pide Zofri)</div>
         <input id="tcObs" inputmode="decimal" placeholder="925,25" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
-        <div class="mtr" style="margin:5px 0 0;color:var(--mute);font-size:11.5px">Se actualiza solo, una vez al día, al abrir la app (fuente: mindicador.cl / Banco Central). Si no hay internet o falla, se queda con el último valor — usa "Buscar dólar de hoy" o escríbelo a mano.</div></div>
+        <div class="mtr" style="margin:5px 0 0;color:var(--mute);font-size:11.5px">Se actualiza solo al abrir la app, al volver a ella y al abrir una venta (fuente: mindicador.cl / Banco Central; a veces tarda hasta un minuto). Si no hay internet o falla, avisa y se queda con el último valor — usa "Buscar dólar de hoy" o escríbelo a mano.</div></div>
       <div class="money" style="margin:0 0 11px"><div>Referencia de compra <b id="tcCompra">—</b></div>
         <div>Actualizado <b id="tcFecha" style="font-size:12.5px">—</b></div></div>
       <div class="acts"><button class="btn b-sec" id="tcGet">Buscar dólar de hoy</button>
@@ -3435,11 +3435,8 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     $('#ssT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#ssC').textContent=v.ch;
     $('#ssP').value='';$('#ssD').value=iso();
     $('#ssS').innerHTML=v.vev?`Estimado ${clp(v.vev)}<button data-sug="${v.vev}">Usar</button>`:'';
-    $('#ssObs').textContent=TC.obs?obs2(TC.obs):'Sin valor';
-    $('#ssObs').style.color=TC.obs?'var(--ink)':'var(--red)';
-    $('#ssObsCp').dataset.v=TC.obs?Number(TC.obs).toFixed(2):'';
-    $('#ssObsF').textContent=TC.fecha?('Actualizado el '+fd(TC.fecha)+' · verifícalo si la venta es de otro día')
-                                     :'Actualízalo en Datos antes de usarlo';
+    if(!$('#ssD').dataset.obsOk){ $('#ssD').dataset.obsOk=1; $('#ssD').addEventListener('change',pintaObsVenta); }
+    pintaObsVenta(); if(TC.fecha!==iso()){ fetchDolarAuto().then(()=>pintaObsVenta()); pintaObsVenta(); }
     const fz=v.fob;
     $('#ssFzWrap').hidden=false;
     const fmt=x=>Number(x).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -3576,7 +3573,7 @@ function pintaScIq(){
   if(document.activeElement!==$('#scEst2')) $('#scEst2').value=v.est2?Math.round(v.est2).toLocaleString('es-CL'):'';
 }
 function openCost(ch,pcat,pamt,seg){
-  editing=ch||null; tkCostDe=null;
+  editing=ch||null; tkCostDe=null; tkVistoDe=null;
   const w=$('#scVwrap');
   if(ch){const v=IDX[ch];w.hidden=true;
     $('#scT').textContent=v.ma+' '+v.mo+' '+(v.an||'');$('#scC').textContent=v.ch}
@@ -3689,7 +3686,7 @@ function pintaScPend(){
   /* 13/10/2026 (Andre): la lista completa de pendientes vive en Estimado (#tkPend): ahí se confirma (✓ Lo vi: va), se descarta
      (No se necesitó) o se paga (＄ Pagado lleva a Costo real con el monto listo). En Costo real (#scPend) solo se ve el trabajo
      que se está pagando, o un acceso de vuelta a los pendientes. */
-  const fila=x=>`<b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}`;
+  const fila=x=>`<b>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}</b>${x.est?` <span style="color:var(--mute);font-family:var(--mono);font-size:12px">est. ${clp(x.est)}</span>`:''}${!esEstSinVer(x)&&x.est1!=null&&+x.est1!==+x.est?` <span style="color:var(--mute);font-size:11.5px">(Est. 1 ${clp(x.est1)})</span>`:''}${esEstSinVer(x)?' <span style="color:var(--mute);font-size:11.5px">(del embarque, sin ver)</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">(marcado listo, falta anotar el costo)</span>':''}${x.nota?`<br><span style="color:var(--mute);font-size:12.5px">${x.nota.replace(/</g,'&lt;')}</span>`:''}`;
   /* 14/10/2026 (Andre): la lista completa va en Estimado mientras se estima; con "Terminé de estimar" pasa a Costo real. */
   const fin=!!(S[ch]||{}).revFin;
   const lista=T.length?`<div class="card plain" style="padding:10px 11px;margin:0 0 13px;border-color:#C98A12">
@@ -3700,7 +3697,11 @@ function pintaScPend(){
       <div style="font-size:13.5px">${fila(x)}</div>
       ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
         <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
-      ${fin&&x===act?`<div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>`:`<div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o||esEstSinVer(x)?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div>`}</div>`; }).join('')}
+      ${String(tkVistoDe)===String(x.ts)?`<div class="fld" style="margin:6px 0 0;padding:8px 9px;border-radius:8px;background:var(--card);border:1px solid var(--line)">
+        <label for="tkVistoM" style="display:block;font-size:12.5px;margin-bottom:5px;text-transform:none;letter-spacing:0">¿Cuánto crees que cuesta ahora que lo viste? <span style="color:var(--mute)">(Est. 2 · el Est. 1 del embarque fue ${clp(x.est1!=null?x.est1:(+x.est||0))})</span></label>
+        <input id="tkVistoM" inputmode="numeric" placeholder="$0" value="${+x.est?clp(+x.est):''}" style="margin-bottom:7px">
+        <div class="acts" style="margin-top:0"><button class="btn b-pri" data-tvok="${x.ts}">✓ Confirmar valor</button><button class="btn b-sec" data-tvcan="1" style="flex:0 0 auto">Cancelar</button></div></div>`
+      :fin&&x===act?`<div style="margin-top:6px;padding:7px 9px;border-radius:8px;background:var(--greenBg);color:var(--green);font-size:13px;font-weight:700">↓ Estás anotando el pago de este: escribe el monto abajo y toca <u>Guardar costo</u></div>`:`<div class="acts" style="margin-top:5px">${esEstSinVer(x)?`<button class="btn b-pri" data-tvisto="${x.ts}" title="Lo viste en persona y sí va: pasa a pendiente">✓ Lo vi: va</button>`:''}<button class="btn ${o||esEstSinVer(x)?'b-sec':'b-pri'}" data-tcost="${x.ts}">＄ Pagado</button><button class="btn b-sec" data-tnoap="${x.ts}">No se necesitó</button><button class="b-und" style="flex:0 0 auto" data-tdel="${x.ts}" aria-label="Eliminar">✕</button></div>`}</div>`; }).join('')}
   </div>`:'';
   if(fin){
     if(tb) tb.innerHTML=T.length?`<button class="btn b-sec" data-cseg="real" style="width:100%;margin:0 0 12px">${T.length} pendiente${T.length===1?'':'s'} por pagar · ver en Costo real →</button>`:'';
@@ -3845,7 +3846,7 @@ $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   if(t.res&&t.res.est==='activa'){ t.res=Object.assign({},t.res,{est:'completa',fin:t.date}); }
   t.cliente=leerCliente(); recuerdaComuna(t.cliente.c);
   t.vendedor=ssQ; t.comision=(ssQ==='bryan')?COMB:0;
-  if(TC.obs) t.dolarObs=Number(TC.obs);
+  { const o=obsDe(t.date); if(o) t.dolarObs=Number(o.v); }   /* 15/10/2026: el del día de la venta */
   const prune=!$('#ssPrWrap').hidden && $('#ssPrune').getAttribute('aria-pressed')==='true';
   await save();
   if(typeof fbSyncSueldosPronto==='function') fbSyncSueldosPronto();
@@ -5159,23 +5160,55 @@ async function cargaTC(){
    Si ya está al día, o si falla (sin internet, servicio caído, etc.), no hace nada ni
    interrumpe: se queda con el valor guardado y el botón "Buscar dólar de hoy" y el campo
    siguen disponibles para hacerlo a mano. */
-async function fetchDolarAuto(){
-  if(TC.fecha===iso()) return;
-  try{
-    const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),8000);
+/* 15/10/2026 (Andre): el 15/10 la venta mostró el dólar del 13/10. Solo se buscaba al cargar la app desde cero, y en el
+   iPhone la app queda abierta en segundo plano días enteros. Ahora también se busca al volver a la app y al abrir la ficha de
+   venta; se guarda la serie de los últimos días (TC.obsSerie) para usar el valor del DÍA DE LA VENTA, y si falla se avisa. */
+let _dolarBusca=null;
+function fetchDolarAuto(){
+  if(TC.fecha===iso()) return Promise.resolve(false);
+  if(_dolarBusca) return _dolarBusca;
+  _dolarBusca=(async()=>{ try{
+    /* 15/10/2026: mindicador.cl tarda 9-35 s en responder; con el corte de 8 s fallaba siempre, en silencio. Ahora espera 45 s
+       (en segundo plano, no traba nada). Su respuesta trae caché de 1 h, que no molesta: el dato se publica una vez al día. */
+    const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),45000);
     const r=await fetch('https://mindicador.cl/api/dolar',{signal:ac.signal});
     clearTimeout(t);
     if(!r.ok) throw new Error('HTTP '+r.status);
     const j=await r.json();
     const last=j&&j.serie&&j.serie[0];
     if(!last||!last.valor) throw new Error('sin dato en la respuesta');
+    const prev=TC.obs;
     TC.obs=Number(last.valor);
+    TC.obsDia=String(last.fecha||'').slice(0,10);
+    TC.obsSerie=(j.serie||[]).slice(0,40).map(x=>[String(x.fecha||'').slice(0,10),Number(x.valor)]).filter(x=>x[0]&&x[1]>0);
     TC.fecha=iso();
     TC.fuente='Dólar observado · mindicador.cl (Banco Central) · actualizado solo';
     await window.storage.set('amk_tc',JSON.stringify(TC));
-    pintaTC();
-    toast('Dólar observado actualizado solo: '+obs2(TC.obs));
-  }catch(e){ console.error('fetchDolarAuto',e); }
+    pintaTC(); try{ pintaObsVenta(); }catch(_){}
+    if(TC.obs!==prev) toast('Dólar observado actualizado solo: '+obs2(TC.obs));
+    return true;
+  }catch(e){ console.error('fetchDolarAuto',e);
+    if(TC.obsAvisoFallo!==iso()){ TC.obsAvisoFallo=iso(); try{await window.storage.set('amk_tc',JSON.stringify(TC))}catch(_){}
+      toast('No se pudo actualizar el dólar observado'+(TC.fecha?' · sigue el del '+fd(TC.fecha):'')+' · revísalo en Negocio → Plata'); }
+    return false;
+  } finally { _dolarBusca=null; } })();
+  return _dolarBusca;
+}
+/* Dólar observado de un día: el publicado para esa fecha, o el último anterior (fin de semana/feriado). */
+function obsDe(f){ const L=TC.obsSerie||[]; f=f||iso();
+  const x=L.find(y=>y[0]===f)||L.filter(y=>y[0]<=f).sort((a,b)=>b[0].localeCompare(a[0]))[0];
+  if(x) return {v:x[1],d:x[0]};
+  const d0=TC.obsDia||TC.fecha||''; return (TC.obs&&(!d0||f>=d0))?{v:+TC.obs,d:d0}:null; }   /* fecha anterior a lo guardado: no se inventa */
+function pintaObsVenta(){
+  const el=$('#ssObs'); if(!el) return;
+  const f=($('#ssD')&&$('#ssD').value)||iso(), o=obsDe(f);
+  el.textContent=o?obs2(o.v):'Sin valor'; el.style.color=o?'var(--ink)':'var(--red)';
+  $('#ssObsCp').dataset.v=o?Number(o.v).toFixed(2):'';
+  const F=$('#ssObsF'); if(!F) return;
+  if(!o){ F.innerHTML='<span style="color:var(--red)">No hay dólar observado guardado del '+fd(f)+' · búscalo en el Banco Central</span>'; return; }
+  const viejo=f===iso()&&TC.fecha!==iso();
+  F.innerHTML=viejo?(_dolarBusca?'Buscando el de hoy…':'<span style="color:var(--red)">⚠ No se pudo actualizar: es el del '+fd(o.d||TC.fecha)+'. Revísalo antes de ingresarlo en Zofri.</span>')
+    :('Dólar observado del '+fd(o.d)+(o.d!==f?' (último publicado antes del '+fd(f)+')':'')+' · Banco Central');
 }
 /* Dólar de mercado (referencial) y won estimado, desde una hoja de Google Sheets publicada
    como CSV (GOOGLEFINANCE). A diferencia del dólar observado, este SÍ se vuelve a pedir
@@ -5250,7 +5283,9 @@ function pintaTC(){
 async function guardaTC(){
   TC.medio=pnum($('#tcMedio').value)||0;
   TC.spread=pdec($('#tcSpread').value)||0;
-  TC.obs=pdec($('#tcObs').value)||0;
+  { const prev=+TC.obs||0; TC.obs=pdec($('#tcObs').value)||0;
+    /* 15/10/2026: escrito a mano = el de hoy (manda sobre la serie bajada para la fecha de hoy) */
+    if(TC.obs&&TC.obs!==prev){ TC.obsSerie=[[iso(),TC.obs]].concat((TC.obsSerie||[]).filter(x=>x[0]!==iso())); TC.obsDia=iso(); TC.fecha=iso(); } }
   const ksIn=pdec($('#tcKrwSpread').value);
   TC.krwSpread=(ksIn===''?15:ksIn);
   try{await window.storage.set('amk_tc',JSON.stringify(TC))}catch(e){toast('No se pudo guardar')}
@@ -7039,7 +7074,7 @@ function pend(c){return tasks(c).filter(x=>!x.hecho&&!esEstSinVer(x)&&x.cat!=='L
    - imprevisto = salió después (probándolo, en ruta): siempre es un trabajo aparte, nunca se fusiona con otro.
    - S[c].revFin = fecha en que se apretó "Terminé de estimar".
    Colores (solo autos en patio): 🔴 sin revisar · 🟡 con pendientes / en revisión · 🟢 revisado y sin pendientes. */
-let tkImpCh=null, tkCostDe=null;   /* tkCostDe: trabajo desde el que se abrió "Pagado: anotar costo real" */
+let tkImpCh=null, tkCostDe=null, tkVistoDe=null;   /* tkVistoDe: trabajo del embarque al que se le está poniendo el valor visto en patio (15/10/2026) */   /* tkCostDe: trabajo desde el que se abrió "Pagado: anotar costo real" */
 /* 07/10/2026: el costo real anotado desde un trabajo queda enlazado (x.costTs) y cierra el trabajo -- antes "Registrar costo"
    no lo cerraba (se contaban estimado + real) y "Marcar listo" sin costo hacía desaparecer el estimado del total. */
 const tkReal=(c,x)=>{ if(!x||!x.costTs) return null; const k=((S[c]||{}).costs||[]).find(y=>String(y.ts)===String(x.costTs)); return k?acor(k):null; };
@@ -7340,8 +7375,21 @@ $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#tlChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
   c.setAttribute('aria-selected','true'); tlView=c.dataset.tv; drawTaller()}));
 
-document.addEventListener('click',async e=>{ const b=e.target.closest('[data-tvisto]'); if(!b||!tkCh) return; const x=tasks(tkCh).find(t=>String(t.ts)===b.dataset.tvisto); if(!x) return;
-  if(x.est1==null) x.est1=+x.est||0; x.visto=true; x.vistoFe=iso(); await save(); drawTaskSheet(); draw(); toast('Confirmado: ahora es un trabajo pendiente'); });
+/* 15/10/2026 (Andre): "✓ Lo vi: va" ya no copia el valor del embarque: abre un campo para poner el Estimado 2 (lo que cree que
+   cuesta al verlo/probarlo). Viene con el Est. 1 escrito para confirmarlo tal cual si coincide. El Est. 1 queda guardado aparte. */
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-tvisto]');
+  if(b&&tkCh){ tkVistoDe=b.dataset.tvisto; pintaScPend(); setTimeout(()=>{ const m=$('#tkVistoM'); if(m){ try{ m.scrollIntoView({behavior:'smooth',block:'center'}); m.focus({preventScroll:true}); m.select(); }catch(_){} } },60); return; }
+  if(e.target.closest('[data-tvcan]')){ tkVistoDe=null; pintaScPend(); return; }
+  const ok=e.target.closest('[data-tvok]'); if(!ok||!tkCh) return;
+  const x=tasks(tkCh).find(t=>String(t.ts)===ok.dataset.tvok); if(!x) return;
+  const m=pnum(($('#tkVistoM')||{}).value||'');
+  if(m===''||m==null||isNaN(m)){ toast('Escribe el valor (o toca "No se necesitó" si no va)'); return; }
+  if(x.est1==null) x.est1=+x.est||0; x.est=+m||0; x.visto=true; x.vistoFe=iso(); tkVistoDe=null;
+  await save(); drawTaskSheet(); draw(); if(typeof pintaEmb==='function'&&E()) pintaEmb();
+  toast((TN[x.cat]||x.cat)+': confirmado en '+clp(x.est)+(+x.est1!==+x.est?' (Est. 1 era '+clp(x.est1)+')':''));
+});
+document.addEventListener('input',e=>{ if(e.target&&e.target.id==='tkVistoM'){ const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); } });
 document.addEventListener('click',async e=>{
   const d1=e.target.closest('[data-tdone]');
   /* 2026-09-29: "No se necesitó" -- se estimó un gasto que al final no hizo falta. Queda en el historial (tachado),
@@ -11132,6 +11180,7 @@ draw=(function(){
 /* Reintentos: al volver internet, al volver a la app; y al irse a segundo plano se guarda todo de inmediato. */
 window.addEventListener('online',()=>{ fbFallos=0; fbPushChanges(); webSyncPronto(); });
 document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&typeof tcListo!=='undefined'&&tcListo){ fetchDolarAuto(); if(!TC.medioTS||Date.now()-TC.medioTS>3600000) fetchTCMedioAuto(); }   /* 15/10/2026: al volver a la app (iPhone la deja abierta días) */
   if(document.hidden){ fbDetectaCambios(); guardaCacheV(true); }
   else if(Object.keys(fbPend).length){ fbFallos=0; fbPushChanges(); }
 });
