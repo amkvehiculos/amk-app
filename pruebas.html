@@ -771,7 +771,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->14-10-2026 11:14 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 10:48 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1525,9 +1525,17 @@ const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánica
  ['ELECT','Eléctrico'],['TV','TV'],['PARB','Parabrisas'],['NEUMAT','Neumáticos'],['ASIENTOS','Asientos'],
  ['REPUSA','Rep. usados'],['BATERIA','Batería'],['ALERON','Alerón'],['LAVADO','Lavado'],['CHASIS','Chasis / planchas'],
  ['OTRO','Otro']];
-const CN=Object.fromEntries(CATS);
+/* 15/10/2026 (Andre): los nombres de categoría van como las demás ("Escape", no "ESCAPE"). capCat los deja con mayúscula
+   inicial; CN devuelve ese formato también para categorías que no tienen nombre guardado (antes se veía la clave en mayúsculas). */
+const capCat=t=>{ t=String(t||'').replace(/_/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); return t.charAt(0).toUpperCase()+t.slice(1); };
+const CN=new Proxy(Object.fromEntries(CATS),{get:(o,k)=>(typeof k!=='string'||k in o)?o[k]:(/^[A-Z0-9_]{3,}$/.test(k)?capCat(k):undefined)});
 let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- solo de este computador/teléfono */
 function todasCATS(){ return CATS.concat(CATS_CUSTOM) }
+/* 15/10/2026 (Andre): en Costo real sobran Lavado (ya va dentro del Obligatorio automático) y Obligatorio cuando el auto ya
+   lo tiene. Obligatorio solo aparece si el auto no lo tiene (p. ej. lo borraste o es antiguo). La que está elegida siempre se ve. */
+function pintaScCat(){ const ch=editing||($('#scV')?$('#scV').value:null);
+  const tieneOb=!!(ch&&(((S[ch]||{}).costs||[]).some(x=>x.cat==='OBLIG')||((IDX[ch]||{}).xc||{}).OBLIG));
+  $('#scCat').innerHTML=todasCATS().filter(([k])=>k===scCat||(k!=='LAVADO'&&!(k==='OBLIG'&&tieneOb))).map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join(''); }
 function slugCat(t){ return (String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24))||'OTRO' }
 const COL={'Blanco':'#E9EAE6','Negro':'#20262A','Gris':'#8A9296','Plateado':'#B9C0C3','Azul':'#1F4E86','Rojo':'#9B2A28',
  'Beige':'#C9B79A','Amarillo':'#D6A81C','Naranja':'#C4661F','Dorado':'#B29246','Burdeo':'#6B2231','Verde':'#2C5B41','Marrón':'#6A4C38'};
@@ -3584,8 +3592,8 @@ function openCost(ch,pcat,pamt,seg){
      mientras se estima, en Estimado. Los imprevistos se agregan a mano en Estimado. */
   const segDef=c=>{ const v=IDX[c]; return (!v||sold(c)||(S[c]||{}).revFin)?'real':'est'; };
   drawTaskSheet(); sugEst(); cseg(seg||(editing?segDef(editing):'real')); pintaScIq();
-  scCat=pcat||'OBLIG';
-  $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+  { const ob=!!(editing&&(((S[editing]||{}).costs||[]).some(x=>x.cat==='OBLIG')||((IDX[editing]||{}).xc||{}).OBLIG)); scCat=pcat||(ob?'PINTURA':'OBLIG'); }
+  pintaScCat();
   $('#scCatOtroWrap').hidden=scCat!=='OTRO'; $('#scCatOtro').value=''; llenaProv();
   $('#scA').value=pamt?clp(pamt):'';$('#scD').value=iso();
   scParcial=false; $('#scPagoTodo').setAttribute('aria-pressed','true');
@@ -3764,8 +3772,9 @@ $('#scOk').addEventListener('click',async()=>{
   if(scCat==='OTRO'){
     nombreOtro=$('#scCatOtro').value.trim();
     if(!nombreOtro){toast('Escribe el nombre de la categoría');return}
+    nombreOtro=capCat(nombreOtro);
     catFinal=slugCat(nombreOtro);
-    if(!CN[catFinal]) CN[catFinal]=nombreOtro;
+    if(!Object.prototype.hasOwnProperty.call(CN,catFinal)) CN[catFinal]=nombreOtro;
   }
   const f=$('#scD').value||iso();
   const pago=scParcial?(pnum($('#scAb').value)||0):ac;
@@ -3796,7 +3805,7 @@ $('#scOk').addEventListener('click',async()=>{
       try{await window.storage.set('amk_cats_custom',JSON.stringify(CATS_CUSTOM))}catch(e){toast('No se pudo guardar el botón fijo')}
     }
   }
-  scCat=catFinal; $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+  scCat=catFinal; pintaScCat();
   $('#scCatOtroWrap').hidden=true;
 });
 
@@ -4580,7 +4589,10 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_pagosf'); if(r&&r.value) PF=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
-  try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[]; CATS_CUSTOM.forEach(([k,n])=>CN[k]=n) }}catch(e){}
+  try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[];
+    /* 15/10/2026: las guardadas en mayúsculas (se escribían así por la regla de mayúsculas) pasan a "Escape" */
+    let cam=false; CATS_CUSTOM=CATS_CUSTOM.map(([k,n])=>{ if(n&&n===n.toUpperCase()&&/[A-ZÁÉÍÓÚÑ]{3}/.test(n)){ cam=true; return [k,capCat(n)]; } return [k,n]; });
+    CATS_CUSTOM.forEach(([k,n])=>CN[k]=n); if(cam) try{ await window.storage.set('amk_cats_custom',JSON.stringify(CATS_CUSTOM)); }catch(_){} }}catch(e){}
   /* 02/10/2026: la publicidad se paga por vehículo -> categoría fija 'Publicidad' en los costos de cada vehículo */
   if(!CATS_CUSTOM.some(([k])=>k==='PUBLICIDAD')){ CATS_CUSTOM=CATS_CUSTOM.concat([['PUBLICIDAD','Publicidad']]); CN.PUBLICIDAD='Publicidad'; }
   if(!CATS_CUSTOM.some(([k])=>k==='CUBREVOLANTE')){ CATS_CUSTOM=CATS_CUSTOM.concat([['CUBREVOLANTE','Cubrevolante']]); CN.CUBREVOLANTE='Cubrevolante'; }   /* 07/10/2026: botón fijo por vehículo */
@@ -7188,7 +7200,7 @@ $('#tkPend').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]'
 $('#scPend').addEventListener('click',e=>{const b=e.target.closest('[data-cseg]');if(b){tkCostDe=null; cseg(b.dataset.cseg); pintaScPend(); try{$('#tkChk').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){}}});
 $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
-$('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;drawCostList();drawTaskSheet();sugEst();pintaScIq()});
+$('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;pintaScCat();drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
   $('#tkCat').innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
   pintaScRev(); pintaScPend();
@@ -7345,7 +7357,7 @@ document.addEventListener('click',async e=>{
   const tc=e.target.closest('[data-tcost]');
   if(tc){const x=tasks(tkCh).find(y=>String(y.ts)===tc.dataset.tcost);
     if(x){scCat=COSTMAP[x.cat]||x.cat; tkCostDe=x.ts;
-      $('#scCat').innerHTML=todasCATS().map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join('');
+      pintaScCat();
       $('#scCatOtroWrap').hidden=true;
       $('#scA').value=x.est?clp(x.est):'';
       $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo`;
