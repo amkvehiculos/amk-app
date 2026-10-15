@@ -770,7 +770,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 13:18<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 14:51<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1529,12 +1529,24 @@ const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánica
 const capCat=t=>{ t=String(t||'').replace(/_/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); return t.charAt(0).toUpperCase()+t.slice(1); };
 const CN=new Proxy(Object.fromEntries(CATS),{get:(o,k)=>(typeof k!=='string'||k in o)?o[k]:(/^[A-Z0-9_]{3,}$/.test(k)?capCat(k):undefined)});
 let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- solo de este computador/teléfono */
-function todasCATS(){ return CATS.concat(CATS_CUSTOM) }
+/* 16/10/2026 (Andre): Estimado y Costo real (y el estimado del Embarque) usan LAS MISMAS categorías, en el mismo orden.
+   Suspensión y Niveles y fluidos pasan a ser categorías de costo (antes un pago de suspensión se guardaba como Mecánica);
+   van aparte de CATS para no mover las columnas de "Copiar para Excel". Excepciones: Obligatorio solo en Costo real (es
+   automático) y Lavado en ninguno (va dentro del Obligatorio). */
+const CATS_EXTRA=[['SUSP','Suspensión'],['FLUIDOS','Niveles y fluidos']];
+const CAT_ORDEN=['PINTURA','MECANICO','SUSP','CHASIS','ELECT','TV','NEUMAT','PARB','ASIENTOS','BATERIA','REPNUE','REPUSA','ALERON','FLUIDOS'];
+function todasCATS(){ return CATS.concat(CATS_EXTRA,CATS_CUSTOM) }
+function catsUnif(){ const nm=Object.fromEntries(todasCATS()), out=CAT_ORDEN.map(k=>[k,nm[k]]);
+  CATS_CUSTOM.forEach(([k,n])=>{ if(!CAT_ORDEN.includes(k)&&k!=='OTRO') out.push([k,n]); });
+  return out.concat([['OTRO','Otro']]); }
+CATS_EXTRA.forEach(([k,n])=>{ CN[k]=n; });
 /* 15/10/2026 (Andre): en Costo real sobran Lavado (ya va dentro del Obligatorio automático) y Obligatorio cuando el auto ya
    lo tiene. Obligatorio solo aparece si el auto no lo tiene (p. ej. lo borraste o es antiguo). La que está elegida siempre se ve. */
 function pintaScCat(){ const ch=editing||($('#scV')?$('#scV').value:null);
   const tieneOb=!!(ch&&(((S[ch]||{}).costs||[]).some(x=>x.cat==='OBLIG')||((IDX[ch]||{}).xc||{}).OBLIG));
-  $('#scCat').innerHTML=todasCATS().filter(([k])=>k===scCat||(k!=='LAVADO'&&!(k==='OBLIG'&&tieneOb))).map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join(''); }
+  const L=(tieneOb?[]:[['OBLIG','Obligatorio']]).concat(catsUnif());
+  if(scCat&&!L.some(([k])=>k===scCat)) L.unshift([scCat,CN[scCat]||scCat]);   /* la elegida siempre se ve */
+  $('#scCat').innerHTML=L.map(([k,n])=>`<button class="cg" data-cg="${k}" aria-pressed="${k===scCat}">${n}</button>`).join(''); }
 function slugCat(t){ return (String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,24))||'OTRO' }
 const COL={'Blanco':'#E9EAE6','Negro':'#20262A','Gris':'#8A9296','Plateado':'#B9C0C3','Azul':'#1F4E86','Rojo':'#9B2A28',
  'Beige':'#C9B79A','Amarillo':'#D6A81C','Naranja':'#C4661F','Dorado':'#B29246','Burdeo':'#6B2231','Verde':'#2C5B41','Marrón':'#6A4C38'};
@@ -3666,8 +3678,8 @@ function tkLinkCand(c){
   const T=((S[c]||{}).tasks||[]), CS=((S[c]||{}).costs||[]);
   const lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs))), usado=new Set(), out=[];
   T.filter(x=>tkAbierto(x)&&!x.costTs).forEach(x=>{
-    const ck=COSTMAP[x.cat]||x.cat;
-    const k=CS.find(y=>y.cat===ck&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
+    const ck=catsPago(x.cat);
+    const k=CS.find(y=>ck.includes(y.cat)&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
     if(k){ usado.add(String(k.ts)); out.push({c,x,k}); } });
   return out;
 }
@@ -3785,7 +3797,7 @@ $('#scOk').addEventListener('click',async()=>{
   /* 08/10/2026 (Andre): regla anti-duplicado. Si el costo se anota directo en Costo real (no desde el botón del trabajo)
      y el vehículo tiene un trabajo abierto de la misma categoría, se pregunta si es ese pago: si sí, el trabajo se cierra
      con el costo enlazado. Antes el estimado seguía sumando junto al real y el costo quedaba contado dos veces. */
-  if(tkCostDe==null){ const ab=tasks(ch).filter(y=>!y.hecho&&!y.costTs&&y.cat!=='LAVADO'&&(COSTMAP[y.cat]||y.cat)===catFinal);
+  if(tkCostDe==null){ const ab=tasks(ch).filter(y=>!y.hecho&&!y.costTs&&y.cat!=='LAVADO'&&catsPago(y.cat).includes(catFinal));
     if(ab.length&&confirm('Este vehículo tiene '+(ab.length===1?'un trabajo abierto':ab.length+' trabajos abiertos')+' de '+(CN[catFinal]||catFinal)+': '+ab.map(y=>(y.imprevisto?'⚡ ':'')+(TN[y.cat]||y.cat)+(y.est?' (est. '+clp(y.est)+')':'')+(y.nota?' · '+y.nota:'')).join(' / ')+'.\n\n¿Este pago corresponde a '+(ab.length===1?'ese trabajo':'el primero')+'?\nAceptar = queda listo con este costo (el estimado deja de sumarse, no se cuenta dos veces).\nCancelar = es un gasto aparte.')) tkCostDe=ab[0].ts; }
   st(ch).costs.push(nuevo);
   if(tkCostDe!=null){ const tk=tasks(ch).find(y=>String(y.ts)===String(tkCostDe)); if(tk){ tk.hecho=true; tk.costTs=nuevo.ts; tk.realFe=f; if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } } tkCostDe=null; drawTaskSheet(); }
@@ -7058,8 +7070,10 @@ $('#ssNota').addEventListener('click',async()=>{
 const TCAT=[['PINTURA','Pintura'],['MECANICO','Mecánica'],['CHASIS','Chasis / planchas'],['SUSP','Suspensión'],['ELECT','Eléctrico'],['TV','TV'],
  ['NEUMAT','Neumáticos'],['PARB','Parabrisas'],['ASIENTOS','Asientos'],['BATERIA','Batería'],
  ['REPNUE','Repuestos'],['LAVADO','Lavado'],['FLUIDOS','Niveles y fluidos'],['OTRO','Otro']];
-const TN=Object.fromEntries(TCAT);
-const COSTMAP={SUSP:'MECANICO',OTRO:'OBLIG'};
+const TN=new Proxy(Object.fromEntries(TCAT),{get:(o,k)=>(typeof k!=='string'||k in o)?o[k]:CN[k]});   /* 16/10: categorías de costo (Rep. usados, Alerón, las agregadas) también como trabajo */
+const COSTMAP={OTRO:'OBLIG'};
+const CAT_ANTES={SUSP:'MECANICO',FLUIDOS:'MECANICO'};   /* 16/10/2026: antes de tener categoría propia se pagaban como Mecánica */
+const catsPago=c=>[COSTMAP[c]||c].concat(CAT_ANTES[c]?[CAT_ANTES[c]]:[]);
 let tkCh=null, tkCat='PINTURA', tlView='grupo';
 
 function tasks(c){const t=st(c); if(!t.tasks)t.tasks=[]; return t.tasks}
@@ -7121,7 +7135,7 @@ function pintaScRev(){
   const CS=((S[ch]||{}).costs||[]), lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs)));
   const suelto={}; CS.forEach(k=>{ if(!lig.has(String(k.ts))){ (suelto[k.cat]=suelto[k.cat]||[]).push(k); } });
   const realFila=x=>{ const r=tkReal(ch,x); if(r!=null) return r; if(x.noAplica) return null;
-    const ck=COSTMAP[x.cat]||x.cat, g=suelto[ck]; if(!g||!g.length) return null; delete suelto[ck]; return g.reduce((a,k)=>a+acor(k),0); };
+    const ck=catsPago(x.cat).find(c=>suelto[c]&&suelto[c].length); if(!ck) return null; const g=suelto[ck]; delete suelto[ck]; return g.reduce((a,k)=>a+acor(k),0); };
   const fil=T.map(x=>{ const a=e1v(x), b=(esEst2(x)&&!x.noAplica)?(+x.est||0):null, c=x.imprevisto&&!x.noAplica?(+x.est||0):null;
     const r=realFila(x); if(a) t1+=a; if(b) t2+=b; if(c) ti+=c; if(r) tr+=r;
     return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td><td ${td}>${r!=null?'<b>'+clp(r)+'</b>':'—'}</td></tr>`; });
@@ -7236,7 +7250,7 @@ $('#tlAdd').addEventListener('click',()=>openCost(null,null,null,'est'));
 
 $('#scV').addEventListener('change',e=>{editing=e.target.value;tkCh=editing;pintaScCat();drawCostList();drawTaskSheet();sugEst();pintaScIq()});
 function drawTaskSheet(){
-  $('#tkCat').innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
+  $('#tkCat').innerHTML=catsUnif().map(([k,n])=>`<button class="cg" data-tc="${k}" aria-pressed="${k===tkCat}">${n}</button>`).join('');
   pintaScRev(); pintaScPend();
   if(!tkCh){$('#tkList').innerHTML='';return}
   if(tkCh!==tkImpCh){ tkImpCh=tkCh; const ck=$('#tkImp'); if(ck) ck.checked=!!((S[tkCh]||{}).revFin); }   /* revisión cerrada → lo nuevo es imprevisto por defecto */
@@ -7262,7 +7276,7 @@ function drawTaskSheet(){
 }
 $('#tkEst').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 function medianaHist(cat,mo){
-  const k=COSTMAP[cat]||cat, xs=[];
+  const k=CAT_ANTES[cat]||COSTMAP[cat]||cat, xs=[];   /* el histórico del Excel no separa suspensión */
   for(const v of V){
     if(mo&&v.mo!==mo) continue;
     const x=(v.xc||{})[k]; if(x) xs.push(x);
@@ -8697,7 +8711,7 @@ function emEstCatGuardada(k){
 }
 function pintaEmEst(){
   const catBox=$('#emEstCat'); if(!catBox) return;
-  catBox.innerHTML=TCAT.filter(([k])=>k!=='LAVADO').map(([k,n])=>{const ok=emEstCatGuardada(k); return `<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${ok?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${ok?' ✓':''}</button>`}).join('');
+  catBox.innerHTML=catsUnif().map(([k,n])=>{const ok=emEstCatGuardada(k); return `<button class="cg" data-ec="${k}" aria-pressed="${k===emEstCat}" style="${ok?'background:var(--greenBg);border-color:var(--green);color:var(--green)':''}">${n}${ok?' ✓':''}</button>`}).join('');
   const e=E(); const lista=$('#emEstLista'); if(!lista) return;
   if(!e||!e.veh.length){ lista.innerHTML='<p style="color:var(--mute);font-size:13px;margin:8px 0 0">Sin vehículos en este embarque.</p>'; return; }
   const draft=emEstDraftCat();
@@ -10927,7 +10941,7 @@ $('#eAll').addEventListener('click',()=>{
   for(const c in S){
     const t=S[c], cs=t.costs||[];
     if(!t.sold && !cs.length) continue;
-    const a={}; for(const x of cs) if(!x.post) a[x.cat]=(a[x.cat]||0)+abo(x);
+    const a={}; for(const x of cs) if(!x.post){ const kc=CAT_ANTES[x.cat]||x.cat; a[kc]=(a[kc]||0)+abo(x); }   /* 16/10: Suspensión y fluidos van en la columna Mecánica */
     const v=IDX[c]||{};
     r.push([c,v.ma||'',v.mo||'',v.an||'',...keys.map(k=>a[k]||''),postv(c)||'',t.sold?(t.price||''):'',t.sold?fd(t.date):''].join('\t'));
   }
