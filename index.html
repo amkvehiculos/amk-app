@@ -770,7 +770,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 14:51<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 15:01<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2997,7 +2997,7 @@ function askAbre(o){
     $('#askT').textContent=o.t||''; $('#askS').textContent=o.s||'';
     const lista=Array.isArray(o.opts);
     $('#askF').hidden=lista; $('#askOpts').hidden=!lista; $('#askOk').hidden=lista;
-    $('#askNo').textContent=lista?'Cerrar':'Cancelar';
+    $('#askNo').textContent=o.no||(lista?'Cerrar':'Cancelar');
     if(lista){
       $('#askOpts').innerHTML=o.opts.map((t,i)=>`<button class="cg" data-askopt="${i}" style="padding:14px;font-size:14.5px;text-align:left">${String(t).replace(/</g,'&lt;')}</button>`).join('');
     }else{
@@ -3679,7 +3679,8 @@ function tkLinkCand(c){
   const lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs))), usado=new Set(), out=[];
   T.filter(x=>tkAbierto(x)&&!x.costTs).forEach(x=>{
     const ck=catsPago(x.cat);
-    const k=CS.find(y=>ck.includes(y.cat)&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
+    const no=(x.noEsPago||[]).map(String);   /* 16/10/2026: "No, es otro gasto" -- ese costo no se vuelve a ofrecer para este trabajo */
+    const k=CS.find(y=>ck.includes(y.cat)&&!no.includes(String(y.ts))&&!lig.has(String(y.ts))&&!usado.has(String(y.ts))&&!y.auto);
     if(k){ usado.add(String(k.ts)); out.push({c,x,k}); } });
   return out;
 }
@@ -3708,7 +3709,7 @@ function pintaScPend(){
       return `<div style="border-top:1px solid var(--line);padding:7px 0">
       <div style="font-size:13.5px">${fila(x)}</div>
       ${o?`<div style="font-size:12.5px;color:var(--red);margin:5px 0 3px">${tkLinkTxt(o)} Si es así, hoy se está contando dos veces.</div>
-        <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button></div>`:''}
+        <div class="acts" style="margin-top:4px"><button class="btn b-pri" data-tlink="${ch}|${x.ts}|${o.k.ts}">Sí, es ese pago</button><button class="btn b-sec" data-tnolink="${ch}|${x.ts}|${o.k.ts}" title="Es un gasto aparte: este trabajo sigue pendiente con su estimado">No, es otro gasto</button></div>`:''}
       ${String(tkVistoDe)===String(x.ts)?`<div class="fld" style="margin:6px 0 0;padding:8px 9px;border-radius:8px;background:var(--card);border:1px solid var(--line)">
         <label for="tkVistoM" style="display:block;font-size:12.5px;margin-bottom:5px;text-transform:none;letter-spacing:0">¿Cuánto crees que cuesta ahora que lo viste? <span style="color:var(--mute)">(Est. 2 · el Est. 1 del embarque fue ${clp(x.est1!=null?x.est1:(+x.est||0))})</span></label>
         <input id="tkVistoM" inputmode="numeric" placeholder="$0" value="${+x.est?clp(+x.est):''}" style="margin-bottom:7px">
@@ -3797,8 +3798,19 @@ $('#scOk').addEventListener('click',async()=>{
   /* 08/10/2026 (Andre): regla anti-duplicado. Si el costo se anota directo en Costo real (no desde el botón del trabajo)
      y el vehículo tiene un trabajo abierto de la misma categoría, se pregunta si es ese pago: si sí, el trabajo se cierra
      con el costo enlazado. Antes el estimado seguía sumando junto al real y el costo quedaba contado dos veces. */
+  /* 16/10/2026 (Andre): la pregunta ya no es Aceptar/Cancelar del navegador ("Cancelar" sonaba a descartar lo que se anota).
+     Se elige con botones: "Sí, es el pago de <trabajo>" (uno por trabajo abierto) o "No, es otro gasto". Cerrar = no se guarda
+     todavía (el formulario queda como estaba). */
   if(tkCostDe==null){ const ab=tasks(ch).filter(y=>!y.hecho&&!y.costTs&&y.cat!=='LAVADO'&&catsPago(y.cat).includes(catFinal));
-    if(ab.length&&confirm('Este vehículo tiene '+(ab.length===1?'un trabajo abierto':ab.length+' trabajos abiertos')+' de '+(CN[catFinal]||catFinal)+': '+ab.map(y=>(y.imprevisto?'⚡ ':'')+(TN[y.cat]||y.cat)+(y.est?' (est. '+clp(y.est)+')':'')+(y.nota?' · '+y.nota:'')).join(' / ')+'.\n\n¿Este pago corresponde a '+(ab.length===1?'ese trabajo':'el primero')+'?\nAceptar = queda listo con este costo (el estimado deja de sumarse, no se cuenta dos veces).\nCancelar = es un gasto aparte.')) tkCostDe=ab[0].ts; }
+    if(ab.length){
+      const nomT=y=>(y.imprevisto?'⚡ ':'')+(TN[y.cat]||y.cat)+(y.nota?' · '+y.nota:'')+(y.est?' (est. '+clp(y.est)+')':'');
+      const r=await pedirElegir({t:'¿Este pago es de un trabajo pendiente?',
+        s:'Estás anotando '+clp(ac)+' en '+(CN[catFinal]||catFinal)+'. Si es el pago de un trabajo pendiente, ese trabajo queda listo y su estimado deja de sumarse (no se cuenta dos veces).',
+        no:'Volver sin guardar', opts:ab.map(y=>'✓ Sí, es el pago de '+nomT(y)).concat(['✕ No, es otro gasto · '+(ab.length===1?'el trabajo sigue pendiente':'los trabajos siguen pendientes')])});
+      if(r==null){ toast('Todavía no se guardó · el costo sigue escrito'); return; }
+      if(r<ab.length) tkCostDe=ab[r].ts;
+      else ab.forEach(y=>{ y.noEsPago=(y.noEsPago||[]).concat([String(nuevo.ts)]); });
+    } }
   st(ch).costs.push(nuevo);
   if(tkCostDe!=null){ const tk=tasks(ch).find(y=>String(y.ts)===String(tkCostDe)); if(tk){ tk.hecho=true; tk.costTs=nuevo.ts; tk.realFe=f; if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } } tkCostDe=null; drawTaskSheet(); }
   await save();draw();drawCostList();
@@ -7135,7 +7147,10 @@ function pintaScRev(){
   const CS=((S[ch]||{}).costs||[]), lig=new Set(T.filter(x=>x.costTs).map(x=>String(x.costTs)));
   const suelto={}; CS.forEach(k=>{ if(!lig.has(String(k.ts))){ (suelto[k.cat]=suelto[k.cat]||[]).push(k); } });
   const realFila=x=>{ const r=tkReal(ch,x); if(r!=null) return r; if(x.noAplica) return null;
-    const ck=catsPago(x.cat).find(c=>suelto[c]&&suelto[c].length); if(!ck) return null; const g=suelto[ck]; delete suelto[ck]; return g.reduce((a,k)=>a+acor(k),0); };
+    const no=(x.noEsPago||[]).map(String);   /* 16/10/2026: lo marcado "No, es otro gasto" queda en su propia fila (anotado directo) */
+    for(const c of catsPago(x.cat)){ const g=(suelto[c]||[]).filter(k=>!no.includes(String(k.ts))); if(!g.length) continue;
+      suelto[c]=suelto[c].filter(k=>no.includes(String(k.ts))); if(!suelto[c].length) delete suelto[c]; return g.reduce((a,k)=>a+acor(k),0); }
+    return null; };
   const fil=T.map(x=>{ const a=e1v(x), b=(esEst2(x)&&!x.noAplica)?(+x.est||0):null, c=x.imprevisto&&!x.noAplica?(+x.est||0):null;
     const r=realFila(x); if(a) t1+=a; if(b) t2+=b; if(c) ti+=c; if(r) tr+=r;
     return `<tr style="${x.hecho&&!x.noAplica?'opacity:.6':''}"><td style="padding:3px 0">${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.noAplica?' <span style="color:var(--mute);font-size:11px">(no se necesitó)</span>':(x.hecho?' ✓':'')}</td><td ${td}>${x.est1Perdido?'?':f(a)}</td><td ${td}>${esEstSinVer(x)?'<span style="color:var(--mute)">sin ver</span>':f(b)}</td><td ${td}>${f(c)}</td><td ${td}>${r!=null?'<b>'+clp(r)+'</b>':'—'}</td></tr>`; });
@@ -7383,7 +7398,7 @@ function drawTaller(){
     <div style="font-size:13.5px;font-weight:700;color:var(--red)">Revisa: ${LK.length} pendiente${LK.length===1?'':'s'} que parece${LK.length===1?'':'n'} ya pagado${LK.length===1?'':'s'}</div>
     <div class="mtr" style="margin:4px 0 6px">Tienen un costo real anotado directo de la misma categoría. Mientras no se enlacen, el estimado y el real se suman los dos.</div>
     ${LK.map(o=>{const v=IDX[o.c];return `<div style="border-top:1px solid var(--line);padding:7px 0;font-size:13px"><b>${v.ma} ${v.mo} ${v.an||''}</b> <span style="color:var(--mute);font-family:var(--mono);font-size:11px">${o.c}</span><br>${TN[o.x.cat]||o.x.cat} pendiente${o.x.est?' (est. '+clp(o.x.est)+')':''} · ${tkLinkTxt(o)}
-      <div class="acts" style="margin-top:5px"><button class="btn b-pri" data-tlink="${o.c}|${o.x.ts}|${o.k.ts}">Sí, es ese pago</button><button class="btn b-sec" data-cost="${o.c}">Abrir el vehículo</button></div></div>`}).join('')}</div>`);
+      <div class="acts" style="margin-top:5px"><button class="btn b-pri" data-tlink="${o.c}|${o.x.ts}|${o.k.ts}">Sí, es ese pago</button><button class="btn b-sec" data-tnolink="${o.c}|${o.x.ts}|${o.k.ts}">No, es otro gasto</button><button class="btn b-sec" data-cost="${o.c}">Abrir el vehículo</button></div></div>`}).join('')}</div>`);
 }
 $$('#tlChips .chip').forEach(c=>c.addEventListener('click',()=>{
   $$('#tlChips .chip').forEach(x=>x.setAttribute('aria-selected','false'));
@@ -7429,6 +7444,10 @@ document.addEventListener('click',async e=>{
     if(x&&!confirm('¿Eliminar este trabajo pendiente?\n\n'+(CN[x.cat]||x.cat||'')+(x.nota?' · '+x.nota:'')+(x.est?' · estimado '+clp(x.est):'')+'\n\nNo se puede deshacer.'))return;
     t.tasks=t.tasks.filter(y=>String(y.ts)!==dd.dataset.tdel);
     await save(); drawTaskSheet(); draw(); return}
+  const nl=e.target.closest('[data-tnolink]');
+  if(nl){const [c,ts,kts]=nl.dataset.tnolink.split('|'); const x=((S[c]||{}).tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;
+    x.noEsPago=(x.noEsPago||[]).concat([kts]);
+    await save(); draw(); if(editing===c) drawTaskSheet(); try{pintaScPend()}catch(_){} toast((TN[x.cat]||x.cat)+' sigue pendiente · ese costo queda como gasto aparte'); return}
   const lk=e.target.closest('[data-tlink]');
   if(lk){const [c,ts,kts]=lk.dataset.tlink.split('|'); const x=((S[c]||{}).tasks||[]).find(y=>String(y.ts)===ts), k=((S[c]||{}).costs||[]).find(y=>String(y.ts)===kts);
     if(!x||!k) return;
