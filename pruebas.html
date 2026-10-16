@@ -771,7 +771,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->15-10-2026 15:01 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-10-2026 10:31 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1670,8 +1670,19 @@ const FB_USER='sistema@amk-vehiculos.app';  /* la contraseña ya NO va en el arc
 const FB_COL='pruebas_vehiculos';
 let fbDb=null, fbReady=false;
 const fbLastPush={};
+/* 16/10/2026 (Andre: "cambié un precio y se borró"). Antes cada aparato subía la ficha COMPLETA del vehículo cuando cambiaba
+   cualquier cosa. Un aparato con datos viejos (el iPhone al volver, o recién actualizada la app) que cambiaba algo automático
+   -- p. ej. la base de liberación al cambiar el dólar -- subía también su precio viejo y pisaba el nuevo de la nube; y mientras
+   tenía eso pendiente no aceptaba el precio nuevo. Ahora se guarda cómo quedó cada vehículo la última vez que coincidió con la
+   nube (fbBase) y se sube SOLO lo que cambió en este aparato; lo que llega de la nube se aplica campo por campo, salvo los campos
+   que este aparato cambió y aún no envió. */
+const fbBase={};
+const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),priv:fbPrivData(v)})); }catch(_){ return null; } };
+const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
+const FB_BASE_KEY='amk_fb_base';
+function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
@@ -1798,13 +1809,14 @@ async function fbSalir(){
 const FB_PEND_KEY='amk_fb_pend';
 let fbPend={}, fbBaseOk=false, fbEnviando=false, fbRepetir=false, fbFallos=0, fbReintentoT=null, fbUltimoError='';
 async function fbPendCarga(){
-  try{ const r=await window.storage.get(FB_PEND_KEY); if(r&&r.value){ const o=JSON.parse(r.value); if(o&&typeof o==='object'&&!Array.isArray(o)) fbPend=o; } }
+  try{ const r=await window.storage.get(FB_PEND_KEY); if(r&&r.value){ const o=JSON.parse(r.value); if(o&&typeof o==='object'&&!Array.isArray(o)) fbPend=o; }
+    const rb=await window.storage.get(FB_BASE_KEY); if(rb&&rb.value){ const b=JSON.parse(rb.value)||{}; for(const c in b) if(fbPend[c]&&!fbBase[c]) fbBase[c]=b[c]; } }
   catch(e){ console.error('fbPendCarga',e); }
 }
-function fbPendGuarda(){ try{ Promise.resolve(window.storage.set(FB_PEND_KEY,JSON.stringify(fbPend))).catch(()=>{}); }catch(e){} }
+function fbPendGuarda(){ try{ Promise.resolve(window.storage.set(FB_PEND_KEY,JSON.stringify(fbPend))).catch(()=>{}); }catch(e){} fbBaseGuarda(); }
 function fbHashVeh(v){ return fbHash(fbPubData(v))+'|'+fbHash(fbPrivData(v)); }
 function fbCaptureBaseline(){
-  V.forEach(v=>{ if(!fbPend[v.ch]) fbLastPush[v.ch]=fbHashVeh(v); });   /* lo que quedó pendiente NO se da por enviado */
+  V.forEach(v=>{ if(!fbPend[v.ch]){ fbLastPush[v.ch]=fbHashVeh(v); fbBase[v.ch]=fbSnapVeh(v); } });   /* lo que quedó pendiente NO se da por enviado */
   fbBaseOk=true; fbPintaSync();
   if(Object.keys(fbPend).length) fbSchedulePush();
 }
@@ -1841,20 +1853,23 @@ function fbSchedulePush(){
 }
 const fbLimite=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>{const e=new Error('la nube no respondió (¿sin internet?)');e.timeout=true;no(e)},ms))]);
 async function fbEnviaTanda(tanda){
-  const hs={};
+  const hs={}, sn={};
+  const dif=(a,b)=>{ if(!b) return a; const o={}; for(const k in a) if(!fbIgual(a[k],b[k])) o[k]=a[k]; return o; };
   const arma=lista=>{
     const batch=fbDb.batch();
     for(const v of lista){
-      const pub=fbPubData(v), priv=fbPrivData(v);
-      hs[v.ch]=fbHash(pub)+'|'+fbHash(priv);
+      const pub=fbPubData(v), priv=fbPrivData(v), b=fbBase[v.ch];
+      hs[v.ch]=fbHash(pub)+'|'+fbHash(priv); sn[v.ch]=fbSnapVeh(v);
       const ref=fbDb.collection(FB_COL).doc(v.ch);
-      batch.set(ref, Object.assign({}, pub, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-      batch.set(ref.collection('privado').doc('costos'), Object.assign({}, priv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+      /* sin base (vehículo nuevo o pendiente de una versión anterior) se sube completo, como antes */
+      const dp=dif(pub,b&&b.pub), dv=dif(priv,b&&b.priv);
+      if(!b||Object.keys(dp).length) batch.set(ref, Object.assign({}, dp, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+      if(!b||Object.keys(dv).length) batch.set(ref.collection('privado').doc('costos'), Object.assign({}, dv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
     }
     return batch;
   };
   /* Recién acá, con la nube ya confirmada, se da por enviado. */
-  const confirma=lista=>{ lista.forEach(v=>{ fbLastPush[v.ch]=hs[v.ch]; delete fbPend[v.ch]; }); fbPendGuarda(); };
+  const confirma=lista=>{ lista.forEach(v=>{ fbLastPush[v.ch]=hs[v.ch]; if(sn[v.ch]) fbBase[v.ch]=sn[v.ch]; delete fbPend[v.ch]; }); fbPendGuarda(); };
   try{
     await fbLimite(arma(tanda).commit(), 25000);
     confirma(tanda);
@@ -1902,8 +1917,21 @@ function fbApplyRemote(ch, pub, priv){
     guardaCacheV(); fbActualizaAviso();
     return;
   }
-  /* Este aparato tiene cambios de este vehículo que la nube todavía no confirmó: la nube NO los pisa; se reenvían. */
-  if(fbPend[ch] && IDX[ch]) return;
+  /* Este aparato tiene cambios de este vehículo que la nube todavía no confirmó: esos campos la nube NO los pisa (se reenvían);
+     los demás campos sí se ponen al día (16/10/2026). Sin base conocida, como antes: no se toca nada. */
+  if(fbPend[ch] && IDX[ch]){
+    const b=fbBase[ch]; if(!b) return;
+    const v0=IDX[ch], t0=st(ch), loc=fbSnapVeh(v0)||{pub:{},priv:{}};
+    if(pub) for(const k in pub){ if(k==='_ts'||pub[k]===undefined) continue;
+      if(!fbIgual(loc.pub[k],b.pub[k])) continue;   /* lo cambió este aparato: gana lo de acá */
+      if(FB_PUB_FIELDS.includes(k)) v0[k]=pub[k]; else if(FB_S_FIELDS.includes(k)) t0[k]=pub[k]; else continue;
+      b.pub[k]=pub[k]; }
+    if(priv) for(const k in priv){ if(k==='_ts'||priv[k]===undefined||priv[k]===null) continue;
+      if(!fbIgual(loc.priv[k],b.priv[k])) continue;
+      if(k==='costs') t0.costs=priv.costs; else if(FB_PRIV_FIELDS.includes(k)) v0[k]=priv[k]; else if(FB_PRIV_S_FIELDS.includes(k)) t0[k]=priv[k]; else continue;
+      b.priv[k]=priv[k]; }
+    guardaCacheV(); fbActualizaAviso(); return;
+  }
   let v=IDX[ch];
   const esNuevoAqui=!v;
   if(!v){ v={ch}; V.push(v); IDX[ch]=v; }
@@ -1917,6 +1945,7 @@ function fbApplyRemote(ch, pub, priv){
   if(priv && priv.costs) t.costs=priv.costs;
   if(priv) FB_PRIV_S_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) t[k]=priv[k]; });
   fbLastPush[ch]=fbHashVeh(v);
+  { const sb=fbSnapVeh(v); if(sb){ if(!fbBase[ch]) fbBase[ch]=sb; else { if(pub) fbBase[ch].pub=sb.pub; if(priv) fbBase[ch].priv=sb.priv; } } }
   guardaCacheV();
   fbActualizaAviso();
 }
@@ -2160,7 +2189,7 @@ async function fbSubirTodo(){
         const ref=fbDb.collection(FB_COL).doc(v.ch);
         batch.set(ref, Object.assign({}, pub, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
         batch.set(ref.collection('privado').doc('costos'), Object.assign({}, priv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        fbLastPush[v.ch]=fbHash(pub)+'|'+fbHash(priv);
+        fbLastPush[v.ch]=fbHash(pub)+'|'+fbHash(priv); fbBase[v.ch]=fbSnapVeh(v);
       }
       await batch.commit();
       hechos+=trozo.length;
@@ -4102,7 +4131,19 @@ $('#ssPrune').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pre
   e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#spPub').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#spOf').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
-$('#spOk').addEventListener('click',()=>{const t=st(editing);
+/* 16/10/2026 (Andre): aviso de cambio de precio para Víctor y Bryan. Cuando un precio de venta o mínimo que ya existía cambia,
+   queda en la ficha el anterior (pventaAnt/pminAnt) y la hora (precioFe); Vendedores lo muestra arriba de Stock hasta que lo
+   marquen visto. Los cambios seguidos (escribiendo, o venta y mínimo juntos) dentro de 10 min cuentan como uno solo y
+   conservan el precio de antes de empezar. Poner precio por primera vez o borrarlo no avisa. */
+function anotaCambioPrecio(t,k,antes){
+  const ahora=+t[k]||0; antes=+antes||0; if(!antes||!ahora||antes===ahora) return;
+  const ka=k+'Ant', reciente=t.precioFe&&Date.now()-t.precioFe<600000;
+  if(!reciente){ t.pventaAnt=null; t.pminAnt=null; }
+  if(t[ka]==null) t[ka]=antes;
+  if(+t[ka]===ahora) t[ka]=null;   /* volvió al de antes: no hay cambio que avisar */
+  t.precioFe=(t.pventaAnt||t.pminAnt)?Date.now():null;
+}
+$('#spOk').addEventListener('click',()=>{const t=st(editing); const pv0=t.pventa, pm0=t.pmin;
   t.pub=$('#spPub').getAttribute('aria-pressed')==='true';
   t.of=$('#spOf').getAttribute('aria-pressed')==='true';
   t.pprice=pnum($('#spP').value);
@@ -4110,6 +4151,7 @@ $('#spOk').addEventListener('click',()=>{const t=st(editing);
   t.pmin=pnum($('#spMin').value);
   t.pventaUSD=calcPventaUSD(t.pventa);
   t.pminUSD=calcPventaUSD(t.pmin);
+  anotaCambioPrecio(t,'pventa',pv0); anotaCambioPrecio(t,'pmin',pm0);
   save();draw();closeAll();toast('Publicación actualizada ✓')});
 
 ['#spMin','#spVenta','#emVNVenta','#emVNMin','#nvVenta','#nvMin'].forEach(sel=>$(sel).addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))}));
@@ -10427,6 +10469,7 @@ async function emResGuarda(inp){
   const antes=k==='pventa'?(+t.pventa||0):(+t.pmin||0); if(antes===n) return;
   if(k==='pventa'){ if(n>0){ t.pventa=n; t.pventaUSD=calcPventaUSD(n); } else { t.pventa=null; t.pventaUSD=null; } }
   else { if(n>0){ t.pmin=n; t.pminUSD=calcPventaUSD(n); } else { t.pmin=null; t.pminUSD=null; } }
+  anotaCambioPrecio(t,k,antes);
   await save(); emResEstado(ch,'guardado');
   if(typeof fbDetectaCambios==='function') fbDetectaCambios();
   if(typeof fbPushChanges==='function'&&typeof fbReady!=='undefined'&&fbReady) fbPushChanges(); else if(typeof fbSchedulePush==='function') fbSchedulePush();

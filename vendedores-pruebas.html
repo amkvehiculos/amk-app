@@ -72,9 +72,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;white-space:nowrap}
 .t-sv{background:var(--greenBg);color:var(--green)}.t-of{background:var(--amberBg);color:var(--amber)}
 .minbox{margin-top:10px;background:var(--amberBg);border:1px solid #4A4230;border-radius:9px;
- padding:9px 12px;font-size:13px;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
+ padding:9px 12px;font-size:13px;color:var(--amber);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center}
 .ventabox{margin-top:10px;background:var(--greenBg);border:1px solid #245C43;border-radius:9px;
- padding:9px 12px;font-size:13px;color:var(--green);display:flex;justify-content:space-between;align-items:center}
+ padding:9px 12px;font-size:13px;color:var(--green);display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center}
 .ventabox b{font-family:var(--mono);font-size:15px}
 .videobox{margin-top:10px;background:var(--azulBg);border:1px solid #1B3B52;border-radius:9px;
  padding:9px 12px;font-size:13px;color:var(--azul);display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -259,6 +259,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
         <option value="cont">Por contenedor</option>
       </select>
     </div>
+    <div id="precioAviso"></div>
     <div class="cntRow"><p class="cnt" id="cnt"></p><button id="vistaStock" class="cntVista" type="button" aria-label="Cambiar vista">☰ Compacta</button></div>
     <div id="list"></div>
   </section>
@@ -295,7 +296,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->15-10-2026 13:18 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->16-10-2026 10:31 · PRUEBAS<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -1273,6 +1274,8 @@ function fbAplica(ch, d){
   if(d.pminUSD!==undefined && d.pminUSD!==null) v.pminUSD=d.pminUSD; else if(d.pminUSD===null) delete v.pminUSD;
   /* baseLib = base imponible de liberación que calcula Sistema (13/10/2026). */
   if(d.baseLib!==undefined && d.baseLib!==null) v.baseLib=d.baseLib; else if(d.baseLib===null) delete v.baseLib;
+  /* 16/10/2026: cambio de precio hecho por André (precio anterior + hora), para el aviso de arriba de Stock */
+  ['pventaAnt','pminAnt','precioFe'].forEach(k=>{ if(d[k]!==undefined && d[k]!==null) v[k]=d[k]; else if(d[k]===null) delete v[k]; });
   if(d.of && d.pprice) v.vev=d.pprice;
   v.pendPub = Array.isArray(d.pendPub) ? d.pendPub : [];
 }
@@ -1646,12 +1649,38 @@ function pintaSync(){ try{pintaInsMios()}catch(_){}
   pintaCnt();
 }
 
+/* 16/10/2026 (Andre): aviso de cambios de precio. Sistema deja en la ficha el precio anterior (pventaAnt/pminAnt) y la hora
+   (precioFe). Arriba de Stock sale la lista de cambios que este teléfono no ha marcado como vistos (últimos 14 días), y en la
+   ficha "↻ Precio actualizado · antes $…". "Entendido" los marca vistos (por teléfono, en la despensa del aparato). */
+const PVISTO_K='amkv_precio_visto'; let PVISTO={};
+const precioNuevo=v=>!!(v&&v.precioFe&&(v.pventaAnt||v.pminAnt)&&Date.now()-v.precioFe<14*864e5&&(+PVISTO[v.ch]||0)<v.precioFe);
+function hace(ts){ const m=Math.round((Date.now()-ts)/60000); if(m<60) return 'hace '+Math.max(1,m)+' min'; const h=Math.round(m/60); if(h<24) return 'hace '+h+' h'; const d=Math.round(h/24); return 'hace '+d+' día'+(d===1?'':'s'); }
+function pintaPrecioAviso(){
+  const box=$('#precioAviso'); if(!box) return;
+  const L=V.filter(precioNuevo).sort((a,b)=>b.precioFe-a.precioFe);
+  if(!L.length){ box.innerHTML=''; return; }
+  const esc=t=>String(t||'').replace(/</g,'&lt;');
+  const lin=(n,a,b)=>a?`<div style="font-size:12.5px">${n} <s style="color:var(--mute)">${clp(a)}</s> → <b style="font-family:var(--mono)">${b?clp(b):'sin precio'}</b>${b&&a?` <span style="color:${b<a?'var(--green)':'var(--amber)'}">${b<a?'▼':'▲'} ${clp(Math.abs(b-a))}</span>`:''}</div>`:'';
+  box.innerHTML=`<div class="minbox" style="margin:0 0 12px;padding:11px 12px;display:block;color:var(--ink)">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--amber)">💲 André cambió ${L.length===1?'un precio':L.length+' precios'}</div>
+    ${L.map(v=>`<div data-pver="${v.ch}" style="border-top:1px solid #4A4230;padding:7px 0;cursor:pointer">
+      <div style="font-size:13.5px"><b>${esc(v.ma)} ${esc(v.mo)} ${v.an||''}</b> <span style="color:var(--mute);font-size:11.5px">· ${hace(v.precioFe)}</span></div>
+      ${lin('Venta',v.pventaAnt,v.pventa)}${lin('Mínimo',v.pminAnt,v.pmin)}</div>`).join('')}
+    <button class="btn b-sec" id="precioVisto" style="width:100%;margin-top:6px">Entendido</button></div>`;
+}
+document.addEventListener('click',async e=>{
+  const pv=e.target.closest('[data-pver]');
+  if(pv){ const v=V.find(x=>x.ch===pv.dataset.pver); if(!v) return; q=v.ch; $('#q').value=v.ch; draw(); try{$('#list').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){} return; }
+  if(e.target.closest('#precioVisto')){ V.filter(precioNuevo).forEach(v=>{ PVISTO[v.ch]=v.precioFe; });
+    try{ await window.storage.set(PVISTO_K,JSON.stringify(PVISTO)); }catch(_){} draw(); toast('Listo · precios vistos'); }
+});
 async function boot(){
   try{const r=await window.storage.get('amkv_configpend'); if(r&&r.value){const x=JSON.parse(r.value); if(x.presets&&x.presets.length) PEND_PRESETS=x.presets; if(x.insumos&&x.insumos.length) INSUMO_PRESETS=x.insumos;}}catch(e){}
   try{const r=await window.storage.get('amkv_demanda_cache'); if(r&&r.value){const a=JSON.parse(r.value); if(Array.isArray(a)) DEMANDA=a;}}catch(e){}
   try{const r=await window.storage.get(CATK); if(r&&r.value){const c=JSON.parse(r.value); if(Array.isArray(c)&&c.length) V=c}}catch(e){console.error('boot V',e)}
   try{const r=await window.storage.get(KEY); if(r&&r.value) ST=Object.assign(ST,JSON.parse(r.value))}catch(e){console.error('boot ST',e)}
   try{const r=await window.storage.get(ULT_KEY); if(r&&r.value) fbUltimaAct=Number(r.value)||0}catch(e){}
+  try{const r=await window.storage.get(PVISTO_K); if(r&&r.value) PVISTO=JSON.parse(r.value)||{}}catch(e){}
   await outCarga();
   reindex(); $('#boot').remove(); show(tab); fbInit();
   $('#who').textContent=ST.vend||'sin nombre';
@@ -1998,7 +2027,7 @@ function draw(){
  else L.sort((a,b)=>fe(b).localeCompare(fe(a)));
  { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
    document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':(k==='corea'?'En Corea ('+V.filter(v=>v.st==='ORIGEN'&&v.enCorea).length+')':'En camino ('+V.filter(v=>v.st==='ORIGEN'&&!v.enCorea).length+')')); b.setAttribute('aria-selected',String(k===fE)); }); }
- cntN=L.length; $('#cnt').textContent=textoCnt(cntN);
+ cntN=L.length; $('#cnt').textContent=textoCnt(cntN); pintaPrecioAviso();
 /* 10/10/2026 (Andre): mismas etiquetas en la lista compacta y en la ficha desglosada; en vehículos de trabajo, el tipo va primero. */
 const carNom=v=>{ if(!v.trab||!v.ca||v.ca==='S/N') return ''; const k=String(v.ca).trim(); return k.charAt(0).toUpperCase()+k.slice(1).toLowerCase(); };   /* tal como está guardado (Baranda, Freezer, Gaviota...): sin renombrar ni duplicar nombres */
 const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
@@ -2025,7 +2054,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
    return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
     <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
     <div class="cm-s" style="white-space:normal">${String(carsC(v)).replace(/</g,'&lt;')}</div></div>
-    <div style="text-align:right">${v.pventa?`<div class="cm-p">${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
+    <div style="text-align:right">${v.pventa?`<div class="cm-p">${precioNuevo(v)?'<span style="color:var(--amber)" title="Precio actualizado">↻ </span>':''}${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
   }
   const capCe=String(v.ce||'').charAt(0)+String(v.ce||'').slice(1).toLowerCase();
   const sp=etiquetasV(v).map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${(v.ce&&x===capCe)?`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cp};margin-right:5px;border:1px solid rgba(255,255,255,.35)"></i>`:''}${x}</span>`).join('');
@@ -2038,9 +2067,9 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
    ${v.ctr&&v.st==='ORIGEN'?`<div class="ch" style="margin-top:6px">📦 Viene en el contenedor ${v.ctrN?v.ctrN+' · ':''}<b style="font-family:var(--mono)">${ctrFmt(v.ctr)}</b></div>`:''}
    ${v.carga&&v.st==='ORIGEN'?`<div class="minbox" style="background:#B4321C;border-color:#B4321C;color:#fff">📦 Trae accesorios dentro: ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:''}
    ${v.video?`<div class="videobox"><span>🎬 ${v.video}</span><button data-cpvid="${v.ch}">Copiar</button></div>`:''}
-   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${v.pventa?`<div class="ventabox">Precio de venta a pedir <b>${clp(v.pventa)}${v.pventaUSD?' ~ US$'+Number(v.pventaUSD).toLocaleString('es-CL'):''}</b>${precioNuevo(v)&&v.pventaAnt?`<div style="flex-basis:100%;font-size:12px;margin-top:3px;color:var(--amber)">↻ Precio actualizado ${hace(v.precioFe)} · antes <s>${clp(v.pventaAnt)}</s></div>`:''}</div>`:''}
    ${!v.pventa?'<div class="sinprecio">Sin precio todavía · consulta a André antes de dar un valor</div>':''}
-   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b></div>`:''}
+   ${v.pmin?`<div class="minbox">Precio mínimo autorizado <b>${clp(v.pmin)}${v.pminUSD?' ~ US$'+Number(v.pminUSD).toLocaleString('es-CL'):''}</b>${precioNuevo(v)&&v.pminAnt?`<div style="flex-basis:100%;font-size:12px;margin-top:3px">↻ Actualizado · antes <s>${clp(v.pminAnt)}</s></div>`:''}</div>`:''}
    ${v.baseLib?`<div class="sinprecio">Liberación (discapacidad): base imponible <b style="font-family:var(--mono);color:var(--ink)">${clp(v.baseLib)}</b> · impuesto ${String(CBTASA||23.57).replace('.',',')}% <b style="font-family:var(--mono);color:var(--ink)">${clp(Math.round(v.baseLib*(CBTASA||23.57)/100))}</b></div>`:''}
    ${(v.pendPub&&v.pendPub.length)?`<div class="minbox" style="background:var(--amberBg);border-color:#4A4230;color:var(--amber)">Pendiente: ${v.pendPub.map(x=>String(x.nota||'').replace(/</g,'&lt;')).join(' · ')}</div>`:''}
    <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Mis fotos${nf?' ('+nf+')':''}</button>
