@@ -259,7 +259,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->16-10-2026 10:31<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->16-10-2026 17:26<!--/VER--></b></p>
   </section>
 </main>
 
@@ -306,7 +306,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label>Transmisión <span class="mtr">(si no lo sabes, déjalo así)</span></label><div class="opt" id="fTrans"></div></div>
     <div class="fld"><label for="fCil">Cilindrada</label><input id="fCil" inputmode="decimal" placeholder="Ej: 2.5"></div>
   </div>
-  <div class="fld"><label>¿Es vehículo de trabajo?</label>
+  <div class="fld" hidden><!-- 16/10/2026 (Andre): ya no se pregunta; Porter y Bongo son de trabajo, el resto no (esModeloTrab) --><label>¿Es vehículo de trabajo?</label>
     <div class="opt"><button id="fTrabNo" aria-pressed="true">No, es un auto</button>
       <button id="fTrabSi" aria-pressed="false">Sí, es de trabajo</button></div></div>
   </div>
@@ -692,6 +692,7 @@ async function fbEnvia(){
       const firma=fbFirma(v);
       const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
       FB_GEN_EXTRA.forEach(k=>{ if(v[k]) gen[k]=v[k]; });
+      if(esModeloTrab(v.mo)) gen.trab=true;   /* 16/10/2026: fuera de FB_GEN a propósito: meterlo ahí cambia fbFirma de TODOS y se reenviarían todos */
       if(v._primerEnvio) gen.st='ORIGEN';   /* recién comprado en Corea: arranca 'En camino' en Sistema, solo la primera vez */
       gen._ts=firebase.firestore.FieldValue.serverTimestamp();
       try{
@@ -1347,6 +1348,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='fMoAdd'){const i=$('#fMoNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
 });
 $('#fTrabNo').addEventListener('click',()=>{tocado.trab=1;setTrab(false)});
+$('#fMoNew').addEventListener('input',e=>{ const t=esModeloTrab(e.target.value); if(t!==esTrab){ setTrab(t); pintaAuto(); } });   /* modelo escrito a mano */
 $('#fTrabSi').addEventListener('click',()=>{tocado.trab=1;setTrab(true)});
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(!b) return;
   const k=b.dataset.k; if(['cat','motor','trans'].includes(k)) tocado[k]=1; if(k==='mo') aplicaModelo(); if(k==='ma') pintaAuto(); });
@@ -1432,13 +1434,13 @@ function aplicaModelo(){
   /* al cambiar de modelo, todo lo deducido se vuelve a calcular (antes quedaban datos del modelo anterior) */
   tocado.pa=0; tocado.cil=0; tocado.cat=0; tocado.motor=0; tocado.trans=0; tocado.trab=0; autoAbierto=false; codMotor=''; cabSel='';
   const mo=(!$('#fMoNew').hidden&&$('#fMoNew').value.trim())?$('#fMoNew').value:sel.mo;
-  const d=modDef(mo); if(!d) return;
+  setTrab(esModeloTrab(mo));
+  const d=modDef(mo); if(!d){ opts(); pintaAuto(); return; }
   if(!tocado.cat&&d[0]) sel.cat=d[0];
   if(!tocado.pa&&d[1]) $('#fPa').value=d[1];
   if(!tocado.motor&&d[2]) sel.motor=d[2];
   if(!tocado.cil) { codMotor=''; $('#fCil').value=d[3]||''; $('#fCil').placeholder=d[3]?'Ej: 2.5':'¿1.7 o 2.0?'; }
   if(!tocado.trans&&d[4]) sel.trans=d[4];
-  if(!tocado.trab) setTrab(!!d[5]);
   opts(); pintaAuto();
 }
 function autoAnio(){
@@ -1446,6 +1448,8 @@ function autoAnio(){
   const y=anioDeChasis(vin.length===17?vin:ch), el=$('#fAn');
   if(y&&(el.value===''||el.value===anAuto)){ el.value=String(y); anAuto=String(y); }
 }
+/* 16/10/2026 (Andre): Porter y Bongo son los únicos vehículos de trabajo. Se deduce del modelo, sin preguntarle a mamá. */
+const esModeloTrab=mo=>/^(PORTER|BONGO)/i.test(String(mo||'').trim());
 function setTrab(v){
   esTrab=v;
   $('#fTrabNo').setAttribute('aria-pressed',v?'false':'true');
@@ -1510,6 +1514,7 @@ $('#fmOk').addEventListener('click',async()=>{
   if(cont&&!CONT.includes(cont)){CONT.push(cont);CONT.sort();
     try{await window.storage.set('amkc_cont',JSON.stringify(CONT))}catch(_){}
     dlCont();}
+  esTrab=esModeloTrab(mo);   /* 16/10/2026: siempre según el modelo, también si lo escribió a mano */
   const o={ch,ma:sel.ma,mo,an,km:pnum($('#fKm').value)||null,cat:sel.cat||'',ce:sel.ce||'',
     tr:sel.tr||'',pa:pnum($('#fPa').value)||null,ca:esTrab?(sel.ca||''):'S/N',
     motor:sel.motor||'',cil:$('#fCil').value.trim(),codMotor:codMotor||'',cab:esTrab?cabSel:'',trans:sel.trans||'',vin:vin||'',
@@ -1898,7 +1903,7 @@ document.addEventListener('click',async e=>{
  if(ed){const v=L.find(x=>x.ch===ed.dataset.edit);edit=v.ch;
   sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:String(v.ce||'').toUpperCase(),tr:v.tr,ca:v.ca,motor:v.motor||'',trans:v.trans||''};
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
-  setTrab(!!(v.ca&&v.ca!=='S/N'));opts();
+  setTrab(esModeloTrab(v.mo));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fVin').value=v.vin||''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); tocado={cat:1,pa:1,motor:1,cil:1,trans:1,trab:1}; anAuto='';
   $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||''; codMotor=v.codMotor||''; cabSel=v.cab||((v.ca&&v.ca!=='S/N'&&+v.pa>=5)?'DOBLE':'');$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';

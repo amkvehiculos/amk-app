@@ -770,7 +770,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-10-2026 10:31<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-10-2026 17:26<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -3195,13 +3195,18 @@ let stCompacto=false; const STEXP=new Set();
 setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); if(r&&r.value==='1'){ stCompacto=true; try{drawStock()}catch(_){} } }catch(_){} },1200);
 /* 10/10/2026 (Andre): las mismas etiquetas en la lista compacta y en la ficha desglosada (la desglosada nunca debe mostrar menos).
    Para vehículos de trabajo, el tipo (baranda baja, alas de gaviota, frigorífico...) va primero. */
-const carNom=v=>{ if(!v.trab||!v.ca||v.ca==='S/N') return ''; const k=String(v.ca).trim(); return k.charAt(0).toUpperCase()+k.slice(1).toLowerCase(); };   /* tal como está guardado (Baranda, Freezer, Gaviota...): sin renombrar ni duplicar nombres */
+/* 16/10/2026 (Andre): en vehículos de trabajo SIEMPRE sale el tipo de carrocería, en la lista compacta y en la normal. Antes
+   dependía de v.trab, que la app de Corea no mandaba: los Porter/Bongo cargados por la mamá salían sin tipo. Ahora es de
+   trabajo si v.trab o si el modelo es Porter/Bongo (los únicos de trabajo). BARANDA = "Baranda baja". */
+const CARN_NOM={'BARANDA':'Baranda baja','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer','GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','CAJON SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
+const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));   /* Porter y Bongo son los de trabajo (Andre) */
+const carNom=v=>{ const k=String((v&&v.ca)||'').trim(); if(!k||k.toUpperCase()==='S/N'||!esTrabV(v)) return ''; return CARN_NOM[k.toUpperCase()]||(k.charAt(0).toUpperCase()+k.slice(1).toLowerCase()); };
 const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
   const cn=carNom(v); if(cn) t.push(cn);
   if(v.ce) t.push(cap(v.ce));
   if(v.cab) t.push({SIMPLE:'Cab. simple',MEDIA:'Cab. y media',DOBLE:'Doble cabina'}[v.cab]||'');
   else if(+v.pa>=7) t.push(v.pa+' pasajeros');
-  if(!v.trab&&v.tp) t.push('T. panorámico');
+  if(!esTrabV(v)&&v.tp) t.push('T. panorámico');
   if(v.tr) t.push(v.tr);
   if(v.km) t.push(Number(v.km).toLocaleString('es-CL')+' km');
   if(v.sv) t.push('Sello verde');
@@ -4135,12 +4140,15 @@ $('#spOf').addEventListener('click',e=>e.currentTarget.setAttribute('aria-presse
    marquen visto. Los cambios seguidos (escribiendo, o venta y mínimo juntos) dentro de 10 min cuentan como uno solo y
    conservan el precio de antes de empezar. Poner precio por primera vez o borrarlo no avisa. */
 function anotaCambioPrecio(t,k,antes){
-  const ahora=+t[k]||0; antes=+antes||0; if(!antes||!ahora||antes===ahora) return;
+  const ahora=+t[k]||0; antes=+antes||0; if(!antes||!ahora||antes===ahora) return false;
   const ka=k+'Ant', reciente=t.precioFe&&Date.now()-t.precioFe<600000;
   if(!reciente){ t.pventaAnt=null; t.pminAnt=null; }
   if(t[ka]==null) t[ka]=antes;
   if(+t[ka]===ahora) t[ka]=null;   /* volvió al de antes: no hay cambio que avisar */
   t.precioFe=(t.pventaAnt||t.pminAnt)?Date.now():null;
+  /* 16/10/2026: confirmación a la vista (una vez por tanda de cambios), para saber que el aviso salió */
+  if(t.precioFe&&!reciente) setTimeout(()=>toast('💲 Víctor y Bryan verán el aviso del cambio de precio'),1600);
+  return !!t.precioFe;
 }
 $('#spOk').addEventListener('click',()=>{const t=st(editing); const pv0=t.pventa, pm0=t.pmin;
   t.pub=$('#spPub').getAttribute('aria-pressed')==='true';
