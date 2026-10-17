@@ -259,7 +259,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->16-10-2026 17:26 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->17-10-2026 12:20 · PRUEBAS<!--/VER--></b></p>
   </section>
 </main>
 
@@ -552,6 +552,8 @@ function migraModelosPorterBongo(){
 async function boot(){
   await pendCarga();
   try{const r=await window.storage.get(KEY);if(r&&r.value)L=JSON.parse(r.value)}catch(e){console.error('boot L',e); L=[]}
+  /* 17/10/2026: el costo total en Chile (ct) ya no llega a esta app; se borra el que haya quedado guardado de antes. */
+  { let n=0; L.forEach(v=>{ if(v.ct!==undefined){ delete v.ct; n++; } }); if(n) save(); }
   migraModelosPorterBongo();
   /* 01/10: trabajo ya cargados sin cabina → 6 pasajeros doble cabina, 3 cabina y media (Andre) */
   { let n=0; L.forEach(v=>{ if(!v.cab&&/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase())&&+v.pa>0){ v.cab=+v.pa>=5?'DOBLE':'MEDIA'; n++; } }); if(n) save(); }
@@ -572,10 +574,13 @@ async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(
 
 /* ---------- Sincronización con la nube ----------
    Corea escribe en la colección real "vehiculos": los datos generales del vehículo
-   van al documento principal; la compra en wones (krw) y los costos de taller (cc)
-   van al subdocumento privado/costos. Si las reglas de Firestore todavía no le dan
-   permiso a esta cuenta sobre ese subdocumento, se avisa en pantalla en vez de
-   fallar en silencio. */
+   van al documento principal; la compra en wones (krw), los costos de taller (cc)
+   y la seña (senia) van al subdocumento privado/corea. 17/10/2026: antes iban a
+   privado/costos, que también tiene el CIF, el FOB, el costo total y los gastos de
+   Iquique; ahora ese documento es solo de Sistema y esta app nunca lo lee ni lo
+   escribe (Andre: que vea lo que se gastó en Corea, "mas no lo adicional aquí en
+   Iquique"). Si las reglas de Firestore todavía no le dan permiso sobre privado/corea,
+   se avisa en pantalla en vez de fallar en silencio. */
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='corea@amk-vehiculos.app';
 const FB_COL='pruebas_vehiculos';
@@ -666,20 +671,26 @@ async function fbEnvia(){
       if(esModeloTrab(v.mo)) gen.trab=true;   /* 16/10/2026: fuera de FB_GEN a propósito: meterlo ahí cambia fbFirma de TODOS y se reenviarían todos */
       if(v._primerEnvio) gen.st='ORIGEN';   /* recién comprado en Corea: arranca 'En camino' en Sistema, solo la primera vez */
       gen._ts=firebase.firestore.FieldValue.serverTimestamp();
+      const costos={};
+      if(v.krw!==undefined) costos.krw=v.krw;
+      if(v.cc!==undefined) costos.cc=v.cc;
+      if(v.senia!==undefined) costos.senia=v.senia;
+      const ref=fbDb.collection(FB_COL).doc(v.ch);
       try{
-        await fbDb.collection(FB_COL).doc(v.ch).set(gen,{merge:true});
-        delete v._primerEnvio;
         let costosOk=true;
-        try{
-          const costos={};
-          if(v.krw!==undefined) costos.krw=v.krw;
-          if(v.cc!==undefined) costos.cc=v.cc;
-          if(v.senia!==undefined) costos.senia=v.senia;
-          if(Object.keys(costos).length){
-            costos._ts=firebase.firestore.FieldValue.serverTimestamp();
-            await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('costos').set(costos,{merge:true});
+        if(Object.keys(costos).length){
+          costos._ts=firebase.firestore.FieldValue.serverTimestamp();
+          /* Ficha y costos de Corea en UNA escritura: así Sistema, que se entera por el cambio de la ficha, ya encuentra
+             la compra en wones al ir a leerla (antes llegaban por separado y podía leer la de antes). */
+          const b=fbDb.batch(); b.set(ref,gen,{merge:true}); b.set(ref.collection('privado').doc('corea'),costos,{merge:true});
+          try{ await b.commit(); }
+          catch(e){
+            if(e&&e.code!=='permission-denied') throw e;
+            await ref.set(gen,{merge:true});   /* sin permiso sobre privado/corea: al menos la ficha llega */
+            errCostos++; costosOk=false; console.error('fbEnvia (costos de Corea)',e);
           }
-        }catch(e){ errCostos++; costosOk=false; }
+        }else await ref.set(gen,{merge:true});
+        delete v._primerEnvio;
         if(costosOk) v.nube=firma;   /* solo queda "En Chile ✓" si llegó TODO lo que se manda */
         ok++;
       }catch(e){ console.error('fbEnvia',e); otroErr=(e.message||e.code||e); }
@@ -915,8 +926,9 @@ function fbRecoreaListen(){
   }, e=>console.error('fbRecoreaListen',e));
 }
 /* ---------- Vehiculos de Iquique (Sistema), en vivo hacia esta app ----------
-   Sistema escribe la ficha general y, cuando puede, los costos privados
-   (compra en wones, gastos de taller, costo total real en Chile). Esta app
+   Sistema escribe la ficha general y los costos de Corea en privado/corea
+   (compra en wones, gastos de taller, seña). Lo de Iquique (privado/costos) esta
+   app no lo lee: las reglas de Firestore se lo niegan (17/10/2026). Esta app
    escucha esa coleccion para que el Historico de compras tambien refleje lo
    que Andre carga o corrige alla, no solo lo que carga la mama aca. Si un
    vehiculo llega desde Sistema y no existe en este telefono, se guarda como
@@ -933,7 +945,7 @@ function fbVehiculosListen(){
       const d=chg.doc.data()||{};
       let priv=null;
       try{
-        const ps=await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('costos').get();
+        const ps=await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('corea').get();
         if(ps.exists) priv=ps.data();
       }catch(e){
         if(!fbAvisoLecturaCostos){ fbAvisoLecturaCostos=true; console.error('fbVehiculosListen (costos)',e); }
@@ -956,7 +968,7 @@ function fbVehiculosListen(){
         const enSync=!!(v.nube && v.nube===fbFirma(v));
         if(priv.krw && priv.krw!==v.krw){ v.krw=priv.krw; cambio=true; }
         if(priv.cc && Object.keys(priv.cc).length){ v.cc=Object.assign({}, v.cc, priv.cc); cambio=true; }
-        if(priv.ct!==undefined && priv.ct && priv.ct!==v.ct){ v.ct=priv.ct; cambio=true; }
+        if(priv.senia && priv.senia!==v.senia){ v.senia=priv.senia; cambio=true; }
         /* Si estaba al día y lo nuevo vino DE la nube, sigue al día: no hay que reenviarlo. */
         if(enSync) v.nube=fbFirma(v);
       }
@@ -1570,7 +1582,7 @@ function agrupaHist(){
   src.forEach(v=>{
     if(!v.krw) return;
     const key=normTxt(v.ma)+'|'+normTxt(v.mo)+'|'+(v.an||'');
-    if(!g[key]) g[key]={ma:v.ma,mo:v.mo,an:v.an,precios:[],ultFe:'',ultProv:'',ultPrecio:0,ccTot:[],ccTallies:{},cts:[]};
+    if(!g[key]) g[key]={ma:v.ma,mo:v.mo,an:v.an,precios:[],ultFe:'',ultProv:'',ultPrecio:0,ccTot:[],ccTallies:{}};
     g[key].precios.push(v.krw);
     if(!g[key].ultFe||(v.fe||'')>g[key].ultFe){g[key].ultFe=v.fe||'';g[key].ultProv=v.prov||'';g[key].ultPrecio=v.krw}
     if(v.cc){
@@ -1578,7 +1590,6 @@ function agrupaHist(){
       if(t) g[key].ccTot.push(t);
       CC.forEach(([k])=>{ if(v.cc[k]) g[key].ccTallies[k]=(g[key].ccTallies[k]||0)+1; });
     }
-    if(v.ct) g[key].cts.push(v.ct);
   });
   return Object.values(g).sort((a,b)=>(a.ma+' '+a.mo+' '+a.an).localeCompare(b.ma+' '+b.mo+' '+b.an,'es'));
 }
@@ -1593,14 +1604,11 @@ function pintaHist(){
     const min=Math.min(...g.precios), max=Math.max(...g.precios);
     const promCC=g.ccTot.length?Math.round(g.ccTot.reduce((a,b)=>a+b,0)/g.ccTot.length):0;
     const tallyTxt=CC.filter(([k])=>g.ccTallies[k]).map(([k,nn])=>nn+' ('+g.ccTallies[k]+'x)').join(' · ');
-    const promCt=g.cts.length?Math.round(g.cts.reduce((a,b)=>a+b,0)/g.cts.length):0;
-    const minCt=g.cts.length?Math.min(...g.cts):0, maxCt=g.cts.length?Math.max(...g.cts):0;
     return `<div class="card">
       <div class="tt">${g.ma} ${g.mo} <span class="y">${g.an}</span></div>
       <div class="specs"><span class="sp">${n} compra${n===1?'':'s'}</span><span class="sp">Promedio ${krw(prom)}</span>${n>1?`<span class="sp">Rango ${krw(min)}–${krw(max)}</span>`:''}</div>
       <div class="nota">Última compra en Corea: ${krw(g.ultPrecio)}${g.ultProv?' · '+g.ultProv.replace(/</g,'&lt;'):''}${g.ultFe?' · '+fd(g.ultFe):''}</div>
-      ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}
-      ${promCt?`<div class="nota" style="border-left-color:var(--green)">Costo total real en Chile: promedio ${clp(promCt)}${g.cts.length>1?' · rango '+clp(minCt)+'–'+clp(maxCt):''}</div>`:''}</div>`;
+      ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}</div>`;
   }).join(''):'<div class="empty">Todavía no hay compras con precio cargado'+(histProv?' de este proveedor':'')+'.</div>';
 }
 $('#histProv').addEventListener('change',e=>{histProv=e.target.value;pintaHist()});

@@ -771,7 +771,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-10-2026 17:26<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-10-2026 12:20<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -857,6 +857,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="fbLeer" style="width:100%">Comprobar lectura desde la nube</button></div>
       <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="fbMigCorea" style="width:100%">⇄ Separar los costos de Corea (para la app de tu mamá)</button></div>
+      <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="resBtn" style="width:100%">⇩ Restaurar datos faltantes desde un respaldo</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="fotosNube" style="width:100%">⇧ Subir todas las fotos de este dispositivo a la nube</button></div>
@@ -867,6 +869,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="webSyncBtn" style="width:100%">⇧ Actualizar la web pública ahora</button></div>
       <div id="webEstado" class="mtr" style="margin-top:9px"></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="contCopiar" style="width:100%">✦ Copiar código del resumen para contenido (Claude)</button></div>
+      <div id="contEstado" class="mtr" style="margin-top:6px"></div>
       <div id="nubeDocsEstado" class="mtr" style="margin-top:6px"></div>
       <div id="fotosEstado" class="mtr" style="margin-top:9px"></div>
       <input type="file" id="resFile" accept=".json,application/json" style="display:none">
@@ -1677,13 +1682,19 @@ const fbLastPush={};
    nube (fbBase) y se sube SOLO lo que cambió en este aparato; lo que llega de la nube se aplica campo por campo, salvo los campos
    que este aparato cambió y aún no envió. */
 const fbBase={};
-const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),priv:fbPrivData(v)})); }catch(_){ return null; } };
+const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),priv:fbPrivData(v),cor:fbCoreaData(v)})); }catch(_){ return null; } };
 const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
-const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','cc','krw','zof','senia'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo). senia = seña pagada en Corea, en wones (ver saldoCorea) */
+const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
+/* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
+   Lo de Corea viaja aparte, en privado/corea, que es lo único privado que puede leer la cuenta de Corea; privado/costos
+   (CIF, FOB, costo total, gastos en Chile) queda solo para Sistema. krw = compra en wones, cc = taller en Corea,
+   senia = seña pagada en Corea, en wones (ver saldoCorea). Los vehículos de antes todavía tienen estos tres en privado/costos:
+   mientras privado/corea no los tenga, se toman de ahí (ver fbStartListening) y el botón fbMigraCorea los copia. */
+const FB_COREA_FIELDS=['krw','cc','senia'];
 /* Datos del estado de venta que son de Sistema y viajan en privado/costos, no en el documento principal.
    tasks = trabajos pendientes CON SU COSTO ESTIMADO, por eso no puede verlos Vendedores.
    NO se sincroniza n360 (cantidad de tomas 360°, un contador nada más) porque las tomas mismas
@@ -1718,6 +1729,10 @@ function fbPrivData(v){
   const o={}; FB_PRIV_FIELDS.forEach(k=>{ if(v[k]!==undefined && v[k]!==null) o[k]=v[k]; });
   o.costs=t.costs||[];
   FB_PRIV_S_FIELDS.forEach(k=>{ if(t[k]!==undefined) o[k]=t[k]; });
+  return o;
+}
+function fbCoreaData(v){   /* lo que va a privado/corea; mismo criterio que fbPrivData: solo lo que este aparato tiene cargado */
+  const o={}; FB_COREA_FIELDS.forEach(k=>{ if(v[k]!==undefined && v[k]!==null) o[k]=v[k]; });
   return o;
 }
 function fbHash(o){ try{return JSON.stringify(o)}catch(e){return ''} }
@@ -1757,7 +1772,7 @@ async function fbInit(){ try{ fbPintaEstado('Modo demostración: sin nube (datos
         fbReady=true;
         fbMuestraLogin(false);
         fbPintaSync(); fbSchedulePush();   /* si había cambios pendientes de una vez anterior, salen ahora */
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -1814,7 +1829,7 @@ async function fbPendCarga(){
   catch(e){ console.error('fbPendCarga',e); }
 }
 function fbPendGuarda(){ try{ Promise.resolve(window.storage.set(FB_PEND_KEY,JSON.stringify(fbPend))).catch(()=>{}); }catch(e){} fbBaseGuarda(); }
-function fbHashVeh(v){ return fbHash(fbPubData(v))+'|'+fbHash(fbPrivData(v)); }
+function fbHashVeh(v){ return fbHash(fbPubData(v))+'|'+fbHash(fbPrivData(v))+'|'+fbHash(fbCoreaData(v)); }
 function fbCaptureBaseline(){
   V.forEach(v=>{ if(!fbPend[v.ch]){ fbLastPush[v.ch]=fbHashVeh(v); fbBase[v.ch]=fbSnapVeh(v); } });   /* lo que quedó pendiente NO se da por enviado */
   fbBaseOk=true; fbPintaSync();
@@ -1858,13 +1873,15 @@ async function fbEnviaTanda(tanda){
   const arma=lista=>{
     const batch=fbDb.batch();
     for(const v of lista){
-      const pub=fbPubData(v), priv=fbPrivData(v), b=fbBase[v.ch];
-      hs[v.ch]=fbHash(pub)+'|'+fbHash(priv); sn[v.ch]=fbSnapVeh(v);
+      const pub=fbPubData(v), priv=fbPrivData(v), cor=fbCoreaData(v), b=fbBase[v.ch];
+      hs[v.ch]=fbHash(pub)+'|'+fbHash(priv)+'|'+fbHash(cor); sn[v.ch]=fbSnapVeh(v);
       const ref=fbDb.collection(FB_COL).doc(v.ch);
       /* sin base (vehículo nuevo o pendiente de una versión anterior) se sube completo, como antes */
-      const dp=dif(pub,b&&b.pub), dv=dif(priv,b&&b.priv);
-      if(!b||Object.keys(dp).length) batch.set(ref, Object.assign({}, dp, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+      const dp=dif(pub,b&&b.pub), dv=dif(priv,b&&b.priv), dc=dif(cor,b&&b.cor);
+      /* la app de Corea se entera por la ficha: si cambió solo lo de Corea, igual se le actualiza la hora a la ficha */
+      if(!b||Object.keys(dp).length||Object.keys(dc).length) batch.set(ref, Object.assign({}, dp, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
       if(!b||Object.keys(dv).length) batch.set(ref.collection('privado').doc('costos'), Object.assign({}, dv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+      if(Object.keys(dc).length) batch.set(ref.collection('privado').doc('corea'), Object.assign({}, dc, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
     }
     return batch;
   };
@@ -1895,7 +1912,7 @@ async function fbPushChanges(){
       fbDetectaCambios();
       const lista=V.filter(v=>fbPend[v.ch]);
       if(!lista.length) break;
-      for(let i=0;i<lista.length;i+=200) await fbEnviaTanda(lista.slice(i,i+200));   /* 200 vehículos = 400 escrituras; Firestore admite 500 por tanda */
+      for(let i=0;i<lista.length;i+=150) await fbEnviaTanda(lista.slice(i,i+150));   /* 150 vehículos = hasta 450 escrituras (ficha + costos + corea); Firestore admite 500 por tanda */
     }
     fbFallos=0; fbUltimoError='';
   }catch(e){
@@ -1908,7 +1925,7 @@ async function fbPushChanges(){
   }
 }
 
-function fbApplyRemote(ch, pub, priv){
+function fbApplyRemote(ch, pub, priv, cor){
   /* Marcado como borrado en la nube: se quita de este aparato y no se vuelve a crear. */
   if(pub && pub.borrado===true){
     const j=V.findIndex(x=>x.ch===ch);
@@ -1921,7 +1938,7 @@ function fbApplyRemote(ch, pub, priv){
      los demás campos sí se ponen al día (16/10/2026). Sin base conocida, como antes: no se toca nada. */
   if(fbPend[ch] && IDX[ch]){
     const b=fbBase[ch]; if(!b) return;
-    const v0=IDX[ch], t0=st(ch), loc=fbSnapVeh(v0)||{pub:{},priv:{}};
+    const v0=IDX[ch], t0=st(ch), loc=fbSnapVeh(v0)||{pub:{},priv:{},cor:{}};
     if(pub) for(const k in pub){ if(k==='_ts'||pub[k]===undefined) continue;
       if(!fbIgual(loc.pub[k],b.pub[k])) continue;   /* lo cambió este aparato: gana lo de acá */
       if(FB_PUB_FIELDS.includes(k)) v0[k]=pub[k]; else if(FB_S_FIELDS.includes(k)) t0[k]=pub[k]; else continue;
@@ -1930,6 +1947,9 @@ function fbApplyRemote(ch, pub, priv){
       if(!fbIgual(loc.priv[k],b.priv[k])) continue;
       if(k==='costs') t0.costs=priv.costs; else if(FB_PRIV_FIELDS.includes(k)) v0[k]=priv[k]; else if(FB_PRIV_S_FIELDS.includes(k)) t0[k]=priv[k]; else continue;
       b.priv[k]=priv[k]; }
+    if(cor){ const bc=b.cor||(b.cor={}); for(const k in cor){ if(!FB_COREA_FIELDS.includes(k)||cor[k]===undefined||cor[k]===null) continue;
+      if(!fbIgual(loc.cor[k],bc[k])) continue;
+      v0[k]=cor[k]; bc[k]=cor[k]; } }
     guardaCacheV(); fbActualizaAviso(); return;
   }
   let v=IDX[ch];
@@ -1937,6 +1957,7 @@ function fbApplyRemote(ch, pub, priv){
   if(!v){ v={ch}; V.push(v); IDX[ch]=v; }
   if(pub) FB_PUB_FIELDS.forEach(k=>{ if(pub[k]!==undefined) v[k]=pub[k]; });
   if(priv) FB_PRIV_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) v[k]=priv[k]; });
+  if(cor) FB_COREA_FIELDS.forEach(k=>{ if(cor[k]!==undefined && cor[k]!==null) v[k]=cor[k]; });
   // Si llega de la nube sin fecha (la app de origen no la trae), se usa el día en que
   // este aparato lo vio por primera vez — así también se puede ordenar por fecha en Stock.
   if(esNuevoAqui && !v.fe) v.fe=iso();
@@ -1945,7 +1966,7 @@ function fbApplyRemote(ch, pub, priv){
   if(priv && priv.costs) t.costs=priv.costs;
   if(priv) FB_PRIV_S_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) t[k]=priv[k]; });
   fbLastPush[ch]=fbHashVeh(v);
-  { const sb=fbSnapVeh(v); if(sb){ if(!fbBase[ch]) fbBase[ch]=sb; else { if(pub) fbBase[ch].pub=sb.pub; if(priv) fbBase[ch].priv=sb.priv; } } }
+  { const sb=fbSnapVeh(v); if(sb){ if(!fbBase[ch]) fbBase[ch]=sb; else { if(pub) fbBase[ch].pub=sb.pub; if(priv) fbBase[ch].priv=sb.priv; if(cor) fbBase[ch].cor=sb.cor; } } }
   guardaCacheV();
   fbActualizaAviso();
 }
@@ -1970,8 +1991,15 @@ function fbStartListening(){
       const tanda=cambios.slice(i,i+10);
       await Promise.all(tanda.map(async chg=>{
         try{
-          const ps=await fbDb.collection(FB_COL).doc(chg.doc.id).collection('privado').doc('costos').get();
-          if(ps.exists) fbApplyRemote(chg.doc.id, null, ps.data());
+          const pr=fbDb.collection(FB_COL).doc(chg.doc.id).collection('privado');
+          const [ps,pc]=await Promise.all([pr.doc('costos').get(), pr.doc('corea').get().catch(e=>{ console.warn('privado/corea',chg.doc.id,e&&e.code); return null; })]);
+          const priv=ps.exists?ps.data():null;
+          /* compra en wones, taller y seña: manda privado/corea (lo escribe también la mamá); lo que todavía no está ahí
+             (vehículos de antes de fbMigraCorea) se toma de privado/costos. */
+          const cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
+          if(priv) FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined && priv[k]!==undefined && priv[k]!==null) cor[k]=priv[k]; });
+          const hayCor=FB_COREA_FIELDS.some(k=>cor[k]!==undefined);
+          if(priv||hayCor) fbApplyRemote(chg.doc.id, null, priv, hayCor?cor:null);
           fbCostosOk.add(chg.doc.id);   /* costos de este vehículo ya confirmados con la nube */
         }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
       }));
@@ -2181,15 +2209,16 @@ async function fbSubirTodo(){
   if(!confirm('Se van a subir '+total+' vehículos a la nube (colección '+FB_COL+'), con sus costos.\n\n¿Ya tienes descargado el respaldo completo en JSON? Si no, cancela y hazlo primero.')) return;
   let hechos=0;
   try{
-    for(let ini=0; ini<total; ini+=200){
-      const trozo=V.slice(ini, ini+200);
+    for(let ini=0; ini<total; ini+=150){
+      const trozo=V.slice(ini, ini+150);   /* 150 vehículos = hasta 450 escrituras (tope de Firestore: 500) */
       const batch=fbDb.batch();
       for(const v of trozo){
-        const pub=fbPubData(v), priv=fbPrivData(v);
+        const pub=fbPubData(v), priv=fbPrivData(v), cor=fbCoreaData(v);
         const ref=fbDb.collection(FB_COL).doc(v.ch);
         batch.set(ref, Object.assign({}, pub, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
         batch.set(ref.collection('privado').doc('costos'), Object.assign({}, priv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        fbLastPush[v.ch]=fbHash(pub)+'|'+fbHash(priv); fbBase[v.ch]=fbSnapVeh(v);
+        if(Object.keys(cor).length) batch.set(ref.collection('privado').doc('corea'), Object.assign({}, cor, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+        fbLastPush[v.ch]=fbHash(pub)+'|'+fbHash(priv)+'|'+fbHash(cor); fbBase[v.ch]=fbSnapVeh(v);
       }
       await batch.commit();
       hechos+=trozo.length;
@@ -2462,6 +2491,7 @@ async function webPublicaPatio(btn){
 let webTimer=null;
 function webSyncPronto(){
   if(!fbReady) return;
+  contSyncPronto();   /* cada cambio que mueve la web también actualiza el resumen para contenido */
   clearTimeout(webTimer);
   webTimer=setTimeout(()=>webSync(false), 2000);
 }
@@ -2519,6 +2549,83 @@ async function webSync(completo){
     clearTimeout(webTimer); webTimer=setTimeout(()=>webSync(false),30000);   /* la web también se reintenta sola */
     return {error:e};
   }
+}
+/* ===== RESUMEN PARA CONTENIDO (17/10/2026) =====
+   Foto del stock disponible SIN costos, clientes ni precios (salvo ofertas), para que Claude arme
+   ideas de publicaciones leyendo la nube, sin contraseña ni Excel. Va en UN documento de nombre
+   largo al azar: la regla deja leerlo a quien sepa el nombre (get), pero listar la colección solo
+   a Sistema, así que el nombre no se puede descubrir. El nombre NO va en este archivo (se publica
+   en GitHub): Sistema lo busca en la nube y lo crea la primera vez. Botón en Negocio → Ajustes. */
+const CONT_COL='demo_contenidoStock';
+let contId='', contUltimo='', contTimer=null, contEnCurso=false;
+function contResumen(){
+  const ahora=Date.now();
+  const veh=V.filter(v=>!v.borrado&&!v.baja&&!v.creando&&!sold(v.ch)).map(v=>{
+    const t=st(v.ch);
+    return {ch:v.ch, ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'', cat:v.cat||'', ca:v.ca||'', cab:v.cab||'',
+      tr:v.tr||'', pa:v.pa||null, tp:!!v.tp, km:v.km||null, motor:v.motor||'', trans:v.trans||'',
+      st:v.st||'', enCorea:!!v.enCorea, eta:v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null, llp:v.llp||null,
+      trab:!!v.trab, sv:!!v.sv, web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
+      precio:t.of?(t.pprice||v.vev||null):null,
+      nf:fotosEfectivas(v).fotos.length, n360:fotosEfectivas360(v).fotos.length, video:!!v.video};
+  });
+  /* Vendidos de los últimos 60 días: solo qué se vendió y cuándo (sin precio ni cliente) */
+  const desde60=isoDe(ahora-60*864e5);
+  const vendidos=V.filter(v=>sold(v.ch)&&(st(v.ch).date||'')>=desde60)
+    .map(v=>({ma:v.ma||'', mo:v.mo||'', an:v.an||null, cat:v.cat||'', fe:st(v.ch).date||''}))
+    .sort((a,b)=>String(b.fe).localeCompare(String(a.fe)));
+  /* Consultas de los últimos 90 días: solo conteos por red y por vehículo (sin nombres ni teléfonos) */
+  const desde90=ahora-90*864e5, porRed={}, porAuto={};
+  consLista().filter(c=>(c.ts||0)>=desde90).forEach(c=>{
+    const k=CONS_ORI[c.ori]||'Otro'; porRed[k]=porRed[k]||{n:0,compro:0}; porRed[k].n++; if(c.est==='compro') porRed[k].compro++;
+    const a=consAuto(c); if(a) porAuto[a]=(porAuto[a]||0)+1;
+  });
+  /* Lo que piden los clientes y no siempre hay (Demanda), últimos 90 días */
+  const dem={};
+  DEMANDA.filter(d=>(d.ts||0)>=desde90).forEach(d=>{ const k=[d.marca,d.modelo].filter(Boolean).join(' ').trim().toUpperCase(); if(k) dem[k]=(dem[k]||0)+1; });
+  return {ver:1, veh, vendidos, consultas:{porRed, porAuto}, demanda:dem};
+}
+async function contSync(forzar){
+  if(!fbReady||contEnCurso) return;
+  const el=document.getElementById('contEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  contEnCurso=true;
+  try{
+    if(!contId){
+      try{ const r=await window.storage.get('amk_cont_id'); if(r&&r.value) contId=r.value; }catch(_){}
+      if(!contId){
+        /* del servidor (no del caché): si no, un aparato sin conexión creería que no existe y crearía otro */
+        const s=await fbDb.collection(CONT_COL).limit(1).get({source:'server'});
+        if(!s.empty) contId=s.docs[0].id;
+        else{ const a=new Uint8Array(16); crypto.getRandomValues(a); contId='c'+[...a].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+      }
+    }
+    const r=contResumen(), firma=JSON.stringify(r);
+    if(forzar||firma!==contUltimo){
+      await fbDb.collection(CONT_COL).doc(contId).set(Object.assign({ts:Date.now()},r));
+      contUltimo=firma;
+      try{ await window.storage.set('amk_cont_id',contId); }catch(_){}
+    }
+    pinta('✓ Resumen para contenido al día · '+r.veh.length+' vehículos disponibles','var(--green)');
+  }catch(e){
+    console.error('contSync',e);
+    pinta('✗ Resumen para contenido: '+(e&&e.code==='permission-denied'?'falta publicar la regla de la nube (contenidoStock)':(e.message||e.code||e)),'var(--red)');
+  }finally{ contEnCurso=false; }
+}
+function contSyncPronto(){
+  if(!fbReady) return;
+  clearTimeout(contTimer);
+  contTimer=setTimeout(()=>contSync(false), 5000);
+}
+async function contCopiarCodigo(btn){
+  if(!fbReady){ toast('Primero inicia sesión en la nube'); return; }
+  if(btn) btn.disabled=true;
+  try{
+    while(contEnCurso) await new Promise(r=>setTimeout(r,200));   /* si justo se estaba subiendo solo, espera */
+    await contSync(true);
+    if(contId&&contUltimo) await cp(contId,'Código copiado ✓ · pégaselo a Claude');
+    else toast('No se pudo preparar el resumen: mira el aviso debajo del botón');
+  }finally{ if(btn) btn.disabled=false; }
 }
 async function subirTodasLasFotos(){
   const el=document.getElementById('fotosEstado');
@@ -2797,11 +2904,74 @@ async function fbComprobarLectura(){
     }else{
       html+='<span style="color:var(--red)">✗ No se pudieron leer los costos privados: '+errPriv+'</span>';
     }
+    /* privado/corea: lo único privado que ve la app de Corea (compra en wones, taller, seña) */
+    try{
+      const pc=await fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('corea').get();
+      const co=pc.exists?pc.data():null;
+      html+='<br>'+(!co ? '<span style="color:var(--amber)">○ Costos de Corea: todavía no están separados (usa “Separar los costos de Corea”)</span>'
+        : Number(co.krw||0)===Number(v.krw||0) ? '<span style="color:var(--green)">✓ Costos de Corea: compra ₩'+Number(co.krw||0).toLocaleString('es-CL')+' — coincide</span>'
+        : '<span style="color:var(--red)">✗ Costos de Corea no coinciden (nube: ₩'+Number(co.krw||0).toLocaleString('es-CL')+' · acá: ₩'+Number(v.krw||0).toLocaleString('es-CL')+')</span>');
+    }catch(e){ html+='<br><span style="color:var(--red)">✗ No se pudieron leer los costos de Corea: '+(e.message||e.code||e)+'</span>'; }
     pinta(html);
   }catch(e){
     console.error('fbComprobarLectura',e);
     pinta('✗ '+(e.message||e.code||e),'var(--red)');
   }
+}
+/* 17/10/2026: copia la compra en wones, el taller y la seña de privado/costos a privado/corea, para todos los vehículos de la nube.
+   Solo rellena lo que privado/corea todavía no tiene (nunca pisa lo que la mamá ya cargó ahí) y NO borra nada de privado/costos.
+   Se puede apretar las veces que haga falta: lo ya copiado se salta. Al final relee lo escrito para confirmar. */
+let fbMigCoreaEnCurso=false;
+async function fbMigraCorea(){
+  const el=document.getElementById('fbMigEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  if(fbMigCoreaEnCurso) return;
+  if(!fbReady){ pinta('No hay conexión con la nube todavía.','var(--red)'); return; }
+  if(!confirm('Se va a copiar la compra en wones, el taller en Corea y la seña de cada vehículo a un documento aparte, el único que podrá ver la app de tu mamá.\n\nNo se borra ni se cambia nada de los costos de Chile. ¿Seguir?')) return;
+  fbMigCoreaEnCurso=true;
+  const bt=document.getElementById('fbMigCorea'); if(bt) bt.disabled=true;
+  try{
+    pinta('Leyendo los vehículos de la nube…');
+    const s=await fbDb.collection(FB_COL).get();
+    const ids=[]; s.forEach(d=>{ const x=d.data()||{}; if(x.borrado!==true) ids.push(d.id); });
+    const porCopiar={}; let yaEstaban=0, sinDatos=0;
+    for(let i=0;i<ids.length;i+=10){
+      await Promise.all(ids.slice(i,i+10).map(async id=>{
+        const pr=fbDb.collection(FB_COL).doc(id).collection('privado');
+        const [ps,pc]=await Promise.all([pr.doc('costos').get(), pr.doc('corea').get()]);
+        const cos=ps.exists?(ps.data()||{}):{}, co=pc.exists?(pc.data()||{}):{};
+        const o={}; FB_COREA_FIELDS.forEach(k=>{ if((co[k]===undefined||co[k]===null) && cos[k]!==undefined && cos[k]!==null) o[k]=cos[k]; });
+        if(Object.keys(o).length) porCopiar[id]=o;
+        else if(FB_COREA_FIELDS.some(k=>co[k]!==undefined&&co[k]!==null)) yaEstaban++;
+        else sinDatos++;
+      }));
+      pinta('Revisando… '+Math.min(i+10,ids.length)+' de '+ids.length);
+    }
+    const lista=Object.keys(porCopiar);
+    for(let i=0;i<lista.length;i+=200){   /* 200 vehículos = 400 escrituras (tope de Firestore: 500) */
+      const batch=fbDb.batch();
+      lista.slice(i,i+200).forEach(id=>{ const ref=fbDb.collection(FB_COL).doc(id);
+        batch.set(ref.collection('privado').doc('corea'), Object.assign({}, porCopiar[id], {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
+        batch.set(ref, {_ts: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}); });   /* así la app de Corea, que escucha las fichas, lo recibe al tiro */
+      await fbLimite(batch.commit(), 25000);
+      pinta('Copiando… '+Math.min(i+200,lista.length)+' de '+lista.length);
+    }
+    let malos=0;
+    for(let i=0;i<lista.length;i+=10){
+      await Promise.all(lista.slice(i,i+10).map(async id=>{
+        const pc=await fbDb.collection(FB_COL).doc(id).collection('privado').doc('corea').get();
+        const co=pc.exists?(pc.data()||{}):{};
+        if(Object.keys(porCopiar[id]).some(k=>!fbIgual(co[k],porCopiar[id][k]))) malos++;
+      }));
+    }
+    if(malos) pinta('✗ Se copiaron '+(lista.length-malos)+' vehículos pero '+malos+' no quedaron iguales al releerlos. Vuelve a apretar el botón.','var(--red)');
+    else if(!lista.length) pinta('✓ Ya estaba todo separado: '+yaEstaban+' vehículo'+(yaEstaban===1?'':'s')+' con sus costos de Corea en su documento'+(sinDatos?' · '+sinDatos+' sin compra en wones ni taller':'')+'.','var(--green)');
+    else pinta('✓ Listo: '+lista.length+' vehículo'+(lista.length===1?'':'s')+' copiado'+(lista.length===1?'':'s')+' y comprobado'+(lista.length===1?'':'s')+(yaEstaban?' · '+yaEstaban+' ya estaban separados':'')+(sinDatos?' · '+sinDatos+' sin compra en wones ni taller':'')+'. No se borró nada de los costos de Chile.','var(--green)');
+    if(!malos&&lista.length) toast('Costos de Corea separados');
+  }catch(e){
+    console.error('fbMigraCorea',e);
+    pinta('✗ Se detuvo: '+(e.message||e.code||e)+'. Puedes volver a apretar el botón; lo ya copiado no se duplica.','var(--red)');
+  }finally{ fbMigCoreaEnCurso=false; if(bt) bt.disabled=false; }
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const en=document.getElementById('logEntrar');
@@ -2817,6 +2987,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   const ws=document.getElementById('webSyncBtn');
   if(ws) ws.addEventListener('click',async()=>{ ws.disabled=true; await webSync(true); ws.disabled=false; });
+  { const cc=document.getElementById('contCopiar'); if(cc) cc.addEventListener('click',()=>contCopiarCodigo(cc)); }
   const wp=document.getElementById('webPubPatio');
   if(wp) wp.addEventListener('click',()=>webPublicaPatio(wp));
   const dmp=document.getElementById('devMarcarPatio');
@@ -2847,6 +3018,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(r) r.addEventListener('click',()=>{ if(fbReady){ fbPintaEstado('✓ Ya está conectado · colección '+FB_COL,'var(--green)'); return; } fbInit(); });
   const s=document.getElementById('fbSubirTodo');
   if(s) s.addEventListener('click',fbSubirTodo);
+  const mc=document.getElementById('fbMigCorea');
+  if(mc) mc.addEventListener('click',fbMigraCorea);
   const cn=document.getElementById('fbContar');
   if(cn) cn.addEventListener('click',fbContarNube);
 });
@@ -5811,7 +5984,7 @@ function fbAvisosVendListen(){
     try{window.storage.set('amk_avisosvend_cache', JSON.stringify(AVISOSVEND))}catch(_){}
     pintaPendientes(); pintaInsumos(); sincNombresInsumos();
     try{ aplicaMotoresVend(); pintaSmda(); }catch(e){ console.error('datosVend',e); }
-    if(tocaCons){ try{window.storage.set('amk_consultas_cache', JSON.stringify(CONSULTAS))}catch(_){} pintaConsultas(); }
+    if(tocaCons){ try{window.storage.set('amk_consultas_cache', JSON.stringify(CONSULTAS))}catch(_){} pintaConsultas(); contSyncPronto(); }
   }, e=>console.error('fbAvisosVendListen', e));
 }
 async function marcarAvisoAtendido(ts){
@@ -6194,6 +6367,7 @@ function fbDemandaListen(){
     snap.forEach(d=>arr.push(Object.assign({ts:Number(d.id)}, d.data())));
     DEMANDA=arr.sort((a,b)=>b.ts-a.ts);
     try{window.storage.set('amk_demanda_cache', JSON.stringify(DEMANDA))}catch(_){}
+    contSyncPronto();
     pintaDemanda();
     pintaDlMarcasModelos();
   }, e=>console.error('fbDemandaListen',e));
