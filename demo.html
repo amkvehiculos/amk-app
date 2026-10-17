@@ -74,6 +74,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .e-pat{background:rgba(70,201,125,.15);color:var(--green);border-color:rgba(70,201,125,.4)}
 .e-cam{background:rgba(217,112,158,.14);color:#E58DB5;border-color:rgba(217,112,158,.4)}
 .e-deu{background:rgba(232,176,75,.15);color:var(--amber);border-color:rgba(232,176,75,.38)}
+:root{--debT:#F59A52}
+.e-debT{background:transparent;color:var(--debT);border:1.5px solid #F07E26}   /* 17/10/2026: "Debe taller", aparte de los colores de etapa */
 .e-res{background:rgba(176,132,232,.15);color:#C3A2F0;border-color:rgba(176,132,232,.42)}
 .e-resv{background:rgba(224,96,96,.15);color:var(--red);border-color:rgba(224,96,96,.42)}
 .e-ven{background:rgba(200,210,212,.14);color:var(--plata);border-color:rgba(200,210,212,.35)}
@@ -171,6 +173,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .pk .tt{font-size:15px}
 .ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
+/* 17/10/2026: galería de las fotos de otra fuente (Víctor/Bryan/Corea), tocar una la agranda */
+.galFu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.galFu img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block;cursor:zoom-in;background:var(--seaL)}
+.galFu img.grande{grid-column:1/-1;aspect-ratio:auto;max-height:70vh;object-fit:contain;cursor:zoom-out}
+.fwInfo{font-size:12px;margin-top:3px;line-height:1.35}
 .phg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
 .ph .ix{position:absolute;top:4px;left:4px;background:rgba(4,18,25,.85);color:#fff;font-family:var(--mono);
  font-size:9.5px;padding:2px 5px;border-radius:4px}
@@ -186,6 +193,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
  background:var(--sea);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:700}
 .ph.sel .sk{display:flex}
 .sendbar{display:flex;gap:8px;margin-bottom:11px}
+.sendbar[hidden]{display:none}   /* 17/10/2026: "➦ Enviar fotos" se veía sin fotos propias (display:flex le ganaba a hidden) */
 .segs{display:flex;flex-wrap:wrap;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
 .segs button{flex:1 1 auto;min-width:0;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
 #ngSegs{flex-wrap:nowrap;gap:2px}#ngSegs button{padding:10px 2px;font-size:13px}
@@ -299,6 +307,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="chip" data-f="patio" aria-selected="true">En patio</button>
       <button class="chip" data-f="falta" aria-selected="false">Falta estimar</button>
       <button class="chip" data-f="porhacer" aria-selected="false">Por hacer</button>
+      <button class="chip" data-f="debe" aria-selected="false">Debe taller</button>
+      <button class="chip" data-f="solodebe" aria-selected="false">Solo debe taller</button>
+      <button class="chip" data-f="sinfoto" aria-selected="false">Sin fotos web</button>
       <button class="chip" data-f="corea" aria-selected="false">En Corea</button>
       <button class="chip" data-f="camino" aria-selected="false">En camino</button>
       <button class="chip" data-f="vend" aria-selected="false">Vendidos</button>
@@ -316,6 +327,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="stTools">
       <select id="stOrden" aria-label="Orden de la lista">
         <option value="estado">Estado (como siempre)</option>
+        <option value="color">Color: 🔴 → 🟡 → 🔵 → 🟢</option>
         <option value="recientes">Más recientes primero</option>
         <option value="antiguos">Más antiguos primero</option>
         <option value="contenedor">Por contenedor</option>
@@ -771,7 +783,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-10-2026 12:20<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-10-2026 13:59<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1300,6 +1312,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div id="secFotos">
   <div class="mtr" id="phFuenteTip" hidden style="margin-bottom:9px"></div>
   <div id="phFuenteSel" hidden style="margin-bottom:9px"></div>
+  <div id="phFuenteVer" hidden style="margin-bottom:9px"></div>
   <div class="updrop" id="phDrop">Toca para tomar fotos o elegir de la galería<div class="mtr" id="phMtr"></div></div>
   <input type="file" id="phFile" accept="image/*" multiple hidden>
   <div class="sendbar" id="phSend" hidden>
@@ -2174,7 +2187,7 @@ async function elegirFuente(ch,tipo,key){
   }
   limpiarAvisoFotoPend(ch,tipo);
   webSyncPronto(); draw();
-  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
+  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pintaFuenteVer==='function') pintaFuenteVer(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
   toast(key ? 'Ahora se muestran las fotos de '+fuenteLabel(key) : 'Vuelto a automático');
 }
 /* André revisó y decidió mantener lo que ya se está mostrando (sin elegir ninguna fuente
@@ -2191,7 +2204,7 @@ async function descartarAvisoFuente(ch,tipo){
   }
   limpiarAvisoFotoPend(ch,tipo);
   webSyncPronto(); draw();
-  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
+  if(phCh===ch){ pintaFuenteTip(); if(typeof pintaFuenteSel==='function') pintaFuenteSel(); if(typeof pintaFuenteVer==='function') pintaFuenteVer(); if(typeof pinta360FuenteSel==='function') pinta360FuenteSel(); }
   toast('Aviso descartado · se mantienen las fotos actuales');
 }
 document.addEventListener('click',e=>{
@@ -2465,6 +2478,21 @@ function webDoc(v){
 /* Galeria liviana del vehiculo (propias si hay; si no, las de Víctor/Bryan/Corea, ver fotosEfectivas). */
 function webGal(v){ return {ch:v.ch, galeriaDe:v.ch, fotos:fotosEfectivas(v).fotos.slice(0,20)}; }
 function webVaEnLaWeb(v){ if(v.borrado) return false; const t=st(v.ch); return !!t.pub && !t.sold; }
+/* 17/10/2026 (Andre): en cada vehículo del Stock se ve si ya está en la web y de quién son las fotos que muestra (las mismas que
+   arma webDoc con fotosEfectivas), para no subir fotos de más. Misma marca en Vendedores (fotoWebInfo). Filtro "Sin fotos web". */
+function fotoWebInfo(v){
+  if(!v||sold(v.ch)||v.baja||v.creando) return null;
+  const fe=fotosEfectivas(v), pub=webVaEnLaWeb(v), n=fe.fotos.length;
+  const quien=fe.fuente?(fe.fuente==='sistema'?'André':fuenteLabel(fe.fuente)):'';
+  const c=fotosVendCache[v.ch]||{}, pend=Object.keys(c).filter(k=>k!==fe.fuente&&c[k]&&c[k].pendiente&&c[k].fotos&&c[k].fotos.length).map(fuenteLabel);
+  const extra=pend.length?' · '+pend.join(', ')+' por revisar':'';
+  if(pub&&n) return {k:'web',col:'var(--green)',cort:'🌐 Web · fotos de '+quien,txt:'🌐 En la web · fotos de '+quien+' ('+n+')'+extra};
+  if(pub) return {k:'websin',col:'var(--amber)',cort:'🌐 Web · sin fotos',txt:'🌐 En la web · sin fotos todavía'+extra};
+  if(n) return {k:'nopub',col:'var(--mute)',cort:'📷 Fotos de '+quien+' · no en la web',txt:'📷 Fotos de '+quien+' ('+n+') · aún no está en la web'+extra};
+  return {k:'sin',col:'var(--amber)',cort:'Sin fotos',txt:'Sin fotos de nadie todavía'+extra};
+}
+const fotoWebHTML=(v,corto)=>{ const w=fotoWebInfo(v); if(!w) return ''; const t=corto?w.cort:w.txt; if(!t) return '';
+  return `<div class="${corto?'cm-s':'fwInfo'}" style="color:${w.col}${corto?';margin-top:2px':''}">${String(t).replace(/</g,'&lt;')}</div>`; };
 
 /* Marca como publicados en la web todos los vehículos que no estén vendidos (en camino o en patio).
    Lo que NO se quiere mostrar (por ejemplo, un auto con un desperfecto) se saca aparte,
@@ -3292,6 +3320,9 @@ function passS(v){
   if(fS==='corea') return v.st==='ORIGEN'&&!!v.enCorea&&!sold(v.ch);
   if(fS==='camino')return v.st==='ORIGEN'&&!v.enCorea&&!sold(v.ch);
   if(fS==='vend')  return sold(v.ch);
+  if(fS==='debe') return debe(v.ch)>0;   /* 17/10/2026: con un trabajo de precio acordado sin pagar del todo (también vendidos: posventa) */
+  if(fS==='solodebe') return soloDebeTaller(v);
+  if(fS==='sinfoto'){ const w=fotoWebInfo(v); return !!w&&(w.k==='websin'||w.k==='sin'); }   /* 17/10/2026: sin fotos de nadie (ni André, ni Víctor/Bryan, ni Corea) */
   return true;
 }
 function diasEnPatioTexto(v){
@@ -3324,8 +3355,10 @@ function cardS(v){
   else if(resAct(v.ch)){const r=resAct(v.ch), ven=r.vence<=iso(); estado=ven?'var(--red)':'#B084E8'; chip=`<span class="est ${ven?'e-resv':'e-res'}">${ven?(r.vence<iso()?'Reserva vencida':'Reserva vence hoy'):'Reservado · hasta '+fd(r.vence).slice(0,5)}</span>`;
     if(+r.precio>0&&!resSaldo(r)){ estado='var(--red)'; chip='<span class="est e-resv" data-reserva="'+v.ch+'" style="cursor:pointer" title="Abrir la reserva para marcarlo vendido">Pagado completo · ⚠ falta marcar vendido</span>'; }}
   else if(v.st==='ORIGEN'){estado=v.enCorea?'#C9A227':'var(--fAzul)'; chip=v.enCorea?'<span class="est e-deu" data-zarpe="'+v.ch+'" style="cursor:pointer" title="Marcar que se embarcó">En Corea · 🚢 ¿se embarcó?</span>':'<span class="est e-cam" data-zarpe="'+v.ch+'" style="cursor:pointer">En camino'+(v.zarpe?' · zarpó '+fd(v.zarpe).slice(0,5):'')+'</span>';}
-  else if(deb){estado='var(--fAmbar)'; chip='<span class="est e-deu">Debe taller</span>';}
   else {const dp=diasEnPatioTexto(v); estado='var(--fVerde)'; chip='<span class="est e-pat" data-llpset="'+v.ch+'" style="cursor:pointer" title="Cambiar desde cuándo está en patio">En patio'+(dp?' · '+dp.replace(/ en patio$/,''):' · ¿desde cuándo? ✎')+'</span>'; const rv=revEstado(v.ch); if(rv){ if(rv.k!=='ok') estado=rv.col; chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+'<span class="est" data-cost="'+v.ch+'" style="cursor:pointer;color:#fff;background:'+rv.col+'" title="'+(rv.det||'Abrir costos del vehículo')+'">'+rv.txt+'</span></span>'; }}
+  /* 17/10/2026 (Andre): "Debe taller" ya no pinta la tarjeta de ámbar (chocaba con el amarillo de "estimando": un auto puede estar
+     estimándose y a la vez deber la pintura). El color sigue la etapa; lo que se debe va en un distintivo naranja aparte (debChip). */
+  if(deb) chip='<span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'+chip+debChip(v)+'</span>';
 
   const filas=[];
   if(isS&&s.price){
@@ -3344,6 +3377,16 @@ function cardS(v){
   if(ac)   filas.push(`De esta app <b>${clp(ac)}</b>`);
 
   const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat} · ${fd(x.date)}</span><span>${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
+  /* 17/10/2026 (Andre): "Debe taller" sin botón. Ahora la tarjeta trae lo que se le debe al taller (＄ Pagar saldo: abono al MISMO costo,
+     no un costo nuevo) y los trabajos abiertos (＄ Anotar costo: abre Costo real enlazado a ese trabajo, costTs, y el estimado deja de sumar). */
+  const tallerBox=(()=>{ if(!deb) return '';
+    const esc=t=>String(t||'').replace(/</g,'&lt;');
+    const D=(s.costs||[]).filter(x=>csal(x)>0);
+    const T=isS?[]:tasks(v.ch).filter(x=>x.cat!=='LAVADO'&&!x.costTs&&(!x.hecho||(!x.noAplica&&!x.sinCosto&&+x.est>0)));
+    const fD=D.map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.prov?' · '+esc(x.prov):''} <span style="color:var(--amber)">· debe ${clp(csal(x))}</span></span><span><button class="b-und" style="padding:6px 10px" data-cpaga="${v.ch}|${x.ts}">＄ Pagar saldo</button></span></div>`).join('');
+    const fT=T.slice(0,3).map(x=>`<div class="xrow"><span>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.est?' <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">· est. '+clp(x.est)+'</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">· sin costo anotado</span>':''}</span><span><button class="b-und" style="padding:6px 10px" data-tlisto="${v.ch}|${x.ts}">＄ Anotar costo</button></span></div>`).join('')
+      +(T.length>3?`<button class="b-und" style="margin-top:4px" data-cost="${v.ch}">Ver los ${T.length} pendientes →</button>`:'');
+    return `<div class="xlist" style="font-size:13px"><div class="mtr" style="margin:0 0 3px">Con el taller</div>${fD}${fT?`<div class="mtr" style="margin:7px 0 3px">Trabajos por pagar</div>${fT}`:''}</div>`; })();
   const cov=s.cov?`<img class="cover" src="${s.cov}" alt="">`:'';
   const saldoCorea=(v.krw&&v.senia)?Math.max(0,v.krw-v.senia):null;
   const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
@@ -3352,12 +3395,13 @@ function cardS(v){
     +(v.carga&&(v.st==='ORIGEN'||!v.llp||diasDesde(v.llp)<=10)?`<div class="xlist" style="font-size:13px;color:#fff;background:#B4321C;border-radius:8px;padding:7px 9px">📦 <b>Lleva accesorios dentro:</b> ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:'')
     +(resAct(v.ch)?(()=>{const r=resAct(v.ch);return `<div class="xlist" style="font-size:12.5px;color:#C3A2F0">🔒 Reserva: <b>${String(r.cli||'—').replace(/</g,'&lt;')}</b> · pagado ${clp(resPag(r))} de ${clp(r.precio||0)} · <b>saldo ${clp(resSaldo(r))}</b></div>`})():'')
     +(v.nota?`<div class="xlist" style="font-size:13px;color:var(--ink2)">${String(v.nota).replace(/</g,'&lt;')}</div>`:'')
+    +tallerBox
     +(xr?`<div class="xlist">${xr}</div>`:'');
 
   return `<div class="card"><div class="strip" style="background:${estado}"></div><div class="cin">
    <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
      <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
-     <div class="ch">${v.ch}</div></div></div>${chip}</div>
+     <div class="ch">${v.ch}</div>${fotoWebHTML(v)}</div></div>${chip}</div>
    ${carsHtml}
    <div class="bignum"><b>${clp(cost)}</b><span>costo total</span></div>
    ${filas.length?`<div class="money">${filas.map(f=>'<div>'+f+'</div>').join('')}</div>`:''}
@@ -3388,6 +3432,29 @@ function cardS(v){
    </div></div></div>`;
 }
 
+/* 17/10/2026 (Andre): distintivo "Debe taller" (naranja, con contorno: los chips de etapa son rellenos) cuando un costo tiene precio
+   acordado y no está pagado del todo (abonos < acordado, debe(ch)>0). "Solo debe taller" = no le falta nada más: sin trabajos abiertos
+   (ni estimados del embarque sin ver, ni "listo" sin costo) y la revisión cerrada (🟢) o sin revisión anotada. Filtros "Debe taller" y "Solo debe taller". */
+function soloDebeTaller(v){
+  if(!debe(v.ch)) return false;
+  if(!sold(v.ch)&&v.st!=='IQQ') return false;
+  if(tasks(v.ch).some(x=>x.cat!=='LAVADO'&&!x.costTs&&(!x.hecho||(!x.noAplica&&!x.sinCosto&&+x.est>0)))) return false;
+  const rv=sold(v.ch)?null:revEstado(v.ch); return !rv||rv.k==='ok';
+}
+function debChip(v,corto){
+  const solo=soloDebeTaller(v), t='＄ '+(solo?'Solo debe taller':'Debe taller');
+  if(corto) return `<div class="cm-s" style="color:var(--debT);font-weight:700;margin-top:3px">${t}</div>`;
+  return `<span class="est e-debT" data-costreal="${v.ch}" style="cursor:pointer" title="${solo?'Lo único que falta es pagarle al taller':'Hay un trabajo con precio acordado sin pagar del todo'} · ${clp(debe(v.ch))} · abrir Costo real">${t} ›</span>`;
+}
+/* 17/10/2026 (Andre): ordenar por el color de la etiqueta, "para saber qué falta de cada vehículo": 🔴 sin revisar → 🟡 estimando →
+   🔵 por hacer → 🟢 listo → en patio sin revisión anotada → en camino → en Corea → vendidos. */
+function ordenColor(v){
+  if(sold(v.ch)) return 8;
+  if(v.st==='ORIGEN') return v.enCorea?7:6;
+  if(v.st!=='IQQ') return 9;
+  const rv=revEstado(v.ch); if(!rv) return 5;
+  return {sin:0,pend:1,rev:1,por:2,ok:3}[rv.k]??4;
+}
 function ordenEstado(v){
   if(sold(v.ch)) return 4;
   if(debe(v.ch)) return 0;
@@ -3415,7 +3482,8 @@ function drawStock(){
       if(cmp) return dir*cmp;
       return dir*((pos.get(a.ch)||0)-(pos.get(b.ch)||0));
     });
-  } else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
+  } else if(orden==='color') L.sort((a,b)=>(ordenColor(a)-ordenColor(b))||(ordenEstado(a)-ordenEstado(b)));
+  else L.sort((a,b)=>ordenEstado(a)-ordenEstado(b));
   $('#cStock').textContent=L.length+(L.length===1?' vehículo':' vehículos');
   { const b=$('#stVista'); if(b) b.textContent=stCompacto?'▦ Completa':'☰ Compacta'; }
   if(orden==='contenedor'){ $('#lStock').innerHTML=L.length?ctrHTML(L,!!toks.length,cardSV):'<div class="empty">Sin resultados.</div>'; return; }
@@ -3450,13 +3518,13 @@ function cardSV(v){
   if(STEXP.has(v.ch)) return `<div><button class="b-und" type="button" data-scmp="${v.ch}" style="font-size:12px;margin:0 0 4px">▴ Achicar</button>${cardS(v)}</div>`;
   const s=st(v.ch), isS=sold(v.ch), esc=t=>String(t||'').replace(/</g,'&lt;');
   const dm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
-  let [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):debe(v.ch)?['var(--fAmbar)','Debe taller']:['var(--fVerde)','En patio'];
-  { const rv=(!isS&&!resAct(v.ch)&&v.st==='IQQ'&&!debe(v.ch))?revEstado(v.ch):null; if(rv){ est=rv.cort||rv.txt; if(rv.k!=='ok') col=rv.col; } }   /* 14/10/2026: solo la etiqueta corta (sin "En patio" ni montos): la larga apretaba las características */
+  let [col,est]=isS?['var(--fPlata)','Vendido']:resAct(v.ch)?['#B084E8','Reservado']:v.st==='ORIGEN'?(v.enCorea?['#C9A227','En Corea']:['var(--fAzul)',v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino']):['var(--fVerde)','En patio'];
+  { const rv=(!isS&&!resAct(v.ch)&&v.st==='IQQ')?revEstado(v.ch):null; if(rv){ est=rv.cort||rv.txt; if(rv.k!=='ok') col=rv.col; } }   /* 14/10/2026: solo la etiqueta corta (sin "En patio" ni montos): la larga apretaba las características */
   const pr=isS?(s.price?clp(enCLP(s)):''):(s.pventa?clp(s.pventa):'');
   return `<div class="card cmp" data-sexp="${v.ch}"><span class="strip" style="background:${col}"></span>
     <div class="cm-t"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span> <span style="font-family:var(--mono);font-size:11.5px;color:var(--mute);font-weight:400">${esc(v.ch)}</span></div>
-    <div class="cm-s" style="white-space:normal">${esc(carsC(v))}</div></div>
-    <div style="text-align:right;flex:0 1 auto;max-width:40%;min-width:0">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div></div></div>`;
+    <div class="cm-s" style="white-space:normal">${esc(carsC(v))}</div>${fotoWebHTML(v,true)}</div>
+    <div style="text-align:right;flex:0 1 auto;max-width:40%;min-width:0">${pr?`<div class="cm-p" style="color:${isS?'var(--mute)':'var(--green)'}">${pr}</div>`:(isS?'':'<div class="cm-s" style="color:var(--red)">sin precio</div>')}<div class="cm-s">${est}</div>${debe(v.ch)?debChip(v,true):''}</div></div>`;
 }
 document.addEventListener('click',async e=>{
   if(e.target.closest('#stVista')){ stCompacto=!stCompacto; STEXP.clear(); try{ await window.storage.set('amk_stCompacto',stCompacto?'1':'0'); }catch(_){} drawStock(); return; }
@@ -3654,7 +3722,7 @@ function drawVit(){
     return `<div class="card plain" style="position:relative"><span class="strip" style="background:${est2};position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:52%;border-radius:0 3px 3px 0"></span>
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
       <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
-      <div class="ch">${v.ch}${t.nf?' · '+t.nf+' fotos':' · sin fotos'}</div></div></div><div style="display:flex;gap:5px">
+      <div class="ch">${v.ch}${t.nf?' · '+t.nf+' fotos tuyas':' · sin fotos tuyas'}</div>${fotoWebHTML(v)}</div></div><div style="display:flex;gap:5px">
       ${t.pub?'<span class="tag t-pub">En web</span>':''}${t.of?'<span class="tag t-of">Oferta</span>':''}</div></div>
      <div class="money"><div>Precio visible <b>${t.of&&t.pprice?clp(t.pprice):'Consultar'}</b></div>
       ${t.pventa?`<div>Precio de venta <b>${clp(t.pventa)}${conUSD(t.pventa,t.pventaUSD)}</b></div>`:'<div style="color:var(--red)">⚠ Falta precio de venta</div>'}
@@ -3851,6 +3919,25 @@ function pintaScIq(){
   if(document.activeElement!==$('#scEst1')) $('#scEst1').value=v.est1?Math.round(v.est1).toLocaleString('es-CL'):'';
   if(document.activeElement!==$('#scEst2')) $('#scEst2').value=v.est2?Math.round(v.est2).toLocaleString('es-CL'):'';
 }
+/* 17/10/2026 (Andre): "Debe taller ›" abre Costo real (ahí está la lista con lo que se debe); "＄ Pagar saldo" de la tarjeta registra
+   el abono en el mismo costo (acordado no cambia): el total del vehículo no sube, solo pasa de "por pagar" a "pagado". */
+let cpagaOcup=false;
+document.addEventListener('click',async e=>{
+  const cr=e.target.closest('[data-costreal]'); if(cr){ openCost(cr.dataset.costreal,null,null,'real'); return; }
+  const b=e.target.closest('[data-cpaga]'); if(!b||cpagaOcup) return;
+  const [c,ts]=b.dataset.cpaga.split('|'); const x=((S[c]||{}).costs||[]).find(y=>String(y.ts)===ts), v=IDX[c]; if(!x||!v) return;
+  const sal=csal(x); if(!sal){ toast('Ese costo ya está pagado'); draw(); return; }
+  cpagaOcup=true;
+  try{
+    const m=pnum(await pedirDato({t:'Pagar saldo al taller',s:v.ma+' '+v.mo+' · '+(CN[x.cat]||x.cat)+(x.prov?' · '+x.prov:'')+' · acordado '+clp(acor(x))+' · saldo '+clp(sal),l:'Monto que pagas',v:String(sal),modo:'clp',ok:'Registrar pago'})||'');
+    if(!m) return;
+    if(!x.abonos) x.abonos=x.amt?[{m:x.amt,f:x.date||iso()}]:[];
+    x.abonos.push({m,f:iso()});
+    await save(); draw();
+    toast(abo(x)>acor(x)?clp(abo(x)-acor(x))+' sobre lo acordado':(csal(x)?'Abono anotado · saldo '+clp(csal(x)):'Pagado ✓ · '+(CN[x.cat]||x.cat)+' al día'));
+    compartirComprobante(c,x.ts,true);
+  } finally { cpagaOcup=false; }
+});
 function openCost(ch,pcat,pamt,seg){
   editing=ch||null; tkCostDe=null; tkVistoDe=null;
   const w=$('#scVwrap');
@@ -4634,10 +4721,27 @@ function pintaFuenteSel(){
     +'</div>'
     +(hayPend?'<button class="btn b-sec" style="margin-top:8px" data-fdesc="fotos">Descartar aviso (mantener lo actual)</button>':'');
 }
+/* 17/10/2026 (Andre): las fotos que subieron Víctor/Bryan/Corea también se ven acá (antes solo se veían las propias de André y,
+   si él no había subido, la ficha quedaba vacía aunque la web mostrara las de otro). Cada fuente en un plegable que recuerda si quedó abierto. */
+const phVerAb=new Set();
+function pintaFuenteVer(){
+  const el=$('#phFuenteVer'); if(!el) return;
+  const v=IDX[phCh]; const c=fotosVendCache[phCh]||{};
+  const ks=v?Object.keys(c).filter(k=>c[k]&&c[k].fotos&&c[k].fotos.length):[];
+  if(!ks.length){ el.hidden=true; el.innerHTML=''; return; }
+  const act=fotosEfectivas(v).fuente;
+  el.hidden=false;
+  el.innerHTML=ks.map(k=>{ const n=c[k].fotos.length, id=phCh+'|'+k;
+    return `<details data-fuver="${id}" ${phVerAb.has(id)?'open':''} style="border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:7px">
+      <summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13.5px"><span><b>Fotos de ${fuenteLabel(k)}</b> <span style="color:var(--mute)">· ${n}</span>${c[k].pendiente?' <span style="color:var(--amber)">· por revisar</span>':''}${k===act?' <span style="color:var(--green)">· en la web</span>':''}</span><span style="color:var(--mute);font-size:12.5px">ver ▾</span></summary>
+      <div style="margin-top:8px">${galFuenteHTML(c[k].fotos)}</div></details>`; }).join('');
+}
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.dataset||d.dataset.fuver===undefined) return; d.open?phVerAb.add(d.dataset.fuver):phVerAb.delete(d.dataset.fuver); },true);
 function drawPhotos(){
   $('#phSend').hidden=!phArr.length;
   pintaFuenteTip();
   pintaFuenteSel();
+  pintaFuenteVer();
   $('#phShare').textContent = phSel.size ? `➦ Enviar ${phSel.size} foto${phSel.size===1?'':'s'}` : '➦ Enviar fotos';
   $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph ${phSel.has(i)?'sel':''}" data-sel="${i}">
     <img src="${d}" alt="Foto ${i+1}">
@@ -6137,18 +6241,25 @@ function avisaFotosNuevas(){
   fpConocidos=claves;
   if($('#shFotosPub').classList.contains('on')) pintaFotosPub();
 }
+/* 17/10/2026 (Andre): "Ver fotos" abría la ficha de fotos de André (v.fotos), vacía si él no había subido: no se veía lo que
+   Víctor/Bryan querían publicar. Ahora despliega ahí mismo las fotos de ESA fuente (fotosVendCache[ch][fuente]); tocar una la agranda. */
+const fpVer=new Set();
+const galFuenteHTML=fotos=>`<div class="galFu">${(fotos||[]).map((u,i)=>`<img src="${String(u).replace(/"/g,'&quot;')}" alt="Foto ${i+1}" loading="lazy" data-galz="1">`).join('')}</div>`;
+document.addEventListener('click',e=>{ const im=e.target.closest('[data-galz]'); if(!im) return; const g=im.closest('.galFu'); alturaFluida(g,()=>im.classList.toggle('grande')); });
 function pintaFotosPub(){
   const L=fotosParaPublicar(), el=$('#fpList');
   $('#fpTodos').hidden=L.length<2;
-  el.innerHTML=L.length?L.map(x=>`<div style="padding:11px 0;border-bottom:1px solid var(--line)">
+  el.innerHTML=L.length?L.map(x=>{ const ab=fpVer.has(x.v.ch), F=(((fotosVendCache[x.v.ch]||{})[x.fu])||{}).fotos||[];
+    return `<div style="padding:11px 0;border-bottom:1px solid var(--line)">
       <div style="display:flex;align-items:center;gap:11px">
         <img src="${x.img}" alt="" data-fpver="${x.v.ch}" style="width:62px;height:62px;object-fit:cover;border-radius:10px;flex:0 0 auto;cursor:pointer">
         <div style="flex:1;min-width:0"><div style="font-weight:700">${x.v.ma} ${x.v.mo} <span style="color:var(--mute)">${x.v.an||''}</span></div>
           <div style="font-size:12.5px;color:var(--mute);margin-top:2px">${fpQuien(x)} · ${x.n} foto${x.n===1?'':'s'} · ${fd(isoDe(x.ts))}</div></div></div>
+      ${ab?`<div style="margin-top:9px"><div class="mtr" style="margin:0 0 5px">Fotos de ${fpQuien(x)} · así se verán en la web${F.length>1?' (la primera es la portada)':''}</div>${galFuenteHTML(F)}</div>`:''}
       <div class="acts" style="margin-top:9px">
         <button class="btn b-pri" data-fppub="${x.v.ch}" style="flex:1">Publicar</button>
-        <button class="btn b-sec" data-fpver="${x.v.ch}">Ver fotos</button>
-        <button class="btn b-sec" data-fpno="${x.v.ch}">Ahora no</button></div></div>`).join('')
+        <button class="btn b-sec" data-fpver="${x.v.ch}" aria-expanded="${ab}">${ab?'Ocultar fotos':'Ver fotos'}</button>
+        <button class="btn b-sec" data-fpno="${x.v.ch}">Ahora no</button></div></div>`; }).join('')
     :'<p class="mtr" style="margin:6px 0;color:var(--green)">✓ No quedan fotos nuevas por publicar.</p>';
 }
 function fpQuien(x){ return FUENTE_ETIQUETA[x.fu]||String(x.nombre||x.fu).replace(/</g,'&lt;'); }
@@ -6164,7 +6275,7 @@ document.addEventListener('click',async e=>{
   const pb=e.target.closest('[data-fppub]'), no=e.target.closest('[data-fpno]'), ver=e.target.closest('[data-fpver]');
   if(pb){ if(pb.disabled) return; pb.disabled=true; const v=IDX[pb.dataset.fppub]; await fpMarca(pb.dataset.fppub,true); toast('Publicado en la web: '+(v?v.ma+' '+v.mo:'')); }
   else if(no){ await fpMarca(no.dataset.fpno,false); }
-  else if(ver){ const ch=ver.dataset.fpver; closeAll(); show('pStock'); await openPhotos(ch); try{ segShow('fotos'); }catch(_){} }
+  else if(ver){ const ch=ver.dataset.fpver; alturaFluida($('#fpList'),()=>{ fpVer.has(ch)?fpVer.delete(ch):fpVer.add(ch); pintaFotosPub(); }); }
 });
 $('#fpTodos').addEventListener('click',async()=>{
   const L=fotosParaPublicar(); if(!L.length) return;
@@ -7740,7 +7851,7 @@ document.addEventListener('click',async e=>{
   const tl=e.target.closest('[data-tlisto]');
   if(tl){const [c,ts]=tl.dataset.tlisto.split('|'); if(!IDX[c]) return;
     const x=(S[c].tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;
-    openCost(c,COSTMAP[x.cat]||x.cat,x.est||null,'real'); tkCostDe=x.ts; pintaScPend();
+    openCost(c,COSTMAP[x.cat]||x.cat,x.est||null,'real'); tkCostDe=x.ts; pintaScPend(); irAlMonto();   /* 17/10/2026: baja solo hasta el monto */
     $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo con su costo · <button class="b-und" data-tsincosto="${c}|${x.ts}">No costó nada: marcar listo sin costo</button>`;
     return}
   const sc0=e.target.closest('[data-tsincosto]');

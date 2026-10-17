@@ -137,6 +137,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .phx .ctl button:disabled{opacity:.35;cursor:default}
 .ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.fwInfo{font-size:12px;margin-top:3px;line-height:1.35}   /* 17/10/2026: "En la web · fotos de …" en cada vehículo */
 .ph.sel{outline:3px solid var(--sea);outline-offset:-3px}
 .ph .sk{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--sea);color:#fff;
  font-size:12px;display:none;align-items:center;justify-content:center;font-weight:700}
@@ -145,6 +146,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .ph .ctl{position:absolute;bottom:0;left:0;right:0;display:flex;background:rgba(4,18,25,.82)}
 .ph .ctl button{flex:1;background:none;border:none;color:#fff;font-size:13px;padding:5px 0;cursor:pointer}
 .sendbar{margin-bottom:6px;display:flex;flex-direction:column;gap:8px}
+.sendbar[hidden]{display:none}   /* 17/10/2026: display:flex le ganaba a hidden (el botón de enviar se veía sin fotos) */
 .sendbar button{width:100%;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:14.5px;cursor:pointer;background:var(--sea);color:#fff}
 .sendbar button.web{background:transparent;border:1.5px solid var(--sea);color:var(--ink)}
 .sendbar button.web[disabled]{opacity:.55;cursor:default}
@@ -241,6 +243,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button class="chip" data-f="autos" aria-selected="false">Autos y SUV</button>
       <button class="chip" data-f="trab" aria-selected="false">De trabajo</button>
       <button class="chip" data-f="mias" aria-selected="false">Con mis fotos</button>
+      <button class="chip" data-f="sinfoto" aria-selected="false">Sin fotos web</button>
     </div>
     <div class="chips fila" id="estChips" role="tablist" aria-label="Dónde está" style="margin-top:4px">
       <button class="chip" data-fe="todos" aria-selected="true">Todos</button>
@@ -296,7 +299,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->17-10-2026 12:20 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->17-10-2026 13:59 · PRUEBAS<!--/VER--></b></p>
     <div class="chips" id="ajSegs" role="tablist">
       <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
       <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
@@ -642,6 +645,7 @@ function fbFotosVendListen(){
       if(!fotosVendCache[ch]) fotosVendCache[ch]={};
       fotosVendCache[ch][d.fuente]={fotos:Array.isArray(d.fotos)?d.fotos:[], pendiente:!!d.pendiente, nhd:Array.isArray(d.hd)?d.hd.length:0};
     });
+    fbDibujaPronto();   /* 17/10/2026: la marca "En la web · fotos de …" de cada vehículo depende de esto */
   };
   /* Si la consulta filtrada fallara (índice/permiso), se vuelve a escuchar todo como antes: nunca quedarse sin fotos. */
   let unsub=fbDb.collection(FB_FOTOS_COL).where('fuente','!=','').onSnapshot(alRecibir, e=>{ console.error('fbFotosVendListen filtro',e); try{unsub&&unsub()}catch(_){} fbDb.collection(FB_FOTOS_COL).onSnapshot(alRecibir, e2=>console.error('fbFotosVendListen', e2)); });
@@ -662,6 +666,32 @@ function fbF360VendListen(){
     });
   }, e=>console.error('fbF360VendListen', e));
 }
+/* 17/10/2026 (Andre): en cada vehículo se ve si ya está en la web y de quién son las fotos que muestra, para no subir de más.
+   Misma regla que fotosEfectivas() de Sistema: la fuente elegida a mano por André (fuentePref) si tiene fotos; si no, las de
+   André; si no, Víctor > Bryan > otros > Corea, sin contar las que esperan revisión. Las fotos de otros no se muestran acá. */
+const FUENTE_NOM={sistema:'André',victor:'Víctor',bryan:'Bryan',corea:'Corea'};
+function fuenteWeb(v){
+  const c=fotosVendCache[v.ch]||{}, tiene=k=>c[k]&&c[k].fotos&&c[k].fotos.length;
+  const propias=Array.isArray(v.fotos)&&v.fotos.length;
+  if(v.fuentePref==='sistema'&&propias) return {k:'sistema',n:v.fotos.length};
+  if(v.fuentePref&&v.fuentePref!=='sistema'&&tiene(v.fuentePref)) return {k:v.fuentePref,n:c[v.fuentePref].fotos.length};
+  if(propias) return {k:'sistema',n:v.fotos.length};
+  const ks=Object.keys(c).filter(k=>tiene(k)&&!c[k].pendiente);
+  const orden=['victor','bryan'].filter(k=>ks.includes(k)).concat(ks.filter(k=>k!=='victor'&&k!=='bryan'&&k!=='corea').sort(),ks.includes('corea')?['corea']:[]);
+  return orden.length?{k:orden[0],n:c[orden[0]].fotos.length}:{k:null,n:0};
+}
+function fotoWebInfo(v){
+  const fw=fuenteWeb(v), mia=slugFuente(ST.vend), pub=v.pub===true;
+  const nom=k=>k===mia?'tuyas':'de '+(FUENTE_NOM[k]||k);
+  const c=fotosVendCache[v.ch]||{}, pend=Object.keys(c).filter(k=>k!==fw.k&&c[k]&&c[k].pendiente&&c[k].fotos&&c[k].fotos.length);
+  const extra=pend.length?' · '+(pend.includes(mia)?'las tuyas esperan revisión de André':pend.map(k=>FUENTE_NOM[k]||k).join(', ')+' por revisar'):'';
+  if(pub&&fw.k) return {k:'web',col:'var(--green)',cort:'🌐 Web · fotos '+nom(fw.k),txt:'🌐 En la web · fotos '+nom(fw.k)+' ('+fw.n+')'+extra};
+  if(pub) return {k:'websin',col:'var(--amber)',cort:'🌐 Web · sin fotos',txt:'🌐 En la web · sin fotos todavía'+extra};
+  if(fw.k) return {k:'nopub',col:'var(--mute)',cort:'📷 Fotos '+nom(fw.k)+' · no en la web',txt:'📷 Fotos '+nom(fw.k)+' ('+fw.n+') · aún no está en la web'+extra};
+  return {k:'sin',col:'var(--amber)',cort:'Sin fotos',txt:'Sin fotos de nadie todavía'+extra};
+}
+const fotoWebHTML=(v,corto)=>{ const w=fotoWebInfo(v), t=corto?w.cort:w.txt; if(!t) return '';
+  return `<div class="${corto?'cm-s':'fwInfo'}" style="color:${w.col}${corto?';margin-top:2px':''}">${String(t).replace(/</g,'&lt;')}</div>`; };
 /* ¿Ya hay fotos/360° de OTRA fuente (Andre, u otro vendedor/Corea) para este vehículo? Si sí,
    lo que suba ahora `miFuente` queda pendiente de revisión de André en vez de mostrarse solo. */
 function hayOtrasFotos(ch,miFuente){
@@ -1267,6 +1297,7 @@ function fbAplica(ch, d){
   FB_LIMPIABLES.forEach(k=>{ if(d[k]===null) delete v[k]; });
   v.oferta = !!d.of;
   if(d.pub!==undefined) v.pub = !!d.pub;   /* publicado en la web (13/10/2026): para decirle al subir fotos si queda esperando a André */
+  if(d.fuentePref!==undefined) v.fuentePref = d.fuentePref||'';   /* 17/10/2026: fuente de fotos que André eligió a mano (ver fotoWebInfo) */
   if(d.res!==undefined){ if(d.res&&d.res.est==='activa') v.res={vence:d.res.vence||'',fecha:d.res.fecha||''}; else delete v.res; }
   if(d.pmin!==undefined && d.pmin!==null) v.pmin=d.pmin; else if(d.pmin===null) delete v.pmin;
   if(d.pventa!==undefined && d.pventa!==null) v.pventa=d.pventa; else if(d.pventa===null) delete v.pventa;
@@ -1970,7 +2001,7 @@ async function shareVehicle(ch,idxs){const v=IDX[ch];let a=await loadPhotos(ch);
 function pass(v){const t=fst(v.ch);
  if(fE==='camino'&&(v.st!=='ORIGEN'||v.enCorea)) return false; if(fE==='corea'&&!(v.st==='ORIGEN'&&v.enCorea)) return false; if(fE==='patio'&&v.st==='ORIGEN') return false;
  if(fT==='7p'&&!(+v.pa>=7)) return false; if(fT.startsWith('ca:')&&!(v.trab&&v.ca===fT.slice(3))) return false;
- if(fS==='autos')return !v.trab; if(fS==='trab')return v.trab; if(fS==='mias')return (t.nf||0)>0; return true}
+ if(fS==='autos')return !v.trab; if(fS==='trab')return v.trab; if(fS==='mias')return (t.nf||0)>0; if(fS==='sinfoto'){ const k=fotoWebInfo(v).k; return k==='sin'||k==='websin'; } return true}
 function diasEnPatioTexto(v){
  if(!v.llp) return '';
  const dias=Math.floor((Date.now()-new Date(v.llp+'T00:00:00').getTime())/86400000);
@@ -2058,7 +2089,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
    const cm=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
    return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
     <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
-    <div class="cm-s" style="white-space:normal">${String(carsC(v)).replace(/</g,'&lt;')}</div></div>
+    <div class="cm-s" style="white-space:normal">${String(carsC(v)).replace(/</g,'&lt;')}</div>${fotoWebHTML(v,true)}</div>
     <div style="text-align:right">${v.pventa?`<div class="cm-p">${precioNuevo(v)?'<span style="color:var(--amber)" title="Precio actualizado">↻ </span>':''}${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
   }
   const capCe=String(v.ce||'').charAt(0)+String(v.ce||'').slice(1).toLowerCase();
@@ -2066,7 +2097,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
   return `<div class="card"${compacto?` data-exp="${v.ch}"`:''}><span class="strip" style="background:${estado}"></span>
    <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
     <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
-    <div class="ch">${v.ch}${nf?' · '+nf+' foto'+(nf===1?'':'s')+' tuyas':' · sin fotos tuyas'}</div></div></div>
+    <div class="ch">${v.ch}${nf?' · '+nf+' foto'+(nf===1?'':'s')+' en tu teléfono':''}</div>${fotoWebHTML(v)}</div></div>
     ${chip}</div>
    ${sp?`<div class="specs">${sp}</div>`:''}
    ${v.ctr&&v.st==='ORIGEN'?`<div class="ch" style="margin-top:6px">📦 Viene en el contenedor ${v.ctrN?v.ctrN+' · ':''}<b style="font-family:var(--mono)">${ctrFmt(v.ctr)}</b></div>`:''}
