@@ -783,7 +783,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->17-10-2026 13:59<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->21-10-2026 19:01<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1191,9 +1191,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="fld"><label>Categoría</label><div class="catg" id="scCat"></div></div>
   <div class="fld" id="scCatOtroWrap" hidden><label for="scCatOtro">Nombre de la categoría</label>
     <input id="scCatOtro" placeholder="Ej: Bencina" autocomplete="off"></div>
-  <div class="fld"><label for="scProv">Taller o persona (opcional)</label>
-    <input id="scProv" list="dlProv" autocomplete="off" placeholder="Ej: Don Luis (pintura)">
-    <datalist id="dlProv"></datalist></div>
+  <div class="fld"><label for="scProvSel">Taller o persona (opcional)</label>
+    <select id="scProvSel" aria-label="Taller o persona"></select>
+    <input id="scProv" autocomplete="off" placeholder="Ej: DON LUIS" hidden style="margin-top:7px"></div>
+  <div class="fld"><label for="scDet">Detalle (opcional)</label>
+    <input id="scDet" autocomplete="off" placeholder="Ej: puerta trasera derecha y parachoques"></div>
   <div class="fld"><label for="scA">Precio acordado</label><input id="scA" inputmode="numeric" placeholder="$0">
     <div class="sug" id="scSug"></div></div>
   <div class="fld"><label>¿Cómo lo pagaste?</label>
@@ -1547,7 +1549,7 @@ const CATS=[['OBLIG','Obligatorio'],['PINTURA','Pintura'],['MECANICO','Mecánica
    inicial; CN devuelve ese formato también para categorías que no tienen nombre guardado (antes se veía la clave en mayúsculas). */
 const capCat=t=>{ t=String(t||'').replace(/_/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); return t.charAt(0).toUpperCase()+t.slice(1); };
 const CN=new Proxy(Object.fromEntries(CATS),{get:(o,k)=>(typeof k!=='string'||k in o)?o[k]:(/^[A-Z0-9_]{3,}$/.test(k)?capCat(k):undefined)});
-let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- solo de este computador/teléfono */
+let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Costo real -- desde el 21/10/2026 viajan por la nube (amk_cats_nube) */
 /* 16/10/2026 (Andre): Estimado y Costo real (y el estimado del Embarque) usan LAS MISMAS categorías, en el mismo orden.
    Suspensión y Niveles y fluidos pasan a ser categorías de costo (antes un pago de suspensión se guardaba como Mecánica);
    van aparte de CATS para no mover las columnas de "Copiar para Excel". Excepciones: Obligatorio solo en Costo real (es
@@ -1555,6 +1557,42 @@ let CATS_CUSTOM=[];   /* categorías que André fue agregando desde "Otro" en Co
 const CATS_EXTRA=[['SUSP','Suspensión'],['FLUIDOS','Niveles y fluidos']];
 const CAT_ORDEN=['PINTURA','MECANICO','SUSP','CHASIS','ELECT','TV','NEUMAT','PARB','ASIENTOS','BATERIA','REPNUE','REPUSA','ALERON','FLUIDOS'];
 function todasCATS(){ return CATS.concat(CATS_EXTRA,CATS_CUSTOM) }
+/* 21/10/2026: categorías agregadas, desde el mapa que viaja por la nube (amk_cats_nube). Publicidad y Cubrevolante van siempre. */
+function aplicaCatsCustom(m){
+  const L=Object.entries(m||{}).filter(([k,x])=>k&&k!=='OTRO'&&x&&typeof x==='object'&&x.n).map(([k,x])=>[k,String(x.n)]);
+  /* 02/10/2026: la publicidad se paga por vehículo; 07/10/2026: cubrevolante, botón fijo por vehículo */
+  if(!L.some(([k])=>k==='PUBLICIDAD')) L.push(['PUBLICIDAD','Publicidad']);
+  if(!L.some(([k])=>k==='CUBREVOLANTE')) L.push(['CUBREVOLANTE','Cubrevolante']);
+  CATS_CUSTOM=L; CATS_CUSTOM.forEach(([k,n])=>{ CN[k]=n; });
+}
+async function leeCatsMapa(){ try{ const r=await window.storage.get('amk_cats_nube'); const o=r&&r.value?JSON.parse(r.value):null; return (o&&typeof o==='object'&&!Array.isArray(o))?o:{}; }catch(_){ return {}; } }
+/* Primera vez con esta versión: las que este aparato tenía en la lista vieja (amk_cats_custom, solo local) pasan al mapa
+   sin perder ninguna; la mezcla con la nube las sube. La lista vieja no se borra (respaldo). */
+async function cargaCatsCustom(){
+  const m=await leeCatsMapa();
+  let mig=false; try{ const f=await window.storage.get('amk_cats_migr_v1'); mig=!!(f&&f.value); }catch(_){}
+  if(!mig){
+    let vie=[]; try{ const r=await window.storage.get('amk_cats_custom'); vie=r&&r.value?JSON.parse(r.value):[]; }catch(_){}
+    let cam=false;
+    (Array.isArray(vie)?vie:[]).forEach(p=>{ if(!Array.isArray(p)) return; let [k,n]=p; if(!k||!n||k==='OTRO') return;
+      /* 15/10/2026: las guardadas en mayúsculas pasan a "Escape" */
+      if(n===n.toUpperCase()&&/[A-ZÁÉÍÓÚÑ]{3}/.test(n)) n=capCat(n);
+      if(!m[k]){ m[k]={n}; cam=true; } });
+    try{ if(cam) await window.storage.set('amk_cats_nube',JSON.stringify(m)); await window.storage.set('amk_cats_migr_v1','1'); }catch(_){}
+  }
+  aplicaCatsCustom(m);
+}
+async function guardaCatCustom(k,n){
+  const m=await leeCatsMapa(); m[k]=Object.assign({},m[k]||{},{n});
+  await window.storage.set('amk_cats_nube',JSON.stringify(m));   /* window.storage.set sella la hora y la sube (NUBE_DOCS) */
+  aplicaCatsCustom(m);
+}
+/* Llegó una categoría de otro aparato: se repintan los botones que estén a la vista. */
+function repintaCats(){
+  try{ if($('#shCost').classList.contains('on')){ pintaScCat(); if(tkCh) drawTaskSheet(); } }catch(_){}
+  try{ if(typeof pintaEmEst==='function'&&$('#emEstCat')) pintaEmEst(); }catch(_){}
+  try{ draw(); }catch(_){}
+}
 function catsUnif(){ const nm=Object.fromEntries(todasCATS()), out=CAT_ORDEN.map(k=>[k,nm[k]]);
   CATS_CUSTOM.forEach(([k,n])=>{ if(!CAT_ORDEN.includes(k)&&k!=='OTRO') out.push([k,n]); });
   return out.concat([['OTRO','Otro']]); }
@@ -2275,6 +2313,13 @@ NUBE_DOCS['amk_navieras']={col:NUBE_DOCS['amk_embarques'].col,doc:'navieras',tip
 NUBE_DOCS['amk_adelantos']={col:NUBE_DOCS['amk_embarques'].col,doc:'adelantos',tipo:'lista',clave:'ts',nom:'adelantos'};
 NUBE_DOCS['amk_pagosf']={col:NUBE_DOCS['amk_embarques'].col,doc:'pagosFijos',tipo:'lista',clave:'ts',nom:'pagos de costos fijos'};
 NUBE_DOCS['amk_deudas']={col:NUBE_DOCS['amk_embarques'].col,doc:'deudas',tipo:'lista',clave:'id',nom:'deudas'};
+/* 21/10/2026 (Andre): las categorías de costo agregadas desde "Otro" viajan entre sus aparatos (antes quedaban solo en el
+   aparato donde se creaban). Mapa {CLAVE:{n:'Nombre'}}; la clave es slugCat del nombre (sin tildes ni mayúsculas), así la
+   misma categoría creada en dos aparatos queda una sola. Ver cargaCatsCustom / guardaCatCustom. */
+NUBE_DOCS['amk_cats_nube']={col:NUBE_DOCS['amk_embarques'].col,doc:'catsCosto',tipo:'mapa',nom:'categorías de costo'};
+/* 21/10/2026 (Andre): talleres o personas por categoría ("en Mecánica, Diego y Otro"), también entre aparatos.
+   Mapa {'CAT|NOMBRE_NORMALIZADO':{cat,n:'DIEGO'}}: el mismo nombre con o sin tildes/mayúsculas es uno solo. Ver talleresDeCat. */
+NUBE_DOCS['amk_talleres_cat']={col:NUBE_DOCS['amk_embarques'].col,doc:'talleresCosto',tipo:'mapa',nom:'talleres por categoría'};
 const NUBE_MAX=900000;
 const nubeUlt={}, nubeMod={}, nubeBorr={}, nubeTimers={}, nubePend={}, nubeListo={};
 /* Hasta que este aparato no se haya puesto al día con la nube, lo que se guarde NO se sella con hora:
@@ -2409,6 +2454,10 @@ function nubeRefresca(k){
     (async()=>{ try{ const r=await window.storage.get(k); PF=nubeParse(r&&r.value)||[]; pintaFJ(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_remesas'){
     (async()=>{ try{ const r=await window.storage.get(k); RM=nubeParse(r&&r.value)||[]; pintaRM(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_talleres_cat'){
+    (async()=>{ try{ await cargaTalleresCat(); if($('#shCost').classList.contains('on')) pintaScProv(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_cats_nube'){
+    (async()=>{ try{ const r=await window.storage.get(k); aplicaCatsCustom(nubeParse(r&&r.value)||{}); repintaCats(); }catch(e){ console.error('nubeRefresca',e); } })();
   }
 }
 /* Escucha la nube en vivo: cualquier cambio hecho en otro aparato llega solo. Reemplaza a la vieja
@@ -3376,14 +3425,14 @@ function cardS(v){
   if(pv)   filas.push(`Posventa <b style="color:var(--red)">${clp(pv)}</b>`);
   if(ac)   filas.push(`De esta app <b>${clp(ac)}</b>`);
 
-  const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat} · ${fd(x.date)}</span><span>${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
+  const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.det?' · '+String(x.det).replace(/</g,'&lt;'):''} · ${fd(x.date)}</span><span>${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
   /* 17/10/2026 (Andre): "Debe taller" sin botón. Ahora la tarjeta trae lo que se le debe al taller (＄ Pagar saldo: abono al MISMO costo,
      no un costo nuevo) y los trabajos abiertos (＄ Anotar costo: abre Costo real enlazado a ese trabajo, costTs, y el estimado deja de sumar). */
   const tallerBox=(()=>{ if(!deb) return '';
     const esc=t=>String(t||'').replace(/</g,'&lt;');
     const D=(s.costs||[]).filter(x=>csal(x)>0);
     const T=isS?[]:tasks(v.ch).filter(x=>x.cat!=='LAVADO'&&!x.costTs&&(!x.hecho||(!x.noAplica&&!x.sinCosto&&+x.est>0)));
-    const fD=D.map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.prov?' · '+esc(x.prov):''} <span style="color:var(--amber)">· debe ${clp(csal(x))}</span></span><span><button class="b-und" style="padding:6px 10px" data-cpaga="${v.ch}|${x.ts}">＄ Pagar saldo</button></span></div>`).join('');
+    const fD=D.map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.det?' · '+esc(x.det):''}${x.prov?' · '+esc(x.prov):''} <span style="color:var(--amber)">· debe ${clp(csal(x))}</span></span><span><button class="b-und" style="padding:6px 10px" data-cpaga="${v.ch}|${x.ts}">＄ Pagar saldo</button></span></div>`).join('');
     const fT=T.slice(0,3).map(x=>`<div class="xrow"><span>${x.imprevisto?'⚡ ':''}${TN[x.cat]||x.cat}${x.est?' <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">· est. '+clp(x.est)+'</span>':''}${x.hecho?' <span style="color:var(--red);font-size:11.5px">· sin costo anotado</span>':''}</span><span><button class="b-und" style="padding:6px 10px" data-tlisto="${v.ch}|${x.ts}">＄ Anotar costo</button></span></div>`).join('')
       +(T.length>3?`<button class="b-und" style="margin-top:4px" data-cost="${v.ch}">Ver los ${T.length} pendientes →</button>`:'');
     return `<div class="xlist" style="font-size:13px"><div class="mtr" style="margin:0 0 3px">Con el taller</div>${fD}${fT?`<div class="mtr" style="margin:7px 0 3px">Trabajos por pagar</div>${fT}`:''}</div>`; })();
@@ -3929,7 +3978,7 @@ document.addEventListener('click',async e=>{
   const sal=csal(x); if(!sal){ toast('Ese costo ya está pagado'); draw(); return; }
   cpagaOcup=true;
   try{
-    const m=pnum(await pedirDato({t:'Pagar saldo al taller',s:v.ma+' '+v.mo+' · '+(CN[x.cat]||x.cat)+(x.prov?' · '+x.prov:'')+' · acordado '+clp(acor(x))+' · saldo '+clp(sal),l:'Monto que pagas',v:String(sal),modo:'clp',ok:'Registrar pago'})||'');
+    const m=pnum(await pedirDato({t:'Pagar saldo al taller',s:v.ma+' '+v.mo+' · '+(CN[x.cat]||x.cat)+(x.det?' · '+x.det:'')+(x.prov?' · '+x.prov:'')+' · acordado '+clp(acor(x))+' · saldo '+clp(sal),l:'Monto que pagas',v:String(sal),modo:'clp',ok:'Registrar pago'})||'');
     if(!m) return;
     if(!x.abonos) x.abonos=x.amt?[{m:x.amt,f:x.date||iso()}]:[];
     x.abonos.push({m,f:iso()});
@@ -3962,13 +4011,14 @@ function openCost(ch,pcat,pamt,seg){
   $('#scPagoParte').setAttribute('aria-pressed','false');
   $('#scAbWrap').hidden=true; $('#scAb').value='';
   $('#scSug').innerHTML = pamt?`Estimado del taller ${clp(pamt)}`:'';
-  $('#scProv').value=''; cargaTalleres(); drawCostList();
+  $('#scProv').value=''; $('#scProvSel').value=''; $('#scDet').value=''; cargaTalleres(); drawCostList();
   const av=$('#scAviso'); if(av) av.hidden = !(editing && sold(editing));
   openSheet('shCost');
 }
 let scParcial=false, TALLERES=[];
 async function cargaTalleres(){
   try{const r=await window.storage.get('amk_talleres'); if(r&&r.value) TALLERES=JSON.parse(r.value)}catch(e){}
+  await cargaTalleresCat();
   llenaProv();
 }
 async function recuerdaTaller(t){
@@ -3984,8 +4034,45 @@ function provsDeCat(cat){
   for(const c in S) for(const x of ((S[c]||{}).costs||[])) if(x&&x.prov&&x.cat===cat){ const k=x.prov.trim(); if(k) n[k]=(n[k]||0)+1; }
   return Object.keys(n).sort((a,b)=>n[b]-n[a]||a.localeCompare(b));
 }
-function llenaProv(){ const d=$('#dlProv'); if(!d) return; let c=''; try{ c=scCat; }catch(_){}
-  d.innerHTML=provsDeCat(c).map(x=>`<option value="${x.replace(/"/g,'&quot;')}">`).join(''); }
+/* 21/10/2026 (Andre): "Taller o persona" es un desplegable propio de cada categoría: los nombres ya usados en ESA categoría
+   (los guardados en la nube + los que ya están en los costos anotados) y "Otro (escribir)…". El nombre nuevo queda guardado solo
+   al guardar el costo. Sin nombres todavía, se escribe directo. Antes era un <datalist>, poco confiable en el iPhone. */
+let TALL_CAT={};
+const normNom=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
+async function cargaTalleresCat(){ try{ const r=await window.storage.get('amk_talleres_cat'); const o=r&&r.value?JSON.parse(r.value):null; TALL_CAT=(o&&typeof o==='object'&&!Array.isArray(o))?o:{}; }catch(_){ TALL_CAT={}; } }
+function talleresDeCat(cat){
+  const out=new Map();
+  const pon=n=>{ const u=String(n||'').trim().toUpperCase(), k=normNom(u); if(k&&!out.has(k)) out.set(k,u); };
+  provsDeCat(cat).forEach(pon);   /* los más usados en esa categoría primero */
+  Object.values(TALL_CAT).filter(x=>x&&x.cat===cat&&x.n).map(x=>x.n).sort((a,b)=>String(a).localeCompare(String(b),'es')).forEach(pon);
+  return [...out.values()];
+}
+async function guardaTallerCat(cat,nombre){
+  const u=String(nombre||'').trim().toUpperCase(), k=normNom(u); if(!cat||!k) return;
+  await cargaTalleresCat(); const id=cat+'|'+k.replace(/ /g,'_');
+  if(TALL_CAT[id]) return;
+  TALL_CAT[id]={cat,n:u};
+  try{ await window.storage.set('amk_talleres_cat',JSON.stringify(TALL_CAT)); }catch(_){}   /* window.storage.set la sube a la nube (NUBE_DOCS) */
+  await cargaTalleresCat();
+}
+function pintaScProv(){
+  const sel=$('#scProvSel'), inp=$('#scProv'); if(!sel||!inp) return;
+  let c=''; try{ c=scCat; }catch(_){}
+  const L=talleresDeCat(c), act=inp.value.trim(), enOtro=sel.value==='__otro__'&&!inp.hidden;
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  if(!L.length){ sel.hidden=true; inp.hidden=false; inp.placeholder='Ej: DON LUIS'; return; }
+  sel.hidden=false; inp.placeholder='Escribe el nombre nuevo';
+  sel.innerHTML='<option value="">Elegir… (opcional)</option>'+L.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')+'<option value="__otro__">Otro (escribir)…</option>';
+  const ya=act?L.find(x=>normNom(x)===normNom(act)):null;
+  if(enOtro&&!ya){ sel.value='__otro__'; inp.hidden=false; }
+  else if(ya){ sel.value=ya; inp.value=ya; inp.hidden=true; }
+  else if(act){ sel.value='__otro__'; inp.hidden=false; }
+  else { sel.value=''; inp.hidden=true; }
+}
+$('#scProvSel').addEventListener('change',()=>{ const sel=$('#scProvSel'), inp=$('#scProv');
+  if(sel.value==='__otro__'){ inp.hidden=false; inp.value=''; setTimeout(()=>inp.focus(),30); }
+  else { inp.value=sel.value; inp.hidden=true; } });
+function llenaProv(){ pintaScProv(); }
 $('#scPagoTodo').addEventListener('click',()=>{scParcial=false;
   $('#scPagoTodo').setAttribute('aria-pressed','true');$('#scPagoParte').setAttribute('aria-pressed','false');
   $('#scAbWrap').hidden=true});
@@ -4001,6 +4088,7 @@ function comprobante(ch,x){
     `Vehículo: ${v.ma} ${v.mo} ${v.an||''}`,
     `Chasis: ${ch}`,
     `Trabajo: ${CN[x.cat]||x.cat}`];
+  if(x.det) L.push(`Detalle: ${x.det}`);
   if(x.prov) L.push(`Taller: ${x.prov}`);
   L.push(`Fecha: ${fd(x.date||iso())}`,'',`Precio acordado: ${clp(acor(x))}`);
   const ab=x.abonos||[];
@@ -4039,7 +4127,7 @@ function tkLinkCand(c){
   return out;
 }
 function tkLinkCandTodos(){ const L=[]; for(const c in S) if(IDX[c]&&!sold(c)) L.push(...tkLinkCand(c)); return L; }
-const tkLinkTxt=o=>`¿El ${CN[o.k.cat]||o.k.cat} de ${clp(acor(o.k))}${o.k.date?' del '+fd(o.k.date):''}${o.k.prov?' ('+String(o.k.prov).replace(/</g,'&lt;')+')':''} es el pago de este trabajo?`;
+const tkLinkTxt=o=>`¿El ${CN[o.k.cat]||o.k.cat} de ${clp(acor(o.k))}${o.k.date?' del '+fd(o.k.date):''}${o.k.det?' · '+String(o.k.det).replace(/</g,'&lt;'):''}${o.k.prov?' ('+String(o.k.prov).replace(/</g,'&lt;')+')':''} es el pago de este trabajo?`;
 function irAlMonto(){ setTimeout(()=>{ const a=$('#scA'); if(!a) return; try{ a.scrollIntoView({behavior:'smooth',block:'center'}); a.focus({preventScroll:true}); a.select(); }catch(_){} },120); }
 function pintaScPend(){
   const box=$('#scPend'), tb=$('#tkPend'); if(!box) return;
@@ -4086,7 +4174,8 @@ function drawCostList(){ try{ pintaScPend(); }catch(_){}
   $('#scList').innerHTML=L.length?'<div class="mtr" style="margin-bottom:7px">Costos registrados</div>'+
    L.slice().reverse().map(x=>`<div class="card plain" style="padding:11px">
     <div class="r1"><div><div class="tt" style="font-size:15px">${CN[x.cat]||x.cat}</div>
-      ${x.prov?`<div class="ch" style="text-transform:none;letter-spacing:0">${String(x.prov).replace(/</g,'&lt;')}</div>`:''}</div>
+      ${x.prov?`<div class="ch" style="text-transform:none;letter-spacing:0">${String(x.prov).replace(/</g,'&lt;')}</div>`:''}
+      ${x.det?`<div style="font-size:12.5px;color:var(--ink2);margin-top:2px">${String(x.det).replace(/</g,'&lt;')}</div>`:''}</div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${x.post?'<span class="tag t-of">Posventa</span>':''}
       <span class="tag ${csal(x)?'t-or':'t-sold'}">${csal(x)?'Debe '+clp(csal(x)):'Pagado'}</span></div></div>
@@ -4132,7 +4221,10 @@ $('#scCoreaDeshacer').addEventListener('click',async()=>{
   if(typeof webSyncPronto==='function') webSyncPronto();
   pintaCorea(); draw(); toast('"Aplicar costos" deshecho · vehículo editable de nuevo');
 });
-$('#scOk').addEventListener('click',async()=>{
+/* 21/10/2026: un doble toque en "Guardar costo" anotaba el costo dos veces (nada se cuenta dos veces): mientras se guarda, no hace nada. */
+let scOkOcup=false;
+$('#scOk').addEventListener('click',async()=>{ if(scOkOcup) return; scOkOcup=true; try{ await scOkGuarda(); } finally { scOkOcup=false; } });
+async function scOkGuarda(){
   const ch=editing||$('#scV').value, ac=pnum($('#scA').value);
   if(!ac){toast('Ingresa el precio acordado');return}
   let catFinal=scCat, nombreOtro='';
@@ -4141,14 +4233,17 @@ $('#scOk').addEventListener('click',async()=>{
     if(!nombreOtro){toast('Escribe el nombre de la categoría');return}
     nombreOtro=capCat(nombreOtro);
     catFinal=slugCat(nombreOtro);
+    /* 21/10/2026: si ya hay una categoría con ese nombre (ej. "suspension" = Suspensión), se usa esa y no se crea otra */
+    { const ya=todasCATS().find(([k,n])=>k!=='OTRO'&&(k===catFinal||slugCat(n)===catFinal)); if(ya){ catFinal=ya[0]; nombreOtro=ya[1]; } }
     if(!Object.prototype.hasOwnProperty.call(CN,catFinal)) CN[catFinal]=nombreOtro;
   }
   const f=$('#scD').value||iso();
   const pago=scParcial?(pnum($('#scAb').value)||0):ac;
   if(scParcial&&!pago){toast('Ingresa el monto abonado');return}
-  const prov=$('#scProv').value.trim();
-  await recuerdaTaller(prov);
+  let prov=$('#scProv').value.trim();
+  { const ya=talleresDeCat(catFinal).find(x=>normNom(x)===normNom(prov)); if(ya) prov=ya; else if(prov) prov=prov.toUpperCase(); }   /* "diego" = DIEGO de la lista */
   const nuevo={ts:Date.now(),cat:catFinal,acor:ac,date:f,prov,post:sold(ch),abonos:pago?[{m:pago,f}]:[]};
+  { const det=$('#scDet').value.trim(); if(det) nuevo.det=det; }   /* 19/10/2026 (Andre): detalle opcional del costo real, como en Estimado */
   /* 08/10/2026 (Andre): regla anti-duplicado. Si el costo se anota directo en Costo real (no desde el botón del trabajo)
      y el vehículo tiene un trabajo abierto de la misma categoría, se pregunta si es ese pago: si sí, el trabajo se cierra
      con el costo enlazado. Antes el estimado seguía sumando junto al real y el costo quedaba contado dos veces. */
@@ -4169,7 +4264,11 @@ $('#scOk').addEventListener('click',async()=>{
   if(tkCostDe!=null){ const tk=tasks(ch).find(y=>String(y.ts)===String(tkCostDe)); if(tk){ tk.hecho=true; tk.costTs=nuevo.ts; tk.realFe=f; if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } } tkCostDe=null; drawTaskSheet(); }
   await save();draw();drawCostList();
   ultimo={ch,ts:nuevo.ts};
-  $('#scA').value='';$('#scAb').value='';
+  $('#scA').value='';$('#scAb').value='';$('#scDet').value='';
+  /* 21/10/2026 (Andre): el taller y el detalle no quedan pegados para el costo siguiente; el pago vuelve a "Pagué todo" */
+  $('#scProv').value=''; $('#scProvSel').value='';
+  scParcial=false; $('#scPagoTodo').setAttribute('aria-pressed','true'); $('#scPagoParte').setAttribute('aria-pressed','false'); $('#scAbWrap').hidden=true;
+  if(prov) await guardaTallerCat(catFinal,prov);
   toast(pago<ac?'Registrado · saldo '+clp(ac-pago):'Costo registrado ✓');
   /* 2026-09-29: el comprobante se envía solo cuando queda saldo (abono parcial). Si se pagó todo, no se abre
      el menú de compartir -- se puede mandar igual desde la lista de costos si hace falta. */
@@ -4177,15 +4276,15 @@ $('#scOk').addEventListener('click',async()=>{
   llenaProv();
   /* categoría escrita a mano: preguntar si de ahora en adelante queda como botón fijo, igual */
   /* que las demás -- solo se pregunta si de verdad es nueva (no una que ya existía con ese nombre) */
-  if(nombreOtro&&!CATS_CUSTOM.some(([k])=>k===catFinal)&&!CATS.some(([k])=>k===catFinal)){
-    if(confirm('¿Guardar "'+nombreOtro+'" como categoría fija para la próxima vez?')){
-      CATS_CUSTOM=CATS_CUSTOM.concat([[catFinal,nombreOtro]]);
-      try{await window.storage.set('amk_cats_custom',JSON.stringify(CATS_CUSTOM))}catch(e){toast('No se pudo guardar el botón fijo')}
+  if(nombreOtro&&!todasCATS().some(([k])=>k===catFinal)){
+    if(confirm('¿Guardar "'+nombreOtro+'" como categoría fija para la próxima vez?\n\nQueda también en tus otros aparatos.')){
+      try{ await guardaCatCustom(catFinal,nombreOtro); }catch(e){toast('No se pudo guardar el botón fijo')}
     }
   }
   scCat=catFinal; pintaScCat();
   $('#scCatOtroWrap').hidden=true;
-});
+  pintaScProv();
+}
 
 document.addEventListener('click',async e=>{
   const ch=editing||$('#scV').value;
@@ -5000,13 +5099,7 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_pagosf'); if(r&&r.value) PF=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
-  try{const r=await window.storage.get('amk_cats_custom'); if(r&&r.value){ CATS_CUSTOM=JSON.parse(r.value)||[];
-    /* 15/10/2026: las guardadas en mayúsculas (se escribían así por la regla de mayúsculas) pasan a "Escape" */
-    let cam=false; CATS_CUSTOM=CATS_CUSTOM.map(([k,n])=>{ if(n&&n===n.toUpperCase()&&/[A-ZÁÉÍÓÚÑ]{3}/.test(n)){ cam=true; return [k,capCat(n)]; } return [k,n]; });
-    CATS_CUSTOM.forEach(([k,n])=>CN[k]=n); if(cam) try{ await window.storage.set('amk_cats_custom',JSON.stringify(CATS_CUSTOM)); }catch(_){} }}catch(e){}
-  /* 02/10/2026: la publicidad se paga por vehículo -> categoría fija 'Publicidad' en los costos de cada vehículo */
-  if(!CATS_CUSTOM.some(([k])=>k==='PUBLICIDAD')){ CATS_CUSTOM=CATS_CUSTOM.concat([['PUBLICIDAD','Publicidad']]); CN.PUBLICIDAD='Publicidad'; }
-  if(!CATS_CUSTOM.some(([k])=>k==='CUBREVOLANTE')){ CATS_CUSTOM=CATS_CUSTOM.concat([['CUBREVOLANTE','Cubrevolante']]); CN.CUBREVOLANTE='Cubrevolante'; }   /* 07/10/2026: botón fijo por vehículo */
+  await cargaCatsCustom();
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
   try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_fijos_krw');
@@ -7830,7 +7923,7 @@ document.addEventListener('click',async e=>{
     if(x){scCat=COSTMAP[x.cat]||x.cat; tkCostDe=x.ts;
       pintaScCat();
       $('#scCatOtroWrap').hidden=true;
-      $('#scA').value=x.est?clp(x.est):'';
+      $('#scA').value=x.est?clp(x.est):''; $('#scDet').value=x.nota||'';
       $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo`;
       llenaProv(); cseg('real'); pintaScPend(); irAlMonto();}
     return}
@@ -7851,7 +7944,7 @@ document.addEventListener('click',async e=>{
   const tl=e.target.closest('[data-tlisto]');
   if(tl){const [c,ts]=tl.dataset.tlisto.split('|'); if(!IDX[c]) return;
     const x=(S[c].tasks||[]).find(y=>String(y.ts)===ts); if(!x) return;
-    openCost(c,COSTMAP[x.cat]||x.cat,x.est||null,'real'); tkCostDe=x.ts; pintaScPend(); irAlMonto();   /* 17/10/2026: baja solo hasta el monto */
+    openCost(c,COSTMAP[x.cat]||x.cat,x.est||null,'real'); tkCostDe=x.ts; $('#scDet').value=x.nota||''; pintaScPend(); irAlMonto();   /* 17/10/2026: baja solo hasta el monto */
     $('#scSug').innerHTML=(x.est?`Estimado ${clp(x.est)} · `:'')+`al guardar, <b>${TN[x.cat]||x.cat}</b> queda listo con su costo · <button class="b-und" data-tsincosto="${c}|${x.ts}">No costó nada: marcar listo sin costo</button>`;
     return}
   const sc0=e.target.closest('[data-tsincosto]');
@@ -8144,7 +8237,7 @@ function tags(v){
 }
 
 function genFB(v,k){
-  const f=feats(v), sv=v.sv?'\nCircula en Santiago, Valparaíso y O\u2019Higgins (apto sello verde).':'';
+  const f=feats(v), sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
   const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea
 
 ${f.map(x=>'• '+x).join('\n')}${sv}
@@ -8397,7 +8490,7 @@ ${tags(v)}`;
 }
 const PR_PREGUNTAS=[
   {q:'¿Los autos vienen revisados antes de comprarlos?', r:'Los revisamos en persona en Corea antes de comprarlo. Nunca compramos por foto ni por catálogo. Ya acá en Iquique los preparamos: mecánica, pintura y detallado.'},
-  {q:'¿Qué es el sello verde y cuáles autos lo tienen?', r:'Es la calcomanía que permite circular en Santiago, Valparaíso y O\u2019Higgins en episodios de restricción vehicular. No aplica a vehículos de trabajo, porque pesan más de 2.700 kg.'},
+  {q:'¿Qué es el sello verde y cuáles autos lo tienen?', r:'Es la calcomanía que permite circular en Santiago, Valparaíso y Viña del Mar en episodios de restricción vehicular. No aplica a vehículos de trabajo, porque pesan más de 2.700 kg.'},
   {q:'¿Por qué autos importados desde Corea?', r:'Porque en Corea encontramos vehículos con menos uso y bien mantenidos. Vamos, los revisamos en persona y recién ahí los compramos — no compramos por catálogo.'}
 ];
 function genTTPR(v,k){
@@ -11560,8 +11653,8 @@ function descargaRespaldoExcel(auto){
     V.forEach(v=>{ const t=S[v.ch]||{}, r=t.res||null, pg=r?(r.pagos||[]).reduce((a,x)=>a+(+x.m||0),0):'';
       sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r?r.precio:'',pg,r?r.vence:'']); });
     sheets.push({name:'Ventas y precios',rows:sv});
-    const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Fecha','Acordado','Pagado','Debe','Posventa']];
-    for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
+    const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Detalle','Fecha','Acordado','Pagado','Debe','Posventa']];
+    for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.det||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
     sheets.push({name:'Costos por vehículo',rows:co});
     sheets.push({name:'Gastos generales',rows:[['Fecha','Categoría','Monto','Nota']].concat(GEN.map(g=>[g.fecha,GENCATN[g.cat]||g.cat,g.monto,g.nota||'']))});
     const pg=[['Fecha','Tipo','Persona / concepto','Detalle','Monto']];

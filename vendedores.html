@@ -175,6 +175,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .syncbox .st-ok{color:var(--green);font-weight:700}.syncbox .st-warn{color:var(--amber);font-weight:700}.syncbox .st-mut{color:var(--ink);font-weight:700}
 .box{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;margin-bottom:11px}
 .box h3{font-family:var(--disp);font-weight:700;font-size:16px;margin:0 0 4px}
+/* 21/10/2026 (Andre): las secciones de arriba de Herramientas son segmentos (.segs, como Negocio en Sistema),
+   un nivel más alto que los chips de abajo. Mismo estilo que Sistema. */
+.segs{display:flex;flex-wrap:wrap;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
+.segs button{flex:1 1 auto;min-width:0;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
+#ajSegs{flex-wrap:nowrap;gap:2px}#ajSegs button{padding:10px 2px;font-size:13.5px;white-space:nowrap}
+.segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .box p{margin:0 0 11px;font-size:13.5px;color:var(--ink2)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--seaD);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35);
  padding:12px 17px;border-radius:11px;font-weight:600;font-size:13.5px;opacity:0;transition:.22s;z-index:90;pointer-events:none;max-width:88%;text-align:center}
@@ -195,7 +201,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .sheet:not(.on){transition:transform .24s cubic-bezier(.4,0,1,1)}
 /* Botones y chips: cambio de color suave y un leve "hundirse" al tocar. */
 .chip,.btn,.tb,.stSel,.secBar button,.opt button,.b-und{transition:background-color .2s var(--ease),border-color .2s var(--ease),color .2s var(--ease),transform .14s var(--ease),box-shadow .2s var(--ease)}
-.chip:active,.btn:active,.stSel:active,.secBar button:active,.opt button:active{transform:scale(.96)}
+.chip:active,.btn:active,.stSel:active,.secBar button:active,.opt button:active,.segs button:active{transform:scale(.96)}
 /* Barra de abajo: una sola franja plateada que se desliza a la pestaña elegida (antes saltaba). */
 .tabbar.conInd .tb::before{display:none!important}
 .tbInd{position:absolute;top:0;left:0;height:3px;width:0;background:var(--plata);border-radius:0 0 3px 3px;pointer-events:none;transition:transform .34s var(--ease),width .34s var(--ease),opacity .2s}
@@ -298,12 +304,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->17-10-2026 13:59<!--/VER--></b></p>
-    <div class="chips" id="ajSegs" role="tablist">
-      <button class="chip" data-aj="vender" aria-selected="true">Para vender</button>
-      <button class="chip" data-aj="reportar" aria-selected="false">Reportar</button>
-      <button class="chip" data-aj="cuenta" aria-selected="false">Mi cuenta</button>
-      <button class="chip" data-aj="ayuda" aria-selected="false">Ayuda</button>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->21-10-2026 19:01<!--/VER--></b></p>
+    <div class="segs" id="ajSegs">
+      <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
+      <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
+      <button type="button" data-aj="cuenta" aria-pressed="false">Mi cuenta</button>
+      <button type="button" data-aj="ayuda" aria-pressed="false">Ayuda</button>
     </div>
     <div id="ajVender">
     <div class="box" id="boxCtaVend"><h3>Cuenta para reservas</h3>
@@ -312,7 +318,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button class="btn b-pri" id="ctaVendShare" style="width:100%;margin-top:9px" hidden>🖼️ Enviar imagen + datos al cliente</button>
       <button class="btn b-sec" id="ctaVendCp" style="width:100%;margin-top:8px" hidden>📋 Copiar solo el texto</button>
     </div>
-    <div class="box"><h3>Imágenes para publicar</h3>
+    <div class="box" id="hbCot"><h3>Cotización de liberación</h3>
+      <p>Para clientes con cupo de discapacidad.</p>
+      <div class="fld"><label for="cbQ">Vehículo</label>
+        <input type="hidden" id="cbV">
+        <input class="search" id="cbQ" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
+        <div id="cbRes" style="margin-top:8px"></div>
+        <div id="cbSel" hidden></div>
+        <datalist id="dlCbV"></datalist></div>
+      <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="Lo que se acuerde con el cliente"></div>
+      <div class="fld"><label for="cbBase">Base imponible</label><input id="cbBase" inputmode="numeric" placeholder="$0">
+        <div class="mtr" id="cbBaseNota">Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.</div></div>
+      <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
+      <div id="cbDet"></div>
+      <button class="btn b-pri" id="cbEnv" style="width:100%;margin-top:11px">➦ Enviar cotización</button></div>
+    <div class="box" id="hbImg"><h3>Imágenes para publicar</h3>
       <p>Elige el vehículo (opcional), marca las características y genera las dos imágenes.</p>
       <div class="fld"><label for="ivV">Vehículo <span style="color:var(--mute);font-weight:400;font-size:12px">(opcional)</span></label>
         <input id="ivV" list="dlIvV" autocomplete="off" placeholder="Escribe marca, modelo o chasis (o déjalo vacío)">
@@ -356,27 +376,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div class="acts" id="ivMk" hidden style="margin-top:9px">
         <button class="btn b-sec" id="ivMkBtn" style="flex:1">Publicar en Marketplace</button></div>
       <div class="mtr" id="ivTplT" style="margin-top:8px"></div></div>
-    <div class="box"><h3>Cotización de liberación</h3>
-      <p>Para clientes con cupo de discapacidad.</p>
-      <div class="fld"><label for="cbQ">Vehículo</label>
-        <input type="hidden" id="cbV">
-        <input class="search" id="cbQ" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
-        <div id="cbRes" style="margin-top:8px"></div>
-        <div id="cbSel" hidden></div>
-        <datalist id="dlCbV"></datalist></div>
-      <div class="fld"><label for="cbVenta">Valor de venta al cliente</label><input id="cbVenta" inputmode="numeric" placeholder="Lo que se acuerde con el cliente"></div>
-      <div class="fld"><label for="cbBase">Base imponible</label><input id="cbBase" inputmode="numeric" placeholder="$0">
-        <div class="mtr" id="cbBaseNota">Elige el vehículo y aparece sola. Si no aparece, consúltala con la administración.</div></div>
-      <div class="fld"><label for="cbTras">Traslado</label><input id="cbTras" inputmode="numeric" placeholder="$0"></div>
-      <div id="cbDet"></div>
-      <button class="btn b-pri" id="cbEnv" style="width:100%;margin-top:11px">➦ Enviar cotización</button></div>
     </div>
     <div id="ajReportar" hidden>
-    <div class="box"><h3>Insumos del taller</h3>
+    <div class="box" id="hbIns"><h3>Insumos del taller</h3>
       <p>Avisa cuando se esté acabando algo de uso general (combustible, desengrasante, renovador de gomas, silicona, etc). No es por vehículo.</p>
       <button class="btn b-pri" data-insumo="1" style="width:100%">Insumo bajo</button>
       <div id="insMios" style="margin-top:12px"></div></div>
-    <div class="box"><h3>Demanda de clientes</h3>
+    <div class="box" id="hbDem"><h3>Demanda de clientes</h3>
       <p>Cuando un cliente busca algo que no tenemos, anótalo aquí para tenerlo en cuenta al comprar. Se comparte con Andre y con Corea, y lo ves aquí abajo también.</p>
       <div class="fld"><label for="dcMarca">Marca</label>
         <input id="dcMarca" list="dlDcMarca" autocomplete="off" placeholder="Ej: Hyundai (o escribe una nueva)">
@@ -411,26 +417,26 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="dcList" style="margin-top:12px"></div></div>
     </div>
     <div id="ajCuenta" hidden>
-    <div class="box"><h3>Mi sueldo</h3>
+    <div class="box" id="hbSueldo"><h3>Mi sueldo</h3>
       <p>Esta quincena y la anterior, con los descuentos y comisiones ya aplicados. Se actualiza solo, cuando Andre hace cambios en Sistema.</p>
       <div id="miSueldoList"></div></div>
-    <div class="box"><h3>Adelantos de sueldo</h3>
+    <div class="box" id="hbAdel"><h3>Adelantos de sueldo</h3>
       <p>Deja constancia de lo que recibiste. Se envía al administrador.</p>
       <div class="fld"><label for="avM">Monto recibido</label><input id="avM" inputmode="numeric" placeholder="$0"></div>
       <div class="fld"><label for="avD">Fecha</label><input id="avD" type="date"></div>
       <div class="fld"><label for="avN">Nota (opcional)</label><input id="avN" placeholder="Ej: para la micro"></div>
       <button class="btn b-pri" id="avOk" style="width:100%">Avisar adelanto de sueldo</button>
       <div id="avList" style="margin-top:12px"></div></div>
-    <div class="box"><h3>Ventas avisadas</h3>
+    <div class="box" id="hbVtas"><h3>Ventas avisadas</h3>
       <p>Lo que reportaste con "Avisar venta" en cada vehículo. Se marca cuando Andre ya lo revisó en Sistema.</p>
       <div id="vtList"></div></div>
     </div>
     <div id="ajAyuda" hidden>
-    <div class="box"><h3>Conexión con la nube</h3>
+    <div class="box" id="hbNube"><h3>Conexión con la nube</h3>
       <div id="syncEstado" class="syncbox" aria-live="polite">—</div>
       <button class="btn b-sec" id="syncReint" type="button" style="width:100%;margin-top:10px">Reintentar ahora</button></div>
-    <div class="box"><h3>Espacio usado</h3><p id="spTxt">—</p></div>
-    <div class="box"><h3>Cómo funciona</h3>
+    <div class="box" id="hbEsp"><h3>Espacio usado</h3><p id="spTxt">—</p></div>
+    <div class="box" id="hbAyuda"><h3>Cómo funciona</h3>
       <p>Las fotos que subes se guardan solo en <b>tu</b> teléfono. Cada vendedor tiene sus propias fotos, para que los avisos no se vean repetidos en Marketplace.</p>
       <p>Los precios los define la administración. Si un vehículo no muestra precio, consúltalo antes de cotizar.</p>
       <p style="margin:0"><b>Precio mínimo:</b> es lo más bajo que puedes ofrecer sin consultar. No lo compartas con el cliente como si fuera el precio de lista.</p></div>
@@ -819,12 +825,12 @@ function rrDisp(v){
   return `¡Hola! Sí, ${est}\n\n¿Quieres que te mande más fotos o prefieres venir a verlo?${rrFirma()}`;
 }
 function rrSVGeneral(){
-  return `El sello verde se otorga a vehículos año 2018 en adelante y de menos de 2.700 kg. Sin sello verde el vehículo no puede circular en la Región Metropolitana, Valparaíso ni O'Higgins; en el resto del país circula sin problema.`;
+  return `El sello verde se otorga a vehículos año 2018 en adelante y de menos de 2.700 kg. Sin sello verde el vehículo no puede circular en Santiago, Valparaíso ni Viña del Mar; en el resto del país circula sin problema.`;
 }
 function rrSV(v){
   let t;
-  if(v.sv) t=`¡Sí! El ${rrAuto(v)} es apto para sello verde, así que puede circular en Santiago, Valparaíso y O'Higgins sin problema.`;
-  else if(v.an&&+v.an<2018) t=`El ${rrAuto(v)} es año ${v.an}, así que no califica para sello verde: no puede circular en la Región Metropolitana, Valparaíso ni O'Higgins. En el resto del país, sin problema.`;
+  if(v.sv) t=`¡Sí! El ${rrAuto(v)} es apto para sello verde, así que puede circular en Santiago, Valparaíso y Viña del Mar sin problema.`;
+  else if(v.an&&+v.an<2018) t=`El ${rrAuto(v)} es año ${v.an}, así que no califica para sello verde: no puede circular en Santiago, Valparaíso ni Viña del Mar. En el resto del país, sin problema.`;
   else t=`Déjame confirmarte si el ${rrAuto(v)} califica para sello verde y te aviso. ${rrSVGeneral()}`;
   return `${t}${rrFirma()}`;
 }
@@ -1232,11 +1238,13 @@ function pintaDemanda(){
 }
 $('#ajSegs').addEventListener('click',e=>{
   const b=e.target.closest('[data-aj]'); if(!b) return;
+  if(b.getAttribute('aria-pressed')==='true') return;
+  const grupos={vender:'ajVender',reportar:'ajReportar',cuenta:'ajCuenta',ayuda:'ajAyuda'};
   alturaFluida(MAIN,()=>{
-   $$('#ajSegs .chip').forEach(x=>x.setAttribute('aria-selected', x===b?'true':'false'));
-   const grupos={vender:'ajVender',reportar:'ajReportar',cuenta:'ajCuenta',ayuda:'ajAyuda'};
+   $$('#ajSegs [data-aj]').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
    Object.keys(grupos).forEach(k=>{const el=document.getElementById(grupos[k]); if(el) el.hidden=(k!==b.dataset.aj)});
   });
+  entraSuave(document.getElementById(grupos[b.dataset.aj]));
 });
 $('#dcMarca').addEventListener('input', pintaDlMarcasModelos);
 $('#dcCaracChips').addEventListener('click',e=>{
@@ -1847,7 +1855,7 @@ function tags(v){const b=['#Iquique','#ZonaFranca','#AutosIquique','#ImportadosD
  '#'+v.ma.replace(/\s+/g,''),'#'+v.mo.replace(/[^A-Za-z0-9]/g,'')];
  if(v.trab)b.push('#VehiculosDeTrabajo','#Camioneta'); else b.push('#AutosUsados');
  if(v.sv)b.push('#SelloVerde'); b.push('#Tarapaca'); return b.join(' ')}
-function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso y O\u2019Higgins (apto sello verde).':'';
+function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
  const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nLo revisamos en persona en Corea antes de comprarlo, y lo preparamos acá en Iquique.\n\n${priceLine(v)}\nEscríbeme por interno y coordinamos que lo veas.\n\nAMK Vehículos Selectos · Iquique`;
  const B=`Disponible: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.join(' · ')}${sv}\n\nSeleccionado en persona en Corea antes de subirlo al contenedor.\n\n${priceLine(v)}\nConsultas por mensaje.\n\nAMK Vehículos Selectos · Iquique`;
  const C=`${v.ma} ${v.mo} ${v.an||''} en stock\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nPreparado y listo para entrega en Iquique.\n\n${priceLine(v)}\nTe respondo al tiro.\n\nAMK Vehículos Selectos`;
@@ -2881,13 +2889,26 @@ boot();
    las muestra todas como antes. No cambia nada de cómo funciona cada sección: solo se ocultan (clase .secOff). */
 (function(){
   const st=document.createElement('style');
-  st.textContent='.secOff{display:none!important}.secBar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.secBar button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}.secBar button[aria-pressed="true"]{background:var(--btn2,#2a4b55);color:#EAF0F1;border-color:transparent}';
+  st.textContent='.box.colp>:not(.colHead){display:none!important}.box.colp .colHead{margin-bottom:0!important}.colTit{cursor:pointer;user-select:none}.colTit::after{content:" ▾";color:var(--mute);font-size:.8em}.box.colp .colTit::after{content:" ▸"}.secOff{display:none!important}.secBar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.secBar button{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}.secBar button[aria-pressed="true"]{background:var(--btn2,#2a4b55);color:#EAF0F1;border-color:transparent}';
   document.head.appendChild(st);
 })();
+/* 21/10/2026 (Andre): cada caja de Herramientas se despliega tocando su título, igual que en Sistema (colArma).
+   Empiezan cerradas para ver de un vistazo qué hay; cada aparato recuerda cuáles dejaste abiertas (localStorage,
+   es preferencia de pantalla). */
+function colArma(b,key,abierta){
+  if(!b||b.dataset.col||b.tagName==='DETAILS') return; const h=b.querySelector('h3,h2'); if(!h) return;
+  let head=h; while(head.parentElement&&head.parentElement!==b) head=head.parentElement; if(head.parentElement!==b) return;
+  head.classList.add('colHead'); h.classList.add('colTit'); b.dataset.col=key;
+  let cerr=!abierta; try{ const x=localStorage.getItem('amk_col_'+key); if(x!==null) cerr=x==='1'; }catch(_){}
+  b.classList.toggle('colp',cerr);
+  h.addEventListener('click',e=>{ if(e.target.closest('button,input,select,a')) return; colPon(b,!(b.classList.contains('colp')||b._movCerr)); });
+}
+function colPon(b,cerr){ if(!b||!b.dataset.col) return; if(typeof plegar!=='function') b.classList.toggle('colp',cerr); else if((b.classList.contains('colp')||!!b._movCerr)!==!!cerr) plegar(b,!!cerr,v=>b.classList.toggle('colp',v)); try{localStorage.setItem('amk_col_'+b.dataset.col,cerr?'1':'0')}catch(_){} }
 function secBarArma(pane){
   if(!pane||pane.querySelector(':scope > .secBar')) return;
   const cajas=()=>[...pane.querySelectorAll('.box')].filter(b=>!b.parentElement.closest('.box')&&b.closest('[id]')&&(b.closest('.secPane')===pane));
   pane.classList.add('secPane');
+  cajas().forEach((b,i)=>colArma(b,b.id||(pane.id+'_c'+i),false));
   /* En Embarque la primera caja (elegir el BL) queda siempre a la vista: es el contexto de todo lo demás. */
   const fijas=pane.id==='ngEmbarque'?1:0;
   const cajas0=cajas; const cajasTodas=()=>cajas0(); 
@@ -2897,14 +2918,17 @@ function secBarArma(pane){
   const clave='amk_sec_'+pane.id; let sel='';
   try{ sel=localStorage.getItem(clave)||''; }catch(_){}
   const pinta=()=>{
-    const L=cajasTodas().slice(fijas); L.forEach((b,i)=>{ if(!b.dataset.secId) b.dataset.secId=pane.id+'_'+i; });
+    const L=cajasTodas().slice(fijas); L.forEach((b,i)=>{ if(!b.dataset.secId) b.dataset.secId=b.id||(pane.id+'_'+i); });
     const visibles=L.filter(b=>!b.hidden&&b.style.display!=='none');
     if(sel&&!visibles.some(b=>b.dataset.secId===sel)) sel='';
     bar.innerHTML=`<button type="button" data-secsel="" aria-pressed="${!sel}">Todas</button>`+visibles.map(b=>`<button type="button" data-secsel="${b.dataset.secId}" aria-pressed="${sel===b.dataset.secId}">${tit(b).replace(/</g,'&lt;')}</button>`).join('');
     L.forEach(b=>b.classList.toggle('secOff',!!sel&&b.dataset.secId!==sel));
     if(sel){ const b=L.find(x=>x.dataset.secId===sel); if(b&&b.tagName==='DETAILS') b.open=true; }
   };
-  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta(); x.scrollIntoView({block:'nearest',inline:'center'}); });
+  /* Elegir una caja en los chips la abre (solo al tocar: si después la cierras, no se vuelve a abrir sola). */
+  bar.addEventListener('click',e=>{ const x=e.target.closest('[data-secsel]'); if(!x) return; sel=x.dataset.secsel; try{localStorage.setItem(clave,sel)}catch(_){} pinta();
+    if(sel){ const b=cajasTodas().find(c=>c.dataset.secId===sel); if(b&&b.classList.contains('colp')) colPon(b,false); }
+    x.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'}); [...pane.children].forEach(c=>{ if(c!==bar&&!c.classList.contains('secOff')&&c.offsetParent) entraSuave(c); }); });
   pinta();
   /* Si la app muestra u oculta una sección sola (ej. "Gastos generales de Corea"), la fila se actualiza. */
   try{ new MutationObserver(()=>{ clearTimeout(pane._secT); pane._secT=setTimeout(pinta,120); }).observe(pane,{subtree:true,attributes:true,attributeFilter:['hidden']}); }catch(_){}
