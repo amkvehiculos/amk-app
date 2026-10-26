@@ -99,6 +99,20 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .sact button.web{background:transparent;border:1.5px solid var(--sea);color:var(--ink)}
 .sact button.web[disabled]{opacity:.55;cursor:default}
 .webtip{font-size:12px;color:var(--mute);margin:-3px 0 11px;line-height:1.4}
+/* Dinero → Por pagar (26/10/2026) */
+.ppTot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 10px}
+.ppTot span{font-family:var(--mono);font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute)}
+.ppTot b{font-family:var(--disp);font-size:26px;font-weight:800;color:var(--amber)}
+.ppH{font-family:var(--disp);font-size:16px;margin:20px 0 2px}
+.ppBtn{padding:7px 10px;font-size:12.5px;margin-top:5px}
+.ppVacio{padding:22px 16px}
+/* Vehículos: grupos por contenedor (26/10/2026) */
+.grpH{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:18px 2px 8px;font-family:var(--disp);font-weight:700;font-size:15px;color:var(--ink)}
+.grpH:first-child{margin-top:4px}
+.grpH>span:last-child{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--mute);white-space:nowrap}
+.grpZ{font-family:var(--body);font-weight:600;font-size:12px;color:var(--green)}
+.crTags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+#ppResumen .xrow{font-size:14px}
 .updrop{border:1.5px dashed var(--line);border-radius:11px;padding:18px;text-align:center;color:var(--mute);font-size:13.5px;cursor:pointer;background:var(--seaL);margin-bottom:11px}
 .mtr{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:4px}
 .v360{position:relative;background:var(--seaL);border-radius:12px;overflow:hidden;aspect-ratio:4/3;margin-bottom:12px;touch-action:pan-y}
@@ -225,7 +239,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <h2>Vehículos comprados</h2><p class="sub">Carga cada vehículo apenas lo compres.</p>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
-    <div class="opt fila" id="fltRow" aria-label="Filtro"></div>
+    <div class="steps" id="fltRow" role="tablist" aria-label="Qué vehículos ver" style="margin:12px 0 0"></div>
+    <div class="nota" id="subAviso" hidden style="border-left-color:var(--amber);margin-top:10px"></div>
     <div class="cntRow"><p class="cnt" id="cnt"></p><button id="vistaCor" class="cntVista" type="button" aria-label="Cambiar vista">☰ Compacta</button></div>
     <div id="list"></div>
   </section>
@@ -264,10 +279,27 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div id="histList"></div>
   </section>
 
+  <section class="panel" id="pPagar">
+    <div class="steps seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" data-p="pPagar" aria-selected="true">＄ Por pagar</button>
+      <button role="tab" data-p="pRemesa" aria-selected="false">₩ Remesas</button>
+      <button role="tab" data-p="pGastos" aria-selected="false">◫ Gastos</button></div>
+    <h2>Por pagar</h2><p class="sub">Lo que falta pagar de los vehículos ya comprados: el saldo que queda después de la seña y los costos estimados (batería, cromado, asientos…). Sirve para saber cuánta plata se necesita.</p>
+    <div class="box" id="ppResumen"></div>
+    <button class="big" id="ppEstNuevo" type="button">＋ Agregar costo estimado</button>
+    <h3 class="ppH">Saldos de compra</h3>
+    <p class="sub" style="margin-bottom:9px">Solo los vehículos con seña anotada. Si pagaste todo de una vez, no anotes seña y no aparece acá.</p>
+    <div id="ppSal"></div>
+    <h3 class="ppH">Costos estimados</h3>
+    <p class="sub" style="margin-bottom:9px">Lo que crees que falta comprar. Cuando lo compres, pásalo a costo real y deja de contar acá.</p>
+    <div id="ppEst"></div>
+  </section>
+
   <section class="panel" id="pRemesa">
     <div class="steps seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" data-p="pPagar" aria-selected="false">＄ Por pagar</button>
       <button role="tab" data-p="pRemesa" aria-selected="true">₩ Remesas</button>
-      <button role="tab" data-p="pGastos" aria-selected="false">◫ Gastos generales</button></div>
+      <button role="tab" data-p="pGastos" aria-selected="false">◫ Gastos</button></div>
     <h2>Remesas recibidas</h2><p class="sub">Andre envía el dinero desde Chile. Cuando llegue a tu banco, anota aquí los wones que llegaron: Iquique lo recibe solo y lo une con lo que envió.</p>
     <div id="reCamino"></div>
     <button class="big" id="reNueva">＋ Anotar remesa recibida</button>
@@ -292,13 +324,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pGastos">
     <div class="steps seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" data-p="pPagar" aria-selected="false">＄ Por pagar</button>
       <button role="tab" data-p="pRemesa" aria-selected="false">₩ Remesas</button>
-      <button role="tab" data-p="pGastos" aria-selected="true">◫ Gastos generales</button></div>
+      <button role="tab" data-p="pGastos" aria-selected="true">◫ Gastos</button></div>
     <h2>Gastos generales</h2><p class="sub">Compras que no son de un vehículo en particular (ej: cromados comprados en bloque). Anótalas acá y después ve asignando cuánto le corresponde a cada vehículo. Lo que quede sin asignar se reparte después, en Sistema, entre los vehículos del embarque.</p>
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 19:12<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 17:48<!--/VER--></b></p>
   </section>
 </main>
 
@@ -306,7 +339,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <button class="tb" role="tab" data-p="pLista" aria-selected="true"><i>▦</i>Vehículos</button>
   <button class="tb" role="tab" data-p="pCont" aria-selected="false"><i>▣</i>Contenedores</button>
   <button class="tb" role="tab" data-p="pCompra" aria-selected="false"><i>▤</i>Comprar</button>
-  <button class="tb" role="tab" data-p="pRemesa" data-p2="pGastos" aria-selected="false"><i>₩</i>Dinero</button>
+  <button class="tb" role="tab" data-p="pPagar" data-p2="pRemesa pGastos" aria-selected="false"><i>₩</i>Dinero</button>
   <button class="tb" role="tab" data-p="pEnviar" aria-selected="false" hidden><i>➦</i>Enviar</button>
 </nav>
 
@@ -364,7 +397,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label for="fKrw">Valor compra (KRW)</label><input id="fKrw" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
     <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
   </div>
-  <div class="fld"><label for="fSenia">Seña pagada (KRW)</label><input id="fSenia" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+  <div class="fld"><label for="fSenia">Seña / pagado hasta ahora (KRW)</label><input id="fSenia" inputmode="numeric" data-dinero="1" placeholder="₩0">
+    <div class="mtr">Si pagaste todo de una vez, déjalo vacío. Si dejaste seña, anótala: el saldo queda en Dinero → Por pagar.</div></div>
   <div class="fld" hidden><!-- 26/10/2026 (Andre): los gastos ya no se piden al cargar; se agregan después con "＄ Agregar gasto". Los campos quedan ocultos para no perder los gastos ya cargados al editar. --><label>Gastos en Corea (KRW)</label>
     <div class="two" style="gap:8px">
       <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
@@ -489,6 +523,20 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <datalist id="dlGenV"></datalist></div>
   <div class="fld"><label for="genAsigMonto">Monto para este vehículo (KRW)</label><input id="genAsigMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genAsigOk">Asignar</button></div>
+</div>
+
+<div class="sheet" id="shPagoSaldo">
+  <h3 id="psT">Pagar saldo</h3><div class="sb" id="psC"></div>
+  <div class="nota" id="psInfo" style="margin:0 0 12px;border-left-color:var(--amber)"></div>
+  <div class="fld"><label for="psMonto">Cuánto pagaste ahora (KRW)</label><input id="psMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+  <p class="webtip" style="margin-top:-4px">Viene escrito el saldo completo. Si pagaste solo una parte, cámbialo: el resto sigue por pagar.</p>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="psOk">＄ Registrar pago</button></div>
+</div>
+
+<div class="sheet" id="shPPElige">
+  <h3>Agregar costo estimado</h3><div class="sb">¿De qué vehículo?</div>
+  <div class="fld"><label for="ppVeh">Vehículo</label><select id="ppVeh"></select></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="ppVehOk">Seguir</button></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -766,12 +814,31 @@ async function fbRevisaLegado(){
   fbLegadoOk=true;
   if(cambio) await guardaL();
 }
+/* 26/10/2026: los costos estimados (v.pend) viajan a privado/corea para que Andre los vea en Sistema (Negocio → Finanzas).
+   NO entran en fbFirma: eso cambiaría la firma de los vehículos con estimados y se reenviaría su ficha completa, pisando
+   correcciones hechas en Sistema (ver lo de `trab`). Llevan su propia firma (v.nubeP) y, si es lo único que cambió, se sube
+   solo `pend` + el _ts de la ficha (Sistema se entera de los cambios por la ficha). */
+const pendFirma=v=>{ try{ return JSON.stringify(v.pend||[]); }catch(_){ return ''; } };
+async function fbEnviaPend(){
+  const lista=L.filter(v=>v.ch && !v.soloReferencia && v.nube && v.nube===fbFirma(v)
+    && (v.nubeP===undefined ? !!(v.pend&&v.pend.length) : v.nubeP!==pendFirma(v)));
+  let cambio=false;
+  for(const v of lista){
+    const firmaP=pendFirma(v), ref=fbDb.collection(FB_COL).doc(v.ch), ts=firebase.firestore.FieldValue.serverTimestamp();
+    try{
+      const b=fbDb.batch(); b.set(ref.collection('privado').doc('corea'),{pend:v.pend||[],_ts:ts},{merge:true}); b.set(ref,{_ts:ts},{merge:true});
+      await b.commit(); v.nubeP=firmaP; cambio=true;
+    }catch(e){ console.error('fbEnviaPend',v.ch,e); }
+  }
+  if(cambio) await guardaL();
+}
 async function fbEnvia(){
   if(!fbReady) return;
   if(fbEnviando){ fbReenviar=true; return; }
   fbEnviando=true;
   try{
     await fbRevisaLegado();
+    await fbEnviaPend();
     const pend=L.filter(v=>v.ch && !v.soloReferencia && v.nube!==undefined && v.nube!==fbFirma(v));
     if(!pend.length) return;
     fbEstado('Enviando '+pend.length+' vehículo(s) a Chile…');
@@ -787,6 +854,8 @@ async function fbEnvia(){
       if(v.krw!==undefined) costos.krw=v.krw;
       if(v.cc!==undefined) costos.cc=v.cc;
       if(v.senia!==undefined) costos.senia=v.senia;
+      if(v.pend!==undefined) costos.pend=v.pend;   /* costos estimados (Dinero → Por pagar): Sistema los suma en Finanzas */
+      const firmaP=pendFirma(v);
       const ref=fbDb.collection(FB_COL).doc(v.ch);
       try{
         let costosOk=true;
@@ -803,7 +872,7 @@ async function fbEnvia(){
           }
         }else await ref.set(gen,{merge:true});
         delete v._primerEnvio;
-        if(costosOk) v.nube=firma;   /* solo queda "En Chile ✓" si llegó TODO lo que se manda */
+        if(costosOk){ v.nube=firma; if(v.pend!==undefined) v.nubeP=firmaP; }   /* solo queda "En Chile ✓" si llegó TODO lo que se manda */
         ok++;
       }catch(e){ console.error('fbEnvia',e); otroErr=(e.message||e.code||e); }
     }
@@ -1122,11 +1191,15 @@ function fbVehiculosListen(){
       if(d.cab && d.cab!==v.cab){ v.cab=d.cab; cambio=true; }
       if(d.carga!==undefined && (d.carga||'')!==(v.carga||'') && !(CARGA_PEND[ch]!==undefined)){ if(d.carga) v.carga=d.carga; else delete v.carga; cambio=true; }
       if(d.zarpe!==undefined && (d.zarpe||'')!==(v.zarpe||'') && !v.soloReferencia && !(ZARPE_PEND[ch]!==undefined)){ if(d.zarpe) v.zarpe=d.zarpe; else delete v.zarpe; cambio=true; }
+      /* 26/10/2026: estado en Sistema (ORIGEN = todavía no llega; IQQ… = ya en Iquique). Solo se guarda acá para saber qué
+         ya salió de Corea (filtro "Por embarcar"); no está en FB_GEN, así que nunca se sube ni cambia fbFirma. */
+      if(d.st && d.st!==v.stS){ v.stS=d.st; cambio=true; }
       if(priv){
         const enSync=!!(v.nube && v.nube===fbFirma(v));
         if(priv.krw && priv.krw!==v.krw){ v.krw=priv.krw; cambio=true; }
         if(priv.cc && Object.keys(priv.cc).length){ v.cc=Object.assign({}, v.cc, priv.cc); cambio=true; }
         if(priv.senia && priv.senia!==v.senia){ v.senia=priv.senia; cambio=true; }
+        if(Array.isArray(priv.pend) && v.pend===undefined){ v.pend=priv.pend; v.nubeP=pendFirma(v); cambio=true; }   /* solo para recuperarlos (teléfono nuevo): los estimados los escribe esta app */
         /* Si estaba al día y lo nuevo vino DE la nube, sigue al día: no hay que reenviarlo. */
         if(enSync) v.nube=fbFirma(v);
       }
@@ -1200,7 +1273,7 @@ async function guardaCONT(){ try{ await window.storage.set('amkc_cont',JSON.stri
 function pintaContenedores(){
   const el=document.getElementById('contList'); if(!el) return;
   const base=L.filter(v=>!v.soloReferencia), nombres=contNombres();
-  const de=n=>base.filter(v=>nomCont(v.cont)===n), sin=base.filter(v=>!nomCont(v.cont));
+  const de=n=>base.filter(v=>nomCont(v.cont)===n), sin=base.filter(v=>!nomCont(v.cont)&&!salio(v));
   const cnt=document.getElementById('ctCount');
   if(cnt) cnt.textContent=(nombres.length?nombres.length+' contenedor'+(nombres.length===1?'':'es'):'Sin contenedores')+(sin.length?' · '+sin.length+' auto'+(sin.length===1?'':'s')+' sin asignar':'');
   const nomV=v=>`${v.ma} ${v.mo} ${v.an||''}`;
@@ -1218,7 +1291,7 @@ function abrirCont(n){
   ctEdit=n||null; const base=L.filter(v=>!v.soloReferencia);
   const nombre=n||('CONTENEDOR '+(contNombres().length+1));
   $('#ctT').textContent=n?'Contenedor':'Armar contenedor'; $('#ctNom').value=nombre; $('#ctBorrar').hidden=!n;
-  const lista=base.slice().sort((a,b)=>(nomCont(a.cont)===n?0:(nomCont(a.cont)?2:1))-(nomCont(b.cont)===n?0:(nomCont(b.cont)?2:1))||String(a.fe).localeCompare(String(b.fe)));
+  const lista=base.filter(v=>!salio(v)||(n&&nomCont(v.cont)===n)).sort((a,b)=>(nomCont(a.cont)===n?0:(nomCont(a.cont)?2:1))-(nomCont(b.cont)===n?0:(nomCont(b.cont)?2:1))||String(a.fe).localeCompare(String(b.fe)));
   $('#ctVehs').innerHTML=lista.length?lista.map(v=>{ const otro=nomCont(v.cont)&&nomCont(v.cont)!==n;
     return `<label style="display:flex;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer">
       <input type="checkbox" data-ctv="${v.ch}" ${nomCont(v.cont)===n&&n?'checked':''} style="width:22px;height:22px;flex:0 0 auto">
@@ -1360,9 +1433,11 @@ document.addEventListener('click',e=>{
   e.preventDefault();
   plegar(d,d._movCerr?false:d.open,v=>{ d.open=!v; });   /* tocar de nuevo mientras se cierra = volver a abrir */
 });
+/* Pestaña de abajo que corresponde a una pantalla: data-p, o una de las de data-p2 (separadas por espacio; Dinero = Por pagar, Remesas y Gastos). */
+const tbEs=(b,p)=>b.dataset.p===p||(b.dataset.p2||'').split(' ').includes(p);
 /* Dirección del cambio de pantalla: la pestaña de la derecha entra desde la derecha, y al revés. */
 function movDir(de,a){
-  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>b.dataset.p===de||b.dataset.p2===de), i1=tbs.findIndex(b=>b.dataset.p===a||b.dataset.p2===a);
+  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>tbEs(b,de)), i1=tbs.findIndex(b=>tbEs(b,a));
   const m=document.querySelector('main'); if(m) m.style.setProperty('--dx',(i0<0||i1<0||i0===i1)?'0px':((i1>i0?14:-14)+'px'));
 }
 /* Franja de la pestaña activa que se desliza. Se acomoda sola cuando cambia la pestaña o el ancho. */
@@ -1389,7 +1464,7 @@ function movFiltro(lista){
 const MAIN=$('main');
 function show(p){movDir(tab,p);tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
  $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
- $$('.tb').forEach(b=>b.setAttribute('aria-selected',(b.dataset.p===p||b.dataset.p2===p)?'true':'false'));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',tbEs(b,p)?'true':'false'));
  $$('.seg [data-p]').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
 })}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
@@ -1713,7 +1788,7 @@ function gvPinta(){
   $$('#gvModo [data-gvm]').forEach(b=>b.setAttribute('aria-selected',b.dataset.gvm===gvModo?'true':'false'));
   $('#gvG').hidden=(gvModo!=='G'); $('#gvP').hidden=(gvModo!=='P');
 }
-function gvAbre(ch){ gvCh=ch; gvCat=''; gvModo='G'; $('#gvMonto').value=''; $('#gvNota').value=''; $('#gvEst').value=''; gvPinta(); openSheet('shGV'); }
+function gvAbre(ch,modo){ gvCh=ch; gvCat=''; gvModo=modo==='P'?'P':'G'; $('#gvMonto').value=''; $('#gvNota').value=''; $('#gvEst').value=''; gvPinta(); openSheet('shGV'); }
 document.addEventListener('click',async e=>{
   const o=e.target.closest('[data-gv]'); if(o){ gvAbre(o.dataset.gv); return; }
   if(!gvCh||!$('#shGV').classList.contains('on')) return;
@@ -1754,21 +1829,104 @@ $('#gvPendOk').addEventListener('click',async()=>{
     await save(); draw(); toast('Pendiente anotado ✓'); gvCat=''; $('#gvNota').value=''; $('#gvEst').value=''; gvPinta();
   } finally { gvBusy=false; }
 });
+/* ---------- Por pagar (Andre, 26/10/2026) ----------
+   Dinero → Por pagar suma lo que falta pagar de lo ya comprado, para saber cuánta plata se necesita.
+   - Saldo de compra = valor de compra − seña (v.senia), solo si hay seña anotada (sin seña = pagado de una vez).
+     "＄ Pagar saldo" suma el pago a v.senia, que pasa a ser "pagado hasta ahora": no hay campo nuevo y Sistema lo ve igual.
+   - Costos estimados = v.pend sin hacer (monto opcional). Al pasarlos a costo real quedan hechos y dejan de contar acá
+     (no se cuentan dos veces). Los que no tienen monto se muestran aparte ("sin monto"). */
+const ppSaldo=v=>(v.senia>0&&v.krw>v.senia)?v.krw-v.senia:0;
+const ppNom=v=>esc(v.ma+' '+v.mo)+(v.an?' <span class="y">'+esc(v.an)+'</span>':'');
+function ppDatos(){
+  const base=L.filter(v=>!v.soloReferencia);
+  const sal=base.filter(v=>ppSaldo(v)>0).sort((a,b)=>ppSaldo(b)-ppSaldo(a));
+  const est=base.map(v=>({v,ps:(v.pend||[]).filter(p=>!p.hecho)})).filter(x=>x.ps.length);
+  return {sal,est,
+    tSal:sal.reduce((a,v)=>a+ppSaldo(v),0),
+    tEst:est.reduce((a,x)=>a+x.ps.reduce((t,p)=>t+(p.est||0),0),0),
+    nEst:est.reduce((a,x)=>a+x.ps.length,0),
+    sinMonto:est.reduce((a,x)=>a+x.ps.filter(p=>!p.est).length,0)};
+}
+function pintaPP(){
+  const box=$('#ppResumen'); if(!box) return;
+  const d=ppDatos(), CCN=Object.fromEntries(CC), tot=d.tSal+d.tEst;
+  box.innerHTML=`<div class="ppTot"><span>Falta pagar</span><b>${krw(tot)||'₩0'}</b></div>
+    <div class="xrow"><span>Saldos de compra · ${d.sal.length} vehículo${d.sal.length===1?'':'s'}</span><span>${krw(d.tSal)||'₩0'}</span></div>
+    <div class="xrow"><span>Costos estimados · ${d.nEst}${d.sinMonto?` <span style="color:var(--amber)">(${d.sinMonto} sin monto)</span>`:''}</span><span>${krw(d.tEst)||'₩0'}</span></div>`;
+  $('#ppSal').innerHTML=d.sal.length?'<div class="box">'+d.sal.map(v=>`<div class="xrow"><span><span class="tt" style="font-size:14px">${ppNom(v)}</span><br>
+      <span class="mtr">${esc(v.ch)}${v.prov?' · '+esc(v.prov):''} · pagado ${krw(v.senia)} de ${krw(v.krw)}</span></span>
+      <span><b>${krw(ppSaldo(v))}</b><br><button class="btn b-sec ppBtn" data-ppaga="${esc(v.ch)}">＄ Pagar saldo</button></span></div>`).join('')+'</div>'
+    :'<div class="empty ppVacio">Ningún saldo pendiente ✓</div>';
+  $('#ppEst').innerHTML=d.est.length?'<div class="box">'+d.est.map(({v,ps})=>`<div class="xrow"><span><span class="tt" style="font-size:14px">${ppNom(v)}</span><br><span class="mtr">${esc(v.ch)}</span>
+      ${ps.map(p=>`<div style="font-size:13px;margin-top:3px">⏳ ${esc(CCN[p.cat]||p.cat)} · ${p.est?krw(p.est):'<span style="color:var(--amber)">sin monto</span>'}${p.nota?' · '+esc(p.nota):''}</div>`).join('')}</span>
+      <span><b>${krw(ps.reduce((t,p)=>t+(p.est||0),0))}</b><br><button class="btn b-sec ppBtn" data-gv="${esc(v.ch)}">Ver costos</button></span></div>`).join('')+'</div>'
+    :'<div class="empty ppVacio">Sin costos estimados pendientes.</div>';
+}
+let psCh=null, psBusy=false;
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-ppaga]'); if(!b) return;
+  const v=L.find(x=>x.ch===b.dataset.ppaga); if(!v||!ppSaldo(v)) return;
+  psCh=v.ch; $('#psT').textContent=v.ma+' '+v.mo+' '+(v.an||''); $('#psC').textContent=v.ch;
+  $('#psInfo').innerHTML='Compra '+krw(v.krw)+' · pagado '+krw(v.senia)+' · <b>saldo '+krw(ppSaldo(v))+'</b>';
+  $('#psMonto').value=String(ppSaldo(v));
+  openSheet('shPagoSaldo');
+});
+$('#psOk').addEventListener('click',async()=>{
+  if(psBusy) return;
+  const v=L.find(x=>x.ch===psCh); if(!v) return;
+  const sal=ppSaldo(v), m=pnum($('#psMonto').value)||0;
+  if(!sal){ closeAll(); return; }
+  if(!m){ toast('Escribe cuánto pagaste'); return; }
+  if(m>sal && !confirm('Eso es más que el saldo ('+krw(sal)+'). Se anota como pagado completo. ¿Seguir?')) return;
+  psBusy=true;
+  try{
+    v.senia=Math.min(v.krw,(v.senia||0)+m);
+    await save(); draw(); closeAll();
+    toast(ppSaldo(v)?'Pago anotado ✓ · queda '+krw(ppSaldo(v)):'Saldo pagado completo ✓');
+  } finally { psBusy=false; }
+});
+$('#ppEstNuevo').addEventListener('click',()=>{
+  const base=L.filter(v=>!v.soloReferencia).sort((a,b)=>String(b.fe||'').localeCompare(String(a.fe||'')));
+  if(!base.length){ toast('Todavía no hay vehículos cargados'); return; }
+  $('#ppVeh').innerHTML=base.map(v=>`<option value="${esc(v.ch)}">${esc(v.ma+' '+v.mo+' '+(v.an||''))} · ${esc(v.ch)}</option>`).join('');
+  openSheet('shPPElige');
+});
+$('#ppVehOk').addEventListener('click',()=>{ const ch=$('#ppVeh').value; if(!ch) return; $('#shPPElige').classList.remove('on'); gvAbre(ch,'P'); });
 $('#phM360').addEventListener('click',()=>{ const ch=phCh; $('#shPhoto').classList.remove('on'); loadMy360C(ch); });
 
-let q='', flt='';
-/* Filtros rápidos sobre la lista: Por enviar (aún sin confirmar en Chile) / Sin fotos / Sin chasis. */
-function fltOk(v){
-  if(flt==='pend') return !enChile(v);
-  if(flt==='foto') return !v.nf;
-  if(flt==='sinch') return v.ch.startsWith('PEND-');
-  return true;
-}
+/* Lista de Vehículos (Andre, 26/10/2026): dos pestañas y grupos, en vez de 9 filtros ("muchas formas de filtrar pueden marear").
+   - Pestañas: Por embarcar (siempre al abrir) / Embarcados. Ya salió = fecha de embarque (🚢 Ya se embarcó, en Contenedores
+     o desde Sistema) o Sistema ya lo tiene en Iquique (v.stS).
+   - Sin buscar, la lista va agrupada por contenedor ("Sin contenedor todavía" al final; en Embarcados, el más reciente arriba).
+     Buscando se busca en todos y sin grupos (si no, un auto ya embarcado "no existe").
+   - Lo que falta (sin fotos, falta chasis, saldo, por hacer) va como etiqueta en cada auto; el saldo total vive en Dinero → Por pagar.
+   - "⚠ Sin subir" (ficha que no llegó a la nube) es un aviso arriba solo si pasa, no un filtro. */
+let q='', flt='emb';
+const salio=v=>!!v.zarpe||(!!v.stS&&v.stS!=='ORIGEN');
+const FLT=[['emb','Por embarcar',v=>!salio(v)],['ya','Embarcados',v=>salio(v)]];
+function fltOk(v){ const f=FLT.find(x=>x[0]===flt); return f?f[2](v):true; }
 function pintaFiltros(base){
-  const n={pend:base.filter(v=>!enChile(v)).length, foto:base.filter(v=>!v.nf).length, sinch:base.filter(v=>v.ch.startsWith('PEND-')).length};
-  const fila=[['','Todos',base.length],['pend','Por enviar',n.pend],['foto','Sin fotos',n.foto],['sinch','Sin chasis',n.sinch]]
-    .filter(([k,,c])=>k===''||c>0||flt===k);
-  $('#fltRow').innerHTML=base.length?fila.map(([k,t,c])=>`<button data-f="${k}" aria-pressed="${flt===k}">${t} · ${c}</button>`).join(''):'';
+  if(!FLT.some(x=>x[0]===flt)) flt='emb';
+  $('#fltRow').innerHTML=base.length?FLT.map(([k,t,f])=>`<button role="tab" data-f="${k}" aria-selected="${flt===k}">${t} · ${base.filter(f).length}</button>`).join(''):'';
+  $('#fltRow').hidden=!base.length;
+  const ns=base.filter(v=>!enChile(v)).length, av=$('#subAviso');
+  av.hidden=!ns; av.innerHTML=ns?`⚠ <b>${ns} ficha${ns===1?'':'s'} todavía no llega${ns===1?'':'n'} a Iquique.</b> Se suben solas cuando hay internet; si sigue así, avísale a Andre.`:'';
+}
+/* Ordena la lista en grupos por contenedor. Devuelve los vehículos con encabezados intercalados ({__h:html}). */
+function enGrupos(LV){
+  const G=new Map();
+  LV.forEach(v=>{ const k=nomCont(v.cont); if(!G.has(k)) G.set(k,[]); G.get(k).push(v); });
+  let ks=[...G.keys()];
+  if(flt==='ya'){
+    const zz=k=>G.get(k).reduce((m,v)=>String(v.zarpe||'')>m?String(v.zarpe||''):m,'');
+    ks.sort((a,b)=>(!a)-(!b)||zz(b).localeCompare(zz(a))||a.localeCompare(b,'es',{numeric:true}));
+  }else ks.sort((a,b)=>(!a)-(!b)||a.localeCompare(b,'es',{numeric:true}));
+  const out=[];
+  ks.forEach(k=>{ const vs=G.get(k), z=flt==='ya'&&vs.every(v=>v.zarpe&&v.zarpe===vs[0].zarpe)?vs[0].zarpe:'';
+    const nom=k?esc(k):(flt==='ya'?'Sin contenedor anotado':'Sin contenedor todavía');
+    out.push({__h:`<div class="grpH"><span>${nom}${z?` <span class="grpZ">🚢 ${fd(z)}</span>`:''}</span><span>${vs.length} auto${vs.length===1?'':'s'}</span></div>`});
+    out.push(...vs); });
+  return out;
 }
 function draw(){
   pintaHK();
@@ -1778,43 +1936,46 @@ function draw(){
   const s=q.trim().toLowerCase();
   const toks=s?s.split(/\s+/):[];
   const LV=base.filter(v=>{
-    if(!fltOk(v))return false;
+    if(!toks.length&&!fltOk(v))return false;   /* buscando se busca en todos: si no, un auto ya embarcado "no existe" */
     if(!toks.length)return true;
     const hay=(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase();
     return toks.every(tk=>hay.includes(tk));
   });
-  const sc=LV.filter(v=>v.ch.startsWith('PEND-')).length;
-  const nPend=LV.filter(v=>!enChile(v)).length;
-  $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+(nPend?nPend+' por enviar':'todos en Chile ✓')+(sc?' · '+sc+' sin chasis':''):'';
+  $('#cnt').textContent=toks.length?(LV.length?LV.length+' encontrado'+(LV.length===1?'':'s')+' entre todos':''):(LV.length?LV.length+' vehículo'+(LV.length===1?'':'s'):'');
   { const bv=$('#vistaCor'); if(bv) bv.textContent=compacto?'▦ Completa':'☰ Compacta'; }
-  $('#list').innerHTML=LV.length?LV.map(v=>{
+  $('#list').innerHTML=LV.length?(toks.length?LV:enGrupos(LV)).map(v=>{
+    if(v.__h) return v.__h;
     const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
     const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
     const sp=[v.cat,v.tr,(v.cab?{SIMPLE:'cabina simple',MEDIA:'cabina y media',DOBLE:'doble cabina'}[v.cab]:(v.pa?v.pa+' pas.':'')),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
       .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
-    const en=enChile(v);
-    const pAb0=0;
+    const en=enChile(v), sl=salio(v);
+    const estTag=v.stS&&v.stS!=='ORIGEN'?'<span class="tag t-ok">En Iquique ✓</span>':(v.zarpe?`<span class="tag t-ok">🚢 Embarcado ${fd(v.zarpe)}</span>`:(toks.length?'<span class="tag t-pend">Por embarcar</span>':''));   /* sin buscar, la pestaña ya lo dice */
+    const falta=[!sl&&!v.nf?'Sin fotos':'',v.ch.startsWith('PEND-')?'Falta chasis':'',ppSaldo(v)?'Saldo '+krw(ppSaldo(v)):''].filter(Boolean);
+    const subTag=en?'':'<span class="tag t-pend" title="La ficha todavía no llega a la nube">⚠ Sin subir</span>';
     const pAb=(v.pend||[]).filter(x=>!x.hecho), npend=pAb.length, CCN0=Object.fromEntries(CC);
     const pendTxt=pAb.map(x=>esc(CCN0[x.cat]||x.cat)+(x.est?' '+krw(x.est):'')+(x.nota?' ('+esc(x.nota)+')':'')).join(' · ');
     if(compacto && !abiertosC.has(v.ch)){
-      return `<div class="crow ${en?'sent':''}" data-abre="${v.ch}" role="button" tabindex="0"><div class="cr1"><span class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></span>
-        <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span></div>
-        <div class="ch">${[v.ch,v.prov,v.krw?krw(v.krw):'',tcc?'+ '+krw(tcc)+' gastos':'',npend?'⏳ '+npend+' por hacer':'',v.carga?'📦 lleva adentro':'',v.nf?v.nf+' fotos':'sin fotos'].filter(Boolean).map(esc).join(' · ')}</div></div>`;
+      return `<div class="crow ${sl?'sent':''}" data-abre="${v.ch}" role="button" tabindex="0"><div class="cr1"><span class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></span>
+        <span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${subTag}${estTag}</span></div>
+        ${falta.length||npend?`<div class="crTags">${falta.map(t=>`<span class="tag t-pend">${t}</span>`).join('')}${npend?`<span class="tag t-pend">⏳ ${npend} por hacer</span>`:''}</div>`:''}
+        <div class="ch">${[v.ch,v.prov,v.krw?krw(v.krw):'',tcc?'+ '+krw(tcc)+' gastos':'',npend?'⏳ '+npend+' por hacer':'',v.carga?'📦 lleva adentro':'',v.nf?v.nf+' fotos':''].filter(Boolean).map(esc).join(' · ')}</div></div>`;   /* "sin fotos" ya va como etiqueta */
     }
-    return `<div class="card ${en?'sent':''}">
+    return `<div class="card ${sl?'sent':''}">
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
       <div class="tt"${compacto?` data-cierra="${v.ch}" title="Tocar para cerrar"`:''}>${v.ma} ${v.mo} <span class="y">${v.an}</span>${compacto?' ▴':''}</div>
       <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
-      ${(v.senia&&v.krw&&v.krw>v.senia)?`<span class="tag t-pend">Saldo ${krw(v.krw-v.senia)}</span>`:''}
-      <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span>
-      ${v.zarpe?`<span class="tag t-ok">🚢 Embarcado ${fd(v.zarpe)}</span>`:''}</div></div>
+      ${!sl&&!v.nf?'<span class="tag t-pend">Sin fotos</span>':''}
+      ${ppSaldo(v)?`<span class="tag t-pend">Saldo ${krw(ppSaldo(v))}</span>`:''}
+      ${estTag}${subTag}</div></div>
      ${v.carga?`<div class="nota" style="border-left-color:#D9822B;background:rgba(217,130,43,.12)"><b>📦 Lleva adentro:</b> ${esc(v.carga)}</div>`:''}
      <div class="specs">${sp}</div>
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
-     ${v.senia?`<div class="nota" style="border-left-color:var(--amber)">Seña pagada ${krw(v.senia)}${v.krw?(v.krw>v.senia?' · Saldo pendiente '+krw(v.krw-v.senia):' · Sin saldo pendiente'):''}</div>`:''}
+     ${v.senia?(ppSaldo(v)?`<div class="nota frow" style="border-left-color:var(--amber)"><span>Pagado ${krw(v.senia)} · <b>saldo ${krw(ppSaldo(v))}</b></span><button class="btn b-sec ppBtn" data-ppaga="${v.ch}" style="margin:0">＄ Pagar saldo</button></div>`
+       :`<div class="nota" style="border-left-color:var(--green)">${v.krw&&v.senia>=v.krw?'Pagado completo ✓':'Seña pagada '+krw(v.senia)}</div>`):''}
      ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
      ${pendTxt?`<div class="nota" style="border-left-color:var(--amber)">⏳ <b>Por hacer:</b> ${pendTxt}</div>`:''}
      <div class="acts"><button class="btn b-pri big" data-gv="${v.ch}">＄ Agregar costo${npend?' · '+npend+' por hacer':''}</button></div>
@@ -1823,11 +1984,12 @@ function draw(){
       <button class="btn b-sec" data-carga="${v.ch}" title="Lo que va dentro de este vehículo en el contenedor">📦 Carga adentro</button>
       ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}">＃ Poner chasis</button>`:''}
       <button class="btn b-sec sm" data-del="${v.ch}" aria-label="Eliminar vehículo">✕</button></div></div>`}).join('')
-   :(base.length?'<div class="empty">Ningún vehículo coincide con la búsqueda o el filtro.</div>'
+   :(base.length?(toks.length?'<div class="empty">Ningún vehículo coincide con la búsqueda.</div>':(flt==='emb'?'<div class="empty">No hay vehículos por embarcar ✓<br>Los ya embarcados están en «Embarcados».</div>':'<div class="empty">Todavía no hay vehículos embarcados.</div>'))
                 :'<div class="empty">Todavía no cargas vehículos.<br>Toca “Agregar vehículo” para empezar.</div>');
   const pend=base.filter(v=>!enChile(v)).length;
   $('#envTxt').textContent=pend?`${pend} ficha${pend===1?'':'s'} todavía sin confirmar en Chile.`:'Todas las fichas ya están en Chile ✓';
   pintaHist();
+  pintaPP();
 }
 
 function normTxt(s){return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
@@ -2276,7 +2438,8 @@ $('#reSend').addEventListener('click',async()=>{
 /* Filtros rápidos de la lista y caja de demanda plegable. */
 document.addEventListener('click',e=>{
   const f=e.target.closest('[data-f]'); if(!f) return;
-  flt=f.dataset.f; draw();
+  if(flt===f.dataset.f) return;
+  flt=f.dataset.f; alturaFluida(MAIN,()=>draw()); entraSuave($('#list'));
 });
 $('#dmToggle').addEventListener('click',()=>{
   const b=$('#dmToggle'), abre=b.getAttribute('aria-expanded')!=='true';

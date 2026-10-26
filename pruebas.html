@@ -28,7 +28,7 @@ button,input,select{font-family:inherit}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @keyframes vEntra{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 #secEst:not([hidden]),#secReal:not([hidden]),#secCorea:not([hidden]),
-#ngDinero:not([hidden]),#ngMes:not([hidden]),#ngEmbarque:not([hidden]),#ngAjustes:not([hidden]),#ngVentas:not([hidden])
+#ngDinero:not([hidden]),#ngFinanzas:not([hidden]),#ngMes:not([hidden]),#ngEmbarque:not([hidden]),#ngAjustes:not([hidden]),#ngVentas:not([hidden])
  {animation:vEntra .2s ease}
 
 header{background:linear-gradient(120deg,#0B1C23,#1C3E4C 70%,#245560);color:#fff;padding:13px 0 15px;position:sticky;top:0;z-index:40;border-bottom:1px solid var(--line)}
@@ -197,6 +197,51 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .segs{display:flex;flex-wrap:wrap;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
 .segs button{flex:1 1 auto;min-width:0;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
 #ngSegs{flex-wrap:nowrap;gap:2px}#ngSegs button{padding:10px 2px;font-size:13px}
+/* Negocio → Finanzas (26/10/2026) */
+.fiSub{font-size:12.5px;color:var(--mute);margin:0 0 10px}
+#fiPer{flex-wrap:nowrap;gap:2px;margin-top:2px}#fiPer button{padding:9px 2px;font-size:13px;white-space:nowrap}
+.fiGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(min-width:760px){.fiGrid{grid-template-columns:repeat(4,1fr)}}
+.fiK{background:var(--seaL);border:1px solid var(--line);border-radius:11px;padding:10px 11px;min-width:0}
+.fiK span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.fiK b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;margin-top:3px;color:var(--ink);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fiK small{display:block;font-size:11.5px;color:var(--ink2);margin-top:2px;line-height:1.35}
+.fiNota{font-size:12px;color:var(--mute);margin:9px 0 0;line-height:1.45}
+.fiNota:empty{display:none}
+.fiER .xrow,#fiPagar .xrow,#fiRatios .xrow,#fiStock .xrow{font-size:13.5px;padding:7px 0;border-top:1px solid var(--line);color:var(--ink2)}
+.fiER .xrow:first-child,#fiPagar .xrow:first-child,#fiRatios .xrow:first-child,#fiStock .xrow:first-child{border-top:none}
+.fiER .xrow>:first-child,#fiPagar .xrow>:first-child,#fiRatios .xrow>:first-child,#fiStock .xrow>:first-child,#fiBcg .xrow>:first-child{flex:1 1 auto;min-width:0;font-family:var(--body)}
+.fiER .xrow>:last-child,#fiPagar .xrow>:last-child,#fiRatios .xrow>:last-child,#fiStock .xrow>:last-child,#fiBcg .xrow>:last-child{flex:0 0 auto;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;text-align:right}
+.fiER .tot{font-weight:700;color:var(--ink)!important;border-top:1.5px solid var(--btn2b)!important}
+.fiExp{display:block;font-family:var(--body)!important;font-size:11.5px;color:var(--mute);margin-top:2px}
+.fiGrp{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:14px 0 2px}
+.fiGrp:first-child{margin-top:0}
+.fiChart svg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto;overflow:hidden}
+.fiChart .fiBar{transition:opacity .15s}.fiChart g:hover .fiBar{opacity:.8}
+.fiTablaW{overflow-x:auto;margin-top:10px}
+.fiTabla{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.fiTabla th{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:500;text-align:right;padding:4px 5px;border-bottom:1px solid var(--line)}
+.fiTabla td{text-align:right;padding:5px;border-bottom:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.fiTabla th:first-child,.fiTabla td:first-child{text-align:left}
+.fodaG{display:grid;grid-template-columns:1fr;gap:9px}
+@media(min-width:600px){.fodaG{grid-template-columns:1fr 1fr}}
+.fodaQ{border:1px solid var(--line);border-top:3px solid var(--q);border-radius:11px;padding:10px 11px;min-width:0;background:var(--paper)}
+.fodaQ h4{margin:0 0 5px;font-family:var(--disp);font-size:14.5px;color:var(--ink)}
+.fodaQ h4 i{font-style:normal;color:var(--q);margin-right:5px}
+.fodaQ .xrow{font-size:13px;padding:6px 0;border-top:1px solid var(--line);color:var(--ink2)}
+.fodaQ .xrow>span:first-child{font-family:var(--body);flex:1 1 auto;min-width:0}
+.fodaQ .xrow:first-of-type{border-top:none}
+.fodaVacio{font-size:12.5px;color:var(--mute);margin:2px 0 4px}
+.fodaAdd{display:flex;gap:6px;margin-top:8px}
+.fodaAdd input{flex:1 1 auto;min-width:0;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:16px;background:var(--card);color:var(--ink)}
+.fodaAdd button{flex:0 0 auto}
+.fodaSugR{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.fodaSugR:first-child{border-top:none}
+.fodaSugR>span:first-child{flex:1 1 auto;min-width:0}
+.fodaSugR>span:last-child{flex:0 0 auto;display:flex;gap:5px}
+.fodaSugR button{padding:6px 9px;font-size:12px}
+@media(max-width:380px){#ngSegs button{font-size:12px}}
+
 .segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .note{background:var(--amberBg);border-left:3px solid var(--amber);color:var(--amber);
  padding:11px 13px;border-radius:0 9px 9px 0;font-size:13px}
@@ -493,6 +538,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <h2>Negocio</h2><p class="sub">Lo que no revisas todos los días.</p>
     <div class="segs" id="ngSegs">
       <button data-ng="dinero" aria-pressed="true">Plata</button>
+      <button data-ng="finanzas" aria-pressed="false">Finanzas</button>
       <button data-ng="mes" aria-pressed="false">Equipo</button>
       <button data-ng="embarque" aria-pressed="false">Embarque</button>
       <button data-ng="ventas" aria-pressed="false">Ventas</button>
@@ -788,7 +834,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->26-10-2026 19:12 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->26-10-2026 17:48 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -930,6 +976,40 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="eWeb" style="width:100%">Copiar para la web</button></div>
     <div class="box" hidden><h3>Catálogo → Víctor y Bryan</h3><p>Incluye el precio mínimo de cada vehículo, para que no tengan que preguntarte.</p>
       <button class="btn b-sec" id="eVend" style="width:100%">Copiar para el equipo</button></div>
+    </div>
+    <div id="ngFinanzas" hidden>
+    <div class="segs" id="fiPer" aria-label="Período"></div>
+    <div class="box" id="boxFiKpi"><h3>Indicadores clave</h3>
+      <p class="fiSub" id="fiPerTxt"></p>
+      <div class="fiGrid" id="fiKpi"></div>
+      <p class="fiNota" id="fiKpiNota"></p></div>
+    <div class="box" id="boxFiER"><h3>Estado de resultados</h3>
+      <p class="fiSub">Financiero, no contable: lo que entró por ventas menos lo que costaron esos autos y los gastos del negocio en el mismo período.</p>
+      <div class="fiER" id="fiER"></div>
+      <div class="mtr" style="margin:16px 0 6px">Resultado de los últimos 6 meses</div>
+      <div class="fiChart" id="fiChart"></div>
+      <div class="fiTablaW"><table class="fiTabla" id="fiTabla"></table></div></div>
+    <div class="box" id="boxFiPagar"><h3>Por pagar y por cobrar</h3>
+      <p class="fiSub">Plata que ya está comprometida, hoy. Lo de Corea viene de la app de tu mamá (Dinero → Por pagar) y se convierte con el won de cada embarque.</p>
+      <div id="fiPagar"></div></div>
+    <div class="box" id="boxFiRatios"><h3>Ratios</h3>
+      <p class="fiSub">Del período elegido arriba. Cada uno dice qué mide para que puedas compararlo mes a mes.</p>
+      <div id="fiRatios"></div></div>
+    <div class="box" id="boxFiStock"><h3>Stock por antigüedad</h3>
+      <p class="fiSub">Cuánta plata está parada en el patio y hace cuánto. Cuenta desde que llegó al patio.</p>
+      <div id="fiStock"></div></div>
+    <div class="box" id="boxFiBcg"><h3>Matriz de modelos (BCG adaptada)</h3>
+      <p class="fiSub">Cada modelo vendido en los últimos 12 meses según dos cosas: cuánto deja (margen promedio) y qué tan rápido se vende (días en patio). La línea que separa es tu propio promedio, así que siempre compara contra ti mismo.</p>
+      <div class="fiChart" id="fiBcgChart"></div>
+      <div id="fiBcg"></div></div>
+    <div class="box" id="boxFoda"><h3>Matriz FODA</h3>
+      <p class="fiSub">Fortalezas y debilidades son de adentro (lo que AMK hace bien o mal); oportunidades y amenazas son de afuera (mercado, leyes, dólar). Escribe las tuyas o toma las sugerencias que salen de tus números.</p>
+      <div class="fodaG" id="fodaG"></div>
+      <div class="mtr" style="margin:16px 0 6px">Sugerencias con tus números</div>
+      <div id="fodaSug"></div>
+      <div class="mtr" style="margin:18px 0 4px">FODA cruzada · estrategias</div>
+      <p class="fiSub">Cruza los cuadrantes para decidir qué hacer: FO usa una fortaleza para aprovechar una oportunidad, DO corrige una debilidad aprovechando una oportunidad, FA usa una fortaleza para defenderse de una amenaza y DA reduce una debilidad para que una amenaza no pegue.</p>
+      <div class="fodaG" id="fodaX"></div></div>
     </div>
     <div id="ngDinero">
     <div class="box" id="boxFlujo"><h3>Panorama de flujo de caja</h3>
@@ -2064,6 +2144,9 @@ function fbStartListening(){
           const cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
           if(priv) FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined && priv[k]!==undefined && priv[k]!==null) cor[k]=priv[k]; });
           const hayCor=FB_COREA_FIELDS.some(k=>cor[k]!==undefined);
+          /* 26/10/2026: costos estimados que anota la mamá en Corea (Dinero → Por pagar). Solo se leen: no entran en
+             FB_COREA_FIELDS, así Sistema nunca los sube ni los pisa. Se usan en Negocio → Finanzas y en la ficha. */
+          { const vv=IDX[chg.doc.id]; if(vv){ if(Array.isArray(cor.pend)) vv.pendCorea=cor.pend; else delete vv.pendCorea; } }
           if(priv||hayCor) fbApplyRemote(chg.doc.id, null, priv, hayCor?cor:null);
           fbCostosOk.add(chg.doc.id);   /* costos de este vehículo ya confirmados con la nube */
         }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
@@ -3159,7 +3242,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaFoda(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   setTimeout(()=>{ try{ if(migraEstEmb()) draw(); }catch(_){} },3000);
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
@@ -3399,7 +3482,9 @@ function cardS(v){
   const saldoCorea=(v.krw&&v.senia)?Math.max(0,v.krw-v.senia):null;
   const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
-    +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · Seña ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
+    +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · ${saldoCorea?'Pagado':'Seña'} ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
+    +(()=>{ const pc=(v.pendCorea||[]).filter(x=>!x.hecho); if(!pc.length) return '';
+        return `<div class="xlist" style="font-size:12.5px;color:var(--amber)">Corea estima: ${pc.map(x=>(CCN[x.cat]||x.cat)+(x.est?' ₩'+Number(x.est).toLocaleString('es-CL'):'')).join(' · ').replace(/</g,'&lt;')}</div>`; })()
     +(v.carga&&(v.st==='ORIGEN'||!v.llp||diasDesde(v.llp)<=10)?`<div class="xlist" style="font-size:13px;color:#fff;background:#B4321C;border-radius:8px;padding:7px 9px">📦 <b>Lleva accesorios dentro:</b> ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:'')
     +(resAct(v.ch)?(()=>{const r=resAct(v.ch);return `<div class="xlist" style="font-size:12.5px;color:#C3A2F0">🔒 Reserva: <b>${String(r.cli||'—').replace(/</g,'&lt;')}</b> · pagado ${clp(resPag(r))} de ${clp(r.precio||0)} · <b>saldo ${clp(resSaldo(r))}</b></div>`})():'')
     +(v.nota?`<div class="xlist" style="font-size:13px;color:var(--ink2)">${String(v.nota).replace(/</g,'&lt;')}</div>`:'')
@@ -3774,6 +3859,7 @@ document.addEventListener('click',async e=>{ if(!e.target.closest('#irZarpe')) r
   zarpeGuarda(L,f); toast(L.length+' marcados en camino'); });
 function draw(){
   try{ coreaSync(); }catch(_){}
+  try{ const fz=$('#ngFinanzas'); if(fz&&!fz.hidden&&$('#pDatos').classList.contains('on')&&!(document.activeElement&&fz.contains(document.activeElement)&&document.activeElement.matches('input'))) pintaFin(); }catch(e){ console.error('pintaFin',e); }
   try{ refrescaBaseLib(); }catch(_){}
   const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)&&!v.baja&&!v.creando).length;
   const ven=V.filter(v=>sold(v.ch)&&!v.baja&&!v.creando).length;
@@ -7782,13 +7868,241 @@ function cseg(k){
   $$('#scSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cseg===k?'true':'false'));
  });
 }
+/* ---------- Negocio → Finanzas (Andre, 26/10/2026) ----------
+   Tablero financiero (no contable): indicadores, estado de resultados, por pagar / por cobrar, ratios, stock por
+   antigüedad, matriz de modelos (BCG adaptada), FODA y FODA cruzada. Todo sale de datos que ya existen; lo único nuevo
+   que se guarda es la FODA (amk_foda, en la despensa del aparato; va también al respaldo en Excel).
+   Para no contar dos veces (regla de Andre, 08/10/2026):
+   - Costo de lo vendido = ctot(v) MENOS los costos automáticos (lavado + pisos, x.auto): esos materiales ya están en
+     Gastos generales como insumos.
+   - Ventas sin costo cargado (ctot 0) suman en ventas, pero no entran al margen (se avisa cuántas).
+   - Por pagar: saldo de compra en Corea (compra − seña/pagado), estimados de Corea, saldo al taller, trabajos estimados en
+     Chile, flete sin remesar y fijos del mes. "Compra de vehículos pendiente (₩)" de Plata mira el mismo dinero de Corea
+     desde las remesas, por eso NO se suma acá.
+   - Costos fijos del período = fijos del mes de hoy × meses del período (no hay historial de cuánto fueron antes). */
+let fiPer='3m';
+try{ fiPer=localStorage.getItem('amk_fiper')||'3m'; }catch(_){}   /* preferencia de pantalla, no datos */
+const FODA_Q=[['F','Fortalezas','var(--azul)'],['O','Oportunidades','var(--green)'],['D','Debilidades','var(--amber)'],['A','Amenazas','var(--red)']];
+const FODA_X=[['FO','FO · usar fortalezas para aprovechar oportunidades','var(--azul)'],['DO','DO · corregir debilidades con oportunidades','var(--green)'],
+  ['FA','FA · usar fortalezas contra amenazas','var(--amber)'],['DA','DA · reducir debilidades frente a amenazas','var(--red)']];
+let FODA={};
+async function cargaFoda(){ try{ const r=await window.storage.get('amk_foda'); if(r&&r.value) FODA=JSON.parse(r.value)||{}; }catch(e){ console.error('cargaFoda',e); } }
+async function guardaFoda(){ try{ await window.storage.set('amk_foda',JSON.stringify(FODA)); return true; }catch(e){ toast('No se pudo guardar'); return false; } }
+const fodaL=k=>(FODA[k]=Array.isArray(FODA[k])?FODA[k]:[]);
+const FI_PER=[['mes','Este mes'],['ant','Mes pasado'],['3m','3 meses'],['12m','12 meses']];
+const fiIso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const MESN=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fiRango(k){
+  const h=new Date(), y=h.getFullYear(), m=h.getMonth(), ini=mm=>fiIso(new Date(y,mm,1)), fin=mm=>fiIso(new Date(y,mm+1,0));
+  if(k==='ant') return {d:ini(m-1),h:fin(m-1),meses:1};
+  if(k==='3m') return {d:ini(m-2),h:fin(m),meses:3};
+  if(k==='12m') return {d:ini(m-11),h:fin(m),meses:12};
+  return {d:ini(m),h:fin(m),meses:1};
+}
+const fiEsc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const fiPct=(a,b)=>b?(a<0?'−':'')+(Math.round(Math.abs(a)/b*1000)/10).toLocaleString('es-CL')+'%':'—';
+const fiMil=n=>{ const a=Math.abs(n), sg=n<0?'−':''; if(a>=1e6) return sg+'$'+(Math.round(a/1e5)/10).toLocaleString('es-CL')+'M'; if(a>=1e3) return sg+'$'+Math.round(a/1e3)+'k'; return sg+'$'+Math.round(a); };
+const fiClp=n=>(n<0?'−':'')+clp(Math.abs(Math.round(n||0)));
+const fiCostoVend=v=>ctot(v)-(((S[v.ch]||{}).costs)||[]).filter(x=>x.auto).reduce((a,x)=>a+abo(x),0);
+const fiFijosMes=()=>Object.values(FJ).reduce((a,b)=>a+(+b||0),0)+Math.round(krwEnClp());
+const fiDias=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);
+const fiMediana=a=>{ if(!a.length) return null; const b=a.slice().sort((x,y)=>x-y), i=b.length>>1; return b.length%2?b[i]:Math.round((b[i-1]+b[i])/2); };
+function fiPeriodo(d,h,meses){
+  const vs=V.filter(v=>{ const t=S[v.ch]; return t&&t.sold&&!v.creando&&t.date&&t.date>=d&&t.date<=h; });
+  let ing=0, ingC=0, costo=0, sinCosto=0, comis=0; const dias=[];
+  vs.forEach(v=>{ const t=S[v.ch], p=enCLP(t)||0, c=fiCostoVend(v);
+    ing+=p; comis+=(+t.comision||0);
+    if(c>0&&p>0){ ingC+=p; costo+=c; } else sinCosto++;
+    if(v.llp&&v.llp<=t.date) dias.push(fiDias(v.llp,t.date)); });
+  const gen=GEN.filter(g=>(g.fecha||'')>=d&&(g.fecha||'')<=h).reduce((a,g)=>a+(+g.monto||0),0);
+  const fijos=fiFijosMes()*meses, margen=ingC-costo, nC=vs.length-sinCosto;
+  return {vs,n:vs.length,nC,ing,ingC,costo,margen,sinCosto,comis,gen,fijos,res:margen-comis-gen-fijos,dias,meses};
+}
+function fiStockDatos(){
+  const L=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando);
+  const patio=L.filter(v=>v.st!=='ORIGEN'), camino=L.filter(v=>v.st==='ORIGEN'&&!v.enCorea), corea=L.filter(v=>v.st==='ORIGEN'&&v.enCorea);
+  const cap=a=>a.reduce((s,v)=>s+(ctot(v)||0),0);
+  const tramos=[['Sin fecha de llegada',v=>!v.llp],['0 a 30 días',v=>v.llp&&diasDesde(v.llp)<=30],['31 a 60 días',v=>v.llp&&diasDesde(v.llp)>30&&diasDesde(v.llp)<=60],
+    ['61 a 90 días',v=>v.llp&&diasDesde(v.llp)>60&&diasDesde(v.llp)<=90],['Más de 90 días',v=>v.llp&&diasDesde(v.llp)>90]].map(([n,f])=>{ const a=patio.filter(f); return {n,a,c:cap(a)}; });
+  const conP=patio.filter(v=>+st(v.ch).pventa>0);
+  return {patio,camino,corea,capP:cap(patio),capC:cap(camino),capK:cap(corea),tramos,
+    pvTot:conP.reduce((s,v)=>s+(+st(v.ch).pventa),0), pvCosto:conP.reduce((s,v)=>s+costoProy(v),0), nP:conP.length};
+}
+function fiPagarDatos(){
+  let salW=0,salC=0,nSal=0,estW=0,estC=0,nEst=0,sinMonto=0;
+  V.forEach(v=>{ if(v.baja) return; const e=embDeVeh(v.ch), f=tcKRWEmb(e&&e.id);
+    const sal=(v.senia>0&&v.krw>v.senia)?v.krw-v.senia:0; if(sal){ salW+=sal; salC+=sal*f; nSal++; }
+    (v.pendCorea||[]).filter(x=>!x.hecho).forEach(x=>{ nEst++; if(x.est){ estW+=+x.est; estC+=x.est*f; } else sinMonto++; }); });
+  const taller=V.reduce((a,v)=>a+(debe(v.ch)||0),0);
+  const reac=V.filter(v=>!sold(v.ch)&&!v.baja).reduce((a,v)=>a+tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((s,x)=>s+(+x.est||0),0),0);
+  const fleteUSD=fletesComprometidos().reduce((a,x)=>a+x.pend,0), dol=+TC.obs||+TC.medio||0;
+  const fijos=fiFijosMes();
+  const res=V.map(v=>resAct(v.ch)).filter(Boolean), cobrar=res.reduce((a,r)=>a+resSaldo(r),0);
+  const cambiar=V.filter(v=>{const t=st(v.ch); return t.sold&&t.moneda!=='USD'&&t.cambiado===false;}).reduce((a,v)=>a+(+st(v.ch).price||0),0);
+  return {salW,salC,nSal,estW,estC,nEst,sinMonto,taller,reac,fleteUSD,fleteC:fleteUSD*dol,dol,fijos,
+    total:salC+estC+taller+reac+fleteUSD*dol+fijos,cobrar,nRes:res.length,cambiar};
+}
+const fiKrw=n=>'₩'+Math.round(n).toLocaleString('es-CL');
+const fiFila=(t,m,exp,cls)=>`<div class="xrow${cls?' '+cls:''}"><span>${t}${exp?`<span class="fiExp">${exp}</span>`:''}</span><span>${m}</span></div>`;
+function fiChartMeses(){
+  const h=new Date(), filas=[];
+  for(let i=5;i>=0;i--){ const a=new Date(h.getFullYear(),h.getMonth()-i,1), b=new Date(h.getFullYear(),h.getMonth()-i+1,0);
+    const p=fiPeriodo(fiIso(a),fiIso(b),1); filas.push(Object.assign(p,{lab:MESN[a.getMonth()]+(a.getMonth()===0||i===5?' '+String(a.getFullYear()).slice(2):''),actual:i===0})); }
+  const W=360,H=200,top=22,bot=42,max=Math.max(1,...filas.map(f=>Math.abs(f.res))), neg=filas.some(f=>f.res<0);
+  const y0=neg?top+(H-top-bot)/2:H-bot, esc=(H-top-bot)/(neg?2:1)/max, cw=W/filas.length, bw=Math.min(36,cw*0.56);
+  const g=filas.map((f,i)=>{ const x=i*cw+(cw-bw)/2, hgt=Math.max(1.5,Math.abs(f.res)*esc), y=f.res>=0?y0-hgt:y0, col=f.res>=0?'var(--azul)':'var(--amber)';
+    const ly=f.res>=0?y-6:Math.min(y+hgt+14,H-bot+16), tip=`${f.lab}: resultado ${fiClp(f.res)} · ${f.n} venta${f.n===1?'':'s'} · margen bruto ${fiClp(f.margen)} · gastos ${fiClp(f.comis+f.gen+f.fijos)}${f.actual?' (mes en curso)':''}`;
+    return `<g><title>${fiEsc(tip)}</title><rect x="${i*cw}" y="0" width="${cw}" height="${H}" fill="transparent"/>
+      <rect class="fiBar" x="${x}" y="${y}" width="${bw}" height="${hgt}" rx="3" fill="${col}"${f.actual?' fill-opacity=".55"':''}/>
+      <text x="${x+bw/2}" y="${ly}" text-anchor="middle" font-size="10.5" font-family="var(--mono)" fill="var(--ink2)">${f.n||f.res?fiMil(f.res):''}</text>
+      <text x="${x+bw/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--mute)">${f.lab}</text></g>`; }).join('');
+  $('#fiChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Resultado por mes, últimos 6 meses"><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--line)" stroke-width="1"/>${g}</svg>
+    <div class="fiNota">Barra azul = ganancia, ámbar y hacia abajo = pérdida. El mes en curso va más claro porque todavía no termina (y ya lleva los fijos del mes completo).</div>`;
+  $('#fiTabla').innerHTML='<tr><th>Mes</th><th>Ventas</th><th>Margen bruto</th><th>Gastos</th><th>Resultado</th></tr>'
+    +filas.map(f=>`<tr><td>${f.lab}</td><td>${f.n}</td><td>${fiClp(f.margen)}</td><td>${fiClp(f.comis+f.gen+f.fijos)}</td><td style="color:var(--ink)">${fiClp(f.res)}</td></tr>`).join('');
+}
+function fiBcg(){
+  const r=fiRango('12m'), p=fiPeriodo(r.d,r.h,12), G={};
+  p.vs.forEach(v=>{ const t=S[v.ch], pr=enCLP(t)||0, c=fiCostoVend(v); if(!(c>0&&pr>0)||!v.llp||v.llp>t.date) return;
+    const k=(String(v.ma||'')+' '+String(v.mo||'')).trim().toUpperCase(); const g=G[k]||(G[k]={k,n:0,m:0,d:0}); g.n++; g.m+=pr-c; g.d+=fiDias(v.llp,t.date); });
+  const L=Object.values(G).map(g=>({k:g.k,n:g.n,m:g.m/g.n,d:g.d/g.n}));
+  if(L.length<2){ $('#fiBcgChart').innerHTML=''; $('#fiBcg').innerHTML='<div class="fiNota">Hacen falta ventas de al menos dos modelos en los últimos 12 meses, con costo y fecha de llegada al patio, para armar la matriz.</div>'; return; }
+  const N=L.reduce((a,g)=>a+g.n,0), mP=L.reduce((a,g)=>a+g.m*g.n,0)/N, dP=L.reduce((a,g)=>a+g.d*g.n,0)/N;
+  const Q=[['Estrellas','más margen y se venden rápido','Comprar más de estos.','var(--azul)',g=>g.m>=mP&&g.d<=dP],
+    ['Vacas','se venden rápido pero dejan menos','Dan rotación y caja: mantener, cuidando el precio de compra.','var(--green)',g=>g.m<mP&&g.d<=dP],
+    ['Interrogantes','dejan buen margen pero tardan','Comprar cuando haya clientes pidiéndolos (Demanda).','var(--amber)',g=>g.m>=mP&&g.d>dP],
+    ['Perros','dejan menos y tardan más','Evitar, o comprar solo muy barato.','var(--red)',g=>g.m<mP&&g.d>dP]];
+  const W=360,H=250,pl=12,pr=12,pt=22,pb=24, xs=L.map(g=>g.d), ys=L.map(g=>g.m);
+  const pad=(a,b)=>{ const r=(b-a)||Math.abs(b)||1; return [a-r*0.25,b+r*0.25]; };
+  const [x0,x1]=pad(Math.min(...xs),Math.max(...xs)), [y0,y1]=pad(Math.min(...ys),Math.max(...ys));
+  const X=d=>pl+(d-x0)/(x1-x0)*(W-pl-pr), Y=m=>H-pb-(m-y0)/(y1-y0)*(H-pt-pb), top=L.slice().sort((a,b)=>b.n-a.n).slice(0,6).map(g=>g.k);
+  const pts=L.map(g=>{ const q=Q.find(q=>q[4](g)), rr=Math.min(13,6+g.n*1.2);
+    return `<g><title>${fiEsc(g.k)}: ${g.n} vendido${g.n===1?'':'s'} · margen promedio ${fiClp(g.m)} · ${Math.round(g.d)} días en patio (${q[0]})</title>
+      <circle cx="${X(g.d)}" cy="${Y(g.m)}" r="${rr}" fill="${q[3]}" fill-opacity=".85" stroke="var(--card)" stroke-width="2"/>
+      ${top.includes(g.k)?`<text x="${X(g.d)>W*0.55?X(g.d)-rr-4:X(g.d)+rr+4}" y="${Y(g.m)+4}"${X(g.d)>W*0.55?' text-anchor="end"':''} font-size="10.5" fill="var(--ink2)">${fiEsc(g.k.length>16?g.k.slice(0,15)+'…':g.k)}</text>`:''}</g>`; }).join('');
+  $('#fiBcgChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Modelos según margen y días en patio">
+    <line x1="${X(dP)}" x2="${X(dP)}" y1="${pt}" y2="${H-pb}" stroke="var(--line)" stroke-dasharray="4 4"/><line x1="${pl}" x2="${W-pr}" y1="${Y(mP)}" y2="${Y(mP)}" stroke="var(--line)" stroke-dasharray="4 4"/>
+    <text x="${pl}" y="12" font-size="10.5" fill="var(--azul)">ESTRELLAS</text><text x="${W-pr}" y="12" text-anchor="end" font-size="10.5" fill="var(--amber)">INTERROGANTES</text>
+    <text x="${pl}" y="${H-6}" font-size="10.5" fill="var(--green)">VACAS</text><text x="${W-pr}" y="${H-6}" text-anchor="end" font-size="10.5" fill="var(--red)">PERROS</text>
+    <text x="${W/2}" y="12" text-anchor="middle" font-size="10" fill="var(--mute)">↑ más margen</text><text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--mute)">más días en patio →</text>${pts}</svg>
+    <div class="fiNota">Promedios: margen ${fiClp(mP)} por vehículo · ${Math.round(dP)} días en patio. Tamaño del punto = cuántos vendiste.</div>`;
+  $('#fiBcg').innerHTML=Q.map(([n,d,acc,col,f])=>{ const a=L.filter(f).sort((x,y)=>y.n-x.n); if(!a.length) return '';
+    return `<div class="fiGrp" style="color:${col}">● ${n} · ${d}</div><div class="fiNota" style="margin:0 0 3px">${acc}</div>`
+      +a.map(g=>fiFila(fiEsc(g.k)+` <span class="fiExp" style="display:inline">· ${g.n} vend. · ${Math.round(g.d)} días</span>`,fiClp(g.m))).join(''); }).join('');
+}
+function fiSugerencias(p,sd,pg){
+  const out=[], pl={mes:'este mes',ant:'mes pasado','3m':'últimos 3 meses','12m':'últimos 12 meses'}[fiPer]||'';
+  out.push(['F','Compra revisada en persona en Corea (diferenciador de la marca)']);
+  if(p.nC) out.push([p.margen>=0?'F':'D',`Margen bruto de ${fiPct(p.margen,p.ingC)} (${pl})`]);
+  if(p.n) out.push([p.res>=0?'F':'D',p.res>=0?`Resultado positivo después de gastos: ${fiClp(p.res)} (${pl})`:`Pérdida de ${fiClp(-p.res)} después de gastos (${pl})`]);
+  const md=fiMediana(p.dias); if(md!=null) out.push(['FD',`Un vehículo tarda ${md} días en venderse (mediana)`]);
+  const v90=sd.tramos[4]; if(v90.a.length) out.push(['D',`${v90.a.length} vehículo${v90.a.length===1?'':'s'} con más de 90 días en patio (${clp(v90.c)} parados)`]);
+  if(p.sinCosto) out.push(['D',`${p.sinCosto} venta${p.sinCosto===1?'':'s'} sin costo cargado: no se sabe cuánto dejaron`]);
+  if(p.n>=4){ const c={}; p.vs.forEach(v=>{ const k=String(v.ma||'').toUpperCase(); c[k]=(c[k]||0)+1; }); const [mk,nk]=Object.entries(c).sort((a,b)=>b[1]-a[1])[0]||[];
+    if(mk&&nk/p.n>=0.5) out.push(['FD',`${Math.round(nk/p.n*100)}% de las ventas son ${mk}`]); }
+  out.push(['O','Franquicia por discapacidad (Ley 20.422): todos los vehículos pueden liberarse por esa vía']);
+  out.push(['O','Exportación a Paraguay y Bolivia por traspaso a otra empresa de Zofri (Paraguay paga en dólares)']);
+  try{ const desde=Date.now()-90*864e5, dem={}; (DEMANDA||[]).filter(d=>(d.ts||0)>=desde).forEach(d=>{ const k=[d.marca,d.modelo].filter(Boolean).join(' ').trim().toUpperCase(); if(k) dem[k]=(dem[k]||0)+1; });
+    Object.entries(dem).sort((a,b)=>b[1]-a[1]).slice(0,2).forEach(([k,n])=>out.push(['O',`Clientes piden ${k} (${n} vez${n===1?'':'es'} en 90 días)`])); }catch(_){}
+  out.push(['A','Sin sello verde no circula en Santiago, Valparaíso ni Viña del Mar (solo 1 de cada 7 del stock califica)']);
+  out.push(['A','El dólar y el won cambian el costo de cada compra']);
+  if(pg.cambiar>0) out.push(['A',`${clp(pg.cambiar)} de ventas en pesos todavía sin cambiar a dólares`]);
+  const ya=new Set(FODA_Q.flatMap(([k])=>fodaL(k).map(x=>x.t.toUpperCase())));
+  return out.filter(([,t])=>!ya.has(t.toUpperCase()));
+}
+function pintaFoda(sug){
+  const quad=(k,n,col,ph)=>`<div class="fodaQ" style="--q:${col}"><h4><i>${k}</i>${n.replace(/^[A-Z]{2} · /,'')}</h4>`
+    +(fodaL(k).length?fodaL(k).map((x,i)=>`<div class="xrow"><span>${fiEsc(x.t)}</span><span><button class="b-und" data-fodadel="${k}|${i}" aria-label="Quitar">✕</button></span></div>`).join(''):`<div class="fodaVacio">Nada anotado todavía.</div>`)
+    +`<div class="fodaAdd"><input data-fodain="${k}" placeholder="${ph}" autocomplete="off"><button class="btn b-sec" data-fodaadd="${k}" aria-label="Agregar">＋</button></div></div>`;
+  $('#fodaG').innerHTML=FODA_Q.map(([k,n,c])=>quad(k,n,c,'Agregar '+n.toLowerCase().replace(/s$/,''))).join('');
+  $('#fodaX').innerHTML=FODA_X.map(([k,n,c])=>quad(k,n,c,'Escribe una estrategia')).join('');
+  const NQ=Object.fromEntries(FODA_Q.map(([k,n])=>[k,n]));
+  $('#fodaSug').innerHTML=sug.length?sug.map(([q,t])=>`<div class="fodaSugR"><span>${fiEsc(t)}</span><span>${q.split('').map(k=>`<button class="btn b-sec" data-fodasug="${k}" data-t="${fiEsc(t)}" title="Agregar a ${NQ[k]}">＋ ${k}</button>`).join('')}</span></div>`).join('')
+    :'<div class="fiNota">Ya tomaste todas las sugerencias.</div>';
+}
+function pintaFin(){
+  const box=$('#ngFinanzas'); if(!box) return;
+  $('#fiPer').innerHTML=FI_PER.map(([k,n])=>`<button type="button" data-fiper="${k}" aria-pressed="${fiPer===k}">${n}</button>`).join('');
+  const r=fiRango(fiPer), p=fiPeriodo(r.d,r.h,r.meses), sd=fiStockDatos(), pg=fiPagarDatos();
+  $('#fiPerTxt').textContent='Del '+fd(r.d)+' al '+fd(r.h)+(fiPer==='mes'?' (mes en curso)':'')+'.';
+  const md=fiMediana(p.dias), mProm=p.nC?p.margen/p.nC:0, comProm=p.n?p.comis/p.n:0, fm=fiFijosMes();
+  const pe=(mProm-comProm)>0?Math.ceil(fm/(mProm-comProm)):null, porMes=p.n/r.meses;
+  const K=(t,b,sm)=>`<div class="fiK"><span>${t}</span><b>${b}</b>${sm?`<small>${sm}</small>`:''}</div>`;
+  $('#fiKpi').innerHTML=K('Ventas',fiMil(p.ing),p.n+' vehículo'+(p.n===1?'':'s'))
+    +K('Margen bruto',fiMil(p.margen),fiPct(p.margen,p.ingC)+' sobre ventas')
+    +K('Resultado',fiMil(p.res),'después de comisiones, gastos y fijos')
+    +K('Margen por auto',p.nC?fiMil(mProm):'—','promedio de lo vendido')
+    +K('Días para vender',md!=null?md+' días':'—','mediana, desde que llega al patio')
+    +K('Capital en stock',fiMil(sd.capP+sd.capC),sd.patio.length+' en patio · '+sd.camino.length+' en camino')
+    +K('Punto de equilibrio',pe?pe+' / mes':'—',pe?'vehículos para cubrir los fijos · vendes '+(Math.round(porMes*10)/10).toLocaleString('es-CL')+'/mes':'falta margen para calcularlo')
+    +K('Por pagar hoy',fiMil(pg.total),'Corea, taller, flete y fijos');
+  $('#fiKpiNota').textContent=p.sinCosto?p.sinCosto+' venta'+(p.sinCosto===1?'':'s')+' del período no tiene'+(p.sinCosto===1?'':'n')+' costo cargado: cuenta'+(p.sinCosto===1?'':'n')+' en ventas pero no en el margen.':'';
+  $('#fiER').innerHTML=fiFila('Ventas · '+p.n,fiClp(p.ing))
+    +(p.sinCosto?fiFila('Ventas sin costo cargado (fuera del margen)','−'+clp(p.ing-p.ingC)):'')
+    +fiFila('Costo de lo vendido','−'+clp(p.costo),'compra, flete, Zofri, taller y repuestos de esos autos')
+    +fiFila('Margen bruto',fiClp(p.margen)+' · '+fiPct(p.margen,p.ingC),'','tot')
+    +fiFila('Comisiones','−'+clp(p.comis))
+    +fiFila('Gastos generales','−'+clp(p.gen),'combustible, insumos, trámites')
+    +fiFila('Costos fijos','−'+clp(p.fijos),r.meses+(r.meses===1?' mes':' meses')+' × '+clp(fm)+' (arriendo, contador, sueldos, Corea)')
+    +fiFila('Resultado',fiClp(p.res)+' · '+fiPct(p.res,p.ing),'','tot');
+  fiChartMeses();
+  $('#fiPagar').innerHTML='<div class="fiGrp">Por pagar</div>'
+    +fiFila('Saldos de compra en Corea · '+pg.nSal,clp(pg.salC),pg.nSal?fiKrw(pg.salW)+' · compra menos la seña':'ninguno')
+    +fiFila('Costos estimados en Corea · '+pg.nEst,clp(pg.estC),pg.nEst?fiKrw(pg.estW)+(pg.sinMonto?' · '+pg.sinMonto+' sin monto':''):'ninguno anotado')
+    +fiFila('Saldo con talleres en Chile',clp(pg.taller),'acordado y no pagado')
+    +fiFila('Trabajos estimados en Chile',clp(pg.reac),'autos sin vender, trabajos abiertos')
+    +fiFila('Flete sin remesar',clp(pg.fleteC),pg.fleteUSD?'US$'+obs2(pg.fleteUSD)+' × '+obs2(pg.dol):'')
+    +fiFila('Costos fijos de este mes',clp(pg.fijos))
+    +fiFila('Total por pagar',clp(pg.total),'','tot')
+    +'<div class="fiGrp" style="margin-top:16px">Por cobrar</div>'
+    +fiFila('Saldo de reservas activas · '+pg.nRes,clp(pg.cobrar))
+    +fiFila('Ventas en pesos sin cambiar',clp(pg.cambiar),'ya cobrado, falta pasarlo a dólares');
+  const capT=sd.capP+sd.capC, costoAnual=p.costo*12/r.meses, rot=sd.capP>0?costoAnual/sd.capP:0;
+  const gastos=p.comis+p.gen+p.fijos, v90=sd.tramos[4];
+  $('#fiRatios').innerHTML=fiFila('Margen bruto',fiPct(p.margen,p.ingC),'de cada $100 vendidos, cuánto queda después del costo del auto')
+    +fiFila('Margen neto',fiPct(p.res,p.ing),'de cada $100 vendidos, cuánto queda después de todo')
+    +fiFila('Ticket promedio',p.n?clp(p.ing/p.n):'—','precio promedio de venta')
+    +fiFila('Ventas por mes',(Math.round(porMes*10)/10).toLocaleString('es-CL'),'vehículos vendidos al mes en el período')
+    +fiFila('Cobertura de gastos',gastos?(Math.round(p.margen/gastos*100)/100).toLocaleString('es-CL')+' veces':'—','margen bruto ÷ (comisiones + gastos + fijos): sobre 1 el negocio se paga solo')
+    +fiFila('Rotación del stock',rot?(Math.round(rot*10)/10).toLocaleString('es-CL')+' veces al año':'—','cuántas veces al año se vende el equivalente al patio completo')
+    +fiFila('Días de inventario',rot?Math.round(365/rot)+' días':'—','con ese ritmo, cuánto dura el stock del patio')
+    +fiFila('Rentabilidad del capital',capT?fiPct(p.res*12/r.meses,capT)+' al año':'—','resultado anualizado ÷ capital en stock (patio + en camino)')
+    +fiFila('Stock con más de 90 días',sd.patio.length?fiPct(v90.a.length,sd.patio.length):'—',v90.a.length?v90.a.length+' autos · '+clp(v90.c)+' parados':'');
+  $('#fiStock').innerHTML=sd.tramos.filter(t=>t.a.length).map(t=>fiFila(t.n+' · '+t.a.length,clp(t.c))).join('')
+    +fiFila('En patio',clp(sd.capP),'','tot')
+    +fiFila('En camino · '+sd.camino.length,clp(sd.capC),'costo hasta Chile ya calculado')
+    +(sd.corea.length?fiFila('Todavía en Corea · '+sd.corea.length,clp(sd.capK)):'')
+    +(sd.nP?fiFila('Ganancia esperada del patio',clp(sd.pvTot-sd.pvCosto),sd.nP+' con precio de venta: '+clp(sd.pvTot)+' − costo proyectado '+clp(sd.pvCosto)):'')
+    +(v90.a.length?'<div class="fiGrp" style="margin-top:14px">Los que más llevan</div>'+v90.a.slice().sort((a,b)=>diasDesde(b.llp)-diasDesde(a.llp)).slice(0,5)
+      .map(v=>fiFila(fiEsc(v.ma+' '+v.mo+' '+(v.an||''))+`<span class="fiExp">${fiEsc(v.ch)} · ${diasDesde(v.llp)} días</span>`,clp(ctot(v)))).join(''):'');
+  fiBcg();
+  pintaFoda(fiSugerencias(p,sd,pg));
+}
+document.addEventListener('click',async e=>{
+  const pb=e.target.closest('[data-fiper]');
+  if(pb){ if(fiPer===pb.dataset.fiper) return; fiPer=pb.dataset.fiper; try{localStorage.setItem('amk_fiper',fiPer)}catch(_){}
+    alturaFluida($('#ngFinanzas'),()=>pintaFin()); entraSuave($('#fiKpi')); entraSuave($('#fiER')); return; }
+  const a=e.target.closest('[data-fodaadd]');
+  if(a){ const k=a.dataset.fodaadd, inp=document.querySelector(`[data-fodain="${k}"]`), t=(inp&&inp.value||'').trim();
+    if(!t){ if(inp) inp.focus(); toast('Escribe algo primero'); return; }
+    if(fodaL(k).some(x=>x.t.toUpperCase()===t.toUpperCase())){ toast('Ya está anotado'); return; }
+    fodaL(k).push({t,ts:Date.now()}); if(await guardaFoda()){ alturaFluida($('#boxFoda'),()=>pintaFin()); const n=document.querySelector(`[data-fodain="${k}"]`); if(n) n.focus(); } return; }
+  const sg=e.target.closest('[data-fodasug]');
+  if(sg){ const k=sg.dataset.fodasug, t=sg.dataset.t; if(fodaL(k).some(x=>x.t.toUpperCase()===t.toUpperCase())) return;
+    fodaL(k).push({t,ts:Date.now()}); if(await guardaFoda()){ alturaFluida($('#boxFoda'),()=>pintaFin()); toast('Agregado a '+FODA_Q.find(q=>q[0]===k)[1]); } return; }
+  const d=e.target.closest('[data-fodadel]');
+  if(d){ const [k,i]=d.dataset.fodadel.split('|'), x=fodaL(k)[+i]; if(!x||!confirm('¿Quitar "'+x.t+'"?')) return;
+    fodaL(k).splice(+i,1); if(await guardaFoda()) alturaFluida($('#boxFoda'),()=>pintaFin()); }
+});
+document.addEventListener('keydown',e=>{ const i=e.target.closest&&e.target.closest('[data-fodain]'); if(i&&e.key==='Enter'){ e.preventDefault(); const b=document.querySelector(`[data-fodaadd="${i.dataset.fodain}"]`); if(b) b.click(); } });
 function ngseg(k){
   window.scrollTo(0,0);
   alturaFluida(MAIN,()=>{
-    [['dinero','ngDinero'],['mes','ngMes'],['embarque','ngEmbarque'],['ventas','ngVentas'],['ajustes','ngAjustes']].forEach(([n,id])=>{
+    [['dinero','ngDinero'],['finanzas','ngFinanzas'],['mes','ngMes'],['embarque','ngEmbarque'],['ventas','ngVentas'],['ajustes','ngAjustes']].forEach(([n,id])=>{
       const el=$('#'+id); if(el) el.hidden = n!==k;
     });
     $$('#ngSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ng===k?'true':'false'));
+    if(k==='finanzas') pintaFin();
   });
 }
 /* Contenido en tres partes (13/10/2026): Publicar (por vehículo), Ideas de marca y Resultados (de qué red llegan los clientes). */
@@ -11722,6 +12036,13 @@ function descargaRespaldoExcel(auto){
     sheets.push({name:'Pagos y sueldos',rows:pg});
     sheets.push({name:'Deudas (saldo hoy)',rows:[['Persona','Deuda','Saldo hoy','Descuento normal por quincena']].concat(DEU.map(d=>[nomPersona(d.k),d.nom,deuSaldo(d),d.cuota||0]))});
     sheets.push({name:'Insumos avisados',rows:[['Fecha aviso','Insumo','Avisó','Estado','Monto compra','Fecha compra']].concat(AVISOSVEND.filter(x=>x.tipo==='insumo').map(x=>[isoDe(x.ts),x.item||'',x.vendedor||'',x.noNec?'No hacía falta':(x.atendido?'Comprado':'Pendiente'),x.montoCompra||'',x.compradoFe||'']))});
+    /* 26/10/2026: Negocio → Finanzas (resultado de los últimos 12 meses) y la FODA. */
+    { const fr=[['Mes','Ventas (n)','Ventas ($)','Costo de lo vendido','Margen bruto','Comisiones','Gastos generales','Costos fijos','Resultado','Ventas sin costo cargado']], h=new Date();
+      for(let i=11;i>=0;i--){ const a=new Date(h.getFullYear(),h.getMonth()-i,1), b=new Date(h.getFullYear(),h.getMonth()-i+1,0), x=fiPeriodo(fiIso(a),fiIso(b),1);
+        fr.push([fiIso(a).slice(0,7),x.n,x.ing,x.costo,x.margen,x.comis,x.gen,x.fijos,x.res,x.sinCosto]); }
+      sheets.push({name:'Finanzas por mes',rows:fr}); }
+    { const fo=[['Cuadrante','Texto','Fecha']]; FODA_Q.concat(FODA_X).forEach(([k,n])=>fodaL(k).forEach(x=>fo.push([n,x.t,isoDe(x.ts)])));
+      sheets.push({name:'FODA',rows:fo}); }
     sheets.push({name:'Consultas de clientes',rows:[['Fecha','Nombre','Teléfono','Llegó por','Vehículo','Estado','Próximo seguimiento','Vendedor','Nota']].concat(consLista().sort((a,b)=>(a.ts||0)-(b.ts||0)).map(c=>[isoDe(c.ts||0),c.nom||'',c.tel||'',CONS_ORI[c.ori]||c.ori||'',consAuto(c),CONS_EST[c.est]||'Nueva',c.seg||'',c.vendedor||'',c.nota||'']))});
   }catch(err){ console.error('respaldo extra',err); }
   const zipBytes=buildXLSX(sheets);
@@ -11798,7 +12119,7 @@ function secBarArma(pane){
   if(!pane||pane.querySelector(':scope > .secBar')) return;
   const cajas=()=>[...pane.querySelectorAll('.box')].filter(b=>!b.parentElement.closest('.box')&&b.closest('[id]')&&(b.closest('.secPane')===pane));
   pane.classList.add('secPane');
-  cajas().forEach((b,i)=>colArma(b,b.id||(pane.id+'_c'+i),pane.id==='ngEmbarque'&&i===0));
+  cajas().forEach((b,i)=>colArma(b,b.id||(pane.id+'_c'+i),(pane.id==='ngEmbarque'||pane.id==='ngFinanzas')&&i===0));   /* Finanzas: Indicadores parte abierta */
   /* En Embarque la primera caja (elegir el BL) queda siempre a la vista: es el contexto de todo lo demás. */
   const fijas=pane.id==='ngEmbarque'?1:0;
   const cajas0=cajas; const cajasTodas=()=>cajas0(); 
@@ -11825,7 +12146,7 @@ function secBarArma(pane){
 function secMuestra(box){ if(box&&box.classList.contains('colp')) colPon(box,false); if(!box||!box.classList.contains('secOff')) return; const pane=box.closest('.secPane'); if(pane&&pane._secVer) pane._secVer(box.dataset.secId); }
 function secBarsInit(ids){ ids.forEach(id=>secBarArma(document.getElementById(id))); }
 
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen'])); else secBarsInit(['ngDinero', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen']);
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>secBarsInit(['ngDinero', 'ngFinanzas', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen'])); else secBarsInit(['ngDinero', 'ngFinanzas', 'ngMes', 'ngEmbarque', 'ngVentas', 'ngAjustes', 'pResumen']);
 </script>
 </body>
 </html>
