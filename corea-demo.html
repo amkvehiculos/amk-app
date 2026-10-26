@@ -57,6 +57,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .crow .cr1{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .crow .ch{margin-top:3px;font-size:11.5px;overflow-wrap:anywhere}
 .tt[data-cierra]{cursor:pointer}
+.hd{display:block!important}
+.hd>summary{display:list-item!important}
+.hd .xrow{white-space:normal}
+.hd summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink2);margin-top:10px}
 .acts2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .acts2 .btn{flex:1 1 auto;padding:11px 10px;font-size:13.5px;white-space:nowrap}
 .acts2 .btn.sm{flex:0 0 52px}
@@ -219,19 +223,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pLista">
     <h2>Vehículos comprados</h2><p class="sub">Carga cada vehículo apenas lo compres.</p>
-    <div class="box" id="boxDemanda">
-      <button class="dmhead" id="dmToggle" aria-expanded="false" aria-controls="demandaBody">
-        <span><b>Demanda de clientes en Iquique</b><span class="dmcount" id="dmCount">—</span></span><i aria-hidden="true">▾</i></button>
-      <div id="demandaBody" hidden style="margin-top:11px">
-        <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
-        <div id="demandaList" class="dmlist"></div></div></div>
-    <div class="box" id="boxCont">
-      <button class="dmhead" id="ctToggle" aria-expanded="false" aria-controls="contBody">
-        <span><b>Contenedores</b><span class="dmcount" id="ctCount">—</span></span><i aria-hidden="true">▾</i></button>
-      <div id="contBody" hidden style="margin-top:11px">
-        <p>Arma los contenedores como los vas pensando (simulación). En el shoring puedes reorganizar todo: mover autos y ponerle a cada contenedor su número real. Se puede editar siempre, incluso después de embarcado.</p>
-        <button class="btn b-pri" id="ctNuevo" type="button" style="width:100%;margin-bottom:10px">＋ Armar contenedor</button>
-        <div id="contList" class="dmlist"></div></div></div>
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
     <div class="opt fila" id="fltRow" aria-label="Filtro"></div>
@@ -239,9 +230,47 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div id="list"></div>
   </section>
 
+  <section class="panel" id="pCont">
+    <h2>Contenedores</h2><p class="sub">Arma los contenedores como los vas pensando (simulación). En el shoring puedes reorganizar todo: mover autos y ponerle a cada contenedor su número real. Se puede editar siempre, incluso después de embarcado.</p>
+    <div class="box" id="boxFlete"><h3 style="margin:0 0 4px">Acuerdo de flete</h3>
+      <p class="sub" style="margin:0 0 8px">Antes de armar contenedores: con quién acordaste el flete, cuántos contenedores y el precio de cada uno en dólares. Andre lo ve en su sistema.</p>
+      <div id="fleteList"></div>
+      <button class="big" id="flNuevo" type="button" style="margin-top:8px">＋ Anotar acuerdo de flete</button></div>
+    <button class="big" id="ctNuevo" type="button">＋ Armar contenedor</button>
+    <p class="cnt"><span id="ctCount">—</span></p>
+    <div id="contList" class="dmlist"></div>
+    <button id="ctToggle" hidden aria-expanded="true" aria-controls="contBody" tabindex="-1"></button><div id="contBody" hidden></div>
+  </section>
+
+  <section class="panel" id="pCompra">
+    <h2>Comprar</h2><p class="sub">Qué piden los clientes y a cuánto compraste antes, para decidir qué comprar.</p>
+    <div class="box" id="boxDemanda">
+      <button class="dmhead" id="dmToggle" aria-expanded="true" aria-controls="demandaBody">
+        <span><b>Demanda de clientes en Iquique</b><span class="dmcount" id="dmCount">—</span></span><i aria-hidden="true">▾</i></button>
+      <div id="demandaBody" style="margin-top:11px">
+        <p>Lo que Víctor y Bryan van anotando cuando un cliente busca algo que no tenemos. Para ir comprando de a pocos según lo que se pide.</p>
+        <div id="demandaList" class="dmlist"></div></div></div>
+
+    <h3 style="font-family:var(--disp);font-size:16px;margin:20px 0 2px">Lo que ya compraste</h3>
+    <p class="sub" style="margin-bottom:10px">Cuánto pagaste antes por cada modelo y qué gastos de taller llevó. Úsalo de referencia al negociar un precio nuevo.</p>
+    <input class="search" id="histQ" placeholder="Buscar modelo, marca o año…" autocomplete="off" data-noup="1">
+    <div class="opt fila" id="histMa" aria-label="Marca"></div>
+    <div class="two" style="margin-top:10px">
+      <div class="fld"><label for="histTipo">Tipo</label><select id="histTipo"><option value="">Todos</option><option value="auto">Autos</option><option value="trab">De trabajo</option></select></div>
+      <div class="fld"><label for="histOrd">Ordenar por</label><select id="histOrd"><option value="cant">Más comprados</option><option value="fecha">Compra más reciente</option><option value="menor">Precio menor</option><option value="mayor">Precio mayor</option><option value="az">A–Z</option></select></div>
+    </div>
+    <div class="fld"><label for="histProv">Proveedor</label><select id="histProv"></select></div>
+    <p class="cnt" id="histCnt"></p>
+    <div id="histList"></div>
+  </section>
+
   <section class="panel" id="pRemesa">
-    <h2>Remesas recibidas</h2><p class="sub">Cuando llegue el dinero, anótalo y avisa a Iquique.</p>
-    <button class="big" id="reNueva">＋ Llegó una remesa</button>
+    <div class="steps seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" data-p="pRemesa" aria-selected="true">₩ Remesas</button>
+      <button role="tab" data-p="pGastos" aria-selected="false">◫ Gastos generales</button></div>
+    <h2>Remesas recibidas</h2><p class="sub">Andre envía el dinero desde Chile. Cuando llegue a tu banco, anota aquí los wones que llegaron: Iquique lo recibe solo y lo une con lo que envió.</p>
+    <div id="reCamino"></div>
+    <button class="big" id="reNueva">＋ Anotar remesa recibida</button>
     <p class="cnt" id="reCnt"></p>
     <div id="reList"></div>
     <div class="box" id="boxAvisar" hidden data-siempre-oculto="1"><h3>Avisar a Iquique</h3>
@@ -261,27 +290,24 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="envMark" style="width:100%">Marcar pendientes como enviados</button></div>
   </section>
 
-  <section class="panel" id="pHist">
-    <h2>Histórico de compras</h2><p class="sub">Precios ya pagados, para tener una referencia al comprar de nuevo.</p>
-    <div class="fld"><label for="histProv">Proveedor</label><select id="histProv"></select></div>
-    <div id="histList"></div>
-  </section>
-
   <section class="panel" id="pGastos">
+    <div class="steps seg" role="tablist" style="margin-bottom:14px">
+      <button role="tab" data-p="pRemesa" aria-selected="false">₩ Remesas</button>
+      <button role="tab" data-p="pGastos" aria-selected="true">◫ Gastos generales</button></div>
     <h2>Gastos generales</h2><p class="sub">Compras que no son de un vehículo en particular (ej: cromados comprados en bloque). Anótalas acá y después ve asignando cuánto le corresponde a cada vehículo. Lo que quede sin asignar se reparte después, en Sistema, entre los vehículos del embarque.</p>
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 15:22<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 19:12<!--/VER--></b></p>
   </section>
 </main>
 
 <nav class="tabbar" role="tablist">
   <button class="tb" role="tab" data-p="pLista" aria-selected="true"><i>▦</i>Vehículos</button>
-  <button class="tb" role="tab" data-p="pRemesa" aria-selected="false"><i>₩</i>Remesas</button>
+  <button class="tb" role="tab" data-p="pCont" aria-selected="false"><i>▣</i>Contenedores</button>
+  <button class="tb" role="tab" data-p="pCompra" aria-selected="false"><i>▤</i>Comprar</button>
+  <button class="tb" role="tab" data-p="pRemesa" data-p2="pGastos" aria-selected="false"><i>₩</i>Dinero</button>
   <button class="tb" role="tab" data-p="pEnviar" aria-selected="false" hidden><i>➦</i>Enviar</button>
-  <button class="tb" role="tab" data-p="pHist" aria-selected="false"><i>▤</i>Histórico</button>
-  <button class="tb" role="tab" data-p="pGastos" aria-selected="false"><i>◫</i>Gastos</button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
@@ -390,8 +416,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
 
+<div class="sheet" id="shFlete">
+  <h3 id="flT">Acuerdo de flete</h3><div class="sb">Siempre en dólares (USD)</div>
+  <div class="fld"><label for="flQ">¿Con quién lo acordaste?</label><input id="flQ" placeholder="Nombre del intermediario o naviera"></div>
+  <div class="fld"><label for="flN">¿Cuántos contenedores?</label><input id="flN" inputmode="numeric" placeholder="Ej: 4"></div>
+  <div class="fld"><label for="flU">Precio por contenedor (USD)</label><input id="flU" inputmode="numeric" placeholder="USD 0"></div>
+  <div class="fld"><label for="flR">Nota (opcional)</label><input id="flR" placeholder="Ej: 40HC, salida de Busan en noviembre"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="flOk">Guardar</button></div>
+</div>
+
 <div class="sheet" id="shLleg">
-  <h3>Llegó una remesa</h3><div class="sb" id="llC">Anota lo que llegó al banco</div>
+  <h3>Remesa recibida</h3><div class="sb" id="llC">Anota cuántos wones llegaron a tu banco. Andre ya sabe cuánto envió; con tu dato confirma cuánto llegó de verdad.</div>
   <div class="fld"><label for="llK">Wones que llegaron</label><input id="llK" inputmode="numeric" data-dinero="1" placeholder="0"></div>
   <div class="fld"><label for="llCom">Comisión que descontaron (opcional)</label><input id="llCom" inputmode="numeric" data-dinero="1" placeholder="En wones"></div>
   <div class="fld"><label for="llD">Fecha en que llegó</label><input id="llD" type="date"></div>
@@ -596,7 +631,7 @@ function dDia(n){ const d=new Date(); d.setDate(d.getDate()+n); return iso(d); }
 function demoReinicia(){ if(!confirm('¿Volver a los datos de ejemplo? Se borra lo que hayas probado.')) return;
   try{ indexedDB.deleteDatabase('amk_kv_DEMOC'); }catch(_){} setTimeout(()=>location.reload(),400); }
 async function demoSeed(){
-  try{ const r=await window.storage.get('demo_v2'); if(r&&r.value) return; }catch(_){}
+  try{ const r=await window.storage.get('demo_v3'); if(r&&r.value) return; }catch(_){}
   const t=Date.now();
   const mk=(ch,ma,mo,an,ce,cat,tr,pa,ca,km,krw,senia,cont,prov,cc,dias,extra)=>Object.assign({ch,ma,mo,an,ce,cat,tr,pa,ca,km,krw,senia,cont,prov,cc:cc||{},fe:dDia(-dias),
      motor:ca!=='S/N'?'DIÉSEL':'GASOLINA',cil:ca!=='S/N'?'2.5':'2.0',trans:'AUTOMÁTICA',vin:'',nota:'',nf:0,cov:'',sent:false,ts:t-dias*864e5,nube:null},extra||{});
@@ -615,7 +650,8 @@ async function demoSeed(){
   await W('amkc_remesas',[{ts:t-15*864e5,k:30000000,com:25000,f:dDia(-15),fll:dDia(-14),sent:false,nube:null},{ts:t-3*864e5,k:20000000,com:25000,f:dDia(-3),fll:dDia(-2),sent:false,nube:null}]);
   await W('amkc_gastos',[{id:'gdemo1',cat:'CRO',monto:150000,fe:dDia(-7),prov:'TALLER EJEMPLO',nota:'Cromados (ejemplo)',asig:[],nube:null,ts:t-7*864e5}]);
   await W('amkc_demanda_cache',[{ts:t-5*864e5,marca:'HYUNDAI',modelo:'PALISADE',anioDesde:2019,anioHasta:2021,caracteristicas:'7 asientos, color oscuro (ejemplo)',vendedor:'Víctor',atendido:false}]);
-  await W('demo_v2','1');
+  await W('amkc_envios',[{id:String(t-2*864e5),u:5000,f:dDia(-2),estado:'camino'},{id:String(t-1*864e5),u:3500,f:dDia(-1),estado:'camino'}]);
+  await W('demo_v3','1');
 }
 
 async function boot(){
@@ -635,9 +671,11 @@ async function boot(){
   CONT=[...new Map(CONT.map(c=>[String(c).trim().toUpperCase(),String(c).trim().toUpperCase()])).keys()].filter(Boolean).sort();
   try{const r=await window.storage.get('amkc_extra');if(r&&r.value)EXTRA=Object.assign(EXTRA,JSON.parse(r.value))}catch(e){console.error('boot EXTRA',e)}
   try{const r=await window.storage.get('amkc_remesas');if(r&&r.value)RE=JSON.parse(r.value)}catch(e){console.error('boot RE',e)}
+  try{const r=await window.storage.get('amkc_envios');if(r&&r.value)ENV=JSON.parse(r.value)}catch(e){console.error('boot ENV',e)}
+  try{const r=await window.storage.get('amkc_fletes');if(r&&r.value)FLC=JSON.parse(r.value)||[]}catch(e){console.error('boot FLC',e)}
   try{const r=await window.storage.get('amkc_gastos');if(r&&r.value)GEN=JSON.parse(r.value)}catch(e){console.error('boot GEN',e)}
   dlProv(); dlCont(); await cargaDemandaLocal();
-  $('#boot').remove();show(tab);opts();draw();pintaRE();pintaGastos();
+  $('#boot').remove();show(tab);opts();draw();pintaRE();pintaGastos();pintaFlete();
   pintaHK();
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(e){console.error('save',e); toast('No se pudo guardar')} fbEnviaPronto();}
@@ -655,6 +693,10 @@ const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"am
 const FB_USER='corea@amk-vehiculos.app';
 const FB_COL='demo_vehiculos';
 const RECOREA_COL='remesasCorea';
+const RENVIO_COL='remesasEnvio';
+const FLETE_COL='fletesAcuerdo';   /* acuerdo de flete marítimo (26/10/2026): lo anota la mamá, Sistema lo lee */
+let FLC=[];
+let ENV=[];   /* envíos de dinero que Andre mandó desde Chile (Sistema los publica) */
 const GASTOS_COL='gastosCorea';
 let fbGastosEscuchando=false;
 const FOTOSVEND_COL='fotosVend';
@@ -796,7 +838,7 @@ async function fbSyncRemesa(x){
   const firma=remFirma(x);
   try{
     await fbDb.collection(RECOREA_COL).doc(String(x.ts)).set({
-      k:x.k||0, com:x.com||0, f:x.f||'', fll:x.fll||x.f||'',
+      k:x.k||0, com:x.com||0, f:x.f||'', fll:x.fll||x.f||'', envioId:x.envioId||null,
       _ts:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
     x.nube=firma; await guardaRE(); pintaRE();
@@ -979,6 +1021,52 @@ document.addEventListener('click', async e=>{
     await save(); await guardaGEN(); pintaGastos(); draw(); fbEnviaGastosPronto();
     toast('Asignación quitada'); return; }
 });
+/* ---------- Acuerdo de flete (26/10/2026) ----------
+   FLC=[{id,f,quien,n,usd,nota}]. Se guarda aquí y se publica en fletesAcuerdo/{id} para que Sistema lo muestre y Andre
+   marque los contenedores pagados (esos pagos viven solo en Sistema). */
+const usdF=n=>'USD '+Math.round(+n||0).toLocaleString('es-CL');
+const escF=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+let flEdit=null;
+async function guardaFLC(){ try{await window.storage.set('amkc_fletes',JSON.stringify(FLC))}catch(e){toast('No se pudo guardar')} }
+async function fbFlPush(a){ if(!fbReady) return; try{ await fbDb.collection(FLETE_COL).doc(String(a.id)).set({f:a.f||'',quien:a.quien||'',n:+a.n||0,usd:+a.usd||0,nota:a.nota||'',_ts:firebase.firestore.FieldValue.serverTimestamp()}); }catch(e){ console.error('fbFlPush',e); fbEstado('No se pudo enviar el acuerdo de flete (falta permiso en Firestore)','#C62828'); } }
+function pintaFlete(){
+  const el=$('#fleteList'); if(!el) return;
+  if(!FLC.length){ el.innerHTML='<p class="sub" style="margin:0">Todavía no hay acuerdos anotados.</p>'; return; }
+  el.innerHTML=FLC.slice().sort((a,b)=>String(b.f).localeCompare(String(a.f))).map(a=>`<div class="xrow" style="padding:9px 0;border-top:1px dashed var(--line);align-items:flex-start;gap:8px">
+    <span><b>${escF(a.quien||'Sin nombre')}</b><br><span style="font-size:12.5px;color:var(--mute)">${fd(a.f)}${a.nota?' · '+escF(a.nota):''}</span></span>
+    <span style="text-align:right"><b>${a.n} × ${usdF(a.usd)}</b><br><span style="font-size:12.5px;color:var(--mute)">total ${usdF(a.n*a.usd)}</span><br>
+      <button class="b-und" data-fled="${a.id}" style="font-size:13px">Editar</button> <button class="b-und" data-fldel="${a.id}" style="font-size:13px">Borrar</button></span></div>`).join('');
+}
+function flAbre(a){ flEdit=a||null; $('#flQ').value=a?a.quien:''; $('#flN').value=a?a.n:''; $('#flU').value=a?a.usd:''; $('#flR').value=a?(a.nota||''):''; openSheet('shFlete'); setTimeout(()=>$('#flQ').focus(),240); }
+document.addEventListener('click',async e=>{
+  if(e.target.closest('#flNuevo')){ flAbre(null); return; }
+  const ed=e.target.closest('[data-fled]'); if(ed){ flAbre(FLC.find(x=>String(x.id)===ed.dataset.fled)); return; }
+  const del=e.target.closest('[data-fldel]'); if(del){ const a=FLC.find(x=>String(x.id)===del.dataset.fldel); if(!a||!confirm('¿Borrar el acuerdo con '+(a.quien||'este proveedor')+'?')) return;
+    FLC=FLC.filter(x=>x!==a); await guardaFLC(); pintaFlete(); if(fbReady){ try{ await fbDb.collection(FLETE_COL).doc(String(a.id)).delete(); }catch(err){ console.error(err); } } toast('Acuerdo borrado'); return; }
+  if(e.target.closest('#flOk')){ const n=pnum($('#flN').value)||0, u=pnum($('#flU').value)||0; if(!n||!u){ toast('Faltan los contenedores y el precio'); return; }
+    const a=flEdit||{id:'f_'+Date.now(),f:iso()}; a.quien=$('#flQ').value.trim(); a.n=n; a.usd=u; a.nota=$('#flR').value.trim();
+    if(!flEdit) FLC.push(a); await guardaFLC(); closeAll(); pintaFlete(); fbFlPush(a); toast('Acuerdo guardado: '+n+' × '+usdF(u)); }
+});
+function fbFletesListen(){
+  if(!fbReady) return;
+  FLC.forEach(a=>{ fbFlPush(a); });   /* lo anotado sin conexión sube ahora */
+  fbDb.collection(FLETE_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{ const id=chg.doc.id; FLC=FLC.filter(x=>String(x.id)!==id);
+      if(chg.type!=='removed'){ const d=chg.doc.data()||{}; FLC.push({id,f:d.f||'',quien:d.quien||'',n:+d.n||0,usd:+d.usd||0,nota:d.nota||''}); } });
+    guardaFLC(); pintaFlete();
+  }, e=>console.error('fbFletesListen',e));
+}
+function fbEnviosListen(){
+  if(!fbReady) return;
+  fbDb.collection(RENVIO_COL).onSnapshot(snap=>{
+    snap.docChanges().forEach(chg=>{
+      const id=chg.doc.id; ENV=ENV.filter(x=>String(x.id)!==id);
+      if(chg.type!=='removed'){ const d=chg.doc.data()||{}; ENV.push({id, u:d.u||0, f:d.f||'', estado:d.estado||'camino'}); }
+    });
+    try{window.storage.set('amkc_envios',JSON.stringify(ENV))}catch(_){}
+    pintaRE();
+  }, e=>console.error('fbEnviosListen',e));
+}
 function fbRecoreaListen(){
   if(!fbReady) return;
   fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
@@ -1182,7 +1270,7 @@ async function fbInit(){ try{ fbEstado('Modo demostración: no se envía nada a 
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); fbEnviosListen(); fbFletesListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } }
       else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
     });
   }catch(e){ console.error('fbInit',e); fbEstado('Sin conexión: los vehículos quedan solo en este teléfono','#B5533C'); }
@@ -1274,7 +1362,7 @@ document.addEventListener('click',e=>{
 });
 /* Dirección del cambio de pantalla: la pestaña de la derecha entra desde la derecha, y al revés. */
 function movDir(de,a){
-  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>b.dataset.p===de), i1=tbs.findIndex(b=>b.dataset.p===a);
+  const tbs=[...document.querySelectorAll('.tabbar .tb')], i0=tbs.findIndex(b=>b.dataset.p===de||b.dataset.p2===de), i1=tbs.findIndex(b=>b.dataset.p===a||b.dataset.p2===a);
   const m=document.querySelector('main'); if(m) m.style.setProperty('--dx',(i0<0||i1<0||i0===i1)?'0px':((i1>i0?14:-14)+'px'));
 }
 /* Franja de la pestaña activa que se desliza. Se acomoda sola cuando cambia la pestaña o el ancho. */
@@ -1301,9 +1389,11 @@ function movFiltro(lista){
 const MAIN=$('main');
 function show(p){movDir(tab,p);tab=p;window.scrollTo(0,0);alturaFluida(MAIN,()=>{
  $$('.panel').forEach(x=>x.classList.toggle('on',x.id===p));
- $$('.tb').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
+ $$('.tb').forEach(b=>b.setAttribute('aria-selected',(b.dataset.p===p||b.dataset.p2===p)?'true':'false'));
+ $$('.seg [data-p]').forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p?'true':'false'));
 })}
 $$('.tb').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
+$$('.seg [data-p]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.p)));
 document.addEventListener('click',movFiltro('#list'));
 /* Formulario de vehículo: dos pestañas (1 Vehículo / 2 Compra y gastos) y protección contra perder lo escrito. */
 let snap0='', step='A';
@@ -1741,15 +1831,21 @@ function draw(){
 }
 
 function normTxt(s){return (s||'').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
-let histProv='';
+let histProv='', histQ='', histMa='', histTipo='', histOrd='cant';
+function histFiltra(omiteMa){
+  const toks=normTxt(histQ).split(/\s+/).filter(Boolean);
+  return L.filter(v=>v.krw
+    &&(!histProv||(v.prov||'')===histProv)
+    &&(omiteMa||!histMa||v.ma===histMa)
+    &&(!histTipo||(histTipo==='trab')===esModeloTrab(v.mo))
+    &&(!toks.length||toks.every(t=>normTxt(v.ma+' '+v.mo+' '+(v.an||'')).includes(t))));
+}
 function agrupaHist(){
-  const src=histProv?L.filter(v=>(v.prov||'')===histProv):L;
   const g={};
-  src.forEach(v=>{
-    if(!v.krw) return;
+  histFiltra(false).forEach(v=>{
     const key=normTxt(v.ma)+'|'+normTxt(v.mo)+'|'+(v.an||'');
-    if(!g[key]) g[key]={ma:v.ma,mo:v.mo,an:v.an,precios:[],ultFe:'',ultProv:'',ultPrecio:0,ccTot:[],ccTallies:{}};
-    g[key].precios.push(v.krw);
+    if(!g[key]) g[key]={ma:v.ma,mo:v.mo,an:v.an,precios:[],compras:[],ultFe:'',ultProv:'',ultPrecio:0,ccTot:[],ccTallies:{}};
+    g[key].precios.push(v.krw); g[key].compras.push({fe:v.fe||'',prov:v.prov||'',krw:v.krw,ch:v.ch});
     if(!g[key].ultFe||(v.fe||'')>g[key].ultFe){g[key].ultFe=v.fe||'';g[key].ultProv=v.prov||'';g[key].ultPrecio=v.krw}
     if(v.cc){
       const t=Object.values(v.cc).reduce((a,b)=>a+(b||0),0);
@@ -1757,12 +1853,24 @@ function agrupaHist(){
       CC.forEach(([k])=>{ if(v.cc[k]) g[key].ccTallies[k]=(g[key].ccTallies[k]||0)+1; });
     }
   });
-  return Object.values(g).sort((a,b)=>(a.ma+' '+a.mo+' '+a.an).localeCompare(b.ma+' '+b.mo+' '+b.an,'es'));
+  const prom=x=>x.precios.reduce((a,b)=>a+b,0)/x.precios.length, az=(x,y)=>(x.ma+' '+x.mo+' '+x.an).localeCompare(y.ma+' '+y.mo+' '+y.an,'es');
+  const ord={cant:(x,y)=>y.precios.length-x.precios.length||az(x,y), fecha:(x,y)=>String(y.ultFe).localeCompare(String(x.ultFe))||az(x,y),
+    menor:(x,y)=>prom(x)-prom(y)||az(x,y), mayor:(x,y)=>prom(y)-prom(x)||az(x,y), az}[histOrd]||az;
+  return Object.values(g).sort(ord);
 }
 function pintaHist(){
   const sel=$('#histProv');
   if(sel) sel.innerHTML='<option value="">Todos los proveedores</option>'+PROV.map(p=>`<option value="${p}"${p===histProv?' selected':''}>${p}</option>`).join('');
+  const t=$('#histTipo'), o=$('#histOrd'); if(t) t.value=histTipo; if(o) o.value=histOrd;
+  /* chips de marca: solo las marcas con compras (con los otros filtros aplicados), Hyundai y Kia primero */
+  const cm={}; histFiltra(true).forEach(v=>{ cm[v.ma]=(cm[v.ma]||0)+1; });
+  const P=['HYUNDAI','KIA'], ms=[...P.filter(x=>cm[x]),...Object.keys(cm).filter(x=>!P.includes(x)).sort()];
+  if(histMa&&!cm[histMa]) ms.push(histMa);
+  const tot=Object.values(cm).reduce((a,b)=>a+b,0), fm=$('#histMa');
+  if(fm) fm.innerHTML=(ms.length||histMa)?`<button type="button" data-hma="" aria-pressed="${!histMa}">Todas · ${tot}</button>`+ms.map(m=>`<button type="button" data-hma="${esc(m)}" aria-pressed="${histMa===m}">${esc(m)} · ${cm[m]||0}</button>`).join(''):'';
   const grupos=agrupaHist();
+  const nC=grupos.reduce((a,g)=>a+g.precios.length,0), hc=$('#histCnt');
+  if(hc) hc.textContent=grupos.length?grupos.length+' modelo'+(grupos.length===1?'':'s')+' · '+nC+' compra'+(nC===1?'':'s'):'';
   const el=$('#histList'); if(!el) return;
   el.innerHTML=grupos.length?grupos.map(g=>{
     const n=g.precios.length;
@@ -1770,14 +1878,20 @@ function pintaHist(){
     const min=Math.min(...g.precios), max=Math.max(...g.precios);
     const promCC=g.ccTot.length?Math.round(g.ccTot.reduce((a,b)=>a+b,0)/g.ccTot.length):0;
     const tallyTxt=CC.filter(([k])=>g.ccTallies[k]).map(([k,nn])=>nn+' ('+g.ccTallies[k]+'x)').join(' · ');
+    const filas=g.compras.slice().sort((x,y)=>String(y.fe).localeCompare(String(x.fe))).map(c=>`<div class="xrow"><span>${fd(c.fe)}${c.prov?' · '+esc(c.prov):''}</span><span>${krw(c.krw)}</span></div>`).join('');
     return `<div class="card">
       <div class="tt">${g.ma} ${g.mo} <span class="y">${g.an}</span></div>
       <div class="specs"><span class="sp">${n} compra${n===1?'':'s'}</span><span class="sp">Promedio ${krw(prom)}</span>${n>1?`<span class="sp">Rango ${krw(min)}–${krw(max)}</span>`:''}</div>
       <div class="nota">Última compra en Corea: ${krw(g.ultPrecio)}${g.ultProv?' · '+g.ultProv.replace(/</g,'&lt;'):''}${g.ultFe?' · '+fd(g.ultFe):''}</div>
-      ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}</div>`;
-  }).join(''):'<div class="empty">Todavía no hay compras con precio cargado'+(histProv?' de este proveedor':'')+'.</div>';
+      ${promCC?`<div class="nota" style="border-left-color:var(--sea)">Gastos de taller: promedio ${krw(promCC)}${tallyTxt?' · '+tallyTxt:''}</div>`:''}
+      ${n>1?`<details class="hd"><summary>Ver las ${n} compras</summary><div style="margin-top:8px">${filas}</div></details>`:''}</div>`;
+  }).join(''):'<div class="empty">'+((histProv||histMa||histTipo||histQ)?'Ninguna compra coincide con los filtros.':'Todavía no hay compras con precio cargado.')+'</div>';
 }
 $('#histProv').addEventListener('change',e=>{histProv=e.target.value;pintaHist()});
+$('#histQ').addEventListener('input',e=>{histQ=e.target.value;pintaHist()});
+$('#histTipo').addEventListener('change',e=>{histTipo=e.target.value;pintaHist()});
+$('#histOrd').addEventListener('change',e=>{histOrd=e.target.value;pintaHist()});
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-hma]'); if(!b) return; histMa=b.dataset.hma; pintaHist(); });
 
 /* fotos */
 function shrink(f,w,qq){return new Promise((res,rej)=>{const r=new FileReader();
@@ -2086,12 +2200,19 @@ $('#envMark').addEventListener('click',async()=>{
 
 const dec2=n=>Number(n).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2});
 function pintaRE(){
+  /* Envíos "en camino": los que Andre ya mandó y todavía no anotaste como recibidos (26/10/2026) */
+  const cam=ENV.filter(e=>e.estado==='camino'&&!RE.some(r=>String(r.envioId)===String(e.id))).sort((a,b)=>String(b.f).localeCompare(String(a.f)));
+  const rc=$('#reCamino');
+  if(rc) rc.innerHTML=cam.length?`<h3 style="font-family:var(--disp);font-size:16px;margin:2px 0 8px">En camino · ${cam.length}</h3>`+cam.map(e=>`<div class="card" style="border-color:var(--amber)">
+      <div class="r1"><div><div class="tt">${dec2(e.u)} USD</div><div class="ch">Enviados el ${fd(e.f)}</div></div><span class="tag t-pend">En camino</span></div>
+      <div class="acts"><button class="btn b-pri big" data-yallego="${e.id}">✓ Ya llegó</button></div></div>`).join(''):'';
+  const bn=$('#reNueva'); if(bn) bn.textContent=cam.length?'＋ Anotar una remesa que no está en la lista':'＋ Anotar remesa recibida';
   const porInf=RE.filter(x=>!avisada(x)).length;
   $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':' · todas avisadas ✓'):'';
   const box=$('#boxAvisar'); if(box) box.hidden=true;   /* 01/10: respaldo por WhatsApp retirado: las remesas se suben solas (y quedan en cola sin internet) */
   $('#reList').innerHTML=RE.length?RE.slice().reverse().map(x=>`<div class="card ${avisada(x)?'sent':''}">
     <div class="r1"><div><div class="tt">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
-      <div class="ch">Llegó el ${fd(x.fll||x.f)}</div></div>
+      <div class="ch">Llegó el ${fd(x.fll||x.f)}</div>${(()=>{const e=x.envioId&&ENV.find(y=>String(y.id)===String(x.envioId)); return e?`<div class="ch">Del envío de ${dec2(e.u)} USD</div>`:'';})()}</div>
       <span class="tag ${avisada(x)?'t-ok':'t-pend'}">${avisada(x)?'Avisada ✓':'Por avisar'}</span></div>
     ${x.com?`<div class="specs"><span class="sp">Comisión ${Math.round(x.com).toLocaleString('es-CL')} ₩</span></div>`:''}
     ${x.vinculada?`<div class="specs"><span class="sp" style="color:var(--green)">✓ Vinculada en Iquique</span></div>`:''}
@@ -2099,8 +2220,16 @@ function pintaRE(){
       <button class="btn b-sec" data-redel="${x.ts}" style="flex:0 0 auto">✕</button></div></div>`).join('')
    :'<div class="empty">Sin remesas registradas.<br>Cuando llegue una, toca el botón de arriba.</div>';
 }
+let llEnvio=null;
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-yallego]'); if(!b) return;
+  const en=ENV.find(x=>String(x.id)===b.dataset.yallego); if(!en) return;
+  llId=null; llEnvio=en.id; $('#llC').textContent='Envío de '+dec2(en.u)+' USD del '+fd(en.f)+'. Anota los wones que llegaron a tu banco.';
+  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso();
+  openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240);
+});
 $('#reNueva').addEventListener('click',()=>{
-  llId=null; $('#llC').textContent='Anota lo que llegó al banco';
+  llId=null; llEnvio=null; $('#llC').textContent='Anota cuántos wones llegaron a tu banco. Andre ya sabe cuánto envió; con tu dato confirma cuánto llegó de verdad.';
   $('#llK').value='';$('#llCom').value='';$('#llD').value=iso();
   openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240);
 });
@@ -2110,7 +2239,7 @@ $('#llOk').addEventListener('click',async()=>{
   const com=pnum($('#llCom').value)||0, f=$('#llD').value||iso();
   let x;
   if(llId){x=RE.find(y=>String(y.ts)===llId); if(x){x.k=k;x.com=com;x.fll=f;x.sent=false;x.nube=null}}
-  else {x={ts:Date.now(),k,com,f,fll:f,sent:false,nube:null}; RE.push(x);}
+  else {x={ts:Date.now(),k,com,f,fll:f,sent:false,nube:null}; if(llEnvio) x.envioId=llEnvio; RE.push(x);}
   await guardaRE();
   fbSyncRemesa(x);   /* sin esperar: al confirmar la nube, la tarjeta pasa sola a "Avisada ✓" */
   pintaRE(); closeAll();
@@ -2119,7 +2248,7 @@ $('#llOk').addEventListener('click',async()=>{
 let llId=null;
 document.addEventListener('click',async e=>{
   const l=e.target.closest('[data-rell]');
-  if(l){llId=l.dataset.rell; const x=RE.find(y=>String(y.ts)===llId);
+  if(l){llId=l.dataset.rell; llEnvio=null; const x=RE.find(y=>String(y.ts)===llId);
     $('#llC').textContent=x?('Registrada el '+fd(x.fll||x.f)):'';
     $('#llK').value=x?(x.k||''):'';$('#llCom').value=x?(x.com||''):'';$('#llD').value=x?(x.fll||x.f):iso();
     openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240); return}

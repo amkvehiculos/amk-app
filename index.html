@@ -657,6 +657,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <details class="box" id="emAccIti"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">ITI · inscripción y llegada</h3> <span id="emAccItiStat" class="mtr"></span></summary>
         <div id="emIti"></div>
       </details>
+    <details class="box" id="emAccFl"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Acuerdo de flete</h3> <span id="emAccFlStat" class="mtr"></span></summary>
+      <p class="mtr" style="margin:8px 0">Lo pactado con el intermediario antes de armar los contenedores (siempre en USD). Tu mamá lo anota en la app de Corea y aparece aquí solo; también puedes anotarlo tú. Cuando mandas la remesa al intermediario (más o menos una semana antes de que llegue la nave), marca aquí cuántos contenedores pagaste.</p>
+      <div id="flList"></div>
+      <button class="btn b-sec" id="flAdd" style="width:100%;margin-top:8px">＋ Anotar acuerdo yo mismo</button>
+    </details>
     <details class="box" id="emAccCt"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Costos a repartir</h3> <span id="emAccCtStat" class="mtr"></span></summary>
         <div class="segs" id="emCt">
           <button data-emt="contenedor" aria-pressed="true">Por contenedor</button>
@@ -782,7 +787,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->26-10-2026 13:27<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->26-10-2026 19:12<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1365,6 +1370,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genOk">Guardar</button></div>
 </div>
 
+<div class="sheet" id="shFl">
+  <h3>Nuevo acuerdo de flete</h3><div class="sb">Contenedores acordados y precio por contenedor, en dólares</div>
+  <div class="fld"><label for="flQ">¿Con quién se acordó?</label><input id="flQ" placeholder="Intermediario, naviera o forwarder"></div>
+  <div class="fld"><label for="flN">¿Cuántos contenedores?</label><input id="flN" inputmode="numeric" placeholder="Ej: 4"></div>
+  <div class="fld"><label for="flU">Precio por contenedor (USD)</label><input id="flU" inputmode="numeric" placeholder="USD 0"></div>
+  <div class="fld"><label for="flR">Ruta / nota (opcional)</label><input id="flR" placeholder="Ej: Busan → Iquique, 40HC, incluye BL"></div>
+  <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="flOk">Guardar</button></div>
+</div>
+
 <div class="sheet" id="shDeu">
   <h3>Nueva deuda o préstamo</h3><div class="sb">Lo que Víctor o Bryan te deben y se descuenta de sus quincenas</div>
   <div class="fld"><label>¿Quién?</label><div class="catg" id="deuQuien"></div></div>
@@ -1822,7 +1836,7 @@ async function fbInit(){
         fbReady=true;
         fbMuestraLogin(false);
         fbPintaSync(); fbSchedulePush();   /* si había cambios pendientes de una vez anterior, salen ahora */
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }
+        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2312,6 +2326,8 @@ NUBE_DOCS['amk_navieras']={col:NUBE_DOCS['amk_embarques'].col,doc:'navieras',tip
 NUBE_DOCS['amk_adelantos']={col:NUBE_DOCS['amk_embarques'].col,doc:'adelantos',tipo:'lista',clave:'ts',nom:'adelantos'};
 NUBE_DOCS['amk_pagosf']={col:NUBE_DOCS['amk_embarques'].col,doc:'pagosFijos',tipo:'lista',clave:'ts',nom:'pagos de costos fijos'};
 NUBE_DOCS['amk_deudas']={col:NUBE_DOCS['amk_embarques'].col,doc:'deudas',tipo:'lista',clave:'id',nom:'deudas'};
+/* 26/10/2026 (Andre): acuerdos de flete marítimo (n.º de contenedores y USD c/u pactados con el intermediario o la naviera) y los contenedores ya pagados. */
+NUBE_DOCS['amk_fletes']={col:NUBE_DOCS['amk_embarques'].col,doc:'fletes',tipo:'lista',clave:'id',nom:'acuerdos de flete'};
 /* 21/10/2026 (Andre): las categorías de costo agregadas desde "Otro" viajan entre sus aparatos (antes quedaban solo en el
    aparato donde se creaban). Mapa {CLAVE:{n:'Nombre'}}; la clave es slugCat del nombre (sin tildes ni mayúsculas), así la
    misma categoría creada en dos aparatos queda una sola. Ver cargaCatsCustom / guardaCatCustom. */
@@ -2449,6 +2465,8 @@ function nubeRefresca(k){
     (async()=>{ try{ const r=await window.storage.get(k); AD=nubeParse(r&&r.value)||[]; pintaFJ(); fbSyncSueldosPronto(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_deudas'){
     (async()=>{ try{ const r=await window.storage.get(k); DEU=nubeParse(r&&r.value)||[]; pintaFJ(); fbSyncSueldosPronto(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_fletes'){
+    (async()=>{ try{ const r=await window.storage.get(k); FL=nubeParse(r&&r.value)||[]; pintaFlete(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_pagosf'){
     (async()=>{ try{ const r=await window.storage.get(k); PF=nubeParse(r&&r.value)||[]; pintaFJ(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_remesas'){
@@ -3331,7 +3349,7 @@ function cardS(v){
   const cost=ctot(v), ac=app(v.ch);
   const ventaCLP=isS?enCLP(s):0;
   const marg=(isS&&s.price)?ventaCLP-cost:null;
-  const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
+  const CCN={BAT:'Batería',ASI:'Asiento',TFI:'3era fila',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
   const ccT=v.cc?Object.keys(v.cc).map(k=>(CCN[k]||k)+' ₩'+Number(v.cc[k]).toLocaleString('es-CL')).join(' · '):'';
   const pest=tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((a,x)=>a+(x.est||0),0);
   const deb=debe(v.ch), pv=postv(v.ch), nf=s.nf||0;
@@ -5038,6 +5056,7 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_adelantos'); if(r&&r.value) AD=JSON.parse(r.value)}catch(e){}
   try{const r=await window.storage.get('amk_pagosf'); if(r&&r.value) PF=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
+  try{const r=await window.storage.get('amk_fletes'); if(r&&r.value) FL=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
   await cargaCatsCustom();
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
@@ -5108,6 +5127,72 @@ function comisQ(k,q){
     if(t.sold&&t.vendedor===k&&enQuincena(t.date,q)) n++}
   return n;
 }
+/* ---------- Acuerdo de flete (26/10/2026) ----------
+   FL=[{id,f,quien,n,usd,nota,pag:[{ts,f,k,usd,nota}]}]. n = contenedores acordados, usd = precio pactado por contenedor.
+   pag = pagos hechos: k contenedores a usd c/u (por defecto el pactado). Siempre USD. Se sincroniza entre aparatos (amk_fletes). */
+let FL=[];
+const usdF=n=>'USD '+Math.round(+n||0).toLocaleString('es-CL');
+const escF=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const flPag=a=>(a.pag||[]).reduce((x,p)=>x+(+p.k||0),0);
+const flPagUsd=a=>(a.pag||[]).reduce((x,p)=>x+(+p.k||0)*(+p.usd||0),0);
+async function guardaFl(){ try{ await window.storage.set('amk_fletes',JSON.stringify(FL)); }catch(e){ toast('No se pudo guardar'); } }
+const FLETE_COL='fletesAcuerdo';
+/* Los acuerdos que anota la mamá en Corea llegan solos; los pagos que marca Andre quedan solo en Sistema (FL[].pag). */
+function fbFletesCoreaListen(){
+  if(!fbReady) return;
+  fbDb.collection(FLETE_COL).onSnapshot(snap=>{
+    let c=false;
+    snap.docChanges().forEach(chg=>{ const id=chg.doc.id, i=FL.findIndex(x=>x.id===id);
+      if(chg.type==='removed'){ if(i>=0&&!(FL[i].pag||[]).length){ FL.splice(i,1); c=true; } else if(i>=0){ FL[i].borrado=true; c=true; } return; }
+      const d=chg.doc.data()||{}, o={id,f:d.f||'',quien:d.quien||'',n:+d.n||0,usd:+d.usd||0,nota:d.nota||'',src:'corea'};
+      if(i>=0) Object.assign(FL[i],o,{borrado:false}); else FL.push(Object.assign(o,{pag:[]})); c=true; });
+    if(c){ guardaFl(); pintaFlete(); }
+  }, e=>console.error('fbFletesCoreaListen',e));
+}
+function pintaFlete(){
+  const el=$('#flList'); if(!el) return;
+  const st=$('#emAccFlStat');
+  const pend=FL.reduce((t,a)=>t+Math.max(0,(+a.n||0)-flPag(a))*(+a.usd||0),0);
+  if(st) st.textContent=FL.length?(pend?'· por pagar '+usdF(pend):'· todo pagado'):'';
+  if(!FL.length){ el.innerHTML='<div class="mtr">Todavía no hay acuerdos anotados.</div>'; return; }
+  el.innerHTML=FL.slice().sort((a,b)=>String(b.f).localeCompare(String(a.f))).map(a=>{
+    const n=+a.n||0, pg=flPag(a), falta=Math.max(0,n-pg), tot=n*(+a.usd||0);
+    const dots=Array.from({length:Math.max(n,pg)},(_,i)=>`<span style="display:inline-block;width:14px;height:14px;border-radius:4px;margin:0 3px 3px 0;background:${i<pg?'var(--green)':'var(--line)'}"></span>`).join('');
+    return `<div style="padding:10px 0;border-top:1px dashed var(--line)">
+      <div class="xrow"><span style="font-weight:700">${escF(a.quien||'Sin nombre')}<br><span style="font-weight:400;color:var(--mute);font-size:12px">${fd(a.f)}${a.src==='corea'?' · lo anotó tu mamá en Corea':''}${a.borrado?' · ella lo borró en Corea':''}${a.nota?' · '+escF(a.nota):''}</span></span>
+        <span style="text-align:right"><b>${n} × ${usdF(a.usd)}</b><br><span style="font-size:12px;color:var(--mute)">total ${usdF(tot)}</span></span></div>
+      <div style="margin:6px 0">${dots}</div>
+      <div class="xrow"><span style="font-size:12.5px">${pg} de ${n} contenedores pagados · ${usdF(flPagUsd(a))}</span>
+        <span style="font-size:12.5px;font-weight:700;color:${falta?'var(--ink)':'var(--green)'}">${falta?'faltan '+falta+' · '+usdF(falta*(+a.usd||0)):'✓ pagado'}</span></div>
+      <div class="acts" style="margin-top:6px;flex-wrap:wrap">
+        ${falta?`<button class="btn b-pri" data-flpag="${a.id}" style="padding:7px 12px">Marcar pagados</button>`:''}
+        <button class="btn b-sec" data-flcan="${a.id}" style="padding:7px 10px">Cambiar n.º / precio</button></div>
+      ${(a.pag||[]).length?`<details style="margin-top:6px"><summary style="font-size:12.5px;color:var(--mute);cursor:pointer">Pagos (${a.pag.length})</summary>
+        ${a.pag.slice().sort((x,y)=>String(y.f).localeCompare(String(x.f))).map(x=>`<div class="xrow"><span style="font-size:12.5px">${fd(x.f)} · ${x.k} contenedor${x.k==1?'':'es'} × ${usdF(x.usd)}${x.nota?' · '+escF(x.nota):''}</span><button class="b-und" data-flpdel="${a.id}|${x.ts}" style="font-size:12px">Quitar</button></div>`).join('')}</details>`:''}
+      <button class="b-und" data-fldel="${a.id}" style="font-size:12px;margin-top:6px">Eliminar este acuerdo</button></div>`; }).join('');
+}
+$('#flAdd').addEventListener('click',()=>{ ['#flQ','#flN','#flU','#flR'].forEach(i=>$(i).value=''); openSheet('shFl'); });
+$('#flOk').addEventListener('click',async()=>{ const n=Math.round(pnum($('#flN').value)||0), u=pnum($('#flU').value)||0;
+  if(!n||!u){ toast('Faltan los contenedores y el precio'); return; }
+  FL.push({id:'f_'+Date.now(),f:iso(),quien:$('#flQ').value.trim(),n,usd:u,nota:$('#flR').value.trim(),pag:[]});
+  await guardaFl(); closeAll(); pintaFlete(); toast('Acuerdo anotado: '+n+' × '+usdF(u)); });
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-flpag],[data-flcan],[data-fldel],[data-flpdel]'); if(!b) return;
+  const id=b.dataset.flpag||b.dataset.flcan||b.dataset.fldel||(b.dataset.flpdel||'').split('|')[0];
+  const a=FL.find(x=>x.id===id); if(!a) return;
+  if(b.dataset.flpag){ const falta=Math.max(0,(+a.n||0)-flPag(a));
+    const r=await pedirDato({t:'¿Cuántos contenedores pagaste?',s:escF(a.quien)+' · faltan '+falta+' a '+usdF(a.usd)+' c/u',l:'Contenedores pagados',modo:'num',ok:'Siguiente',v:String(falta)});
+    const k=Math.round(pnum(r||'')||0); if(!k) return; if(k>falta&&!confirm('Son más de los que faltan ('+falta+'). ¿Anotar igual?')) return;
+    const r2=await pedirDato({t:'Precio por contenedor (USD)',s:'Pactado: '+usdF(a.usd)+'. Cámbialo solo si pagaste distinto.',l:'USD por contenedor',modo:'num',ok:'Guardar',v:String(Math.round(a.usd))});
+    const u=pnum(r2||''); if(!u) return;
+    const nota=(await pedirDato({t:'¿Qué contenedores / embarque? (opcional)',l:'Nota',ok:'Listo'})||'').trim();
+    (a.pag=a.pag||[]).push({ts:Date.now(),f:iso(),k,usd:u,nota}); toast(k+' contenedor'+(k==1?'':'es')+' pagado'+(k==1?'':'s')+' · '+usdF(k*u)); }
+  else if(b.dataset.flcan){ const r=await pedirDato({t:'Contenedores acordados',s:escF(a.quien),l:'Cantidad',modo:'num',ok:'Siguiente',v:String(a.n)}); const n=Math.round(pnum(r||'')||0); if(!n) return;
+    const r2=await pedirDato({t:'Precio por contenedor (USD)',l:'USD',modo:'num',ok:'Guardar',v:String(Math.round(a.usd))}); const u=pnum(r2||''); if(!u) return; a.n=n; a.usd=u; }
+  else if(b.dataset.fldel){ if(!confirm('¿Eliminar este acuerdo y sus pagos?')) return; FL=FL.filter(x=>x!==a); }
+  else { const ts=(b.dataset.flpdel||'').split('|')[1]; if(!confirm('¿Quitar este pago?')) return; a.pag=(a.pag||[]).filter(x=>String(x.ts)!==ts); }
+  await guardaFl(); pintaFlete();
+});
 /* ---------- Deudas de Víctor y Bryan (01/10/2026) ----------
    DEU=[{id,k,nom,cuota,desde:q,mov:[{ts,f,m,t:'cargo'|'abono',nota}],desc:{q:m}}]. Cada quincena se descuenta la cuota
    (o lo que Andre ponga para esa quincena), sin pasar del saldo. El vehículo de Víctor es la deuda 'veh_victor' y su
@@ -5927,6 +6012,7 @@ async function cargaRM(){
    de esta lista, para que elijas con un toque a cuál corresponden — vos decidís siempre,
    nunca se adivina solo. En cuanto se vincula, se le avisa de vuelta a la app de Corea. */
 const RECOREA_COL='remesasCorea';
+const RENVIO_COL='remesasEnvio';
 let RECOREA=[];
 const GASTOS_COL='gastosCorea';
 let GASTOS_COREA=[];
@@ -5962,7 +6048,7 @@ function pintaEmGastos(){
   box.hidden=!pend.length;
   if(!pend.length){ el.innerHTML=''; return; }
   box.open=true;
-  const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
+  const CCN={BAT:'Batería',ASI:'Asiento',TFI:'3era fila',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
   const n=(e&&e.veh)?e.veh.length:0;
   el.innerHTML=pend.map(g=>{
     const saldo=gastoSaldo(g);
@@ -5981,7 +6067,7 @@ async function repartirGastoCorea(id){
   const e=E(); if(!e||!e.veh||!e.veh.length){ toast('Agrega vehículos a este embarque primero'); return; }
   const saldo=gastoSaldo(g); if(saldo<=0){ toast('Este gasto ya no tiene saldo sin asignar'); return; }
   const n=e.veh.length, share=Math.floor(saldo/n), resto=saldo-share*n;
-  const CCN={BAT:'Batería',ASI:'Asiento',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
+  const CCN={BAT:'Batería',ASI:'Asiento',TFI:'3era fila',CRO:'Cromado',PIS:'Pisadera',PAR:'Parabrisas',OTR:'Otro'};
   if(!confirm('¿Repartir '+Math.round(saldo).toLocaleString('es-CL')+' ₩ de '+(CCN[g.cat]||g.cat)+' entre los '+n+' vehículos de este embarque? ('+Math.round(share).toLocaleString('es-CL')+' ₩ cada uno)'))return;
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   e.veh.forEach((f,i)=>{
@@ -6006,6 +6092,30 @@ document.addEventListener('click', e=>{
   const b=e.target.closest('[data-gastorepartir]'); if(!b)return;
   repartirGastoCorea(b.dataset.gastorepartir);
 });
+/* ---------- Envíos en camino hacia Corea (26/10/2026) ----------
+   Cada envío de dinero que Andre registra aquí (RM) se publica en `remesasEnvio` con solo fecha y dólares (nada de costos
+   ni márgenes). La app de Corea lo muestra como "En camino" y su mamá toca "Ya llegó" y anota los wones; esa remesa llega
+   a `remesasCorea` con `envioId` = ts del envío, y acá aparece ya sugerido el envío para confirmar con un toque. */
+var ENVIO_SIG=null, envioTimer=null;
+const envioDoc=x=>({u:x.u||0,f:x.f||'',estado:x.krw?'recibida':'camino'});
+const envioFirma=x=>JSON.stringify(envioDoc(x));
+async function envioCargaSig(){ if(ENVIO_SIG) return; try{ const r=await window.storage.get('amk_envio_sig'); ENVIO_SIG=(r&&r.value)?JSON.parse(r.value):{}; }catch(_){ ENVIO_SIG={}; } }
+function fbEnviosPronto(){ clearTimeout(envioTimer); envioTimer=setTimeout(fbEnviosSync,1500); }
+async function fbEnviosSync(){
+  if(!fbReady) return; await envioCargaSig(); let cambio=false;
+  for(const x of RM){
+    const f=envioFirma(x), ya=ENVIO_SIG[x.ts];
+    if(ya===f) continue;
+    if(x.krw && ya===undefined) continue;   /* ya recibido y nunca publicado: no hace falta */
+    try{ await fbDb.collection(RENVIO_COL).doc(String(x.ts)).set(Object.assign(envioDoc(x),{_ts:firebase.firestore.FieldValue.serverTimestamp()})); ENVIO_SIG[x.ts]=f; cambio=true; }
+    catch(e){ console.error('fbEnviosSync',e); break; }
+  }
+  if(cambio){ try{ await window.storage.set('amk_envio_sig',JSON.stringify(ENVIO_SIG)); }catch(_){} }
+}
+async function fbEnviosBorra(ts){
+  await envioCargaSig(); delete ENVIO_SIG[ts]; try{ await window.storage.set('amk_envio_sig',JSON.stringify(ENVIO_SIG)); }catch(_){}
+  if(fbReady){ try{ await fbDb.collection(RENVIO_COL).doc(String(ts)).delete(); }catch(e){ console.error('fbEnviosBorra',e); } }
+}
 function fbRecoreaListen(){
   if(!fbReady) return;
   fbDb.collection(RECOREA_COL).onSnapshot(snap=>{
@@ -6014,7 +6124,7 @@ function fbRecoreaListen(){
       RECOREA=RECOREA.filter(x=>String(x.ts)!==ts);
       if(chg.type!=='removed'){
         const d=chg.doc.data()||{};
-        RECOREA.push({ts:Number(ts)||ts, k:d.k||0, com:d.com||0, f:d.f||'', fll:d.fll||d.f||'', vinculada:!!d.vinculada, rmTs:d.rmTs||null});
+        RECOREA.push({ts:Number(ts)||ts, k:d.k||0, com:d.com||0, f:d.f||'', fll:d.fll||d.f||'', vinculada:!!d.vinculada, rmTs:d.rmTs||null, envioId:d.envioId||null});
       }
     });
     try{window.storage.set('amk_recorea_cache', JSON.stringify(RECOREA))}catch(_){}
@@ -6030,7 +6140,9 @@ function pintaRecorea(){
     + pend.slice().reverse().map(x=>`<div class="card plain" style="padding:11px;margin-bottom:8px;border-color:var(--red)">
         <div class="r1"><div><div class="tt" style="font-size:15px">${Math.round(x.k).toLocaleString('es-CL')} ₩</div>
           <div class="ch">Llegó el ${fd(x.fll||x.f)}${x.com?' · comisión '+Math.round(x.com).toLocaleString('es-CL')+' ₩':''}</div></div></div>
-        <div class="fld" style="margin-top:8px"><div class="mtr" style="margin:0 0 4px">¿A qué envío corresponde?</div>
+        ${(()=>{ const sug=x.envioId?libres.find(r=>String(r.ts)===String(x.envioId)):null; return sug?`<div class="nota" style="border-left-color:var(--green);margin-top:8px">Tu mamá indicó que corresponde al envío de <b>${obs2(sug.u)} USD</b> del ${fd(sug.f)}.</div>
+          <button class="btn b-pri" data-recconf="${x.ts}|${sug.ts}" style="width:100%;margin-top:8px">✓ Confirmar y vincular</button>`:''; })()}
+        <div class="fld" style="margin-top:8px"><div class="mtr" style="margin:0 0 4px">${x.envioId&&libres.some(r=>String(r.ts)===String(x.envioId))?'O elige otro envío':'¿A qué envío corresponde?'}</div>
           <select data-recvinc="${x.ts}" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px;background:var(--paper);color:var(--ink)">
             <option value="">— elige un envío —</option>
             ${libres.map(r=>`<option value="${r.ts}">${obs2(r.u)} USD enviados el ${fd(r.f)}</option>`).join('')}
@@ -6052,6 +6164,7 @@ async function vincularRecorea(reTs, rmTs){
   pintaRM(); pintaRecorea(); pintaPendientes();
   toast('Vinculado · cambio real '+obs2(re.k/rm.u)+' KRW por USD');
 }
+document.addEventListener('click', e=>{ const b=e.target.closest('[data-recconf]'); if(!b) return; const [a,c]=b.dataset.recconf.split('|'); vincularRecorea(a,c); });
 document.addEventListener('change', e=>{
   const s=e.target.closest('[data-recvinc]'); if(!s) return;
   const rmTs=s.value; if(!rmTs) return;
@@ -6636,6 +6749,7 @@ function calcRM(){
 }
 ['#rmUSD','#rmCom','#rmIva'].forEach(sel=>$(sel).addEventListener('input',calcRM));
 function pintaRM(){
+  try{ fbEnviosPronto(); }catch(_){}
   const el=$('#rmList'); if(!el)return;
   if(!RM.length){el.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin remesas registradas.</p>';return}
   el.innerHTML=RM.slice().reverse().map(x=>{
@@ -6756,7 +6870,7 @@ document.addEventListener('click',async e=>{
     try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
     pintaRM(); return}
   const d=e.target.closest('[data-rmdel]');
-  if(d){RM=RM.filter(y=>String(y.ts)!==d.dataset.rmdel);
+  if(d){RM=RM.filter(y=>String(y.ts)!==d.dataset.rmdel); fbEnviosBorra(d.dataset.rmdel);
     try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
     pintaRM(); if(typeof pintaEmb==='function') pintaEmb(); return}
 });
@@ -10086,6 +10200,7 @@ function emAccAbre(){
 function pintaEmb(){
   const e=E(); if(!e) return;
   etaSync(e);
+  try{ pintaFlete(); }catch(err){ console.error('pintaFlete',err); }
   try{ pintaEmIti(); }catch(err){ console.error('pintaEmIti',err); }
   try{ pintaPendientes(); }catch(_){}
   /* Si hay vehículos asignados a un contenedor mayor que la cantidad declarada (o códigos de
@@ -10892,7 +11007,7 @@ $('#emAplicar').addEventListener('click',async()=>{
 });
 
 /* ---------- GASTOS EN COREA ---------- */
-const CCAT=[['BATERIA','Batería'],['ASIENTOS','Asiento'],['CROMADO','Cromado'],
+const CCAT=[['BATERIA','Batería'],['ASIENTOS','Asiento'],['TFI','3era fila'],['CROMADO','Cromado'],
             ['PISADERA','Pisadera'],['PARABRISAS','Parabrisas'],['OTRO','Otro']];
 const ccKRW=v=>v&&v.cc?Object.values(v.cc).reduce((a,b)=>a+(b||0),0):0;
 const ccCLP=v=>{ const e=v&&v.ch?embDeVeh(v.ch):null; return Math.round(ccKRW(v)*tcKRWEmb(e&&e.id)); };
