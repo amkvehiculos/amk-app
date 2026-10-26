@@ -272,7 +272,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 13:27<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 15:22<!--/VER--></b></p>
   </section>
 </main>
 
@@ -343,6 +343,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="two" style="gap:8px">
       <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
       <div><div class="mtr" style="margin:0 0 3px">Asiento</div><input id="cASI" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+      <div><div class="mtr" style="margin:0 0 3px">3era fila</div><input id="cTFI" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
       <div><div class="mtr" style="margin:0 0 3px">Cromado</div><input id="cCRO" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
       <div><div class="mtr" style="margin:0 0 3px">Pisadera</div><input id="cPIS" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
       <div><div class="mtr" style="margin:0 0 3px">Parabrisas</div><input id="cPAR" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
@@ -521,7 +522,7 @@ const KEY='amkc_vehiculos', PK=c=>'amkc_fotos_'+c;
 const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=12,CAP=6e6;  /* 2026-09-29: antes 1080 px / 55% */
 const RX=/^[A-Z]{2}\d{6}$/;
 let sinCh=false, warnOnce=false;
-const CC=[['BAT','Batería'],['ASI','Asiento'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
+const CC=[['BAT','Batería'],['ASI','Asiento'],['TFI','3era fila'],['CRO','Cromado'],['PIS','Pisadera'],['PAR','Parabrisas'],['OTR','Otro']];
 let L=[], RE=[], GEN=[], PROV=[], CONT=[], EXTRA={marcas:[],modelos:{}}, esTrab=false, tab='pLista', edit=null, sel={ma:'',cat:'',ce:'',tr:'',ca:'',motor:'',trans:''};
 let genCat='CRO', genEdit=null, genAsigId=null;
 let phCh=null, phArr=[];
