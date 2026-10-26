@@ -47,6 +47,17 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .sp{font-size:11.5px;font-weight:500;background:var(--seaL);border:1px solid var(--line);color:var(--ink2);padding:3px 7px;border-radius:6px}
 .nota{margin-top:9px;font-size:13px;color:var(--ink2);background:var(--seaL);border-left:3px solid var(--line);padding:8px 10px;border-radius:0 7px 7px 0}
 .acts{display:flex;gap:8px;margin-top:11px}
+.acts .big{padding:15px 8px;font-size:15px}
+#shForm .steps[hidden]{display:none}
+.crow{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer}
+.crow:active{transform:scale(.985)}
+.crow.sent{background:var(--greenBg);border-color:#2F5A48}
+.crow .cr1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.crow .ch{margin-top:3px;font-size:11.5px;overflow-wrap:anywhere}
+.tt[data-cierra]{cursor:pointer}
+.acts2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.acts2 .btn{flex:1 1 auto;padding:11px 10px;font-size:13.5px;white-space:nowrap}
+.acts2 .btn.sm{flex:0 0 52px}
 .btn{flex:1;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14px;cursor:pointer}
 .b-pri{background:var(--plata);color:#0B1C23}
 .b-sec{background:var(--btn2);color:#EAF0F1;border:1px solid var(--btn2b)}
@@ -222,7 +233,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="addV">＋ Agregar vehículo</button>
     <input class="search" id="q" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
     <div class="opt fila" id="fltRow" aria-label="Filtro"></div>
-    <p class="cnt" id="cnt"></p>
+    <div class="cntRow"><p class="cnt" id="cnt"></p><button id="vistaCor" class="cntVista" type="button" aria-label="Cambiar vista">☰ Compacta</button></div>
     <div id="list"></div>
   </section>
 
@@ -242,7 +253,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <p id="envTxt">—</p>
       <button class="btn b-pri" id="envFichas" style="width:100%">Enviar por WhatsApp las pendientes</button></div>
     <div class="box"><h3>2 · Fotos</h3>
-      <p>Las fotos van aparte porque pesan. Entra a cada vehículo y usa el botón de enviar fotos.</p></div>
+      <p>Las fotos van aparte porque pesan. Entra a cada vehículo, toca Fotos y usa «Compartir por WhatsApp».</p></div>
     <div class="box"><h3>Marcar como enviados</h3>
       <p>Cuando confirmes que llegaron, márcalos para no repetir.</p>
       <button class="btn b-sec" id="envMark" style="width:100%">Marcar pendientes como enviados</button></div>
@@ -259,7 +270,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->21-10-2026 19:01 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->26-10-2026 13:21 · PRUEBAS<!--/VER--></b></p>
   </section>
 </main>
 
@@ -275,11 +286,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shForm">
   <h3 id="fmT">Nuevo vehículo</h3><div class="sb">Los campos con * son necesarios</div>
-  <div class="steps" role="tablist">
+  <div class="steps" role="tablist" hidden>
     <button role="tab" id="stTabA" data-step="A" aria-selected="true">1 · Vehículo</button>
     <button role="tab" id="stTabB" data-step="B" aria-selected="false">2 · Compra y gastos</button></div>
   <div class="sbody" id="fBody"><div id="stA">
-  <div class="fld" id="wVin"><label for="fVin">VIN completo (17) <span class="mtr">(del padrón; el chasis y el año se completan solos)</span></label>
+  <div class="fld" id="wVin"><label for="fVin">VIN completo (17) <span class="mtr">(el chasis y el año se completan solos)</span></label>
     <input id="fVin" autocapitalize="characters" autocomplete="off" maxlength="17" placeholder="Ej: KMHSW81UBFU432757" style="font-family:monospace">
     <div class="err" id="eVin"></div></div>
   <div class="fld" id="wCh"><label for="fCh">Chasis <span class="mtr">(últimos 8 del VIN)</span></label>
@@ -311,12 +322,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <button id="fTrabSi" aria-pressed="false">Sí, es de trabajo</button></div></div>
   </div>
   <div class="fld" id="wCa" hidden><label>Tipo de carrocería</label><div class="opt" id="fCa"></div></div>
-  <button class="btn b-sec" id="stNext" type="button" style="width:100%;margin:2px 0 6px">Siguiente: compra y gastos →</button>
+  <button class="btn b-sec" id="stNext" type="button" hidden>Siguiente</button>
   </div>
-  <div id="stB" hidden>
-  <div class="fld"><label for="fPr">Proveedor</label>
-    <input id="fPr" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan">
-    <datalist id="dlPr"></datalist></div>
+  <div id="stB">
+  <div class="mtr" style="margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--line);font-weight:700;letter-spacing:.1em">COMPRA</div>
+  <div class="fld"><label>Proveedor</label><div class="opt" id="fPrOpts"></div>
+    <input id="fPr" hidden data-noup="1" autocomplete="off">
+    <input id="fPrNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe el proveedor nuevo" hidden style="margin-top:8px"></div>
   <div class="fld" hidden><label for="fCont">Contenedor</label>
     <input id="fCont" list="dlCont" autocapitalize="characters" autocomplete="off" placeholder="Ej: Contenedor 1 (sin asignar si lo dejas vacío)">
     <datalist id="dlCont"></datalist></div>
@@ -325,7 +337,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="fld"><label for="fFe">Fecha de compra</label><input id="fFe" type="date"></div>
   </div>
   <div class="fld"><label for="fSenia">Seña pagada (KRW)</label><input id="fSenia" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
-  <div class="fld"><label>Gastos en Corea (KRW)</label>
+  <div class="fld" hidden><!-- 26/10/2026 (Andre): los gastos ya no se piden al cargar; se agregan después con "＄ Agregar gasto". Los campos quedan ocultos para no perder los gastos ya cargados al editar. --><label>Gastos en Corea (KRW)</label>
     <div class="two" style="gap:8px">
       <div><div class="mtr" style="margin:0 0 3px">Batería</div><input id="cBAT" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
       <div><div class="mtr" style="margin:0 0 3px">Asiento</div><input id="cASI" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
@@ -337,7 +349,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <div class="mtr" id="cTot" style="margin-top:7px"></div></div>
   <div class="fld"><label for="fNo">Estado observado</label>
     <textarea id="fNo" rows="3" placeholder="Ej: rayón leve puerta trasera derecha, neumáticos 70%, batería nueva"></textarea></div>
-  <button class="btn b-sec" id="stBack" type="button" style="width:100%;margin:2px 0 6px">← Volver a vehículo</button>
+  <button class="btn b-sec" id="stBack" type="button" hidden>Volver</button>
   </div></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="fmOk">Guardar</button></div>
 </div>
@@ -346,9 +358,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <h3 id="phT"></h3><div class="sb" id="phC"></div>
   <div class="updrop" id="phDrop">Toca para tomar fotos<div class="mtr" id="phMtr"></div></div>
   <input type="file" id="phFile" accept="image/*" multiple hidden>
-  <div class="sact" style="margin-bottom:11px"><button class="ok" id="phShare">➦ Enviar fotos a Iquique</button></div>
-  <div class="sact" style="margin-bottom:6px"><button class="web" id="phWeb" type="button">☁ Subir a la web</button></div>
-  <p class="webtip">Aparecen en la página pública mientras nadie en Iquique tenga fotos propias de este auto (útil para los que recién vienen en camino).</p>
+  <div class="sact" style="margin-bottom:6px"><button class="ok" id="phWeb" type="button">☁ Subir a la web</button></div>
+  <p class="webtip">Las fotos llegan a la nube y se ven en la página pública mientras nadie en Iquique tenga fotos propias de este auto (útil para los que recién vienen en camino).</p>
+  <div class="sact" style="margin-bottom:6px"><button class="web" id="phM360" type="button">📷 Vista 360°</button></div>
+  <p class="webtip">Gira alrededor del auto y toma las fotos de la vuelta; se sube sola.</p>
+  <div class="sact" style="margin-bottom:6px"><button class="web" id="phShare" type="button">➦ Compartir por WhatsApp</button></div>
+  <p class="webtip">Abre el menú del teléfono para mandar las fotos originales (por WhatsApp, por ejemplo). Es el respaldo si “Subir a la web” no funciona.</p>
   <div class="phg" id="phGrid"></div>
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
@@ -402,9 +417,31 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   <div class="fld"><label>Categoría</label><div class="opt" id="genCat"></div></div>
   <div class="fld"><label for="genMonto">Monto total (KRW)</label><input id="genMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
   <div class="fld"><label for="genFe">Fecha</label><input id="genFe" type="date"></div>
-  <div class="fld"><label for="genProv">Proveedor</label><input id="genProv" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan"></div>
+  <div class="fld"><label for="genProv">Proveedor</label><input id="genProv" list="dlPr" autocapitalize="characters" autocomplete="off" placeholder="Ej: Sr. Chan"><datalist id="dlPr"></datalist></div>
   <div class="fld"><label for="genNota">Nota (opcional)</label><input id="genNota" autocomplete="off" placeholder="Ej: para el contenedor de julio"></div>
   <div class="sact"><button class="cx" data-close>Cancelar</button><button class="ok" id="genOk">Guardar</button></div>
+</div>
+
+<div class="sheet" id="shGV">
+  <h3 id="gvT">Costos del vehículo</h3><div class="sb" id="gvC"></div>
+  <div id="gvYa"></div>
+  <div id="gvPend"></div>
+  <div class="steps" role="tablist" id="gvModo" style="margin-bottom:14px">
+    <button role="tab" data-gvm="G" aria-selected="true">＄ Costo real</button>
+    <button role="tab" data-gvm="P" aria-selected="false">⏳ Costo estimado</button></div>
+  <div class="fld"><label>¿A qué corresponde?</label><div class="opt" id="gvCat"></div></div>
+  <div id="gvG">
+    <div class="fld"><label for="gvMonto">Costo real (KRW)</label><input id="gvMonto" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+    <div class="sact" style="margin-top:0"><button class="ok" id="gvOk" type="button">＄ Guardar costo real</button></div>
+    <p class="webtip" style="margin-top:7px">Es lo que realmente costó. Se suma al costo de este vehículo y le llega a Iquique.</p>
+  </div>
+  <div id="gvP" hidden>
+    <div class="fld"><label for="gvEst">Costo estimado (KRW) · opcional</label><input id="gvEst" inputmode="numeric" data-dinero="1" placeholder="₩0"></div>
+    <div class="fld"><label for="gvNota">Nota · opcional</label><input id="gvNota" autocomplete="off" placeholder="Ej: necesita batería nueva"></div>
+    <div class="sact" style="margin-top:0"><button class="ok" id="gvPendOk" type="button">⏳ Guardar costo estimado</button></div>
+    <p class="webtip" style="margin-top:7px">Es lo que crees que va a costar, para que no se olvide. Queda como pendiente y no suma al costo hasta que lo pases a costo real.</p>
+  </div>
+  <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
 
 <div class="sheet" id="shGastoAsig">
@@ -527,7 +564,8 @@ function fmtVivo(el,fn){
 const miles=v=>{ const n=pnum(v); return n===''?'':Number(n).toLocaleString('es-CL'); };
 document.addEventListener('input',e=>{ const el=e.target; if(el&&el.dataset&&el.dataset.dinero) fmtVivo(el,miles); });
 function fmtDinero(){ document.querySelectorAll('[data-dinero]').forEach(el=>{ if(el.value) el.value=miles(el.value); }); }
-function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join('')}
+let prNuevo=false;
+function dlProv(){const d=$('#dlPr'); if(d) d.innerHTML=PROV.map(p=>`<option value="${p}">`).join(''); try{pintaProv()}catch(_){}}
 function dlCont(){const d=$('#dlCont'); if(d) d.innerHTML=CONT.map(c=>`<option value="${c}">`).join('')}
 function sumCC(){let t=0;for(const[k]of CC)t+=pnum($('#c'+k).value)||0;
  $('#cTot').textContent=t?('Total en Corea: '+krw(t)):''; return t}
@@ -1025,7 +1063,7 @@ function zarpeGuardaPend(){ pendGuarda('amkc_zarpe_pend',ZARPE_PEND); }
 let CARGA_PEND={};
 function cargaGuardaPend(){ pendGuarda('amkc_carga_pend',CARGA_PEND); }
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-carga]'); if(!b) return; const v=L.find(x=>x.ch===b.dataset.carga); if(!v) return;
-  const r=prompt('¿Qué accesorios van DENTRO de '+v.ma+' '+v.mo+' '+(v.an||'')+'?\nEj: 4 juegos de cromados, 2 pisaderas, 1 parabrisas.\nDeja vacío si no lleva nada.', v.carga||'');
+  const r=prompt('¿Qué va DENTRO de '+v.ma+' '+v.mo+' '+(v.an||'')+' en el contenedor?\n(accesorios, repuestos, cualquier otra cosa)\nEj: 4 juegos de cromados, 2 pisaderas, 1 parabrisas.\nDeja vacío si no lleva nada.', v.carga||'');
   if(r===null) return; const t=r.trim(); if(t) v.carga=t; else delete v.carga; CARGA_PEND[v.ch]=t; cargaGuardaPend();
   await guardaL(); draw(); fbZarpeEnvia(); toast(t?'Anotado: en Chile lo verán al descargar':'Quitado'); });
 async function fbZarpeEnvia(){ if(!fbReady) return;
@@ -1243,7 +1281,7 @@ function formSnap(){
 }
 function setStep(s){
   step=s;
-  $('#stA').hidden=(s!=='A'); $('#stB').hidden=(s!=='B');
+  $('#stA').hidden=false; $('#stB').hidden=false;   /* una sola hoja (26/10/2026) */
   $('#stTabA').setAttribute('aria-selected',s==='A'?'true':'false');
   $('#stTabB').setAttribute('aria-selected',s==='B'?'true':'false');
   $('#fBody').scrollTop=0;
@@ -1279,7 +1317,7 @@ function normalizaModelo(mo){
   if(m.startsWith('BONGO')) return 'BONGO III';
   return mo;
 }
-function marcas(){return [...new Set([...OPT.marcas,...EXTRA.marcas])].sort()}
+function marcas(){const P=['HYUNDAI','KIA'], t=[...new Set([...OPT.marcas,...EXTRA.marcas])]; return [...P.filter(x=>t.includes(x)),...t.filter(x=>!P.includes(x)).sort()]}   /* 26/10/2026 (Andre): Hyundai y Kia siempre primero */
 function modelos(ma){return [...new Set([...(OPT.modelos[ma]||[]),...((EXTRA.modelos||{})[ma]||[])])].sort()}
 function opts(){
   const el=document.getElementById('fMa');
@@ -1319,7 +1357,7 @@ function limpia(){
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
   ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
   tocado={}; anAuto=''; autoAbierto=false; codMotor=''; cabSel=''; $('#fCh').readOnly=false; $('#fSinCh').hidden=false; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
-  CC.forEach(([k])=>$('#c'+k).value=''); sumCC();
+  CC.forEach(([k])=>$('#c'+k).value=''); sumCC(); prNuevo=false; $('#fPrNew').value=''; pintaProv();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;setTrab(false);opts(); pintaAuto();
 }
@@ -1510,6 +1548,92 @@ $('#fmOk').addEventListener('click',async()=>{
   await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
 });
 
+
+/* ---------- Gastos y pendientes por vehículo (26/10/2026, Andre) ----------
+   Botón grande "＄ Agregar gasto" en cada tarjeta: suma el gasto a v.cc (lo mismo que la pestaña 2 del formulario, así
+   llega a Iquique igual) y deja "pendientes" (v.pend) para que no se olvide qué falta comprar. Un pendiente no suma plata. */
+let compacto=false, abiertosC=new Set();
+try{ compacto=localStorage.getItem('amkc_compacto')==='1'; }catch(_){}   /* preferencia de pantalla (no datos) */
+document.addEventListener('click',e=>{
+  const v=e.target.closest('#vistaCor');
+  if(v){ compacto=!compacto; abiertosC.clear(); try{localStorage.setItem('amkc_compacto',compacto?'1':'0')}catch(_){} draw(); return; }
+  const a=e.target.closest('[data-abre]'); if(a){ abiertosC.add(a.dataset.abre); draw(); return; }
+  const k=e.target.closest('[data-cierra]'); if(k){ abiertosC.delete(k.dataset.cierra); draw(); }
+});
+document.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-abre]')){ e.preventDefault(); abiertosC.add(e.target.dataset.abre); draw(); } });
+let gvCh=null, gvCat='', gvBusy=false, gvModo='G';
+function pintaProv(){
+  const el=document.getElementById('fPrOpts'); if(!el) return;
+  const cur=($('#fPr').value||'').trim().toUpperCase();
+  const lista=PROV.slice(); if(cur&&!prNuevo&&!lista.includes(cur)) lista.push(cur);
+  el.innerHTML=lista.map(p=>`<button type="button" data-pr="${esc(p)}" aria-pressed="${!prNuevo&&cur===p}">${esc(p)}</button>`).join('')
+    +`<button type="button" id="fPrAdd" aria-pressed="${prNuevo}">＋ Otro proveedor</button>`;
+  $('#fPrNew').hidden=!prNuevo;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-pr]');
+  if(b){ const p=b.dataset.pr, cur=($('#fPr').value||'').trim().toUpperCase(); $('#fPr').value=(cur===p&&!prNuevo)?'':p; prNuevo=false; $('#fPrNew').value=''; pintaProv(); return; }
+  if(e.target.id==='fPrAdd'){ prNuevo=!prNuevo; if(prNuevo){ $('#fPr').value=''; $('#fPrNew').value=''; } pintaProv(); if(prNuevo) $('#fPrNew').focus(); }
+});
+$('#fPrNew').addEventListener('input',()=>{ $('#fPr').value=$('#fPrNew').value.trim().toUpperCase(); });
+
+function gvPinta(){
+  const v=L.find(x=>x.ch===gvCh); if(!v) return;
+  const CCN=Object.fromEntries(CC);
+  $('#gvT').textContent=v.ma+' '+v.mo+' '+v.an; $('#gvC').textContent=v.ch;
+  const filas=CC.filter(([k])=>v.cc&&v.cc[k]).map(([k,n])=>`<div class="xrow"><span>${n}</span><span>${krw(v.cc[k])}</span></div>`).join('');
+  const tot=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
+  $('#gvYa').innerHTML=filas?`<div class="fld"><label>Costos reales · ${krw(tot)}</label><div class="nota" style="margin-top:0;border-left-color:var(--sea)">${filas}</div></div>`:'';
+  const ab=(v.pend||[]).filter(x=>!x.hecho), est=ab.reduce((a,x)=>a+(x.est||0),0);
+  $('#gvPend').innerHTML=ab.length?`<div class="fld"><label>Costos estimados · ${ab.length}${est?' · '+krw(est):''}</label><div class="nota" style="margin-top:0;border-left-color:var(--amber)">`+ab.map(x=>`<div class="xrow"><span>⏳ <b>${esc(CCN[x.cat]||x.cat)}</b>${x.est?' · '+krw(x.est):''}${x.nota?' · '+esc(x.nota):''}</span>
+    <span><button class="btn b-sec" data-gvdone="${x.id}" style="padding:7px 10px;font-size:12.5px">＄ Pasar a costo real</button> <button class="btn b-sec" data-gvpdel="${x.id}" aria-label="Quitar pendiente" style="padding:7px 10px;font-size:12.5px">✕</button></span></div>`).join('')+`</div></div>`:'';
+  $('#gvCat').innerHTML=CC.map(([k,n])=>`<button type="button" data-gvcat="${k}" aria-pressed="${k===gvCat}">${n}</button>`).join('');
+  $$('#gvModo [data-gvm]').forEach(b=>b.setAttribute('aria-selected',b.dataset.gvm===gvModo?'true':'false'));
+  $('#gvG').hidden=(gvModo!=='G'); $('#gvP').hidden=(gvModo!=='P');
+}
+function gvAbre(ch){ gvCh=ch; gvCat=''; gvModo='G'; $('#gvMonto').value=''; $('#gvNota').value=''; $('#gvEst').value=''; gvPinta(); openSheet('shGV'); }
+document.addEventListener('click',async e=>{
+  const o=e.target.closest('[data-gv]'); if(o){ gvAbre(o.dataset.gv); return; }
+  if(!gvCh||!$('#shGV').classList.contains('on')) return;
+  const m=e.target.closest('[data-gvm]'); if(m){ gvModo=m.dataset.gvm; gvPinta(); return; }
+  const c=e.target.closest('[data-gvcat]'); if(c){ gvCat=(gvCat===c.dataset.gvcat)?'':c.dataset.gvcat; gvPinta(); return; }
+  const d=e.target.closest('[data-gvdone]');
+  if(d){ const v=L.find(x=>x.ch===gvCh), p=(v.pend||[]).find(x=>x.id===d.dataset.gvdone); if(!p)return;
+    gvCat=p.cat; gvModo='G'; gvPinta(); const mi=$('#gvMonto'); mi.value=p.est?Number(p.est).toLocaleString('es-CL'):''; mi.focus(); try{mi.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){} toast('Confirma el costo real y toca Guardar costo real'); return; }
+  const x=e.target.closest('[data-gvpdel]');
+  if(x){ const v=L.find(y=>y.ch===gvCh); if(!v)return; if(!confirm('¿Quitar este pendiente?'))return;
+    v.pend=(v.pend||[]).filter(p=>p.id!==x.dataset.gvpdel); await save(); gvPinta(); draw(); return; }
+});
+$('#gvOk').addEventListener('click',async()=>{
+  if(gvBusy) return;
+  const v=L.find(x=>x.ch===gvCh); if(!v) return;
+  if(!gvCat){ toast('Elige a qué corresponde (batería, asiento…)'); return; }
+  const monto=pnum($('#gvMonto').value)||0; if(!monto){ toast('Escribe el costo real'); return; }
+  const CCN=Object.fromEntries(CC), ya=(v.cc&&v.cc[gvCat])||0;
+  if(ya && !confirm('Ya hay '+krw(ya)+' anotados en '+CCN[gvCat]+'. ¿Sumar '+krw(monto)+' más? (queda en '+krw(ya+monto)+')')) return;
+  gvBusy=true;
+  try{
+    v.cc=v.cc||{}; v.cc[gvCat]=ya+monto;
+    (v.pend||[]).forEach(p=>{ if(p.cat===gvCat&&!p.hecho){ p.hecho=true; p.fh=iso(); } });   /* el pendiente/estimado de esa categoría queda hecho: no se cuenta dos veces */
+    await save(); draw();
+    toast(CCN[gvCat]+' '+krw(monto)+' guardado ✓'); gvCat=''; $('#gvMonto').value=''; gvPinta();
+  } finally { gvBusy=false; }
+});
+$('#gvPendOk').addEventListener('click',async()=>{
+  if(gvBusy) return;
+  const v=L.find(x=>x.ch===gvCh); if(!v) return;
+  if(!gvCat){ toast('Elige qué falta (batería, asiento…)'); return; }
+  const nota=$('#gvNota').value.trim(), est=pnum($('#gvEst').value)||0;
+  v.pend=v.pend||[];
+  if(v.pend.some(p=>!p.hecho&&p.cat===gvCat)){ toast('Ya hay un pendiente de eso. Quítalo primero si quieres cambiarlo.'); return; }
+  gvBusy=true;
+  try{
+    v.pend.push({id:'p'+Date.now()+Math.random().toString(36).slice(2,6),cat:gvCat,nota,est:est||null,ts:Date.now(),hecho:false});
+    await save(); draw(); toast('Pendiente anotado ✓'); gvCat=''; $('#gvNota').value=''; $('#gvEst').value=''; gvPinta();
+  } finally { gvBusy=false; }
+});
+$('#phM360').addEventListener('click',()=>{ const ch=phCh; $('#shPhoto').classList.remove('on'); loadMy360C(ch); });
+
 let q='', flt='';
 /* Filtros rápidos sobre la lista: Por enviar (aún sin confirmar en Chile) / Sin fotos / Sin chasis. */
 function fltOk(v){
@@ -1540,6 +1664,7 @@ function draw(){
   const sc=LV.filter(v=>v.ch.startsWith('PEND-')).length;
   const nPend=LV.filter(v=>!enChile(v)).length;
   $('#cnt').textContent=LV.length?LV.length+' vehículo'+(LV.length===1?'':'s')+' · '+(nPend?nPend+' por enviar':'todos en Chile ✓')+(sc?' · '+sc+' sin chasis':''):'';
+  { const bv=$('#vistaCor'); if(bv) bv.textContent=compacto?'▦ Completa':'☰ Compacta'; }
   $('#list').innerHTML=LV.length?LV.map(v=>{
     const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
     const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
@@ -1547,26 +1672,35 @@ function draw(){
       .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
     const en=enChile(v);
+    const pAb0=0;
+    const pAb=(v.pend||[]).filter(x=>!x.hecho), npend=pAb.length, CCN0=Object.fromEntries(CC);
+    const pendTxt=pAb.map(x=>esc(CCN0[x.cat]||x.cat)+(x.est?' '+krw(x.est):'')+(x.nota?' ('+esc(x.nota)+')':'')).join(' · ');
+    if(compacto && !abiertosC.has(v.ch)){
+      return `<div class="crow ${en?'sent':''}" data-abre="${v.ch}" role="button" tabindex="0"><div class="cr1"><span class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></span>
+        <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span></div>
+        <div class="ch">${[v.ch,v.prov,v.krw?krw(v.krw):'',tcc?'+ '+krw(tcc)+' gastos':'',npend?'⏳ '+npend+' por hacer':'',v.carga?'📦 lleva adentro':'',v.nf?v.nf+' fotos':'sin fotos'].filter(Boolean).map(esc).join(' · ')}</div></div>`;
+    }
     return `<div class="card ${en?'sent':''}">
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
-      <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></div>
+      <div class="tt"${compacto?` data-cierra="${v.ch}" title="Tocar para cerrar"`:''}>${v.ma} ${v.mo} <span class="y">${v.an}</span>${compacto?' ▴':''}</div>
       <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
       ${(v.senia&&v.krw&&v.krw>v.senia)?`<span class="tag t-pend">Saldo ${krw(v.krw-v.senia)}</span>`:''}
       <span class="tag ${en?'t-ok':'t-pend'}">${en?'En Chile ✓':'Por enviar'}</span>
       ${v.zarpe?`<span class="tag t-ok">🚢 Embarcado ${fd(v.zarpe)}</span>`:''}</div></div>
-     ${v.carga?`<div class="nota" style="border-left-color:#D9822B;background:rgba(217,130,43,.12)"><b>📦 Lleva accesorios:</b> ${esc(v.carga)}</div>`:''}
+     ${v.carga?`<div class="nota" style="border-left-color:#D9822B;background:rgba(217,130,43,.12)"><b>📦 Lleva adentro:</b> ${esc(v.carga)}</div>`:''}
      <div class="specs">${sp}</div>
      ${ccTxt?`<div class="nota" style="border-left-color:var(--sea)">${ccTxt}</div>`:''}
      ${v.senia?`<div class="nota" style="border-left-color:var(--amber)">Seña pagada ${krw(v.senia)}${v.krw?(v.krw>v.senia?' · Saldo pendiente '+krw(v.krw-v.senia):' · Sin saldo pendiente'):''}</div>`:''}
      ${v.nota?`<div class="nota">${v.nota.replace(/</g,'&lt;')}</div>`:''}
-     <div class="acts"><button class="btn b-pri" data-photo="${v.ch}">▣ Fotos ${v.nf||''}</button>
-      <button class="btn b-sec" data-mi360="${v.ch}" style="flex:0 0 auto">📷 360°${v.n360?' ✓':''}</button>
-      ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}" style="flex:0 0 auto">＃</button>`:''}
-      <button class="btn b-sec" data-carga="${v.ch}" style="flex:0 0 auto" title="Accesorios que van dentro de este auto">📦</button>
-      <button class="btn b-sec" data-edit="${v.ch}" style="flex:0 0 auto">✎</button>
-      <button class="btn b-sec" data-del="${v.ch}" style="flex:0 0 auto">✕</button></div></div>`}).join('')
+     ${pendTxt?`<div class="nota" style="border-left-color:var(--amber)">⏳ <b>Por hacer:</b> ${pendTxt}</div>`:''}
+     <div class="acts"><button class="btn b-pri big" data-gv="${v.ch}">＄ Agregar costo${npend?' · '+npend+' por hacer':''}</button></div>
+     <div class="acts2"><button class="btn b-sec" data-photo="${v.ch}">▣ Fotos${v.nf?' '+v.nf:''}${v.n360?' · 360° ✓':''}</button>
+      <button class="btn b-sec" data-edit="${v.ch}">✎ Editar</button>
+      <button class="btn b-sec" data-carga="${v.ch}" title="Lo que va dentro de este vehículo en el contenedor">📦 Carga adentro</button>
+      ${v.ch.startsWith('PEND-')?`<button class="btn b-sec" data-asig="${v.ch}">＃ Poner chasis</button>`:''}
+      <button class="btn b-sec sm" data-del="${v.ch}" aria-label="Eliminar vehículo">✕</button></div></div>`}).join('')
    :(base.length?'<div class="empty">Ningún vehículo coincide con la búsqueda o el filtro.</div>'
                 :'<div class="empty">Todavía no cargas vehículos.<br>Toca “Agregar vehículo” para empezar.</div>');
   const pend=base.filter(v=>!enChile(v)).length;
@@ -1689,6 +1823,7 @@ async function subirFotosWeb(){
 async function openPhotos(c){phCh=c;const v=L.find(x=>x.ch===c);
  $('#phT').textContent=v.ma+' '+v.mo+' '+v.an;$('#phC').textContent=v.ch;
  $('#phGrid').innerHTML='<div style="grid-column:1/-1;color:var(--mute);font-size:13px">Cargando…</div>';
+ { const b=$('#phM360'); if(b) b.textContent='📷 Vista 360°'+(v.n360?' ✓':''); }
  openSheet('shPhoto');phArr=await loadP(c);drawP()}
 function drawP(){
  $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="ph"><img src="${d}" alt="Foto ${i+1}">
@@ -1886,7 +2021,7 @@ document.addEventListener('click',async e=>{
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';
   $('#fVin').value=v.vin||''; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); tocado={cat:1,pa:1,motor:1,cil:1,trans:1,trab:1}; anAuto='';
   $('#fPa').value=v.pa||'';$('#fCil').value=v.cil||''; codMotor=v.codMotor||''; cabSel=v.cab||((v.ca&&v.ca!=='S/N'&&+v.pa>=5)?'DOBLE':'');$('#fKrw').value=v.krw||'';$('#fSenia').value=v.senia||'';$('#fFe').value=v.fe;$('#fNo').value=v.nota||'';
-  $('#fPr').value=String(v.prov||'').toUpperCase(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
+  $('#fPr').value=String(v.prov||'').toUpperCase(); prNuevo=false; $('#fPrNew').value=''; pintaProv(); $('#fCont').value=String(v.cont||'').toUpperCase(); CC.forEach(([k])=>$('#c'+k).value=(v.cc&&v.cc[k])?v.cc[k]:''); sumCC();
   $('#fmT').textContent='Editar vehículo';$('#wCh').classList.remove('bad');try{ const vv=$('#fVin').value; $('#fCh').readOnly=vv.length===17; $('#fSinCh').hidden=vv.length===17; pintaAuto(); }catch(_){} openSheet('shForm');return}
  if(dl){const c=dl.dataset.del;
   if(!confirm('¿Eliminar este vehículo y sus fotos?'))return;
