@@ -778,9 +778,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <input id="lbTras" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
       </div>
       <div id="lbDet"></div>
-      <div class="acts" style="margin-top:10px">
-        <button class="btn b-sec" id="lbFijos">Editar costos fijos</button>
-        <button class="btn b-pri" id="lbEnv">➦ Enviar</button></div>
+      <button class="btn b-pri" id="lbImg" style="width:100%;margin-top:10px">🖼️ Copiar imagen de la cotización</button>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="lbImgSave">⤓ Guardar imagen</button>
+        <button class="btn b-sec" id="lbEnv">➦ Enviar texto</button>
+        <button class="btn b-sec" id="lbFijos" style="flex-basis:100%">Editar costos fijos</button></div>
+      <div id="lbPrev" hidden></div>
       <div id="boxLbFijos" hidden style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
         <div style="font-weight:600;font-size:14px;margin-bottom:4px">Costos de puesta en marcha</div>
         <div id="lbCampos"></div></div>
@@ -846,7 +849,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 18:02<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 18:32<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -5233,6 +5236,7 @@ function pintaLB(){
       <span style="font-weight:700;font-size:16px">${clp(venta?tot:extra)}</span></div>`
     +(venta?'':'<p class="mtr" style="margin:4px 0 0;font-size:12px">Escribe el valor de venta para ver el total a pagar.</p>');
   window.__LBTOT=tot; window.__LBEXTRA=extra;
+  cotOculta('lbPrev');   /* si cambió algo, la vista previa ya no corresponde */
 }
 ['#lbBase','#lbTras','#lbVenta'].forEach(sel=>$(sel).addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaLB()}));
@@ -5318,6 +5322,108 @@ $('#lbEnv').addEventListener('click',async()=>{
     catch(e){if(e&&e.name==='AbortError')return}}
   cp(txt,'Cotización copiada');
 });
+/* Datos de la cotización para la imagen (mismo cálculo que pintaLB y el texto; costos fijos en cero no salen, igual que en el texto). */
+function lbDatos(){
+  const base=pnum($('#lbBase').value)||0;
+  if(!base){ toast('Ingresa la base imponible'); return null; }
+  const v=lbVeh(), venta=pnum($('#lbVenta').value)||0, tras=pnum($('#lbTras').value)||0, tasa=pdec($('#lbTasa').value)||0;
+  const imp=Math.round(base*tasa/100), extra=imp+Object.values(LB).reduce((a,b)=>a+(b||0),0)+tras;
+  const filas=(venta?[['Valor de venta',venta]]:[]).concat([['Base imponible',base],['Impuesto '+String(tasa).replace('.',',')+'%',imp]])
+    .concat(Object.keys(LB).filter(k=>LB[k]).map(k=>[nombreLB(k),LB[k]])).concat(tras?[['Traslado',tras]]:[]);
+  return {veh:v?{ma:v.ma,mo:v.mo,an:v.an,ch:v.ch}:null, foto:v?((S[v.ch]||{}).cov||''):'', filas,
+    totLbl:venta?'Total a pagar':'Impuesto y trámites', tot:venta?venta+extra:extra, nota:venta?'':'Más el valor del vehículo',
+    firma:'AMK Vehículos Selectos'};
+}
+$('#lbImg').addEventListener('click',()=>cotCopia(lbDatos(),'lbPrev'));
+$('#lbImgSave').addEventListener('click',()=>cotGuarda(lbDatos(),'lbPrev'));
+
+/* ---------- Cotización de liberación como IMAGEN (27/10/2026, Andre) ----------
+   En Messenger, las conversaciones de Marketplace no aparecen al "compartir" (solo los contactos), y un texto pegado no da
+   tanta confianza. Se arma una imagen con el logo y el detalle: "Copiar imagen" la deja en el portapapeles para pegarla en
+   cualquier chat (Marketplace, WhatsApp…); si el teléfono no deja copiar, se guarda para adjuntarla desde la galería.
+   Debajo queda la vista previa: mantenerla apretada también permite copiarla o guardarla. Mismo código en Sistema y Vendedores. */
+const COT_C={fondo:'#183640',panel:'#22434D',plata:'#C8D2D4',gris:'#93A4A7',blanco:'#EAF0F1',linea:'rgba(200,210,212,.18)'};
+function cotHoy(){ const h=new Date(), p=n=>String(n).padStart(2,'0'); return p(h.getDate())+'-'+p(h.getMonth()+1)+'-'+h.getFullYear(); }
+async function cotLienzo(d,conFoto){
+  try{ await Promise.all(['800 40px Archivo','400 30px "Instrument Sans"','600 30px "JetBrains Mono"'].map(f=>document.fonts.load(f))); }catch(_){}
+  const W=1080, P=70, RH=64, C=COT_C;
+  const foto=conFoto&&d.foto?await imgDe(d.foto):null;
+  const hVeh=d.veh?(foto?230:170):0;
+  const yVeh=402, yFil=yVeh+(hVeh?hVeh+40:0), yTot=yFil+d.filas.length*RH+28, hTot=d.nota?156:126, yPie=yTot+hTot+56, H=yPie+160;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  x.fillStyle=C.fondo; x.fillRect(0,0,W,H);
+  dibujaLogo(x,(W-400)/2,62,400,C.plata,C.gris);
+  x.textAlign='center'; x.fillStyle=C.plata; x.font='800 44px Archivo, Arial, sans-serif';
+  x.fillText('COTIZACIÓN DE LIBERACIÓN',W/2,318);
+  x.fillStyle=C.gris; x.font='400 28px "Instrument Sans", Arial, sans-serif';
+  x.fillText('Cotización del '+cotHoy(),W/2,362);
+  if(d.veh){
+    x.fillStyle=C.panel; x.beginPath(); x.roundRect(P,yVeh,W-2*P,hVeh,22); x.fill();
+    let tx=P+36;
+    if(foto){ const fw=280, fh=hVeh-48, fx=P+24, fy=yVeh+24, r=Math.max(fw/foto.width,fh/foto.height);
+      x.save(); x.beginPath(); x.roundRect(fx,fy,fw,fh,14); x.clip();
+      x.drawImage(foto,fx+(fw-foto.width*r)/2,fy+(fh-foto.height*r)/2,foto.width*r,foto.height*r); x.restore(); tx=fx+fw+32; }
+    const t=(d.veh.ma+' '+d.veh.mo+' '+(d.veh.an||'')).trim().toUpperCase();
+    x.textAlign='left'; x.fillStyle=C.blanco;
+    const fs=ajusta(x,t,W-P-36-tx,46,'800'); x.font='800 '+fs+'px Archivo, Arial, sans-serif';
+    x.fillText(t,tx,yVeh+hVeh/2-6);
+    x.fillStyle=C.gris; x.font='600 26px "JetBrains Mono", monospace';
+    x.fillText('CHASIS '+d.veh.ch,tx,yVeh+hVeh/2+38);
+  }
+  d.filas.forEach(([n,v],i)=>{ const y=yFil+i*RH;
+    x.textAlign='left'; x.fillStyle=C.blanco; x.font='400 31px "Instrument Sans", Arial, sans-serif'; x.fillText(n,P+8,y+42);
+    x.textAlign='right'; x.font='600 31px "JetBrains Mono", monospace'; x.fillText(clp(v),W-P-8,y+42);
+    x.fillStyle=C.linea; x.fillRect(P,y+RH-1,W-2*P,2); });
+  x.fillStyle=C.plata; x.beginPath(); x.roundRect(P,yTot,W-2*P,hTot,22); x.fill();
+  const yy=yTot+(d.nota?70:78);
+  x.fillStyle=C.fondo; x.textAlign='left'; x.font='800 34px Archivo, Arial, sans-serif'; x.fillText(d.totLbl.toUpperCase(),P+36,yy);
+  x.textAlign='right'; x.font='800 50px "JetBrains Mono", monospace'; x.fillText(clp(d.tot),W-P-36,yy+4);
+  if(d.nota){ x.textAlign='left'; x.font='400 27px "Instrument Sans", Arial, sans-serif'; x.fillText(d.nota,P+36,yTot+122); }
+  x.strokeStyle=C.gris; x.lineWidth=2; x.setLineDash([6,10]); x.beginPath(); x.moveTo(P,yPie); x.lineTo(W-P,yPie); x.stroke(); x.setLineDash([]);
+  x.textAlign='center'; x.fillStyle=C.plata; x.font='800 32px Archivo, Arial, sans-serif';
+  x.fillText(d.firma.toUpperCase(),W/2,yPie+66);
+  x.fillStyle=C.gris; x.font='400 26px "Instrument Sans", Arial, sans-serif';
+  x.fillText('Of. Buenaventura C-20, Barrio Industrial Zofri · Iquique',W/2,yPie+112);
+  return c;
+}
+function cotBlob(d){ return (async()=>{
+  const aBlob=c=>new Promise((ok,mal)=>{ try{ c.toBlob(b=>b?ok(b):mal(new Error('imagen')),'image/png'); }catch(e){ mal(e); } });
+  try{ return await aBlob(await cotLienzo(d,true)); }
+  catch(e){ return await aBlob(await cotLienzo(d,false)); }   /* foto que el navegador no deja usar: va sin foto */
+})(); }
+const cotNombre=d=>'AMK-cotizacion-'+(d.veh?(d.veh.ma+'-'+d.veh.mo).replace(/[^A-Za-z0-9]+/g,'-'):'liberacion')+'.png';
+function cotBaja(b,nombre){ const u=URL.createObjectURL(b), a=document.createElement('a'); a.href=u; a.download=nombre; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),8000); }
+let cotPrevURL='';
+function cotMuestra(id,b){
+  const el=document.getElementById(id); if(!el) return;
+  if(cotPrevURL) URL.revokeObjectURL(cotPrevURL); cotPrevURL=URL.createObjectURL(b);
+  alturaFluida(MAIN,()=>{ el.hidden=false;
+    el.innerHTML='<img src="'+cotPrevURL+'" alt="Imagen de la cotización" style="display:block;width:100%;max-width:340px;margin:12px auto 6px;border-radius:12px;border:1px solid var(--line)">'+
+      '<div class="mtr" style="text-align:center;font-size:12px">Así la recibe el cliente. También puedes mantenerla apretada para copiarla o guardarla.</div>'; });
+}
+function cotOculta(id){ const el=document.getElementById(id); if(el&&!el.hidden){ el.hidden=true; el.innerHTML=''; } }
+let cotOcupado=false;
+async function cotCopia(d,prev){
+  if(!d||cotOcupado) return; cotOcupado=true;
+  const pb=cotBlob(d);   /* la promesa va directo al portapapeles: iPhone exige pedirlo en el mismo toque */
+  try{
+    let ok=false;
+    if(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem){
+      try{ await navigator.clipboard.write([new ClipboardItem({'image/png':pb})]); ok=true; }
+      catch(e){ try{ await navigator.clipboard.write([new ClipboardItem({'image/png':await pb})]); ok=true; }catch(e2){ console.warn('cotCopia',e2); } }
+    }
+    const b=await pb; cotMuestra(prev,b);
+    if(ok) toast('Imagen copiada · en el chat mantén apretado donde se escribe y toca Pegar');
+    else{ cotBaja(b,cotNombre(d)); toast('Este teléfono no dejó copiarla: quedó guardada para adjuntarla desde la galería'); }
+  }catch(e){ console.error('cotCopia',e); toast('No se pudo armar la imagen'); }
+  finally{ cotOcupado=false; }
+}
+async function cotGuarda(d,prev){
+  if(!d||cotOcupado) return; cotOcupado=true;
+  try{ const b=await cotBlob(d); cotMuestra(prev,b); cotBaja(b,cotNombre(d)); toast('Imagen guardada · adjúntala desde la galería o Descargas'); }
+  catch(e){ console.error('cotGuarda',e); toast('No se pudo armar la imagen'); }
+  finally{ cotOcupado=false; }
+}
 
 /* ---------- COSTOS FIJOS Y ADELANTOS ---------- */
 const FJDEF=[['local','Arriendo del local'],['contador','Contador'],['victor','Sueldo Víctor'],['bryan','Sueldo Bryan']];
@@ -11577,7 +11683,16 @@ async function emResGuarda(inp){
   await save(); emResEstado(ch,'guardado');
   if(typeof fbDetectaCambios==='function') fbDetectaCambios();
   if(typeof fbPushChanges==='function'&&typeof fbReady!=='undefined'&&fbReady) fbPushChanges(); else if(typeof fbSchedulePush==='function') fbSchedulePush();
-  clearTimeout(emResEstT[ch]); emResEstT[ch]=setTimeout(()=>emResEstado(ch,(typeof fbPend!=='undefined'&&fbPend[ch])?'pendiente':'nube'),2500);
+  emResRevisa(ch,0);
+}
+/* 27/10/2026: recién abierta la app, mientras no bajan los costos de ese vehículo (fbPuedeSubir), el cambio todavía no sale:
+   antes igual decía "✓ en la nube". Ahora sigue en "subiendo…" y se vuelve a mirar hasta que de verdad sube. */
+function emResRevisa(ch,n){
+  clearTimeout(emResEstT[ch]); emResEstT[ch]=setTimeout(()=>{
+    const falta=(typeof fbPuedeSubir==='function'&&!fbPuedeSubir(ch))||(typeof fbPend!=='undefined'&&!!fbPend[ch]);
+    if(falta&&n<24&&(typeof fbReady==='undefined'||fbReady)&&navigator.onLine!==false){ emResRevisa(ch,n+1); return; }
+    emResEstado(ch,falta?'pendiente':'nube');
+  },2500);
 }
 /* 2026-09-29 (regla de Andre): el precio de venta y el mínimo se guardan y suben a la nube MIENTRAS se escriben
    (0,7 s después de dejar de escribir), no solo al salir del campo: si el aparato se duerme, se queda sin
