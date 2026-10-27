@@ -847,7 +847,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 09:28<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 12:58<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -962,7 +962,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="mtr" style="margin-top:8px">El respaldo completo incluye TODO lo guardado en este dispositivo, fotos incluidas. Es el que sirve para restaurar si algo sale mal. Guárdalo antes de cualquier cambio grande.</div>
       <button class="btn b-sec" id="bakAutoBtn" type="button" aria-pressed="false" style="width:100%;margin-top:10px">Respaldo automático diario</button>
       <div id="bakAutoTxt" class="mtr" style="margin-top:4px"></div>
-      <div id="bakEstado" class="mtr" style="margin-top:6px"></div></div>
+      <div id="bakEstado" class="mtr" style="margin-top:6px"></div>
+      <div id="histBox" style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">
+        <div style="font-weight:700;font-size:14.5px">Copias de seguridad</div>
+        <div class="mtr" style="margin-top:3px">Cada día se guarda sola en la nube una copia de los costos y pendientes de cada vehículo (últimos 21 días), además de las fotos que guarda este aparato. Si algo desaparece, desde aquí se recupera solo lo que falta.</div>
+        <button class="btn b-sec" id="histCargar" type="button" style="width:100%;margin-top:9px">Recuperar algo que desapareció</button>
+        <div id="rcSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="histDia">Copia desde la cual recuperar</label><select id="histDia"></select></div>
+          <button class="btn b-pri" id="histComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
+        <div id="histRes" class="mtr" style="margin-top:8px"></div></div></div>
     <div class="box"><h3>Liberar espacio</h3><p id="frTxt">Un mes después de que un vehículo sale de venta -- sea porque lo marcaste vendido o porque lo archivaste -- la app deja automáticamente 3 fotos de él: las tuyas, las de Víctor/Bryan/Corea y las vistas 360°. Ese plazo cubre el período de garantía. Si quieres adelantarlo, puedes hacerlo ahora.<br><b>Ojo:</b> un vehículo archivado se puede restaurar a Stock, pero si ya pasaron los 30 días volverá con 3 fotos.</p>
       <button class="btn b-sec" id="eFree" style="width:100%">Podar ahora</button></div>
     <div class="box"><h3>Limpiar vehículos</h3>
@@ -971,7 +978,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     <div class="box"><h3>Deshacer cambios</h3>
       <p>La app guarda sola una foto de tus datos al abrir y cada 15 minutos. Si te equivocaste, vuelve a un momento anterior. Esto vive solo en este aparato.</p>
-      <select id="histSel" style="width:100%;margin-bottom:8px"><option value="">(todavía no hay ningún momento guardado)</option></select>
+      <div class="fld" style="margin-bottom:8px"><select id="histSel" aria-label="Momento guardado"><option value="">(todavía no hay ningún momento guardado)</option></select></div>
       <div class="acts">
         <button class="btn b-pri" id="histVolver" style="width:100%" disabled>↺ Volver a este momento</button></div>
       <div class="acts" style="margin-top:8px">
@@ -1803,6 +1810,12 @@ const ctot=v=>(v.ct?v.ct+(v.ctIncCC?0:ccCLP(v)):((v.cif||0)+xls(v))+ccCLP(v))+ap
    Si se borra a mano, no se vuelve a poner (S[c].obligNo). Corre solo después de bajar los costos de la nube. */
 const OBLIG_AUTO={lavado:20000,pisos:9000};
 const fbCostosOk=new Set();   /* vehículos cuyos costos ya se bajaron de la nube en esta sesión: solo a esos se les agrega (así nunca se pisa la nube con datos viejos) */
+/* 27/10/2026 (Andre perdió los pendientes de 145 vehículos): un aparato recién abierto, sin datos guardados, recibía primero la
+   ficha y dibujaba la lista; al dibujar se creaba tasks=[] en cada vehículo y eso se subía a la nube ANTES de bajar los costos,
+   pisando los pendientes reales. Ahora un vehículo que ya existe en la nube (fbEnNube) no se marca ni se sube hasta que
+   sus costos bajaron (fbCostosOk). Lo creado en este aparato (que no está en la nube) se sube como siempre. */
+const fbEnNube=new Set();
+const fbPuedeSubir=c=>!fbEnNube.has(c)||fbCostosOk.has(c);
 const esPorterBongo=v=>/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase().trim());
 function aseguraOblig(){
   let n=0;
@@ -1998,7 +2011,7 @@ function fbDetectaCambios(){
   if(!fbBaseOk) return 0;
   let nuevos=0;
   for(const v of V){
-    if(fbPend[v.ch]) continue;
+    if(fbPend[v.ch]||!fbPuedeSubir(v.ch)) continue;
     if(fbLastPush[v.ch]!==fbHashVeh(v)){ fbPend[v.ch]=true; nuevos++; }
   }
   if(nuevos){ fbPendGuarda(); guardaCacheV(true); }
@@ -2068,7 +2081,7 @@ async function fbPushChanges(){
     for(let vuelta=0; vuelta<5; vuelta++){
       for(const c in fbPend) if(!IDX[c]) delete fbPend[c];   /* vehículos que ya no existen en este aparato */
       fbDetectaCambios();
-      const lista=V.filter(v=>fbPend[v.ch]);
+      const lista=V.filter(v=>fbPend[v.ch]&&fbPuedeSubir(v.ch));
       if(!lista.length) break;
       for(let i=0;i<lista.length;i+=150) await fbEnviaTanda(lista.slice(i,i+150));   /* 150 vehículos = hasta 450 escrituras (ficha + costos + corea); Firestore admite 500 por tanda */
     }
@@ -2141,34 +2154,141 @@ function fbStartListening(){
     if(!cambios.length) return;
     /* 1) primero los datos generales, que llegan en una sola consulta: la lista
           aparece de inmediato en vez de esperar los costos de cada vehículo. */
-    cambios.forEach(chg=>{ fbApplyRemote(chg.doc.id, chg.doc.data(), null); });
+    cambios.forEach(chg=>{ fbEnNube.add(chg.doc.id); fbApplyRemote(chg.doc.id, chg.doc.data(), null); });
     fbDibujaPronto();
     /* 2) después los costos, en tandas de 10, para no disparar 130 consultas de golpe
           ni redibujar la pantalla una vez por vehículo. */
     for(let i=0;i<cambios.length;i+=10){
       const tanda=cambios.slice(i,i+10);
-      await Promise.all(tanda.map(async chg=>{
-        try{
-          const pr=fbDb.collection(FB_COL).doc(chg.doc.id).collection('privado');
-          const [ps,pc]=await Promise.all([pr.doc('costos').get(), pr.doc('corea').get().catch(e=>{ console.warn('privado/corea',chg.doc.id,e&&e.code); return null; })]);
-          const priv=ps.exists?ps.data():null;
-          /* compra en wones, taller y seña: manda privado/corea (lo escribe también la mamá); lo que todavía no está ahí
-             (vehículos de antes de fbMigraCorea) se toma de privado/costos. */
-          const cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
-          if(priv) FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined && priv[k]!==undefined && priv[k]!==null) cor[k]=priv[k]; });
-          const hayCor=FB_COREA_FIELDS.some(k=>cor[k]!==undefined);
-          /* 26/10/2026: costos estimados que anota la mamá en Corea (Dinero → Por pagar). Solo se leen: no entran en
-             FB_COREA_FIELDS, así Sistema nunca los sube ni los pisa. Se usan en Negocio → Finanzas y en la ficha. */
-          { const vv=IDX[chg.doc.id]; if(vv){ if(Array.isArray(cor.pend)) vv.pendCorea=cor.pend; else delete vv.pendCorea; } }
-          if(priv||hayCor) fbApplyRemote(chg.doc.id, null, priv, hayCor?cor:null);
-          fbCostosOk.add(chg.doc.id);   /* costos de este vehículo ya confirmados con la nube */
-        }catch(e){ /* esta cuenta puede no tener permiso para ver costos */ }
-      }));
+      await Promise.all(tanda.map(chg=>fbBajaCostosDe(chg.doc.id,0)));
       fbDibujaPronto();
     }
     try{ aseguraOblig(); }catch(e){ console.error('aseguraOblig',e); }
     try{ aplicaMotoresVend(); }catch(e){ console.error('aplicaMotoresVend',e); }   /* 07/10/2026: lavado + pisos, con los costos ya bajados */
+    setTimeout(fbHistorialDiario, 30000);
   }, e=>console.error('fbListen', e));
+}
+/* 27/10/2026 (Andre: "lo más importante es que los datos nunca se pierdan"). Una vez al día, el primer aparato que abre
+   Sistema guarda en la nube una copia de los costos y pendientes de cada vehículo (vehiculos/{ch}/privado/historial,
+   una clave por día, se guardan HIST_DIAS días). No pisa una copia del mismo día que ya exista, y solo se hace con
+   todos los costos ya bajados de la nube. Se recupera desde Traspaso → Respaldo → "Copias diarias en la nube". */
+const HIST_DIAS=21;
+const histClave=d=>'d'+String(d).replace(/-/g,'');
+let histHecho=false;
+async function fbHistorialDiario(){
+  if(histHecho||!fbReady) return;
+  const hoy=iso(), marca='amk_hist_dia_'+FB_COL;
+  try{ if(localStorage.getItem(marca)===hoy){ histHecho=true; return; } }catch(_){}
+  const L=V.filter(v=>v&&v.ch&&fbEnNube.has(v.ch));
+  if(!L.length) return;
+  if(L.some(v=>!fbCostosOk.has(v.ch))){ setTimeout(fbHistorialDiario, 60000); return; }
+  histHecho=true;
+  const k=histClave(hoy), corte=histClave(isoDe(Date.now()-HIST_DIAS*864e5));
+  try{
+    let escritos=0;
+    for(let i=0;i<L.length;i+=100){
+      const trozo=L.slice(i,i+100), batch=fbDb.batch(); let n=0;
+      const docs=await Promise.all(trozo.map(v=>fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('historial').get().catch(()=>null)));
+      trozo.forEach((v,j)=>{ const d=docs[j]; if(!d) return; const x=d.exists?d.data():{};
+        if(x[k]) return;   /* la copia de hoy ya la hizo otro aparato */
+        const o={_ts:firebase.firestore.FieldValue.serverTimestamp()}; o[k]=fbPrivData(v);
+        Object.keys(x).forEach(z=>{ if(/^d\d{8}$/.test(z)&&z<corte) o[z]=firebase.firestore.FieldValue.delete(); });
+        batch.set(d.ref,o,{merge:true}); n++; });
+      if(n){ await batch.commit(); escritos+=n; }
+    }
+    try{ localStorage.setItem(marca,hoy); }catch(_){}
+    if(escritos) console.log('historial diario: '+escritos+' vehículos');
+  }catch(e){ histHecho=false; console.error('fbHistorialDiario',e); }
+}
+/* Recuperar lo que se perdió: desde una copia diaria de la nube o desde una de las "fotos" que este aparato guarda solo
+   (amk_hist, Deshacer cambios). Solo AGREGA los pendientes (tasks) y costos (costs) que estaban y hoy ya no están (por su ts);
+   nunca borra ni cambia lo que hay hoy. Un pendiente cuya categoría ya tiene un costo real anotado DESPUÉS de esa copia no se
+   agrega solo (podría contarse dos veces): queda listado para revisarlo a mano. */
+let rcNube=null;
+async function rcCargaNube(){
+  const L=V.filter(v=>v&&v.ch&&fbEnNube.has(v.ch));
+  const docs=await Promise.all(L.map(v=>fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('historial').get().catch(()=>null)));
+  rcNube={}; L.forEach((v,j)=>{ const d=docs[j]; if(d&&d.exists) rcNube[v.ch]=d.data(); });
+}
+/* fuente: 'n:d20261027' (copia de la nube) o 'l:3' (foto N° 3 de este aparato). Devuelve {S por chasis, ts de la copia}. */
+function rcFuente(id){
+  if(!id) return null;
+  if(id.startsWith('l:')){ const h=HIST_LISTA[+id.slice(2)]; return h?{S:h.S||{},ts:h.ts}:null; }
+  const k=id.slice(2), o={}; for(const c in (rcNube||{})){ const x=rcNube[c][k]; if(x) o[c]=x; }
+  return {S:o, ts:new Date(+k.slice(1,5),+k.slice(5,7)-1,+k.slice(7,9),23,59).getTime()};
+}
+function rcFaltantes(id){
+  const F=rcFuente(id); if(!F) return {L:[],rev:[]};
+  const L=[], rev=[];
+  for(const c in F.S){ const h=F.S[c]; if(!h||!IDX[c]) continue; const t=S[c]||{};
+    const hoyT=new Set((t.tasks||[]).map(x=>String(x.ts))), hoyC=new Set((t.costs||[]).map(x=>String(x.ts)));
+    const fc=(h.costs||[]).filter(x=>x&&x.ts!=null&&!hoyC.has(String(x.ts)));
+    const despues=(t.costs||[]).filter(k=>+k.ts>F.ts);
+    const ft=[], fr=[];
+    (h.tasks||[]).forEach(x=>{ if(!x||x.ts==null||hoyT.has(String(x.ts))) return;
+      const choca=!x.hecho&&despues.some(k=>{ try{ return catsPago(x.cat).includes(k.cat); }catch(_){ return k.cat===x.cat; } });
+      (choca?fr:ft).push(x); });
+    if(ft.length||fc.length) L.push({c,ft,fc});
+    if(fr.length) rev.push({c,ft:fr}); }
+  return {L,rev};
+}
+function rcOpciones(){
+  const sel=$('#histDia'); if(!sel) return;
+  const n={}; for(const c in (rcNube||{})) for(const z in rcNube[c]) if(/^d\d{8}$/.test(z)) n[z]=(n[z]||0)+1;
+  const nube=Object.keys(n).sort().reverse().map(z=>`<option value="n:${z}">Nube · ${z.slice(7,9)}/${z.slice(5,7)}/${z.slice(1,5)} · ${n[z]} vehículos</option>`);
+  const loc=(HIST_LISTA||[]).map((h,i)=>`<option value="l:${i}">Este aparato · ${histCuando(h.ts)} · ${h.n} vehículos</option>`);
+  sel.innerHTML=(loc.length?`<optgroup label="Fotos guardadas en este aparato">${loc.join('')}</optgroup>`:'')+(nube.length?`<optgroup label="Copias diarias en la nube">${nube.join('')}</optgroup>`:'');
+  if(!loc.length&&!nube.length) sel.innerHTML='<option value="">Todavía no hay copias guardadas</option>';
+  sel.disabled=!loc.length&&!nube.length; $('#histComparar').disabled=sel.disabled;
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('#histCargar,#histComparar,#histRecupera'); if(!b||b.disabled) return;
+  const res=$('#histRes'); const esc=t=>String(t==null?'':t).replace(/</g,'&lt;');
+  if(V.some(v=>fbEnNube.has(v.ch)&&!fbCostosOk.has(v.ch))){ res.textContent='Todavía están bajando los costos de la nube. Espera un momento y vuelve a intentar.'; return; }
+  b.disabled=true;
+  try{
+    if(b.id==='histCargar'){ res.textContent='Leyendo copias…'; if(fbReady){ try{ await rcCargaNube(); }catch(err){ console.error('rcCargaNube',err); } }
+      alturaFluida($('#histBox'),()=>{ $('#rcSel').hidden=false; rcOpciones(); res.textContent=''; }); }
+    else if(b.id==='histComparar'){ const id=$('#histDia').value; const {L,rev}=rcFaltantes(id);
+      const nt=L.reduce((a,x)=>a+x.ft.length,0), nc=L.reduce((a,x)=>a+x.fc.length,0);
+      const fila=(x,extra)=>{const v=IDX[x.c]||{}; return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><span style="font-family:var(--body)">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute)">${x.c}</span></span><br><span style="font-size:12px">${x.ft.map(t=>esc(TN[t.cat]||t.cat)+(t.nota?' · '+esc(t.nota):'')+(t.est?' '+clp(t.est):'')+(t.hecho?(t.noAplica?' (no se necesitó)':' (hecho)'):'')).join(' · ')}${x.fc&&x.fc.length?'<br>Costos: '+x.fc.map(k=>esc(CN[k.cat]||k.cat||'')+' '+clp(k.acor||0)+(k.date?' ('+fd(k.date)+')':'')).join(' · '):''}${extra||''}</span></div>`};
+      alturaFluida($('#histBox'),()=>{ res.innerHTML=(!L.length?'<span style="color:var(--green)">✓ Todo lo que había en esa copia sigue estando hoy. No falta nada.</span>'
+        :`<b>Faltan hoy ${nt} pendiente${nt===1?'':'s'}${nc?' y '+nc+' costo'+(nc===1?'':'s'):''} en ${L.length} vehículo${L.length===1?'':'s'}:</b>`+L.map(x=>fila(x)).join('')
+         +`<button class="btn b-pri" id="histRecupera" data-id="${esc(id)}" type="button" style="width:100%;margin-top:9px;font-family:var(--body)">Recuperar lo que falta</button><div class="mtr" style="margin-top:4px">Solo agrega lo que falta; no borra ni cambia nada de lo que hay hoy.</div>`)
+         +(rev.length?`<div style="margin-top:10px;border-left:3px solid var(--amber);padding-left:9px"><b>Revisar a mano (no se recuperan solos):</b> ya anotaste un costo real de esa categoría después de la copia, así que el estimado podría contarse dos veces.${rev.map(x=>fila(x)).join('')}</div>`:''); }); }
+    else if(b.id==='histRecupera'){ const id=b.dataset.id; const {L}=rcFaltantes(id); if(!L.length) return;
+      if(!confirm('¿Recuperar '+L.reduce((a,x)=>a+x.ft.length+x.fc.length,0)+' registros de '+L.length+' vehículos?\n\nSolo se agrega lo que falta; no se borra nada.')) return;
+      L.forEach(x=>{ const t=st(x.c); if(x.ft.length) t.tasks=(t.tasks||[]).concat(JSON.parse(JSON.stringify(x.ft))); if(x.fc.length) t.costs=(t.costs||[]).concat(JSON.parse(JSON.stringify(x.fc))); });
+      await save(); draw(); try{ pintaPendientes(); }catch(_){}
+      alturaFluida($('#histBox'),()=>{ res.innerHTML='<span style="color:var(--green)">✓ Recuperado: '+L.length+' vehículos. Ya se está subiendo a la nube.</span>'; });
+      toast('Recuperados '+L.length+' vehículos'); }
+  }catch(err){ console.error('recuperar',err); res.innerHTML='<span style="color:var(--red)">No se pudo: '+esc(err.message||err)+'</span>'; }
+  finally{ if(b.isConnected) b.disabled=false; }
+});
+/* Baja privado/costos + privado/corea de un vehículo. Si falla (sin señal), se reintenta: mientras no bajen, ese vehículo
+   no sube nada (fbPuedeSubir), así que no puede quedar sin sincronizar para siempre (27/10/2026). */
+async function fbBajaCostosDe(id,intento){
+  if(!id) return;
+  try{
+    const pr=fbDb.collection(FB_COL).doc(id).collection('privado');
+    const [ps,pc]=await Promise.all([pr.doc('costos').get(), pr.doc('corea').get().catch(e=>{ console.warn('privado/corea',id,e&&e.code); return null; })]);
+    const priv=ps.exists?ps.data():null;
+    /* compra en wones, taller y seña: manda privado/corea (lo escribe también la mamá); lo que todavía no está ahí
+       (vehículos de antes de fbMigraCorea) se toma de privado/costos. */
+    const cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
+    if(priv) FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined && priv[k]!==undefined && priv[k]!==null) cor[k]=priv[k]; });
+    const hayCor=FB_COREA_FIELDS.some(k=>cor[k]!==undefined);
+    /* 26/10/2026: costos estimados que anota la mamá en Corea (Dinero → Por pagar). Solo se leen: no entran en
+       FB_COREA_FIELDS, así Sistema nunca los sube ni los pisa. Se usan en Negocio → Finanzas y en la ficha. */
+    { const vv=IDX[id]; if(vv){ if(Array.isArray(cor.pend)) vv.pendCorea=cor.pend; else delete vv.pendCorea; } }
+    if(priv||hayCor) fbApplyRemote(id, null, priv, hayCor?cor:null);
+    fbCostosOk.add(id);   /* costos de este vehículo ya confirmados con la nube */
+  }catch(e){
+    /* sin permiso (otra cuenta) no se insiste; si es falta de señal, se reintenta hasta lograrlo */
+    if(e&&e.code==='permission-denied') return;
+    console.warn('fbBajaCostosDe',id,e&&(e.code||e.message));
+    setTimeout(()=>{ if(!fbCostosOk.has(id)) fbBajaCostosDe(id,intento+1).then(fbDibujaPronto); }, Math.min(60,5*(intento+1))*1000);
+  }
 }
 
 /* --- fotos que suben Vendedores/Corea desde sus propios teléfonos (colección fotosVend), para
@@ -2367,6 +2487,8 @@ async function fbSubirTodo(){
   const pinta=(t,c)=>{ if(el) el.innerHTML='<span style="color:'+(c||'var(--mute)')+'">'+t+'</span>'; };
   if(!fbReady){ pinta('No hay conexión con la nube todavía.','var(--red)'); return; }
   const total=V.length;
+  { const faltan=V.filter(v=>!fbPuedeSubir(v.ch)).length;   /* 27/10/2026: nunca pisar la nube con costos que este aparato todavía no bajó */
+    if(faltan){ pinta('Todavía están bajando los costos de '+faltan+' vehículos desde la nube. Espera un momento y vuelve a intentar.','var(--red)'); return; } }
   if(!confirm('Se van a subir '+total+' vehículos a la nube (colección '+FB_COL+'), con sus costos.\n\n¿Ya tienes descargado el respaldo completo en JSON? Si no, cancela y hazlo primero.')) return;
   let hechos=0;
   try{
@@ -12161,6 +12283,12 @@ function descargaRespaldoExcel(auto){
     const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Detalle','Fecha','Acordado','Pagado','Debe','Posventa']];
     for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.det||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
     sheets.push({name:'Costos por vehículo',rows:co});
+  /* 27/10/2026: los pendientes (estimados por embarque / en persona) no iban en el Excel; ahora sí */
+  { const pr=[['Chasis','Marca','Modelo','Año','Categoría','Nota','Estimado','Est. del embarque','Origen','Estado','Creado','Hecho / no se necesitó']];
+    Object.keys(S).forEach(c=>{ const v=IDX[c]; (S[c].tasks||[]).forEach(t=>{ if(!t) return;
+      pr.push([c,v?v.ma:'',v?v.mo:'',v?v.an:'',t.cat||'',t.nota||'',+t.est||0,t.est1!=null?+t.est1||0:'',t.origen==='emb'?'Embarque':(t.origen||''),
+        t.noAplica?'No se necesitó':(t.hecho?'Hecho':'Pendiente'),t.ts?isoDe(+t.ts):'',t.realFe||t.fechaNoAp||'']); }); });
+    sheets.push({name:'Pendientes y estimados',rows:pr}); }
     sheets.push({name:'Gastos generales',rows:[['Fecha','Categoría','Monto','Nota']].concat(GEN.map(g=>[g.fecha,GENCATN[g.cat]||g.cat,g.monto,g.nota||'']))});
     const pg=[['Fecha','Tipo','Persona / concepto','Detalle','Monto']];
     for(const k of ['victor','bryan']) for(const q in (PAGOSQ[k]||{})){ const x=PAGOSQ[k][q]; if(x&&!x.del) pg.push([x.f,'Sueldo',nomPersona(k),etiquetaQuincena(q),x.m]); }

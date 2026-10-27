@@ -344,7 +344,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
     <button class="big" id="genNuevo">＋ Nuevo gasto general</button>
     <p class="cnt" id="genCnt"></p>
     <div id="genList"></div>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->27-10-2026 09:28<!--/VER--></b></p>
+    <details class="card" id="csBox" style="margin-top:18px"><summary style="cursor:pointer;font-weight:700;font-size:15px">🛟 Copias de seguridad</summary>
+      <p class="sub" style="margin:8px 0 10px">La app guarda sola una foto de tus datos al abrir y cada 15 minutos (en este teléfono), y una copia diaria de tus vehículos en la nube. Si algo desaparece, desde aquí se recupera <b>solo lo que falta</b>, sin borrar nada.</p>
+      <button class="btn b-sec" id="csCargar" type="button" style="width:100%">Recuperar algo que desapareció</button>
+      <div id="csSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="csDia">Copia desde la cual recuperar</label><select id="csDia"></select></div>
+        <button class="btn b-pri" id="csComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
+      <div id="csRes" class="mtr" style="margin-top:8px"></div></details>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->27-10-2026 12:58<!--/VER--></b></p>
   </section>
 </main>
 
@@ -708,6 +714,7 @@ async function boot(){
   dlProv(); dlCont(); await cargaDemandaLocal();
   $('#boot').remove();show(tab);opts();draw();pintaRE();pintaGastos();pintaFlete();
   pintaHK();
+  await csCarga(); await csTomar('al abrir'); setInterval(()=>csTomar('automática'), CS_CADA);
 }
 async function save(){try{await window.storage.set(KEY,JSON.stringify(L))}catch(e){console.error('save',e); toast('No se pudo guardar')} fbEnviaPronto();}
 
@@ -1144,6 +1151,107 @@ function fbRecoreaListen(){
    vehiculo llega desde Sistema y no existe en este telefono, se guarda como
    "solo referencia": cuenta para el Historico pero no aparece en la lista de
    Vehiculos ni se reenvia a la nube (para no pisar los datos de Sistema). */
+/* ---------- Copias de seguridad (27/10/2026, Andre: "lo más importante es que los datos nunca se pierdan") ----------
+   1) Fotos locales: al abrir y cada 15 min (si algo cambió) se guarda una foto de L, remesas y gastos; quedan las últimas 12.
+   2) Copia diaria en la nube: cada vehículo propio (no "solo referencia") se guarda en vehiculos/{ch}/privado/coreaHist
+      con la clave c<AAAAMMDD> (documento propio: Corea no puede leer privado/historial de Sistema, que trae los costos de Chile).
+      Necesita la regla de privado/coreaHist (archivo de reglas 2026-10-27). Se borran las de 22-60 días.
+   3) Recuperar: elige una foto o un día y SOLO AGREGA lo que falta hoy (vehículos que ya no están o quedaron como
+      referencia, estimados por su id, gastos de taller por categoría, remesas/gastos por id). Nunca borra ni cambia nada. */
+const CS_K='amkc_copias', CS_MAX=12, CS_CADA=15*60*1000;
+let CS=[], csFirmaUlt='';
+const csFirma=()=>{ try{ return L.length+'|'+JSON.stringify(L).length+'|'+JSON.stringify(RE||[]).length+'|'+JSON.stringify(GEN||[]).length; }catch(_){ return ''; } };
+async function csCarga(){ try{ const r=await window.storage.get(CS_K); if(r&&r.value){ const a=JSON.parse(r.value); if(Array.isArray(a)) CS=a; } }catch(e){ console.error('csCarga',e); } }
+async function csTomar(motivo){
+  try{ if(!L.some(v=>!v.soloReferencia)) return;   /* nunca guardar una foto vacía */
+    const f=csFirma(); if(f===csFirmaUlt) return; csFirmaUlt=f;
+    CS.unshift({ts:Date.now(),motivo,n:L.filter(v=>!v.soloReferencia).length,L:JSON.parse(JSON.stringify(L)),RE:JSON.parse(JSON.stringify(RE||[])),GEN:JSON.parse(JSON.stringify(GEN||[]))});
+    if(CS.length>CS_MAX) CS.length=CS_MAX;
+    await window.storage.set(CS_K,JSON.stringify(CS));
+  }catch(e){ console.error('csTomar',e); }
+}
+const csIso=t=>{ const z=new Date(t); return z.getFullYear()+String(z.getMonth()+1).padStart(2,'0')+String(z.getDate()).padStart(2,'0'); };
+let csNubeHecho=false;
+async function csNubeDiaria(){
+  if(csNubeHecho||!fbReady) return;
+  const hoy=csIso(Date.now()), marca='amkc_copia_nube_'+FB_COL;
+  try{ if(localStorage.getItem(marca)===hoy){ csNubeHecho=true; return; } }catch(_){}
+  const mios=L.filter(v=>v&&v.ch&&!v.soloReferencia); if(!mios.length) return;
+  csNubeHecho=true;
+  try{
+    for(let i=0;i<mios.length;i+=200){ const b=fbDb.batch();
+      mios.slice(i,i+200).forEach(v=>{ const o={_ts:firebase.firestore.FieldValue.serverTimestamp()}; o['c'+hoy]=JSON.parse(JSON.stringify(v));
+        for(let d=22;d<=60;d++) o['c'+csIso(Date.now()-d*864e5)]=firebase.firestore.FieldValue.delete();
+        b.set(fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('coreaHist'),o,{merge:true}); });
+      await b.commit(); }
+    try{ localStorage.setItem(marca,hoy); }catch(_){}
+  }catch(e){ csNubeHecho=!!(e&&e.code==='permission-denied'); console.error('csNubeDiaria',e); }   /* sin la regla de coreaHist no se insiste en esta sesión */
+}
+let csNube=null;
+async function csCargaNube(){
+  csNube={};
+  const docs=await Promise.all(L.filter(v=>v&&v.ch).map(v=>fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('coreaHist').get().then(d=>[v.ch,d]).catch(()=>null)));
+  docs.forEach(x=>{ if(!x||!x[1].exists) return; const h=x[1].data()||{}; Object.keys(h).forEach(k=>{ if(/^c\d{8}$/.test(k)) (csNube[k]=csNube[k]||{})[x[0]]=h[k]; }); });
+}
+function csFuente(id){
+  if(!id) return null;
+  if(id.startsWith('l:')){ const c=CS[+id.slice(2)]; return c?{L:c.L||[],RE:c.RE||[],GEN:c.GEN||[]}:null; }
+  const m=(csNube||{})[id.slice(2)]||{}; return {L:Object.values(m),RE:[],GEN:[]};
+}
+function csFaltantes(id){
+  const F=csFuente(id); const out={veh:[],pend:[],cc:[],re:[],gen:[]}; if(!F) return out;
+  F.L.forEach(x=>{ if(!x||!x.ch||x.soloReferencia) return; const v=L.find(y=>y.ch===x.ch);
+    if(!v||v.soloReferencia){ out.veh.push(x); return; }
+    (x.pend||[]).forEach(p=>{ if(p&&p.id&&!(v.pend||[]).some(q=>q.id===p.id)) out.pend.push({ch:v.ch,p}); });
+    Object.keys(x.cc||{}).forEach(k=>{ if(+x.cc[k]>0&&!(v.cc&&v.cc[k]!=null)) out.cc.push({ch:v.ch,k,m:+x.cc[k]}); }); });
+  const idRE=r=>String(r.ts||r.id||''), idG=g=>String(g.id||g.ts||'');
+  F.RE.forEach(r=>{ if(idRE(r)&&!(RE||[]).some(y=>idRE(y)===idRE(r))) out.re.push(r); });
+  F.GEN.forEach(g=>{ if(idG(g)&&!(GEN||[]).some(y=>idG(y)===idG(g))) out.gen.push(g); });
+  return out;
+}
+function csCuando(ts){ const d=new Date(ts), h=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  if(d.toDateString()===new Date().toDateString()) return 'hoy '+h;
+  if(d.toDateString()===new Date(Date.now()-864e5).toDateString()) return 'ayer '+h;
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+h; }
+function csOpciones(){
+  const sel=$('#csDia');
+  const loc=CS.map((c,i)=>`<option value="l:${i}">Este teléfono · ${csCuando(c.ts)} · ${c.n} vehículos</option>`);
+  const nube=Object.keys(csNube||{}).sort().reverse().map(k=>`<option value="n:${k}">Nube · ${k.slice(7,9)}/${k.slice(5,7)}/${k.slice(1,5)} · ${Object.keys(csNube[k]).length} vehículos</option>`);
+  sel.innerHTML=(loc.length?`<optgroup label="Fotos de este teléfono">${loc.join('')}</optgroup>`:'')+(nube.length?`<optgroup label="Copias diarias en la nube">${nube.join('')}</optgroup>`:'')||'<option value="">Todavía no hay copias guardadas</option>';
+  sel.disabled=!loc.length&&!nube.length; $('#csComparar').disabled=sel.disabled;
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('#csCargar,#csComparar,#csRecupera'); if(!b||b.disabled) return;
+  const res=$('#csRes'), esc=t=>String(t==null?'':t).replace(/</g,'&lt;'), w=n=>'₩'+Math.round(+n||0).toLocaleString('es-CL'), cn=k=>((CC.find(x=>x[0]===k)||[])[1]||k);
+  b.disabled=true;
+  try{
+    if(b.id==='csCargar'){ res.textContent='Leyendo copias…'; if(fbReady){ try{ await csCargaNube(); }catch(err){ console.error('csCargaNube',err); } }
+      alturaFluida($('#csBox'),()=>{ $('#csSel').hidden=false; csOpciones(); res.textContent=''; }); }
+    else if(b.id==='csComparar'){ const id=$('#csDia').value, F=csFaltantes(id), n=F.veh.length+F.pend.length+F.cc.length+F.re.length+F.gen.length;
+      const nom=x=>{ const v=x.ma?x:(L.find(y=>y.ch===x.ch)||{}); return esc((v.ma||'')+' '+(v.mo||'')+' '+(v.an||''))+' <span style="color:var(--mute)">'+esc(x.ch)+'</span>'; };
+      alturaFluida($('#csBox'),()=>{ res.innerHTML=!n?'<span style="color:var(--green)">✓ Todo lo que había en esa copia sigue estando hoy. No falta nada.</span>'
+        :'<b>Falta hoy:</b>'
+        +(F.veh.length?'<div style="margin-top:6px"><b>'+F.veh.length+' vehículo'+(F.veh.length===1?'':'s')+'</b><br>'+F.veh.map(nom).join('<br>')+'</div>':'')
+        +(F.pend.length?'<div style="margin-top:6px"><b>'+F.pend.length+' estimado'+(F.pend.length===1?'':'s')+'</b><br>'+F.pend.map(x=>nom(x)+' · '+esc(cn(x.p.cat||''))+(x.p.est?' '+w(x.p.est):'')).join('<br>')+'</div>':'')
+        +(F.cc.length?'<div style="margin-top:6px"><b>'+F.cc.length+' gasto'+(F.cc.length===1?'':'s')+' de taller</b><br>'+F.cc.map(x=>nom(x)+' · '+esc(cn(x.k))+' '+w(x.m)).join('<br>')+'</div>':'')
+        +(F.re.length?'<div style="margin-top:6px"><b>'+F.re.length+' remesa'+(F.re.length===1?'':'s')+'</b></div>':'')
+        +(F.gen.length?'<div style="margin-top:6px"><b>'+F.gen.length+' gasto'+(F.gen.length===1?'':'s')+' general'+(F.gen.length===1?'':'es')+'</b></div>':'')
+        +`<button class="btn b-pri" id="csRecupera" data-id="${esc(id)}" type="button" style="width:100%;margin-top:10px;font-family:var(--body)">Recuperar lo que falta</button><div class="mtr" style="margin-top:4px">Solo agrega lo que falta; no borra ni cambia nada de lo que hay hoy.</div>`; }); }
+    else if(b.id==='csRecupera'){ const F=csFaltantes(b.dataset.id), n=F.veh.length+F.pend.length+F.cc.length+F.re.length+F.gen.length; if(!n) return;
+      if(!confirm('¿Recuperar '+n+' cosas desde esa copia?\n\nSolo se agrega lo que falta; no se borra nada.')) return;
+      await csTomar('antes de recuperar');
+      F.veh.forEach(x=>{ const c=JSON.parse(JSON.stringify(x)); delete c.soloReferencia; const i=L.findIndex(y=>y.ch===c.ch); if(i>-1) L[i]=Object.assign({},L[i],c,{soloReferencia:undefined}); else L.push(c); const v=L.find(y=>y.ch===c.ch); delete v.soloReferencia; v.nube=fbFirma(v); if(v.pend) v.nubeP=pendFirma(v); });
+      F.pend.forEach(x=>{ const v=L.find(y=>y.ch===x.ch); if(v){ v.pend=(v.pend||[]).concat([JSON.parse(JSON.stringify(x.p))]); } });
+      F.cc.forEach(x=>{ const v=L.find(y=>y.ch===x.ch); if(v){ v.cc=Object.assign({},v.cc||{}); v.cc[x.k]=x.m; } });
+      if(F.re.length){ RE=(RE||[]).concat(JSON.parse(JSON.stringify(F.re))); try{ await window.storage.set('amkc_remesas',JSON.stringify(RE)); }catch(_){} }
+      if(F.gen.length){ GEN=(GEN||[]).concat(JSON.parse(JSON.stringify(F.gen))); await guardaGEN(); }
+      await save(); draw(); try{ pintaRE(); pintaGastos(); pintaPP(); }catch(_){}
+      alturaFluida($('#csBox'),()=>{ res.innerHTML='<span style="color:var(--green)">✓ Recuperado. Lo que cambió se sube solo a la nube.</span>'; });
+      toast('Datos recuperados'); }
+  }catch(err){ console.error('copias',err); res.innerHTML='<span style="color:var(--red)">No se pudo: '+esc(err.message||err)+'</span>'; }
+  finally{ if(b.isConnected) b.disabled=false; }
+});
+
 function fbVehiculosListen(){
   if(fbVehiculosEscuchando||!fbReady) return;
   fbVehiculosEscuchando=true;
@@ -1191,6 +1299,7 @@ function fbVehiculosListen(){
       try{await window.storage.set(KEY,JSON.stringify(L))}catch(_){}
       draw();
     }
+    setTimeout(csNubeDiaria, 30000);
   }, e=>console.error('fbVehiculosListen',e));
 }
 /* ---------- Demanda de clientes: solo lectura (compartido con Vendedores y Sistema) ----------
