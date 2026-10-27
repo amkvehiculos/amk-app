@@ -173,10 +173,23 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .pk .tt{font-size:15px}
 .ph{position:relative;border-radius:9px;overflow:hidden;aspect-ratio:4/3;background:var(--seaL);border:1px solid var(--line)}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
-/* 17/10/2026: galería de las fotos de otra fuente (Víctor/Bryan/Corea), tocar una la agranda */
+/* 17/10/2026: galería de las fotos de otra fuente (Víctor/Bryan/Corea); tocar una la abre en el visor (27/10/2026) */
 .galFu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .galFu img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block;cursor:zoom-in;background:var(--seaL)}
-.galFu img.grande{grid-column:1/-1;aspect-ratio:auto;max-height:70vh;object-fit:contain;cursor:zoom-out}
+/* 27/10/2026 (Andre): visor de fotos a pantalla completa. Antes tocar una foto la estiraba dentro de la cuadrícula y
+   la descuadraba; ahora se abre encima, se pasa de una a otra deslizando o con las flechas, y la cuadrícula no se mueve. */
+.visor{position:fixed;inset:0;z-index:85;background:rgba(4,18,25,.95);display:flex;align-items:center;justify-content:center;
+ padding:calc(62px + env(safe-area-inset-top)) 14px calc(58px + env(safe-area-inset-bottom));opacity:0;transition:opacity .18s ease;touch-action:none}
+.visor[hidden]{display:none}.visor.on{opacity:1}
+.visor img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.vzB{position:absolute;z-index:2;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;
+ font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.vzB:hover{background:rgba(255,255,255,.24)}.vzB[hidden]{display:none}
+.vzX{top:calc(12px + env(safe-area-inset-top));right:12px}
+.vzP,.vzN{top:50%;transform:translateY(-50%);font-size:26px}.vzP{left:10px}.vzN{right:10px}
+.vzC{position:absolute;z-index:2;top:calc(23px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#C9D6DA;font-family:var(--mono);font-size:12.5px;pointer-events:none}
+@media(max-width:600px){.vzP,.vzN{width:38px;height:38px;font-size:22px}.vzP{left:4px}.vzN{right:4px}}
+@media(prefers-reduced-motion:reduce){.visor,.visor img{transition:none!important}}
 .fwInfo{font-size:12px;margin-top:3px;line-height:1.35}
 .phg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
 .ph .ix{position:absolute;top:4px;left:4px;background:rgba(4,18,25,.85);color:#fff;font-family:var(--mono);
@@ -833,7 +846,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->26-10-2026 17:48<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 09:28<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -6476,8 +6489,71 @@ function avisaFotosNuevas(){
 /* 17/10/2026 (Andre): "Ver fotos" abría la ficha de fotos de André (v.fotos), vacía si él no había subido: no se veía lo que
    Víctor/Bryan querían publicar. Ahora despliega ahí mismo las fotos de ESA fuente (fotosVendCache[ch][fuente]); tocar una la agranda. */
 const fpVer=new Set();
+/* ---------- Visor de fotos a pantalla completa (27/10/2026; mismo código en Sistema y Corea) ----------
+   visorAbre(lista de fotos, índice). Deslizar o ‹ › cambia de foto, tocar fuera de la foto / ✕ / Esc cierra.
+   La foto sigue al dedo mientras se arrastra; vzAnim evita que dos cambios se pisen si se toca rápido. */
+let vzF=[],vzI=0,vzAnim=false,vzCierraT=null,vzDrag=false,vzX0=0,vzDX=0,vzMovio=false,vzScroll='';
+function vzEl(){
+  let el=document.getElementById('visor'); if(el) return el;
+  el=document.createElement('div'); el.id='visor'; el.className='visor'; el.hidden=true;
+  el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Foto ampliada');
+  el.innerHTML='<div class="vzC" id="vzC"></div><button class="vzB vzX" id="vzX" type="button" aria-label="Cerrar">✕</button>'
+    +'<button class="vzB vzP" id="vzP" type="button" aria-label="Foto anterior">‹</button><img id="vzImg" alt="" draggable="false">'
+    +'<button class="vzB vzN" id="vzN" type="button" aria-label="Foto siguiente">›</button>';
+  document.body.appendChild(el);
+  el.querySelector('#vzX').addEventListener('click',visorCierra);
+  el.querySelector('#vzP').addEventListener('click',()=>vzIr(vzI-1));
+  el.querySelector('#vzN').addEventListener('click',()=>vzIr(vzI+1));
+  el.addEventListener('pointerdown',e=>{ if(e.target.closest('.vzB')||vzAnim) return;
+    vzDrag=true; vzX0=e.clientX; vzDX=0; vzMovio=false; vzImg().style.transition='none';
+    try{ el.setPointerCapture(e.pointerId); }catch(_){} });
+  el.addEventListener('pointermove',e=>{ if(!vzDrag) return; vzDX=e.clientX-vzX0; if(Math.abs(vzDX)>6) vzMovio=true;
+    /* en la primera y la última foto se arrastra con resistencia, para que se note que no hay más */
+    const tope=(vzDX>0&&vzI===0)||(vzDX<0&&vzI===vzF.length-1);
+    vzImg().style.transform='translateX('+(tope?vzDX/3:vzDX)+'px)'; });
+  const suelta=()=>{ if(!vzDrag) return; vzDrag=false;
+    if(vzDX<-60&&vzI<vzF.length-1) vzIr(vzI+1); else if(vzDX>60&&vzI>0) vzIr(vzI-1);
+    else { const im=vzImg(); im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; im.style.transform='translateX(0)'; } };
+  el.addEventListener('pointerup',suelta); el.addEventListener('pointercancel',suelta);
+  el.addEventListener('click',e=>{ if(vzMovio){ vzMovio=false; return; } if(e.target===el) visorCierra(); });
+  document.addEventListener('keydown',e=>{ if(el.hidden) return;
+    if(e.key==='Escape'){ e.preventDefault(); visorCierra(); } else if(e.key==='ArrowLeft') vzIr(vzI-1); else if(e.key==='ArrowRight') vzIr(vzI+1); });
+  return el;
+}
+const vzImg=()=>document.getElementById('vzImg');
+function vzPinta(){
+  const im=vzImg(), n=vzF.length; im.src=vzF[vzI]||''; im.alt='Foto '+(vzI+1)+' de '+n;
+  document.getElementById('vzC').textContent=n>1?(vzI+1)+' / '+n:'';
+  document.getElementById('vzP').hidden=n<2||vzI===0; document.getElementById('vzN').hidden=n<2||vzI===n-1;
+}
+function visorAbre(fotos,i){
+  vzF=(fotos||[]).filter(Boolean); if(!vzF.length) return;
+  const el=vzEl(); if(vzCierraT){ clearTimeout(vzCierraT); vzCierraT=null; }
+  vzI=Math.max(0,Math.min(vzF.length-1,+i||0)); vzAnim=false;
+  const im=vzImg(); im.style.transition='none'; im.style.transform='translateX(0)'; im.style.opacity='1';
+  vzPinta();
+  if(el.hidden){ vzScroll=document.body.style.overflow; document.body.style.overflow='hidden'; }
+  el.hidden=false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  document.getElementById('vzX').focus({preventScroll:true});
+}
+function visorCierra(){
+  const el=document.getElementById('visor'); if(!el||el.hidden) return;
+  el.classList.remove('on'); document.body.style.overflow=vzScroll;
+  vzCierraT=setTimeout(()=>{ el.hidden=true; vzImg().src=''; vzCierraT=null; },180);
+}
+function vzIr(i){
+  if(vzAnim||!vzF.length) return;
+  const d=Math.max(0,Math.min(vzF.length-1,i)), im=vzImg();
+  if(d===vzI){ im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; im.style.transform='translateX(0)'; return; }
+  const w=document.getElementById('visor').clientWidth||360, sale=d>vzI?-w:w;
+  vzAnim=true;
+  im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s ease'; im.style.transform='translateX('+sale+'px)'; im.style.opacity='0';
+  setTimeout(()=>{ vzI=d; vzPinta(); im.style.transition='none'; im.style.transform='translateX('+(-sale)+'px)'; void im.offsetWidth;
+    im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s ease'; im.style.transform='translateX(0)'; im.style.opacity='1';
+    setTimeout(()=>{ vzAnim=false; },230); },220);
+}
 const galFuenteHTML=fotos=>`<div class="galFu">${(fotos||[]).map((u,i)=>`<img src="${String(u).replace(/"/g,'&quot;')}" alt="Foto ${i+1}" loading="lazy" data-galz="1">`).join('')}</div>`;
-document.addEventListener('click',e=>{ const im=e.target.closest('[data-galz]'); if(!im) return; const g=im.closest('.galFu'); alturaFluida(g,()=>im.classList.toggle('grande')); });
+document.addEventListener('click',e=>{ const im=e.target.closest('[data-galz]'); if(!im) return; const g=[...im.closest('.galFu').querySelectorAll('img')]; visorAbre(g.map(x=>x.src),g.indexOf(im)); });
 function pintaFotosPub(){
   const L=fotosParaPublicar(), el=$('#fpList');
   $('#fpTodos').hidden=L.length<2;

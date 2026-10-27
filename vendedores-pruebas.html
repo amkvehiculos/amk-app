@@ -130,6 +130,24 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .phx.sel{outline:3px solid var(--plata);outline-offset:-3px}
 .phx .pim{position:relative;aspect-ratio:4/3;cursor:pointer}
 .phx .pim img{width:100%;height:100%;object-fit:cover;display:block}
+/* 27/10/2026 (Andre): visor de fotos a pantalla completa. Antes tocar una foto la estiraba dentro de la cuadrícula y
+   la descuadraba; ahora se abre encima, se pasa de una a otra deslizando o con las flechas, y la cuadrícula no se mueve. */
+.visor{position:fixed;inset:0;z-index:85;background:rgba(4,18,25,.95);display:flex;align-items:center;justify-content:center;
+ padding:calc(62px + env(safe-area-inset-top)) 14px calc(58px + env(safe-area-inset-bottom));opacity:0;transition:opacity .18s ease;touch-action:none}
+.visor[hidden]{display:none}.visor.on{opacity:1}
+.visor img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.vzB{position:absolute;z-index:2;width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;
+ font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.vzB:hover{background:rgba(255,255,255,.24)}.vzB[hidden]{display:none}
+.vzX{top:calc(12px + env(safe-area-inset-top));right:12px}
+.vzP,.vzN{top:50%;transform:translateY(-50%);font-size:26px}.vzP{left:10px}.vzN{right:10px}
+.vzC{position:absolute;z-index:2;top:calc(23px + env(safe-area-inset-top));left:0;right:0;text-align:center;color:#C9D6DA;font-family:var(--mono);font-size:12.5px;pointer-events:none}
+@media(max-width:600px){.vzP,.vzN{width:38px;height:38px;font-size:22px}.vzP{left:4px}.vzN{right:4px}}
+@media(prefers-reduced-motion:reduce){.visor,.visor img{transition:none!important}}
+/* Vendedores: tocar la foto la marca para enviar; el botón ⤢ de la esquina la abre en el visor */
+.phx .vzAbre{position:absolute;bottom:6px;right:6px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(4,18,25,.78);
+ color:#fff;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:zoom-in;-webkit-tap-highlight-color:transparent}
+.phx .vzAbre:hover{background:rgba(4,18,25,.92)}
 .phx .sk{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:var(--plata);color:#0B1C23;font-size:14px;display:none;align-items:center;justify-content:center;font-weight:800}
 .phx.sel .sk{display:flex}
 .phx .ix{position:absolute;top:6px;left:6px;background:rgba(4,18,25,.88);color:#fff;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px}
@@ -307,7 +325,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->26-10-2026 17:48 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->27-10-2026 09:28 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1971,12 +1989,12 @@ function drawPhotos(){
  $('#phSend').hidden=!phArr.length;
  $('#phShare').textContent=phSel.size?`➦ Enviar ${phSel.size} foto${phSel.size===1?'':'s'}`:'➦ Enviar fotos';
  $('#phGrid').innerHTML=phArr.length?phArr.map((d,i)=>`<div class="phx${phSel.has(i)?' sel':''}">
-  <div class="pim" data-sel="${i}"><img src="${d}" alt="Foto ${i+1}"><span class="sk">✓</span><span class="ix">${i===0?'PORTADA':i+1}</span></div>
+  <div class="pim" data-sel="${i}"><img src="${d}" alt="Foto ${i+1}"><span class="sk">✓</span><span class="ix">${i===0?'PORTADA':i+1}</span><button class="vzAbre" type="button" data-vzver="${i}" aria-label="Ver la foto ${i+1} en grande">⤢</button></div>
   <div class="ctl"><button data-mv="${i}|-1" aria-label="Mover la foto ${i+1} antes" ${i===0?'disabled':''}>◀</button>
   <button data-mv="${i}|1" aria-label="Mover la foto ${i+1} después" ${i===phArr.length-1?'disabled':''}>▶</button>
   <button data-rm="${i}" aria-label="Quitar la foto ${i+1}">✕</button></div></div>`).join('')
   :'<div style="grid-column:1/-1;color:var(--mute);font-size:13px;text-align:center;padding:14px 0">Sin fotos todavía.</div>';
- $('#phMtr').textContent=phArr.length?`${phArr.length} de ${MAXN} · ${kb(weight())} · toca una foto para elegirla`:''}
+ $('#phMtr').textContent=phArr.length?`${phArr.length} de ${MAXN} · ${kb(weight())} · toca una foto para elegirla · ⤢ para verla en grande`:''}
 $('#phDrop').addEventListener('click',()=>$('#phFile').click());
 $('#phFile').addEventListener('change',async e=>{const fs=[...e.target.files];e.target.value='';
  if(!fs.length)return; const room=MAXN-phArr.length; if(room<=0){toast('Máximo '+MAXN+' fotos');return}
@@ -2372,7 +2390,71 @@ $('#v3Play').addEventListener('click',()=>{
 /* --- eventos --- */
 $('#phShare').addEventListener('click',()=>shareVehicle(phCh,[...phSel]));
 $('#phWeb').addEventListener('click',subirFotosWeb);
+/* ---------- Visor de fotos a pantalla completa (27/10/2026; mismo código en Sistema, Corea y Vendedores) ----------
+   visorAbre(lista de fotos, índice). Deslizar o ‹ › cambia de foto, tocar fuera de la foto / ✕ / Esc cierra.
+   La foto sigue al dedo mientras se arrastra; vzAnim evita que dos cambios se pisen si se toca rápido. */
+let vzF=[],vzI=0,vzAnim=false,vzCierraT=null,vzDrag=false,vzX0=0,vzDX=0,vzMovio=false,vzScroll='';
+function vzEl(){
+  let el=document.getElementById('visor'); if(el) return el;
+  el=document.createElement('div'); el.id='visor'; el.className='visor'; el.hidden=true;
+  el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Foto ampliada');
+  el.innerHTML='<div class="vzC" id="vzC"></div><button class="vzB vzX" id="vzX" type="button" aria-label="Cerrar">✕</button>'
+    +'<button class="vzB vzP" id="vzP" type="button" aria-label="Foto anterior">‹</button><img id="vzImg" alt="" draggable="false">'
+    +'<button class="vzB vzN" id="vzN" type="button" aria-label="Foto siguiente">›</button>';
+  document.body.appendChild(el);
+  el.querySelector('#vzX').addEventListener('click',visorCierra);
+  el.querySelector('#vzP').addEventListener('click',()=>vzIr(vzI-1));
+  el.querySelector('#vzN').addEventListener('click',()=>vzIr(vzI+1));
+  el.addEventListener('pointerdown',e=>{ if(e.target.closest('.vzB')||vzAnim) return;
+    vzDrag=true; vzX0=e.clientX; vzDX=0; vzMovio=false; vzImg().style.transition='none';
+    try{ el.setPointerCapture(e.pointerId); }catch(_){} });
+  el.addEventListener('pointermove',e=>{ if(!vzDrag) return; vzDX=e.clientX-vzX0; if(Math.abs(vzDX)>6) vzMovio=true;
+    /* en la primera y la última foto se arrastra con resistencia, para que se note que no hay más */
+    const tope=(vzDX>0&&vzI===0)||(vzDX<0&&vzI===vzF.length-1);
+    vzImg().style.transform='translateX('+(tope?vzDX/3:vzDX)+'px)'; });
+  const suelta=()=>{ if(!vzDrag) return; vzDrag=false;
+    if(vzDX<-60&&vzI<vzF.length-1) vzIr(vzI+1); else if(vzDX>60&&vzI>0) vzIr(vzI-1);
+    else { const im=vzImg(); im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; im.style.transform='translateX(0)'; } };
+  el.addEventListener('pointerup',suelta); el.addEventListener('pointercancel',suelta);
+  el.addEventListener('click',e=>{ if(vzMovio){ vzMovio=false; return; } if(e.target===el) visorCierra(); });
+  document.addEventListener('keydown',e=>{ if(el.hidden) return;
+    if(e.key==='Escape'){ e.preventDefault(); visorCierra(); } else if(e.key==='ArrowLeft') vzIr(vzI-1); else if(e.key==='ArrowRight') vzIr(vzI+1); });
+  return el;
+}
+const vzImg=()=>document.getElementById('vzImg');
+function vzPinta(){
+  const im=vzImg(), n=vzF.length; im.src=vzF[vzI]||''; im.alt='Foto '+(vzI+1)+' de '+n;
+  document.getElementById('vzC').textContent=n>1?(vzI+1)+' / '+n:'';
+  document.getElementById('vzP').hidden=n<2||vzI===0; document.getElementById('vzN').hidden=n<2||vzI===n-1;
+}
+function visorAbre(fotos,i){
+  vzF=(fotos||[]).filter(Boolean); if(!vzF.length) return;
+  const el=vzEl(); if(vzCierraT){ clearTimeout(vzCierraT); vzCierraT=null; }
+  vzI=Math.max(0,Math.min(vzF.length-1,+i||0)); vzAnim=false;
+  const im=vzImg(); im.style.transition='none'; im.style.transform='translateX(0)'; im.style.opacity='1';
+  vzPinta();
+  if(el.hidden){ vzScroll=document.body.style.overflow; document.body.style.overflow='hidden'; }
+  el.hidden=false; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  document.getElementById('vzX').focus({preventScroll:true});
+}
+function visorCierra(){
+  const el=document.getElementById('visor'); if(!el||el.hidden) return;
+  el.classList.remove('on'); document.body.style.overflow=vzScroll;
+  vzCierraT=setTimeout(()=>{ el.hidden=true; vzImg().src=''; vzCierraT=null; },180);
+}
+function vzIr(i){
+  if(vzAnim||!vzF.length) return;
+  const d=Math.max(0,Math.min(vzF.length-1,i)), im=vzImg();
+  if(d===vzI){ im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1)'; im.style.transform='translateX(0)'; return; }
+  const w=document.getElementById('visor').clientWidth||360, sale=d>vzI?-w:w;
+  vzAnim=true;
+  im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s ease'; im.style.transform='translateX('+sale+'px)'; im.style.opacity='0';
+  setTimeout(()=>{ vzI=d; vzPinta(); im.style.transition='none'; im.style.transform='translateX('+(-sale)+'px)'; void im.offsetWidth;
+    im.style.transition='transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s ease'; im.style.transform='translateX(0)'; im.style.opacity='1';
+    setTimeout(()=>{ vzAnim=false; },230); },220);
+}
 document.addEventListener('click',async e=>{
+ { const vz=e.target.closest('[data-vzver]'); if(vz){ visorAbre(phArr,+vz.dataset.vzver); return; } }
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
   c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]'),
