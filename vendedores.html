@@ -324,7 +324,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->27-10-2026 15:51<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->27-10-2026 18:02<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1865,8 +1865,12 @@ $('#scrim').addEventListener('click',()=>{ const sh=$('.sheet.on'); if(sh&&sh.da
 $$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
 
 /* --- textos --- */
+/* Transmisión (2026-10-27): la anotada; si no, la de siempre (automática; mecánica en los de trabajo). */
+const transTxt=v=>String(v.trans||(v.trab?'MECANICA':'AUTOMATICA')).toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
+/* Regla de Andre (2026-10-27): los guiones de video nunca dicen los km ni el precio de venta. */
+const featsVideo=v=>feats(v).filter(x=>!/ km$/.test(x));
 function feats(v){const f=[];
- if(v.tr)f.push('Tracción '+v.tr); if(v.pa)f.push(v.pa+' pasajeros');
+ if(v.tr)f.push('Tracción '+v.tr); const tx=transTxt(v); if(tx)f.push('Transmisión '+tx); if(v.pa)f.push(v.pa+' pasajeros');
  if(v.ca&&CARN[v.ca])f.push('Carrocería '+CARN[v.ca]); if(v.tp)f.push('Techo panorámico');
  if(v.ce)f.push('Color '+v.ce.toLowerCase()); if(v.km)f.push(v.km.toLocaleString('es-CL')+' km');
  return f}
@@ -1887,11 +1891,31 @@ function genIG(v,k){const f=feats(v).slice(0,4);
  const A=`${v.ma} ${v.mo} ${v.an||''} 🇰🇷➡️🇨🇱\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nElegido en persona en Corea. Preparado en Iquique.\n${priceLine(v)}\n\n📍 Iquique · Escríbeme por DM\n\n${tags(v)}`;
  const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nNo compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.\n${priceLine(v)}\n\n📍 DM para agendar\n\n${tags(v)}`;
  return [A,B][k%2]}
-function genTT(v,k){const f=feats(v);
+function genTT(v,k){const f=featsVideo(v);
  const hooks=v.trab?[`¿Necesitas ${CARN[v.ca]||'camioneta'} para trabajar?`,`Esta ${v.mo} llegó lista para producir.`,`Si trabajas con carga, mira esto.`]
   :[`Este ${v.mo} llegó directo de Corea.`,`${v.mo} ${v.an||''}. Mira cómo llega.`,`¿Buscas ${CATN[v.cat]||'auto'} en Iquique?`];
  const h=hooks[k%hooks.length], b=f.slice(0,4);
- return `GUIÓN — 32 s aprox. · vertical 9:16\n\n[0-3 s] GANCHO\nToma: frontal 3/4 acercándose.\nTexto en pantalla: "${h}"\nVoz: "${h}"\n\n[3-8 s] PRESENTACIÓN\nToma: paneo lateral completo.\nVoz: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."\n\n[8-18 s] DETALLES\n${b.map((x,i)=>`  Toma ${i+1}: ${['interior desde la puerta','tablero y volante','asientos traseros','detalle exterior'][i]||'detalle'}\n  Texto: "${x}"`).join('\n')}\n\n[18-26 s] DIFERENCIADOR\nVoz: "Lo revisamos en persona en Corea antes de comprarlo."\n${v.sv?'Texto: "Apto sello verde · circula en Santiago"\n':''}\n[26-32 s] CIERRE\nVoz: "${priceLine(v)==='Consultar precio por interno'?'Escríbeme y te cuento el precio.':'Precio: '+priceLine(v)+'.'} Estamos en Iquique."\nCierre: logo AMK + contacto.\n\nMÚSICA: canción en tendencia, volumen bajo.\n\nDESCRIPCIÓN:\n${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷\n${tags(v)}`}
+ return `GUIÓN — 32 s aprox. · vertical 9:16\n\n[0-3 s] GANCHO\nToma: frontal 3/4 acercándose.\nTexto en pantalla: "${h}"\nVoz: "${h}"\n\n[3-8 s] PRESENTACIÓN\nToma: paneo lateral completo.\nVoz: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."\n\n[8-18 s] DETALLES\n${b.map((x,i)=>`  Toma ${i+1}: ${['interior desde la puerta','tablero y volante','asientos traseros','detalle exterior'][i]||'detalle'}\n  Texto: "${x}"`).join('\n')}\n\n[18-26 s] DIFERENCIADOR\nVoz: "Lo revisamos en persona en Corea antes de comprarlo."\n${v.sv?'Texto: "Apto sello verde · circula en Santiago"\n':''}\n[26-32 s] CIERRE\nVoz: "Escríbeme y te cuento todo. Estamos en Iquique."\nCierre: logo AMK + contacto.\n\nMÚSICA: canción en tendencia, volumen bajo.\n\nDESCRIPCIÓN:\n${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷\n${tags(v)}`}
+/* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
+   automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
+function tomasVideo(v,despues){
+  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo. */
+  const trab=!!(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim()));
+  const ca=String(v.ca||'').trim().toUpperCase();
+  const car=ca&&ca!=='S/N'?(CARN[ca]||({'BARANDA BAJA':'baranda baja','CAJON SIMPLE':'cajón simple','CAJÓN SIMPLE':'cajón simple','POWER GATE':'power gate'})[ca]||ca.toLowerCase()):'';
+  const t4=v.tp&&!trab?'techo panorámico desde adentro, mirando hacia arriba'
+    :(trab&&car?'la carrocería ('+car+') por fuera, abierta si se puede'
+    :(String(v.tr||'').toUpperCase()==='4X4'?'perilla o palanca de la tracción 4x4'
+    :'lo que más lo distingue (pantalla, cámara, llantas…)'));
+  const t6=trab?(car?'la zona de carga, vacía':'la cabina completa desde el lado del copiloto')
+    :((+v.pa||0)>=7?'segunda y tercera corrida de asientos':'asientos traseros');
+  const L=['frontal 3/4, caminando hacia el vehículo','paneo lateral completo, de adelante hacia atrás',
+    trab?'cabina desde la puerta abierta':'interior desde la puerta abierta',t4,'tablero, volante y palanca de cambios',t6,
+    'detalle de rueda o parrilla','frontal completo, con el teléfono quieto, 3 segundos'];
+  return 'Vertical · 1080p · 5 a 8 s cada una · en este orden\n\n'
+    +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
+    +'\n\nDespués: '+despues;
+}
 function genWA(v){const f=feats(v), yo=ST.vend?`\n\n${ST.vend} · AMK Vehículos Selectos`:'';
  return `¡Hola! Gracias por escribir 👋\n\nSobre el ${v.ma} ${v.mo} ${v.an||''}:\n${f.map(x=>'• '+x).join('\n')}\n${v.sv?'• Apto sello verde (circula en Santiago, V y VI región)\n':''}\n${priceLine(v)}\n\nLo tenemos acá en Iquique y lo puedes venir a ver cuando quieras. ¿Te acomoda algún día de esta semana?${yo}`}
 
@@ -2182,7 +2206,7 @@ function drawGen(){
  $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
  $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
  const b=[['Facebook Marketplace',genMP(gv,gvar)],['Publicación de Facebook',genFB(gv,gvar)],
-  ['Instagram',genIG(gv,gvar)],['Guión TikTok / Reels',genTT(gv,gvar)],
+  ['Instagram',genIG(gv,gvar)],['Tomas para grabar el video',tomasVideo(gv,'pásalas por AirDrop al Mac de Andre.')],['Guión TikTok / Reels',genTT(gv,gvar)],
   ['Respuesta de WhatsApp',genWA(gv)],['Respuesta: ¿sigue disponible?',rrDisp(gv)],['Respuesta: sello verde',rrSV(gv)],
   ['Respuesta: cómo reservar',rrRes(gv)],['Respuesta: dónde estamos',rrDir()],['Seguimiento (no ha respondido)',rrSeg(gv,'')],['Hashtags',tags(gv)]];
  $('#genOut').innerHTML=b.map((x,i)=>`<div class="gen"><div class="gh"><h4>${x[0]}</h4>

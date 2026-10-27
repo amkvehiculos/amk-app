@@ -847,7 +847,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 15:51<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 18:02<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2889,7 +2889,7 @@ function contResumen(){
   const veh=V.filter(v=>!v.borrado&&!v.baja&&!v.creando&&!sold(v.ch)).map(v=>{
     const t=st(v.ch);
     return {ch:v.ch, ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'', cat:v.cat||'', ca:v.ca||'', cab:v.cab||'',
-      tr:v.tr||'', pa:v.pa||null, tp:!!v.tp, km:v.km||null, motor:v.motor||'', trans:v.trans||'',
+      tr:v.tr||'', pa:v.pa||null, tp:!!v.tp, km:v.km||null, motor:v.motor||'', trans:transTxt(v),
       st:v.st||'', enCorea:!!v.enCorea, eta:v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null, llp:v.llp||null,
       trab:!!v.trab, sv:!!v.sv, web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
       precio:t.of?(t.pprice||v.vev||null):null,
@@ -8902,9 +8902,15 @@ let gv=null, gvar=0, qc='', ttTpl='ficha', ttV2='';
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
 
+/* Transmisión (2026-10-27): la del Z si se anotó; si no, la de siempre (automática; mecánica en los de trabajo). */
+function transTxt(v){
+  let t=''; try{ t=zofEf(v).trans; }catch(_){ t=v.trans||(v.zof&&v.zof.trans)||transSugerida(!!v.trab); }
+  return String(t||'').toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
+}
 function feats(v){
   const f=[];
   if(v.tr) f.push('Tracción '+v.tr);
+  const tx=transTxt(v); if(tx) f.push('Transmisión '+tx);
   if(v.pa) f.push(v.pa+' pasajeros');
   if(v.ca&&CARN[v.ca]) f.push('Carrocería '+CARN[v.ca]);
   if(v.tp) f.push('Techo panorámico');
@@ -8998,8 +9004,11 @@ ${tags(v)}`;
   return [A,B][k%2];
 }
 
+/* Regla de Andre (2026-10-27): los guiones de video nunca dicen los km ni el precio de venta. */
+const featsVideo=v=>feats(v).filter(x=>!/ km$/.test(x));
+const CIERRE_VIDEO='Escríbenos y te contamos todo.';
 function genTTFicha(v,k){
-  const f=feats(v);
+  const f=featsVideo(v);
   const hooks=v.trab
     ? [`¿Necesitas ${CARN[v.ca]||'camioneta'} para trabajar?`,
        `Esta ${v.mo} llegó lista para producir.`,
@@ -9030,7 +9039,7 @@ Voz IA: "Lo revisamos en persona en Corea antes de comprarlo. Por eso sabemos ex
 ${v.sv?'Texto en pantalla: "Apto sello verde · circula en Santiago"\n':''}
 [26-32 s] CIERRE
 Toma: frontal completo alejándose.
-Voz IA: "${priceLine(v)==='Consultar precio por interno'?'Escríbenos y te contamos el precio.':'Precio: '+priceLine(v)+'.'} Estamos en Iquique."
+Voz IA: "${CIERRE_VIDEO} Estamos en Iquique."
 Cierre: logo AMK Vehículos Selectos + número de contacto.
 
 MÚSICA: canción en tendencia, volumen bajo bajo la voz.
@@ -9041,6 +9050,26 @@ ${tags(v)}`;
 
 
 
+/* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
+   automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
+function tomasVideo(v,despues){
+  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo. */
+  const trab=!!(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim()));
+  const ca=String(v.ca||'').trim().toUpperCase();
+  const car=ca&&ca!=='S/N'?(CARN[ca]||({'BARANDA BAJA':'baranda baja','CAJON SIMPLE':'cajón simple','CAJÓN SIMPLE':'cajón simple','POWER GATE':'power gate'})[ca]||ca.toLowerCase()):'';
+  const t4=v.tp&&!trab?'techo panorámico desde adentro, mirando hacia arriba'
+    :(trab&&car?'la carrocería ('+car+') por fuera, abierta si se puede'
+    :(String(v.tr||'').toUpperCase()==='4X4'?'perilla o palanca de la tracción 4x4'
+    :'lo que más lo distingue (pantalla, cámara, llantas…)'));
+  const t6=trab?(car?'la zona de carga, vacía':'la cabina completa desde el lado del copiloto')
+    :((+v.pa||0)>=7?'segunda y tercera corrida de asientos':'asientos traseros');
+  const L=['frontal 3/4, caminando hacia el vehículo','paneo lateral completo, de adelante hacia atrás',
+    trab?'cabina desde la puerta abierta':'interior desde la puerta abierta',t4,'tablero, volante y palanca de cambios',t6,
+    'detalle de rueda o parrilla','frontal completo, con el teléfono quieto, 3 segundos'];
+  return 'Vertical · 1080p · 5 a 8 s cada una · en este orden\n\n'
+    +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
+    +'\n\nDespués: '+despues;
+}
 const TT_TPL=[['ficha','Ficha técnica'],['gancho','Gancho con dato'],['detalle','Detalle destacado'],['comp','Comparativa'],['testimonio','Testimonio (guía)'],['pr','P y R']];
 function genTT(v,k,tpl,v2){
   tpl=tpl||'ficha';
@@ -9052,11 +9081,10 @@ function genTT(v,k,tpl,v2){
   return genTTFicha(v,k);
 }
 function genTTGancho(v,k){
-  const f=feats(v);
-  const precioTxt=priceLine(v);
+  const f=featsVideo(v);
   const ganchos=[
-    v.km?`${v.km.toLocaleString('es-CL')} kilómetros y quedó así de bueno.`:`Mira cómo llegó este ${v.mo} desde Corea.`,
-    precioTxt!=='Consultar precio por interno'?`Por ${precioTxt} te llevas un ${v.ma} ${v.mo} recién preparado.`:`Antes de comprar tu próximo auto usado, mira esto.`,
+    `Mira cómo llegó este ${v.mo} desde Corea.`,
+    `Antes de comprar tu próximo auto usado, mira esto.`,
     `Esto es lo que nadie te muestra de un auto recién importado.`
   ];
   const h=ganchos[k%ganchos.length];
@@ -9075,9 +9103,9 @@ Voz IA: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."
 [9-20 s] DETALLES RÁPIDOS
 ${b.map((x,i)=>`  Toma ${i+1}: detalle de ${x.toLowerCase()}.\n  Texto en pantalla: "${x}"`).join('\n')}
 
-[20-26 s] CIERRE CON PRECIO
+[20-26 s] CIERRE
 Toma: frontal completo, luz buena.
-Voz IA: "${precioTxt==='Consultar precio por interno'?'Escríbenos y te contamos el precio.':'Precio: '+precioTxt+'.'} Estamos en Iquique."
+Voz IA: "${CIERRE_VIDEO} Estamos en Iquique."
 Cierre: logo AMK Vehículos Selectos + número de contacto.
 
 MÚSICA: canción en tendencia, empieza fuerte en el gancho y baja de volumen cuando entra la voz.
@@ -9086,16 +9114,15 @@ ${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷
 ${tags(v)}`;
 }
 function genTTDetalle(v,k){
-  const f=feats(v);
+  const f=featsVideo(v);
   const destacado=f.find(x=>x.includes('panorámico'))||f.find(x=>x.includes('Tracción'))||f[0]||'su estado general';
   const resto=f.filter(x=>x!==destacado).slice(0,3);
   const angles=[
     `Nadie te muestra esto en un auto usado.`,
-    `Esto casi no se ve en autos de este precio.`,
+    `Esto casi no se ve en un ${v.mo} de este año.`,
     `Fíjate en este detalle antes de seguir viendo.`
   ];
   const h=angles[k%angles.length];
-  const precioTxt=priceLine(v);
   return `GUIÓN — 28 s aprox. · vertical 9:16 · plantilla DETALLE DESTACADO
 
 [0-4 s] GANCHO SOBRE EL DETALLE
@@ -9111,7 +9138,7 @@ Voz IA: "Este ${v.ma} ${v.mo} tiene ${destacado.toLowerCase()}. Así llega, sin 
 ${resto.map((x,i)=>`  Toma ${i+1}: detalle de ${x.toLowerCase()}.\n  Texto en pantalla: "${x}"`).join('\n')}
 
 [22-28 s] CIERRE
-Voz IA: "${precioTxt==='Consultar precio por interno'?'Escríbenos y te contamos el precio.':'Precio: '+precioTxt+'.'} Lo tenemos acá en Iquique."
+Voz IA: "${CIERRE_VIDEO} Lo tenemos acá en Iquique."
 Cierre: logo AMK Vehículos Selectos + número de contacto.
 
 MÚSICA: canción en tendencia, tono de descubrimiento.
@@ -9120,8 +9147,7 @@ ${v.ma} ${v.mo} ${v.an||''} — ${destacado} 🇰🇷
 ${tags(v)}`;
 }
 function genTTComp(v,k,v2){
-  const fa=feats(v).slice(0,3), fb=feats(v2).slice(0,3);
-  const pa=priceLine(v), pb=priceLine(v2);
+  const fa=featsVideo(v).slice(0,3), fb=featsVideo(v2).slice(0,3);
   return `GUIÓN — 34 s aprox. · vertical 9:16 · plantilla COMPARATIVA
 
 [0-4 s] GANCHO
@@ -9133,13 +9159,13 @@ Voz IA: "Hoy comparamos dos opciones que tenemos en Iquique."
 Toma: paneo del ${v.ma} ${v.mo}.
 Texto en pantalla: "${v.ma} ${v.mo} ${v.an||''}"
 ${fa.map(x=>`  • ${x}`).join('\n')}
-Voz IA: "El ${v.mo}: ${fa.join(', ')}. ${pa==='Consultar precio por interno'?'Precio al interno.':pa+'.'}"
+Voz IA: "El ${v.mo}: ${fa.join(', ')}."
 
 [14-24 s] AUTO B
 Toma: paneo del ${v2.ma} ${v2.mo}.
 Texto en pantalla: "${v2.ma} ${v2.mo} ${v2.an||''}"
 ${fb.map(x=>`  • ${x}`).join('\n')}
-Voz IA: "El ${v2.mo}: ${fb.join(', ')}. ${pb==='Consultar precio por interno'?'Precio al interno.':pb+'.'}"
+Voz IA: "El ${v2.mo}: ${fb.join(', ')}."
 
 [24-30 s] PREGUNTA A LA AUDIENCIA
 Texto en pantalla grande: "¿CUÁL ELEGIRÍAS? 👇"
@@ -9350,6 +9376,7 @@ function drawGen(){
     ['Facebook Marketplace',genMP(gv,gvar),null],
     ['Publicación de Facebook',genFB(gv,gvar),'https://www.facebook.com/'],
     ['Instagram',genIG(gv,gvar),'https://www.instagram.com/'],
+    ['Tomas para grabar el video',tomasVideo(gv,'pásalas por AirDrop al Mac y en AMK VIDEO elige "Traer las tomas".'),null],
     ['Guión TikTok / Reels',ttText,'https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video'],
     ['Respuesta de WhatsApp',genWA(gv),null],
     ['Hashtags',tags(gv),null]
@@ -12300,9 +12327,14 @@ function descargaRespaldoExcel(auto){
   const sheets=[];
 
   const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
-    'Alerón','Pintura','Eléctrico','TV','Parabrisas','Mecánica','Obligatorio','Repuestos','Rep. usados','Batería','Neumáticos','Asientos'];
+    'Alerón','Pintura','Eléctrico','TV','Parabrisas','Mecánica','Obligatorio','Repuestos','Rep. usados','Batería','Neumáticos','Asientos',
+    'Transmisión','Combustible','Cilindrada','Motor'];
+  /* Datos del Z (2026-10-27): los mismos que se declaran en Zofri, con la transmisión por defecto si no se anotó
+     (automática; mecánica en los de trabajo). Los guiones de video salen de este respaldo. */
+  const vehZ=v=>{ try{ const ef=zofEf(v), lin=x=>String(x||'').toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
+    return [lin(ef.trans),lin(ef.combustible).replace('diesel o semidiesel','diésel'),ef.cilind||'',ef.motor||'']; }catch(_){ return ['','','','']; } };
   const vehRows=[vehHead, ...V.map(v=>[v.ch,v.st,v.ma,v.mo,v.an,v.ce,v.cat,v.tr,v.pa,v.ca,v.tp?'Sí':'No',v.km,v.cif,v.fob,v.cifusd,v.ct,v.vev,v.trab?'Sí':'No',v.sv?'Sí':'No',
-    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0])];
+    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0,...vehZ(v)])];
   sheets.push({name:'Vehículos',rows:vehRows});
 
   const rmHead=['Fecha','Tipo','USD enviados','Comisión (USD)','IVA comisión (%)','KRW estimado','KRW recibido','Cambio real (KRW/USD)','Embarque vinculado','Vehículos vinculados'];
