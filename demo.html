@@ -847,7 +847,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 13:16<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 13:27<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -4431,6 +4431,7 @@ function drawCostList(){ try{ pintaScPend(); }catch(_){}
     <div class="acts">
       ${csal(x)?`<button class="btn b-sec" data-cabo="${x.ts}">Abonar</button>`:''}
       <button class="btn b-sec" data-cenv="${x.ts}" style="flex:0 0 auto">➦</button>
+      ${x.auto?'':`<button class="btn b-sec" data-ccat="${x.ts}" style="flex:0 0 auto" aria-label="Cambiar categoría">✎ Categoría</button>`}
       <button class="btn b-sec" data-cacor="${x.ts}" style="flex:0 0 auto">✎$</button>
       <button class="b-und" style="flex:0 0 auto" data-cdel="${x.ts}">✕</button></div></div>`).join('')
    :'';
@@ -4552,6 +4553,31 @@ document.addEventListener('click',async e=>{
     const m=pnum(await pedirDato({t:'Nuevo precio acordado',s:'Acordado hasta ahora '+clp(acor(x)),l:'Precio acordado',v:String(acor(x)),modo:'clp',ok:'Guardar'})||'');
     if(!m)return;
     x.acor=m; await save();draw();drawCostList();toast('Acordado actualizado');
+    return}
+  /* 27/10/2026 (Andre): un costo anotado en la categoría equivocada (p.ej. en Obligatorio) se corrige sin borrarlo:
+     se cambia SOLO la categoría (monto, abonos, proveedor y fecha quedan igual). Si en la nueva categoría hay un trabajo
+     pendiente, se pregunta si este pago es de ese trabajo (igual que al anotar un costo), para no contarlo dos veces. */
+  const cc=e.target.closest('[data-ccat]');
+  if(cc){const x=(S[ch].costs||[]).find(y=>String(y.ts)===cc.dataset.ccat);
+    if(!x||x.auto)return;
+    const L=todasCATS().filter(([k])=>k!==x.cat&&k!=='OTRO'&&k!=='LAVADO');
+    const r=await pedirElegir({t:'Cambiar categoría',s:'Ahora: '+(CN[x.cat]||x.cat)+' · '+clp(acor(x))+'. El monto y los pagos quedan igual.',no:'Cancelar',opts:L.map(([,n])=>n)});
+    if(r==null)return;
+    const nueva=L[r][0], antes=x.cat;
+    const ligada=tasks(ch).some(y=>String(y.costTs)===String(x.ts));
+    if(!ligada){ const ab=tasks(ch).filter(y=>!y.hecho&&!y.costTs&&y.cat!=='LAVADO'&&catsPago(y.cat).includes(nueva)&&!(y.noEsPago||[]).includes(String(x.ts)));
+      if(ab.length){
+        const nomT=y=>(y.imprevisto?'⚡ ':'')+(TN[y.cat]||y.cat)+(y.nota?' · '+y.nota:'')+(y.est?' (est. '+clp(y.est)+')':'');
+        const q=await pedirElegir({t:'¿Este pago es de un trabajo pendiente?',
+          s:'Lo estás pasando a '+(CN[nueva]||nueva)+'. Si es el pago de un trabajo pendiente, ese trabajo queda listo y su estimado deja de sumarse (no se cuenta dos veces).',
+          no:'Cancelar', opts:ab.map(y=>'✓ Sí, es el pago de '+nomT(y)).concat(['✕ No, es otro gasto · '+(ab.length===1?'el trabajo sigue pendiente':'los trabajos siguen pendientes')])});
+        if(q==null)return;
+        if(q<ab.length){ const tk=ab[q]; tk.hecho=true; tk.costTs=x.ts; tk.realFe=x.date||iso(); if(tk.origen==='emb'&&!tk.visto){ if(tk.est1==null) tk.est1=+tk.est||0; tk.visto=true; tk.vistoFe=iso(); } }
+        else ab.forEach(y=>{ y.noEsPago=(y.noEsPago||[]).concat([String(x.ts)]); });
+      } }
+    x.cat=nueva;
+    await save();draw();drawCostList();try{drawTaskSheet()}catch(_){}
+    toast('Categoría cambiada: '+(CN[antes]||antes)+' → '+(CN[nueva]||nueva));
     return}
   const dl=e.target.closest('[data-cdel]');
   if(dl){const x=(S[ch].costs||[]).find(y=>String(y.ts)===dl.dataset.cdel);
