@@ -846,7 +846,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 12:58<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 13:16<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1818,6 +1818,12 @@ const fbPuedeSubir=c=>!fbEnNube.has(c)||fbCostosOk.has(c);
 const esPorterBongo=v=>/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase().trim());
 function aseguraOblig(){
   let n=0;
+  /* 27/10/2026: el Obligatorio AUTOMÁTICO va una sola vez por vehículo. Si quedó dos veces (pasó al recuperar los datos
+     borrados ese día: volvió el original del 07/10 y ya estaba el que la app creó de nuevo), se deja el más antiguo.
+     Los Obligatorios anotados a mano (sin auto) no se tocan. */
+  for(const v of V){ const c=v.ch; if(!c||!fbCostosOk.has(c)) continue; const t=S[c]; if(!t||!t.costs) continue;
+    const au=t.costs.filter(x=>x&&x.cat==='OBLIG'&&x.auto).sort((a,b)=>(+a.ts||0)-(+b.ts||0));
+    if(au.length>1){ const sobran=new Set(au.slice(1)); t.costs=t.costs.filter(x=>!sobran.has(x)); n+=sobran.size; } }
   for(const v of V){ const c=v.ch;
     if(!c||sold(c)||v.baja||v.creando||!fbCostosOk.has(c)) continue;
     const t=st(c); if(t.obligNo) continue;
@@ -2221,7 +2227,8 @@ function rcFaltantes(id){
   const L=[], rev=[];
   for(const c in F.S){ const h=F.S[c]; if(!h||!IDX[c]) continue; const t=S[c]||{};
     const hoyT=new Set((t.tasks||[]).map(x=>String(x.ts))), hoyC=new Set((t.costs||[]).map(x=>String(x.ts)));
-    const fc=(h.costs||[]).filter(x=>x&&x.ts!=null&&!hoyC.has(String(x.ts)));
+    const fc=(h.costs||[]).filter(x=>x&&x.ts!=null&&!hoyC.has(String(x.ts))
+      &&!(x.auto&&(t.costs||[]).some(k=>k.cat===x.cat)));   /* un costo automático (Obligatorio) no se duplica: la app ya puso uno */
     const despues=(t.costs||[]).filter(k=>+k.ts>F.ts);
     const ft=[], fr=[];
     (h.tasks||[]).forEach(x=>{ if(!x||x.ts==null||hoyT.has(String(x.ts))) return;
