@@ -867,7 +867,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 19:55<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 20:13<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1953,7 +1953,7 @@ const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
    Lo de Corea viaja aparte, en privado/corea, que es lo único privado que puede leer la cuenta de Corea; privado/costos
@@ -5474,8 +5474,15 @@ function refrescaBaseLib(){
   if(!tcListo) return;
   clearTimeout(baseLibT); baseLibT=setTimeout(async()=>{
     let n=0;
-    V.forEach(v=>{ if(sold(v.ch)||v.baja) return; const b=calcBaseLib(v); if(!b) return;
-      if(((S[v.ch]||{}).baseLib||null)===b) return; st(v.ch).baseLib=b; n++; });
+    /* 28/10/2026 (el chip del iPhone daba vueltas "Enviando / 3 sin enviar"): con dos aparatos abiertos y dólares de días
+       distintos, cada uno recalculaba la base con el suyo y corregía al otro sin parar. Ahora la base guarda el día del dólar
+       con que se calculó (baseLibDia, viaja a la nube) y un aparato con un dólar MÁS VIEJO no la toca. */
+    const dia=String(TC.obsDia||TC.fecha||'');
+    V.forEach(v=>{ if(sold(v.ch)||v.baja) return; const b=calcBaseLib(v); if(!b) return; const t=S[v.ch]||{}, td=String(t.baseLibDia||'');
+      if(td&&dia&&td>dia) return;                                   /* ya está calculada con un dólar más nuevo (de otro aparato) */
+      if((t.baseLib||null)===b&&(!dia||td>=dia)) return;
+      if(td&&!dia) return;                                          /* este aparato no sabe de qué día es su dólar: no pisa */
+      st(v.ch).baseLib=b; if(dia) st(v.ch).baseLibDia=dia; n++; });
     if(n) await save();
     pintaLbConf();
   },1200);
@@ -12659,7 +12666,7 @@ window.addEventListener('pagehide',()=>{ fbDetectaCambios(); guardaCacheV(true);
    (contra la última copia conocida de la nube) y "Quedarse con la nube", que descarta lo de este aparato y lo pone igual que la
    nube (no escribe nada en la nube; antes guarda una foto en "Deshacer cambios"). */
 const SY_ETIQ={ma:'marca',mo:'modelo',an:'año',ce:'color',st:'estado',pventa:'precio de venta',pmin:'precio mínimo',vev:'precio estimado',pub:'publicado en la web',fotoVisto:'fotos revisadas',
-  costs:'costos reales',tasks:'pendientes y estimados',baseLib:'base de liberación',pventaUSD:'precio en USD',pminUSD:'mínimo en USD',
+  costs:'costos reales',tasks:'pendientes y estimados',baseLib:'base de liberación',baseLibDia:'día del dólar de la base',pventaUSD:'precio en USD',pminUSD:'mínimo en USD',
   sold:'vendido',price:'precio de venta final',date:'fecha de venta',res:'reserva',of:'oferta',pprice:'precio de oferta',fotos:'fotos',
   f360:'vista 360°',km:'kilometraje',llp:'llegó a patio',baja:'archivado',creando:'en creación',krw:'compra en wones',cc:'taller en Corea',
   obligNo:'obligatorio quitado',smda:'cambios para SMDA',chk:'checklist de estimado',revFin:'revisión terminada',nota:'nota',precioFe:'aviso de precio',
