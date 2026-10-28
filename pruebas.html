@@ -255,6 +255,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .fodaSugR button{padding:6px 9px;font-size:12px}
 @media(max-width:380px){#ngSegs button{font-size:12px}}
 
+.segs.redes button{font-size:13px;padding:10px 3px}
 .segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .note{background:var(--amberBg);border-left:3px solid var(--amber);color:var(--amber);
  padding:11px 13px;border-radius:0 9px 9px 0;font-size:13px}
@@ -501,9 +502,18 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button data-ct="cons" aria-pressed="false">Resultados</button>
     </div>
     <div id="ctPub">
-    <p class="mtr" id="ctPubAyuda" style="margin:0 0 10px">Elige un vehículo y copia lo que necesites para cada red.</p>
-    <input class="search" id="qc" placeholder="Buscar vehículo…" autocomplete="off">
-    <div id="lPick"></div>
+    <p class="mtr" id="ctPubAyuda" style="margin:0 0 10px">Elige un vehículo y copia el texto de cada red.</p>
+    <div id="ctPick">
+      <input class="search" id="qc" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
+      <div class="chips fila" id="qcFil" role="tablist" aria-label="Dónde está el vehículo">
+        <button class="chip" data-qcf="patio" aria-selected="true">En patio</button>
+        <button class="chip" data-qcf="camino" aria-selected="false">En camino</button>
+        <button class="chip" data-qcf="corea" aria-selected="false">En Corea</button>
+        <button class="chip" data-qcf="todos" aria-selected="false">Todos</button>
+      </div>
+      <p class="cnt" id="cPick"></p>
+      <div id="lPick"></div>
+    </div>
     <div id="genWrap" hidden>
       <div class="box" style="background:var(--seaL);border-color:#CFE3E1">
         <h3 id="genT"></h3><p id="genC" style="font-family:var(--mono);font-size:12px;margin:0"></p>
@@ -511,11 +521,18 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <button class="btn b-sec" id="genVar">Otra versión</button>
           <button class="btn b-sec" id="genBack">Cambiar auto</button>
         </div>
-        <div class="acts" style="margin-top:9px">
-          <button class="btn b-pri" id="genImg" style="flex:1">▣ Imágenes para Marketplace</button>
-        </div>
       </div>
-      <div class="box" id="boxPub" style="margin-top:11px">
+      <div class="segs redes" id="redSegs" role="tablist" aria-label="Red social" style="margin-top:11px">
+        <button data-red="fb" aria-pressed="true">Facebook</button>
+        <button data-red="ig" aria-pressed="false">Instagram</button>
+        <button data-red="tk" aria-pressed="false">TikTok</button>
+        <button data-red="mp" aria-pressed="false">Marketplace</button>
+      </div>
+      <div id="genOut"></div>
+      <div id="mpExtra" hidden style="margin:-2px 0 11px">
+        <button class="btn b-sec" id="genImg" style="width:100%">▣ Imágenes para Marketplace</button>
+      </div>
+      <div class="box" id="boxPub">
         <h3>Publicar ahora</h3>
         <p class="mtr" style="margin:0 0 10px">Publica en Instagram y Facebook de una vez. Si no eliges un video, se usa la foto de portada del vehículo.</p>
         <div class="acts" style="margin-bottom:9px">
@@ -531,7 +548,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="pubGo" style="width:100%">Publicar</button>
         <div id="pubEstado" class="mtr" style="margin-top:10px"></div>
       </div>
-      <div id="genOut"></div>
+      <div id="genMas"></div>
     </div>
     </div>
     <div id="ctMarca" hidden>
@@ -850,7 +867,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->27-10-2026 18:32 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 16:02 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1322,6 +1339,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <h3>Fotos nuevas para la web</h3><div class="sb">Víctor o Bryan subieron fotos de vehículos que todavía no están publicados.</div>
   <div id="fpList"></div>
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="fpTodos">Publicar todos</button></div>
+</div>
+
+<div class="sheet" id="shSync">
+  <h3>Cambios sin enviar a la nube</h3><div class="sb">Lo que este aparato cambió y la nube todavía no tiene. Mientras esté acá, lo que llegue de otros aparatos para esos campos no se aplica.</div>
+  <div id="syList"></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="syReintenta">Reintentar envío</button></div>
 </div>
 
 <div class="sheet" id="shReserva">
@@ -1825,6 +1848,13 @@ const fbCostosOk=new Set();   /* vehículos cuyos costos ya se bajaron de la nub
    sus costos bajaron (fbCostosOk). Lo creado en este aparato (que no está en la nube) se sube como siempre. */
 const fbEnNube=new Set();
 const fbPuedeSubir=c=>!fbEnNube.has(c)||fbCostosOk.has(c);
+const fbConflicto={};   /* {chasis:{'pub.pventa': valor que trae la nube}}: campos que cambiaron aquí Y en otro aparato (28/10/2026) */
+const fbForzar=new Set();   /* vehículos que Andre decidió enviar igual ("Enviar lo de este aparato") */
+/* Retenido = no se sube solo: choca con un cambio de otro aparato, o está pendiente sin copia de referencia de la nube
+   (subiría la ficha completa y pisaría lo más nuevo). Se resuelve en la hoja "Cambios sin enviar". */
+const fbRetenido=c=>!fbForzar.has(c)&&((fbConflicto[c]&&Object.keys(fbConflicto[c]).length>0)||(!fbBase[c]&&fbEnNube.has(c)));
+let fbCuentaAjena='';               /* correo de otra app (p. ej. corea@) si el navegador quedó con su sesión (28/10/2026) */
+const fbCostosDenegados=new Set();   /* vehículos cuyos costos la nube no dejó leer: no suben hasta volver a entrar como Sistema */
 const esPorterBongo=v=>/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase().trim());
 function aseguraOblig(){
   let n=0;
@@ -1954,6 +1984,15 @@ async function fbInit(){
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     fbAuth.onAuthStateChanged(u=>{
+      /* 28/10/2026: Sistema y Corea comparten la sesión de Firebase en el mismo navegador (mismo sitio). Si se abrió Corea
+         acá, Sistema quedaba conectado como corea@: no podía leer privado/costos, no subía nada (fbPuedeSubir) y no avisaba.
+         Ahora con otra cuenta no se envía nada y el chip lo dice. Al volver a entrar como Sistema se recarga la app. */
+      if(u && String(u.email||'').toLowerCase()!==FB_USER){
+        fbReady=false; fbCuentaAjena=u.email||'otra cuenta';
+        fbPintaEstado('⚠ Este navegador quedó con la sesión de '+String(fbCuentaAjena).replace(/</g,'&lt;')+' (otra app de AMK abierta acá). No se envía nada a la nube hasta entrar con la cuenta de Sistema.','var(--red)');
+        fbPintaSync(); return;
+      }
+      if(u && fbCuentaAjena){ location.reload(); return; }
       if(u){
         fbReady=true;
         fbMuestraLogin(false);
@@ -2037,12 +2076,16 @@ function fbPintaSync(){
   const el=document.getElementById('syncChip'); if(!el) return;
   const n=Object.keys(fbPend).length;
   let t,c,tip;
-  if(fbEnviando&&n){ t='↻ Enviando…'; c='sy-env'; tip='Enviando '+n+' cambio'+(n===1?'':'s')+' a la nube'; }
+  if(fbCuentaAjena){ t='⚠ Sesión de otra app'; c='sy-pend'; tip='Este navegador quedó con la sesión de '+fbCuentaAjena+'. Toca para ver qué hacer'; }
+  else if(fbEnviando&&n){ t='↻ Enviando…'; c='sy-env'; tip='Enviando '+n+' cambio'+(n===1?'':'s')+' a la nube'; }
   else if(n){ t='⚠ '+n+' sin enviar'; c='sy-pend'; tip=(fbUltimoError?'Último error: '+fbUltimoError+'. ':'')+'Toca para reintentar ahora'; }
   else if(!fbReady){ t='○ Sin nube'; c='sy-off'; tip='Sin conexión con la nube'; }
   else { t='✓ Al día'; c='sy-ok'; tip='Todo lo de este aparato está en la nube'; }
   el.textContent=t; el.className='sync '+c; el.title=tip; el.setAttribute('aria-label','Nube: '+t.replace(/^\S+\s/,''));
+  const sh=document.getElementById('shSync');   /* hoja de pendientes abierta: se pone al día sola */
+  if(sh&&sh.classList.contains('on')&&typeof pintaSync==='function'){ clearTimeout(fbPintaSyncT); fbPintaSyncT=setTimeout(()=>{ if(!fbQuedandoNube) pintaSync(); },400); }
 }
+let fbPintaSyncT=null;
 
 let fbPushTimer=null;
 function fbSchedulePush(){
@@ -2072,7 +2115,7 @@ async function fbEnviaTanda(tanda){
     return batch;
   };
   /* Recién acá, con la nube ya confirmada, se da por enviado. */
-  const confirma=lista=>{ lista.forEach(v=>{ fbLastPush[v.ch]=hs[v.ch]; if(sn[v.ch]) fbBase[v.ch]=sn[v.ch]; delete fbPend[v.ch]; }); fbPendGuarda(); };
+  const confirma=lista=>{ lista.forEach(v=>{ fbLastPush[v.ch]=hs[v.ch]; if(sn[v.ch]) fbBase[v.ch]=sn[v.ch]; delete fbPend[v.ch]; delete fbConflicto[v.ch]; fbForzar.delete(v.ch); }); fbPendGuarda(); };
   try{
     await fbLimite(arma(tanda).commit(), 25000);
     confirma(tanda);
@@ -2096,7 +2139,7 @@ async function fbPushChanges(){
     for(let vuelta=0; vuelta<5; vuelta++){
       for(const c in fbPend) if(!IDX[c]) delete fbPend[c];   /* vehículos que ya no existen en este aparato */
       fbDetectaCambios();
-      const lista=V.filter(v=>fbPend[v.ch]&&fbPuedeSubir(v.ch));
+      const lista=V.filter(v=>fbPend[v.ch]&&fbPuedeSubir(v.ch)&&!fbRetenido(v.ch));
       if(!lista.length) break;
       for(let i=0;i<lista.length;i+=150) await fbEnviaTanda(lista.slice(i,i+150));   /* 150 vehículos = hasta 450 escrituras (ficha + costos + corea); Firestore admite 500 por tanda */
     }
@@ -2125,16 +2168,20 @@ function fbApplyRemote(ch, pub, priv, cor){
   if(fbPend[ch] && IDX[ch]){
     const b=fbBase[ch]; if(!b) return;
     const v0=IDX[ch], t0=st(ch), loc=fbSnapVeh(v0)||{pub:{},priv:{},cor:{}};
+    /* 28/10/2026: si la nube también cambió ese campo (otro aparato), es un choque: se anota y el vehículo no se sube solo
+       hasta que Andre elija (hoja "Cambios sin enviar"). Si los dos quedaron con el mismo valor, no es choque. */
+    const choque=(p,k,nv,lv,bv)=>{ if(fbIgual(nv,bv)||fbIgual(nv,lv)) return;   /* igual que antes, o el eco de lo que subió este aparato */
+      (fbConflicto[ch]||(fbConflicto[ch]={}))[p+'.'+k]=nv; };
     if(pub) for(const k in pub){ if(k==='_ts'||pub[k]===undefined) continue;
-      if(!fbIgual(loc.pub[k],b.pub[k])) continue;   /* lo cambió este aparato: gana lo de acá */
+      if(!fbIgual(loc.pub[k],b.pub[k])){ choque('pub',k,pub[k],loc.pub[k],b.pub[k]); continue; }   /* lo cambió este aparato: gana lo de acá */
       if(FB_PUB_FIELDS.includes(k)) v0[k]=pub[k]; else if(FB_S_FIELDS.includes(k)) t0[k]=pub[k]; else continue;
       b.pub[k]=pub[k]; }
     if(priv) for(const k in priv){ if(k==='_ts'||priv[k]===undefined||priv[k]===null) continue;
-      if(!fbIgual(loc.priv[k],b.priv[k])) continue;
+      if(!fbIgual(loc.priv[k],b.priv[k])){ choque('priv',k,priv[k],loc.priv[k],b.priv[k]); continue; }
       if(k==='costs') t0.costs=priv.costs; else if(FB_PRIV_FIELDS.includes(k)) v0[k]=priv[k]; else if(FB_PRIV_S_FIELDS.includes(k)) t0[k]=priv[k]; else continue;
       b.priv[k]=priv[k]; }
     if(cor){ const bc=b.cor||(b.cor={}); for(const k in cor){ if(!FB_COREA_FIELDS.includes(k)||cor[k]===undefined||cor[k]===null) continue;
-      if(!fbIgual(loc.cor[k],bc[k])) continue;
+      if(!fbIgual(loc.cor[k],bc[k])){ choque('cor',k,cor[k],loc.cor[k],bc[k]); continue; }
       v0[k]=cor[k]; bc[k]=cor[k]; } }
     guardaCacheV(); fbActualizaAviso(); return;
   }
@@ -2301,7 +2348,7 @@ async function fbBajaCostosDe(id,intento){
     fbCostosOk.add(id);   /* costos de este vehículo ya confirmados con la nube */
   }catch(e){
     /* sin permiso (otra cuenta) no se insiste; si es falta de señal, se reintenta hasta lograrlo */
-    if(e&&e.code==='permission-denied') return;
+    if(e&&e.code==='permission-denied'){ fbCostosDenegados.add(id); fbUltimoError='sin permiso para leer los costos (¿sesión de otra cuenta?)'; fbPintaSync(); return; }
     console.warn('fbBajaCostosDe',id,e&&(e.code||e.message));
     setTimeout(()=>{ if(!fbCostosOk.has(id)) fbBajaCostosDe(id,intento+1).then(fbDibujaPronto); }, Math.min(60,5*(intento+1))*1000);
   }
@@ -8945,7 +8992,8 @@ async function shareVehicle(ch,idxs){
 }
 
 /* ---------- CONTENIDO ---------- */
-let gv=null, gvar=0, qc='', ttTpl='ficha', ttV2='';
+let gv=null, gvar=0, qc='', qcF='patio', redSel='fb';
+try{ const r=localStorage.getItem('amk_redSel'); if(['fb','ig','tk','mp'].includes(r)) redSel=r; }catch(_){}   /* preferencia de pantalla: la última red elegida */
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
 
@@ -9015,16 +9063,9 @@ AMK Vehículos Selectos`;
   return [A,B,C][k%3];
 }
 
-function genMP(v,k){
-  const t=[`${v.ma} ${v.mo} ${v.an||''} ${v.tr||''}`.trim(),
-           `${v.ma} ${v.mo} ${v.an||''} importado Corea`,
-           `${v.ma} ${v.mo} ${v.an||''} ${CATN[v.cat]||''}`.trim()][k%3];
-  return `TÍTULO
-${t}
-
-DESCRIPCIÓN
-${genFB(v,k)}`;
-}
+/* 28/10/2026 (Andre): sin "TÍTULO / DESCRIPCIÓN". En Marketplace la marca, modelo y año se eligen en el formulario
+   de vehículo, así que lo único que se pega es la descripción. */
+function genMP(v,k){ return genFB(v,k); }
 
 function genIG(v,k){
   const f=feats(v).slice(0,4);
@@ -9051,52 +9092,32 @@ ${tags(v)}`;
   return [A,B][k%2];
 }
 
+/* Descripción para TikTok (28/10/2026): lo que se pega al subir el video, con hashtags, parecido a Instagram.
+   Es texto de un video, así que tampoco lleva km ni precio (regla de videos del 27/10/2026). */
+function genTK(v,k){
+  const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an||''}`.trim();
+  const sv=v.sv?'\n🟢 Apto sello verde: circula en Santiago, Valparaíso y Viña del Mar.':'';
+  const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.
+
+${f.map(x=>'▸ '+x).join('\n')}${sv}
+
+${CIERRE_VIDEO} 📍 Iquique, Zona Franca
+
+${tags(v)}`;
+  const B=`Llegó a Iquique: ${n} 🚗
+
+${f.join(' · ')}${sv}
+
+No compramos por foto: lo vemos en Corea y recién ahí lo traemos.
+${CIERRE_VIDEO} 📍 Iquique, Zona Franca
+
+${tags(v)}`;
+  return [A,B][k%2];
+}
+
 /* Regla de Andre (2026-10-27): los guiones de video nunca dicen los km ni el precio de venta. */
 const featsVideo=v=>feats(v).filter(x=>!/ km$/.test(x));
 const CIERRE_VIDEO='Escríbenos y te contamos todo.';
-function genTTFicha(v,k){
-  const f=featsVideo(v);
-  const hooks=v.trab
-    ? [`¿Necesitas ${CARN[v.ca]||'camioneta'} para trabajar?`,
-       `Esta ${v.mo} llegó lista para producir.`,
-       `Si trabajas con carga, mira esto.`]
-    : [`Este ${v.mo} llegó directo de Corea.`,
-       `${v.mo} ${v.an||''}. Mira cómo llega.`,
-       `¿Buscas ${CATN[v.cat]||'auto'} en Iquique?`];
-  const h=hooks[k%hooks.length];
-  const b=f.slice(0,4);
-  return `GUIÓN — 32 s aprox. · vertical 9:16
-
-[0-3 s] GANCHO
-Toma: frontal 3/4 acercándose al vehículo.
-Texto en pantalla: "${h}"
-Voz IA: "${h}"
-
-[3-8 s] PRESENTACIÓN
-Toma: paneo lateral completo, de adelante hacia atrás.
-Voz IA: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."
-
-[8-18 s] DETALLES (2 a 3 tomas de 3-4 s)
-${b.map((x,i)=>`  Toma ${i+1}: ${['interior desde la puerta abierta','tablero y volante','asientos traseros','exterior detalle rueda o parrilla'][i]||'detalle'}\n  Texto en pantalla: "${x}"`).join('\n')}
-Voz IA: "${b.join(', ')}."
-
-[18-26 s] DIFERENCIADOR
-Toma: puerta abriéndose o recorrido interior.
-Voz IA: "Lo revisamos en persona en Corea antes de comprarlo. Por eso sabemos exactamente lo que estamos vendiendo."
-${v.sv?'Texto en pantalla: "Apto sello verde · circula en Santiago"\n':''}
-[26-32 s] CIERRE
-Toma: frontal completo alejándose.
-Voz IA: "${CIERRE_VIDEO} Estamos en Iquique."
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-MÚSICA: canción en tendencia, volumen bajo bajo la voz.
-DESCRIPCIÓN DEL POST:
-${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷
-${tags(v)}`;
-}
-
-
-
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
 function tomasVideo(v,despues){
@@ -9117,168 +9138,6 @@ function tomasVideo(v,despues){
     +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
     +'\n\nDespués: '+despues;
 }
-const TT_TPL=[['ficha','Ficha técnica'],['gancho','Gancho con dato'],['detalle','Detalle destacado'],['comp','Comparativa'],['testimonio','Testimonio (guía)'],['pr','P y R']];
-function genTT(v,k,tpl,v2){
-  tpl=tpl||'ficha';
-  if(tpl==='comp'){ if(v2) return genTTComp(v,k,v2); tpl='ficha'; }
-  if(tpl==='gancho') return genTTGancho(v,k);
-  if(tpl==='detalle') return genTTDetalle(v,k);
-  if(tpl==='testimonio') return genTTTestimonio(v,k);
-  if(tpl==='pr') return genTTPR(v,k);
-  return genTTFicha(v,k);
-}
-function genTTGancho(v,k){
-  const f=featsVideo(v);
-  const ganchos=[
-    `Mira cómo llegó este ${v.mo} desde Corea.`,
-    `Antes de comprar tu próximo auto usado, mira esto.`,
-    `Esto es lo que nadie te muestra de un auto recién importado.`
-  ];
-  const h=ganchos[k%ganchos.length];
-  const b=f.slice(0,3);
-  return `GUIÓN — 30 s aprox. · vertical 9:16 · plantilla GANCHO CON DATO
-
-[0-3 s] GANCHO (sin mostrar el auto completo todavía)
-Toma: primer plano de un detalle (llanta, tablero o parrilla), cámara fija.
-Texto en pantalla, grande: "${h}"
-Voz IA: "${h}"
-
-[3-9 s] REVELACIÓN
-Toma: la cámara retrocede o hace paneo para mostrar el auto completo.
-Voz IA: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."
-
-[9-20 s] DETALLES RÁPIDOS
-${b.map((x,i)=>`  Toma ${i+1}: detalle de ${x.toLowerCase()}.\n  Texto en pantalla: "${x}"`).join('\n')}
-
-[20-26 s] CIERRE
-Toma: frontal completo, luz buena.
-Voz IA: "${CIERRE_VIDEO} Estamos en Iquique."
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-MÚSICA: canción en tendencia, empieza fuerte en el gancho y baja de volumen cuando entra la voz.
-DESCRIPCIÓN DEL POST:
-${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷
-${tags(v)}`;
-}
-function genTTDetalle(v,k){
-  const f=featsVideo(v);
-  const destacado=f.find(x=>x.includes('panorámico'))||f.find(x=>x.includes('Tracción'))||f[0]||'su estado general';
-  const resto=f.filter(x=>x!==destacado).slice(0,3);
-  const angles=[
-    `Nadie te muestra esto en un auto usado.`,
-    `Esto casi no se ve en un ${v.mo} de este año.`,
-    `Fíjate en este detalle antes de seguir viendo.`
-  ];
-  const h=angles[k%angles.length];
-  return `GUIÓN — 28 s aprox. · vertical 9:16 · plantilla DETALLE DESTACADO
-
-[0-4 s] GANCHO SOBRE EL DETALLE
-Toma: primer plano cerrado de "${destacado}", luego zoom out.
-Texto en pantalla: "${h}"
-Voz IA: "${h}"
-
-[4-12 s] EXPLICAR EL DETALLE
-Toma: mostrar "${destacado}" en uso o en detalle (2 ángulos).
-Voz IA: "Este ${v.ma} ${v.mo} tiene ${destacado.toLowerCase()}. Así llega, sin sorpresas."
-
-[12-22 s] RESTO DE LA FICHA
-${resto.map((x,i)=>`  Toma ${i+1}: detalle de ${x.toLowerCase()}.\n  Texto en pantalla: "${x}"`).join('\n')}
-
-[22-28 s] CIERRE
-Voz IA: "${CIERRE_VIDEO} Lo tenemos acá en Iquique."
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-MÚSICA: canción en tendencia, tono de descubrimiento.
-DESCRIPCIÓN DEL POST:
-${v.ma} ${v.mo} ${v.an||''} — ${destacado} 🇰🇷
-${tags(v)}`;
-}
-function genTTComp(v,k,v2){
-  const fa=featsVideo(v).slice(0,3), fb=featsVideo(v2).slice(0,3);
-  return `GUIÓN — 34 s aprox. · vertical 9:16 · plantilla COMPARATIVA
-
-[0-4 s] GANCHO
-Toma: los dos autos uno al lado del otro, o corte rápido entre ambos.
-Texto en pantalla: "¿Cuál te llevarías, este ${v.mo} o este ${v2.mo}?"
-Voz IA: "Hoy comparamos dos opciones que tenemos en Iquique."
-
-[4-14 s] AUTO A
-Toma: paneo del ${v.ma} ${v.mo}.
-Texto en pantalla: "${v.ma} ${v.mo} ${v.an||''}"
-${fa.map(x=>`  • ${x}`).join('\n')}
-Voz IA: "El ${v.mo}: ${fa.join(', ')}."
-
-[14-24 s] AUTO B
-Toma: paneo del ${v2.ma} ${v2.mo}.
-Texto en pantalla: "${v2.ma} ${v2.mo} ${v2.an||''}"
-${fb.map(x=>`  • ${x}`).join('\n')}
-Voz IA: "El ${v2.mo}: ${fb.join(', ')}."
-
-[24-30 s] PREGUNTA A LA AUDIENCIA
-Texto en pantalla grande: "¿CUÁL ELEGIRÍAS? 👇"
-Voz IA: "Cuéntanos en los comentarios cuál te gusta más."
-
-[30-34 s] CIERRE
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-MÚSICA: canción en tendencia, ritmo dinámico para los cortes entre autos.
-DESCRIPCIÓN DEL POST:
-${v.ma} ${v.mo} vs ${v2.ma} ${v2.mo} — ¿cuál eligirías? 🇰🇷
-${tags(v)}`;
-}
-
-function genTTTestimonio(v,k){
-  return `GUÍA PARA GRABAR — 25 s aprox. · vertical 9:16 · plantilla TESTIMONIO
-
-Esto NO se genera solo: es una guía de preguntas para grabar a un cliente real que se llevó un auto. Pide su permiso antes de grabar y nunca actúes ni inventes una opinión que el cliente no haya dicho — usa sus palabras, no las tuyas.
-
-[0-5 s] PRESENTACIÓN
-Toma: el cliente al lado de su auto recién entregado.
-Pregúntale en cámara: "¿Cómo te llamas y qué auto te llevaste?"
-
-[5-15 s] LA EXPERIENCIA
-Pregúntale: "¿Por qué elegiste comprar en AMK? ¿Cómo fue el proceso?"
-Deja que responda con sus propias palabras — no le sugieras qué decir.
-
-[15-22 s] RECOMENDACIÓN
-Pregúntale: "¿Lo recomendarías? ¿Qué le dirías a alguien que está por comprar?"
-
-[22-25 s] CIERRE
-Toma: el cliente subiéndose al auto o recibiendo las llaves.
-Texto en pantalla: "Gracias por confiar en AMK 🙌"
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-DESCRIPCIÓN DEL POST (edítala con lo que el cliente realmente dijo):
-Otro cliente feliz con su ${v.ma} ${v.mo} 🇰🇷
-${tags(v)}`;
-}
-const PR_PREGUNTAS=[
-  {q:'¿Los autos vienen revisados antes de comprarlos?', r:'Los revisamos en persona en Corea antes de comprarlo. Nunca compramos por foto ni por catálogo. Ya acá en Iquique los preparamos: mecánica, pintura y detallado.'},
-  {q:'¿Qué es el sello verde y cuáles autos lo tienen?', r:'Es la calcomanía que permite circular en Santiago, Valparaíso y Viña del Mar en episodios de restricción vehicular. No aplica a vehículos de trabajo, porque pesan más de 2.700 kg.'},
-  {q:'¿Por qué autos importados desde Corea?', r:'Porque en Corea encontramos vehículos con menos uso y bien mantenidos. Vamos, los revisamos en persona y recién ahí los compramos — no compramos por catálogo.'}
-];
-function genTTPR(v,k){
-  const pr=PR_PREGUNTAS[k%PR_PREGUNTAS.length];
-  return `GUIÓN — 24 s aprox. · vertical 9:16 · plantilla PREGUNTAS Y RESPUESTAS
-
-[0-3 s] GANCHO
-Texto en pantalla: "${pr.q}"
-Voz IA: "${pr.q}"
-
-[3-18 s] RESPUESTA
-Toma: alguien de AMK hablando a cámara, con el local o un auto de fondo.
-Voz IA: "${pr.r}"
-
-[18-24 s] CIERRE CON EL AUTO
-Toma: paneo del ${v.ma} ${v.mo} ${v.an||''}.
-Voz IA: "Si quieres verlo en persona, tenemos el ${v.mo} disponible ahora. Escríbenos."
-Cierre: logo AMK Vehículos Selectos + número de contacto.
-
-DESCRIPCIÓN DEL POST:
-${pr.q}
-${tags(v)}`;
-}
-
 function genWA(v){
   const f=feats(v);
   return `¡Hola! Gracias por escribir 👋
@@ -9393,16 +9252,30 @@ function drawBrandIdeas(){
      <pre>${b.guion.replace(/</g,'&lt;')}</pre></div>`).join('');
 }
 
+/* 28/10/2026 (Andre): el buscador de Contenido funciona como el de Stock (varias palabras, también año) y por
+   defecto muestra solo lo que está en patio. Nunca vendidos, archivados ni en creación. */
+function pasaPick(v){
+  if(v.baja||v.creando||sold(v.ch)) return false;
+  if(qcF==='patio') return v.st==='IQQ';
+  if(qcF==='corea') return v.st==='ORIGEN'&&!!v.enCorea;
+  if(qcF==='camino') return v.st==='ORIGEN'&&!v.enCorea;
+  return true;
+}
 function drawPick(){
   if($('#brandIdeas')&&!$('#brandIdeas').childElementCount) drawBrandIdeas();
-  const s=qc.trim().toLowerCase();
-  const TODOS=V.filter(v=>!sold(v.ch)&&(!s||(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(s)));
-  const L=TODOS.slice(0,40);
-  $('#lPick').innerHTML=L.length?L.map(v=>`<div class="pk" data-pick="${v.ch}">
-     <div><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
-     <div class="ch">${v.ch} · ${v.ce}</div></div><div style="color:var(--ink2);font-weight:700">→</div></div>`).join('')
-   :'<div class="empty">Sin resultados.</div>';
-  if(TODOS.length>L.length) $('#lPick').insertAdjacentHTML('beforeend',`<div class="cnt">Se muestran ${L.length} de ${TODOS.length}. Escribe arriba para buscar el resto.</div>`);
+  const toks=qc.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const L=V.filter(v=>pasaPick(v)&&(!toks.length||toks.every(tk=>(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(tk))));
+  const fe=v=>String(v.llp||v.fe||'');
+  L.sort((a,b)=>fe(b).localeCompare(fe(a)));   /* lo último que llegó, primero */
+  const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const dm=f=>{ const m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[3]+'/'+m[2]:''; };
+  const est=v=>resAct(v.ch)?'<span style="color:#B084E8">Reservado</span>':v.st!=='ORIGEN'?'':v.enCorea?'En Corea':(v.eta?(v.eta<=iso()?'En puerto':'Llega ~'+dm(v.eta)):'En camino');
+  $('#cPick').textContent=L.length+(L.length===1?' vehículo':' vehículos');
+  $('#lPick').innerHTML=L.length?L.map(v=>{ const e=est(v); return `<div class="pk" data-pick="${esc(v.ch)}">
+     <div style="min-width:0"><div class="tt">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span></div>
+     <div class="ch" style="white-space:normal">${esc(v.ch)} · ${esc(carsC(v))}</div></div>
+     <div style="color:var(--ink2);font-weight:700;text-align:right;flex:0 0 auto">${e?`<div style="font-size:12px;font-weight:600;color:var(--mute)">${e}</div>`:''}→</div></div>`; }).join('')
+   :'<div class="empty">'+(toks.length?'Sin resultados.':'No hay vehículos acá.')+'</div>';
 }
 const PUB_MAX=45*1048576, IG_ESPERA=15000;
 let pubFile=null, pubRed={ig:true,fb:true};
@@ -9412,43 +9285,50 @@ function pintaPubArch(){
     ? ('Video elegido: '+pubFile.name+' ('+(pubFile.size/1048576).toFixed(1)+' MB)')
     : 'Sin video: se publicará la foto de portada.';
 }
+const RED={
+  fb:['Publicación de Facebook',v=>genFB(v,gvar),'https://www.facebook.com/'],
+  ig:['Instagram',v=>genIG(v,gvar),'https://www.instagram.com/'],
+  tk:['TikTok',v=>genTK(v,gvar),'https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video'],
+  mp:['Facebook Marketplace',v=>genMP(v,gvar),'https://www.facebook.com/marketplace/create/vehicle']
+};
+const RED_NOTA={mp:'Marca, modelo y año se eligen en el formulario de Marketplace. Esto va en "Descripción".',
+  tk:'"Abrir" copia el texto y lleva a subir el video. Pégalo en la descripción.'};
+function pintaRed(anim){
+  if(!gv) return;
+  $$('#redSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.red===redSel?'true':'false'));
+  const r=RED[redSel], blk=[r[0],r[1](gv),r[2]];
+  window.__BLK[0]=blk;
+  const poner=()=>{
+    $('#genOut').innerHTML=`<div class="gen">
+     <div class="gh"><h4>${blk[0]}</h4><span style="display:flex;gap:6px;flex:0 0 auto"><button class="btn b-sec" data-open="0">Abrir</button><button class="cpy" data-cp="0">Copiar</button></span></div>
+     ${RED_NOTA[redSel]?`<div class="mtr" style="margin:0 0 8px">${RED_NOTA[redSel]}</div>`:''}
+     <pre>${blk[1].replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre></div>`;
+    $('#mpExtra').hidden=redSel!=='mp';
+  };
+  if(anim){ alturaFluida($('#genOut'),poner); entraSuave($('#genOut')); } else poner();
+}
 function drawGen(){
-  if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;$('#ctPubAyuda').hidden=false;return}
-  $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;$('#ctPubAyuda').hidden=true;
+  if(!gv){$('#genWrap').hidden=true;$('#ctPick').hidden=false;$('#ctPubAyuda').hidden=false;return}
+  $('#genWrap').hidden=false;$('#ctPick').hidden=true;$('#ctPubAyuda').hidden=true;
   $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
   $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
-  const v2=ttTpl==='comp'?IDX[ttV2]:null;
-  const ttText=genTT(gv,gvar,ttTpl,v2);
-  const blocks=[
-    ['Facebook Marketplace',genMP(gv,gvar),null],
-    ['Publicación de Facebook',genFB(gv,gvar),'https://www.facebook.com/'],
-    ['Instagram',genIG(gv,gvar),'https://www.instagram.com/'],
+  window.__BLK=[null,
     ['Tomas para grabar el video',tomasVideo(gv,'pásalas por AirDrop al Mac y en AMK VIDEO elige "Traer las tomas".'),null],
-    ['Guión TikTok / Reels',ttText,'https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video'],
-    ['Respuesta de WhatsApp',genWA(gv),null],
-    ['Hashtags',tags(gv),null]
-  ];
-  const otrosVeh=V.filter(x=>!sold(x.ch)&&x.ch!==gv.ch);
-  const ttChips=TT_TPL.map(([tk,label])=>`<button class="cg" type="button" data-ttpl="${tk}" aria-pressed="${ttTpl===tk?'true':'false'}">${label}</button>`).join('');
-  const ttV2Sel=ttTpl==='comp'?`<select id="ttV2Sel" style="margin:2px 0 8px;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;background:var(--paper);color:var(--ink)"><option value="">— Elige el auto a comparar —</option>${otrosVeh.map(x=>`<option value="${x.ch}" ${ttV2===x.ch?'selected':''}>${x.ma} ${x.mo} ${x.an||''}</option>`).join('')}</select>${!v2?'<div class="mtr" style="margin:0 0 8px;color:var(--red)">Elige el segundo auto para generar la comparativa.</div>':''}`:'';
-  $('#genOut').innerHTML=blocks.map((b,i)=>{
-    const isTT=b[0]==='Guión TikTok / Reels';
-    const openBtn=b[2]?`<button class="btn b-sec" data-open="${i}" style="margin-left:6px">Abrir</button>`:'';
-    const extra=isTT?`<div class="catg" style="grid-template-columns:repeat(3,1fr);margin:8px 0 6px">${ttChips}</div>${ttV2Sel}`:'';
-    const showPlaceholder=isTT&&ttTpl==='comp'&&!v2;
-    const preTxt=showPlaceholder?'Elige el segundo auto arriba para ver el guion de la comparativa.':b[1].replace(/</g,'&lt;');
-    return `<div class="gen">
-     <div class="gh"><h4>${b[0]}</h4><span>${openBtn}<button class="cpy" data-cp="${i}">Copiar</button></span></div>
-     ${extra}
-     <pre>${preTxt}</pre></div>`;
-  }).join('');
-  window.__BLK=blocks;
+    ['Respuesta de WhatsApp',genWA(gv),null]];
+  pintaRed(false);
+  /* Lo que no es una publicación va plegado al final, para no tener que bajar buscando la red. */
+  $('#genMas').innerHTML=[1,2].map(i=>{ const b=window.__BLK[i]; return `<details class="gen">
+     <summary style="cursor:pointer;list-style:none"><div class="gh" style="margin:0"><h4>${b[0]}</h4><button class="cpy" data-cp="${i}">Copiar</button></div></summary>
+     <pre style="margin-top:9px">${b[1].replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre></details>`; }).join('');
 }
 $('#qc').addEventListener('input',e=>{qc=e.target.value;drawPick()});
 $('#genVar').addEventListener('click',()=>{gvar++;drawGen()});
-$('#genBack').addEventListener('click',()=>{gv=null;gvar=0;ttTpl='ficha';ttV2='';drawGen();drawPick()});
+$('#genBack').addEventListener('click',()=>{gv=null;gvar=0;drawGen();drawPick()});
+$('#redSegs').addEventListener('click',e=>{ const b=e.target.closest('[data-red]'); if(!b||b.dataset.red===redSel) return;
+  redSel=b.dataset.red; try{ localStorage.setItem('amk_redSel',redSel); }catch(_){} pintaRed(true); });
+$('#qcFil').addEventListener('click',e=>{ const c=e.target.closest('[data-qcf]'); if(!c) return;
+  $$('#qcFil .chip').forEach(x=>x.setAttribute('aria-selected',x===c?'true':'false')); qcF=c.dataset.qcf; drawPick(); entraSuave($('#lPick')); });
 document.addEventListener('change',e=>{
-  if(e.target.id==='ttV2Sel'){ttV2=e.target.value;drawGen()}
   if(e.target.id==='pubVid'){ pubFile=(e.target.files&&e.target.files[0])||null; pintaPubArch(); }
 });
 $('#pubPick').addEventListener('click',()=>$('#pubVid').click());
@@ -9476,9 +9356,7 @@ $('#pubGo').addEventListener('click',async()=>{
 });
 document.addEventListener('click',async e=>{
   const p=e.target.closest('[data-pick]');
-  if(p){gv=IDX[p.dataset.pick];gvar=0;ttTpl='ficha';ttV2='';drawGen();return}
-  const tp=e.target.closest('[data-ttpl]');
-  if(tp){ttTpl=tp.dataset.ttpl;drawGen();return}
+  if(p){gv=IDX[p.dataset.pick];gvar=0;drawGen();return}
   const pr=e.target.closest('[data-pubred]');
   if(pr){
     const k=pr.dataset.pubred; pubRed[k]=!pubRed[k];
@@ -9493,7 +9371,7 @@ document.addEventListener('click',async e=>{
     return;
   }
   const c=e.target.closest('[data-cp]');
-  if(c&&window.__BLK){cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
+  if(c&&window.__BLK){e.preventDefault();cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
   const bc=e.target.closest('[data-bcp]');
   if(bc){cp(BRAND_IDEAS[+bc.dataset.bcp].guion,'Copiado ✓')}
 });
@@ -12500,12 +12378,118 @@ document.addEventListener('visibilitychange',()=>{
   else if(Object.keys(fbPend).length){ fbFallos=0; fbPushChanges(); }
 });
 window.addEventListener('pagehide',()=>{ fbDetectaCambios(); guardaCacheV(true); });
-document.getElementById('syncChip').addEventListener('click',async()=>{
+/* 28/10/2026 (Andre: el Mac decía "22 sin enviar" y el iPhone no). Antes el chip solo reintentaba y no había forma de ver QUÉ
+   estaba sin enviar ni por qué. Ahora abre una hoja con cada vehículo pendiente: por qué no sale, qué campos cambió este aparato
+   (contra la última copia conocida de la nube) y "Quedarse con la nube", que descarta lo de este aparato y lo pone igual que la
+   nube (no escribe nada en la nube; antes guarda una foto en "Deshacer cambios"). */
+const SY_ETIQ={ma:'marca',mo:'modelo',an:'año',ce:'color',st:'estado',pventa:'precio de venta',pmin:'precio mínimo',vev:'precio estimado',pub:'publicado en la web',fotoVisto:'fotos revisadas',
+  costs:'costos reales',tasks:'pendientes y estimados',baseLib:'base de liberación',pventaUSD:'precio en USD',pminUSD:'mínimo en USD',
+  sold:'vendido',price:'precio de venta final',date:'fecha de venta',res:'reserva',of:'oferta',pprice:'precio de oferta',fotos:'fotos',
+  f360:'vista 360°',km:'kilometraje',llp:'llegó a patio',baja:'archivado',creando:'en creación',krw:'compra en wones',cc:'taller en Corea',
+  obligNo:'obligatorio quitado',smda:'cambios para SMDA',chk:'checklist de estimado',revFin:'revisión terminada',nota:'nota',precioFe:'aviso de precio',
+  pventaAnt:'precio anterior',pminAnt:'mínimo anterior',cov:'portada',nf:'n° de fotos',zof:'datos Zofri',ct:'costo total',xc:'gastos en Chile'};
+const syVal=x=>x===undefined?'—':x===null?'vacío':Array.isArray(x)?(x.length+(x.length===1?' ítem':' ítems')):typeof x==='object'?'datos':typeof x==='boolean'?(x?'sí':'no'):String(x).replace(/</g,'&lt;').slice(0,24);
+function syInfo(ch){
+  const v=IDX[ch], b=fbBase[ch], s=fbSnapVeh(v)||{pub:{},priv:{},cor:{}}, campos=[];
+  if(b) ['pub','priv','cor'].forEach(p=>{ const a=s[p]||{}, bb=b[p]||{};
+    new Set([...Object.keys(a),...Object.keys(bb)]).forEach(k=>{ if(k==='_ts'||fbIgual(a[k],bb[k])) return;
+      const cf=fbConflicto[ch]&&(p+'.'+k) in fbConflicto[ch];
+      campos.push({k,aqui:a[k],nube:cf?fbConflicto[ch][p+'.'+k]:bb[k],cf}); }); });
+  campos.sort((x,y)=>(y.cf?1:0)-(x.cf?1:0));
+  const nCf=campos.filter(c=>c.cf).length;
+  let est,col='var(--mute)';
+  if(fbCostosDenegados.has(ch)||(fbCuentaAjena&&!fbPuedeSubir(ch))){ est='La nube no dejó leer sus costos: este navegador tiene la sesión de otra cuenta.'; col='var(--red)'; }
+  else if(!fbPuedeSubir(ch)){ est='Esperando que bajen sus costos de la nube; después sale solo.'; }
+  else if(!b&&fbRetenido(ch)){ est='No se envía solo: no hay copia de referencia de la nube y enviarlo subiría la ficha completa de este aparato, pisando lo más nuevo de tus otros aparatos. Elige qué hacer.'; col='var(--red)'; }
+  else if(!b){ est='Se sube la ficha completa de este aparato.'; }
+  else if(nCf&&fbRetenido(ch)){ est='No se envía solo: '+(nCf===1?'un campo cambió':nCf+' campos cambiaron')+' acá y también en otro aparato (⚠). Elige con cuál te quedas.'; col='var(--red)'; }
+  else est=campos.length?'Listo para enviar: sube solo lo de abajo.':'Ya coincide con la nube: sale de la lista en el próximo envío.';
+  return {v,b,campos,est,col,ret:fbRetenido(ch),soloAqui:fbReady&&fbBaseOk&&!fbEnNube.has(ch)&&fbCostosOk.size>0};
+}
+function pintaSync(){
+  const el=$('#syList'); if(!el) return;
+  for(const c in fbPend) if(!IDX[c]) delete fbPend[c];
+  const L=Object.keys(fbPend), h=[];
+  if(fbCuentaAjena) h.push(`<div class="xbox" style="border:1px solid var(--red);border-radius:12px;padding:11px;margin:4px 0 10px">
+    <div style="font-weight:700;color:var(--red)">Este navegador quedó con la sesión de ${String(fbCuentaAjena).replace(/</g,'&lt;')}</div>
+    <div style="font-size:12.5px;color:var(--ink2);margin-top:4px">Pasa cuando se abre la app de Corea (o su copia de pruebas) en este mismo navegador: comparten la sesión. Con esa cuenta Sistema no puede leer los costos ni enviar nada, por eso los cambios se quedan acá. Entra de nuevo con la cuenta de Sistema y la app se recarga sola.</div>
+    <div class="acts" style="margin-top:9px"><button class="btn b-pri" id="syLogin" style="flex:1">Entrar como Sistema</button></div></div>`);
+  else if(!fbReady) h.push('<p class="mtr" style="margin:4px 0 8px">Sin conexión con la nube por ahora: lo de abajo sale solo al volver.</p>');
+  if(fbUltimoError) h.push('<p class="mtr" style="margin:4px 0 8px;color:var(--red)">Último error: '+String(fbUltimoError).replace(/</g,'&lt;')+'</p>');
+  if(!L.length) h.push('<p class="mtr" style="margin:6px 0;color:var(--green)">✓ No queda nada sin enviar.</p>');
+  else{
+    h.push('<p class="mtr" style="margin:4px 0 4px">'+L.length+' vehículo'+(L.length===1?'':'s')+' con cambios de este aparato. <b>Quedarse con la nube</b> los deja igual que en la nube (lo último de tus otros aparatos) y descarta lo de acá.</p>');
+    L.map(syInfo).sort((a,b)=>String((a.v.ma||'')+(a.v.mo||'')).localeCompare(String((b.v.ma||'')+(b.v.mo||'')))).forEach(x=>{
+      const v=x.v, mas=x.campos.length-6;
+      h.push(`<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="font-weight:700">${String(v.ma||'')} ${String(v.mo||'')} <span style="color:var(--mute);font-family:var(--mono);font-weight:400">${v.ch}</span></div>
+        <div style="font-size:12.5px;color:${x.col};margin-top:2px">${x.soloAqui?'Solo existe en este aparato (no está en la nube): se sube como vehículo nuevo.':x.est}</div>
+        ${x.campos.slice(0,6).map(c=>`<div class="xrow"><div>${c.cf?'<b style="color:var(--red)">⚠</b> ':''}${SY_ETIQ[c.k]||c.k}</div><span>aquí ${syVal(c.aqui)} · nube ${syVal(c.nube)}</span></div>`).join('')}
+        ${mas>0?`<div class="mtr" style="margin:2px 0">y ${mas} campo${mas===1?'':'s'} más</div>`:''}
+        ${fbReady&&!x.soloAqui?`<div class="acts" style="margin-top:7px"><button class="btn ${x.ret?'b-pri':'b-sec'}" data-synube="${v.ch}">Quedarse con la nube</button>${x.ret?`<button class="btn b-sec" data-syenvia="${v.ch}">Enviar lo de este aparato</button>`:''}</div>`:''}</div>`); });
+    if(fbReady&&L.length>1) h.push(`<div class="acts" style="margin-top:10px"><button class="btn b-sec" id="syNubeTodos" style="flex:1">Quedarse con la nube en los ${L.length}</button></div>`);
+  }
+  el.innerHTML=h.join('');
+  $('#syReintenta').hidden=!fbReady||!L.length;
+}
+function abrirSync(){ pintaSync(); openSheet('shSync'); }
+async function fbQuedateNube(chs){
+  if(!fbReady||fbQuedandoNube) return null;
+  fbQuedandoNube=true;
+  try{
+    await histTomar('antes de quedarse con la nube',true);
+    let n=0, falla=0;
+    for(const ch of chs){
+      const v=IDX[ch]; if(!v){ delete fbPend[ch]; continue; }
+      try{
+        const ref=fbDb.collection(FB_COL).doc(ch), pr=ref.collection('privado');
+        const [ps,pp,pc]=await fbLimite(Promise.all([ref.get({source:'server'}),pr.doc('costos').get({source:'server'}),pr.doc('corea').get({source:'server'}).catch(()=>null)]),25000);
+        if(!ps.exists){ falla++; continue; }
+        const pub=ps.data()||{}, priv=pp.exists?(pp.data()||{}):{}, cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
+        FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined&&priv[k]!==undefined&&priv[k]!==null) cor[k]=priv[k]; });
+        /* lo que este aparato tiene y la nube no: se quita, para que quede igual que la nube */
+        const loc=fbSnapVeh(v)||{pub:{},priv:{},cor:{}}, t=st(ch);
+        for(const k in loc.pub) if(pub[k]===undefined&&k!=='ch'){ if(FB_PUB_FIELDS.includes(k)) delete v[k]; else if(FB_S_FIELDS.includes(k)) delete t[k]; }
+        for(const k in loc.priv) if(priv[k]===undefined){ if(k==='costs') t.costs=[]; else if(FB_PRIV_FIELDS.includes(k)) delete v[k]; else if(FB_PRIV_S_FIELDS.includes(k)) delete t[k]; }
+        for(const k in loc.cor) if(cor[k]===undefined) delete v[k];
+        delete fbPend[ch]; delete fbBase[ch]; delete fbConflicto[ch]; fbForzar.delete(ch); fbCostosDenegados.delete(ch);
+        fbApplyRemote(ch,pub,priv,cor);
+        fbEnNube.add(ch); fbCostosOk.add(ch); n++;
+      }catch(e){ console.error('fbQuedateNube',ch,e); falla++; if(e&&e.timeout) break; }
+    }
+    fbPendGuarda(); await save(); guardaCacheV(true); draw(); try{ pintaPendientes(); }catch(_){}
+    return {n,falla};
+  }finally{ fbQuedandoNube=false; }
+}
+let fbQuedandoNube=false;
+document.getElementById('syncChip').addEventListener('click',()=>{
   const n=Object.keys(fbPend).length;
-  if(!fbReady){ toast(n?'Sin conexión con la nube. Hay '+n+' cambio'+(n===1?'':'s')+' sin enviar; salen solos al volver.':'Sin conexión con la nube por ahora.'); return; }
-  if(!n){ toast('Todo enviado a la nube ✓'); return; }
+  if(!n&&!fbCuentaAjena){ toast(fbReady?'Todo enviado a la nube ✓':'Sin conexión con la nube por ahora.'); return; }
+  abrirSync();
+});
+document.addEventListener('click',async e=>{
+  if(e.target.closest('#syLogin')){ closeAll(); fbMuestraLogin(true); return; }
+  const en=e.target.closest('[data-syenvia]');
+  if(en){ const ch=en.dataset.syenvia, v=IDX[ch];
+    if(!confirm('¿Enviar a la nube lo que tiene este aparato para '+(v?v.ma+' '+v.mo:ch)+'?\n\nReemplaza en la nube los campos marcados (lo que cargaste en tus otros aparatos para esos campos se pierde).')) return;
+    en.disabled=true; fbForzar.add(ch); fbFallos=0; await fbPushChanges();
+    alturaFluida($('#syList'),pintaSync); toast(fbPend[ch]?'No se pudo enviar todavía'+(fbUltimoError?' ('+fbUltimoError+')':''):'✓ Enviado'); return; }
+  const b=e.target.closest('[data-synube]'), todos=e.target.closest('#syNubeTodos');
+  if(!b&&!todos) return;
+  const L=todos?Object.keys(fbPend):[b.dataset.synube], v=IDX[L[0]];
+  const nom=todos?'los '+L.length+' vehículos':(v?v.ma+' '+v.mo:L[0]);
+  if(!confirm('¿Dejar '+nom+' igual que en la nube?\n\nSe descartan los cambios de este aparato que no se habían enviado y queda lo último que cargaste en tus otros aparatos. En la nube no se escribe nada. Antes se guarda una copia en "Deshacer cambios".')) return;
+  const bt=todos||b; bt.disabled=true;
+  const r=await fbQuedateNube(L);
+  if(!r){ bt.disabled=false; return; }
+  alturaFluida($('#syList'),pintaSync);
+  toast(r.falla?('Listo '+r.n+' · '+r.falla+' no se pudo (¿sin internet?)'):('✓ '+r.n+' vehículo'+(r.n===1?'':'s')+' igual que en la nube'));
+});
+$('#syReintenta').addEventListener('click',async e=>{
+  const bt=e.currentTarget; if(bt.disabled) return; bt.disabled=true;
   toast('Reintentando el envío…'); fbFallos=0; await fbPushChanges();
-  const m=Object.keys(fbPend).length;
+  const m=Object.keys(fbPend).length; bt.disabled=false;
+  alturaFluida($('#syList'),pintaSync);
   toast(m?'Sigue sin enviarse'+(fbUltimoError?' ('+fbUltimoError+')':'')+'. Se reintenta solo.':'Todo enviado ✓');
 });
 fbInit();

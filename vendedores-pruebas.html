@@ -224,6 +224,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .segs{display:flex;flex-wrap:wrap;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;margin-bottom:13px}
 .segs button{flex:1 1 auto;min-width:0;border:none;background:none;border-radius:8px;padding:10px 6px;font-weight:700;font-size:14px;color:var(--mute);cursor:pointer;transition:background .15s ease,color .15s ease}
 #ajSegs{flex-wrap:nowrap;gap:2px}#ajSegs button{padding:10px 2px;font-size:13.5px;white-space:nowrap}
+.segs.redes button{font-size:13px;padding:10px 3px}
 .segs button[aria-pressed="true"]{background:var(--btn2);color:#EAF0F1;box-shadow:0 1px 3px rgba(4,18,25,.5)}
 .box p{margin:0 0 11px;font-size:13.5px;color:var(--ink2)}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--seaD);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35);
@@ -318,12 +319,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   </section>
 
   <section class="panel" id="pConten">
-    <h2>Textos y guiones</h2><p class="sub">Elige un vehículo y copia lo que necesites.</p>
+    <h2>Textos</h2><p class="sub">Elige un vehículo y copia el texto de cada red.</p>
     <div class="box" id="rrGen" style="margin-bottom:12px"><h3>Respuestas rápidas</h3>
       <p class="mtr" style="margin:0 0 9px">Para las preguntas de siempre. Si eliges un auto abajo, salen también con sus datos.</p>
       <div class="acts"><button class="btn b-sec" data-rr="dir">📍 Dónde estamos</button><button class="btn b-sec" data-rr="res">💳 Cómo reservar</button><button class="btn b-sec" data-rr="sv">🟢 Sello verde</button></div></div>
-    <input class="search" id="qc" placeholder="Buscar vehículo…" autocomplete="off">
-    <div id="lPick"></div>
+    <div id="ctPick">
+      <input class="search" id="qc" placeholder="Buscar marca, modelo, año o chasis…" autocomplete="off">
+      <div class="chips fila" id="qcFil" role="tablist" aria-label="Dónde está el vehículo">
+        <button class="chip" data-qcf="patio" aria-selected="true">En patio</button>
+        <button class="chip" data-qcf="camino" aria-selected="false">En camino</button>
+        <button class="chip" data-qcf="corea" aria-selected="false">En Corea</button>
+        <button class="chip" data-qcf="todos" aria-selected="false">Todos</button>
+      </div>
+      <p class="cnt" id="cPick"></p>
+      <div id="lPick"></div>
+    </div>
     <div id="genWrap" hidden>
       <div class="box" style="background:var(--seaL)">
         <h3 id="genT"></h3><p id="genC" style="font-family:var(--mono);font-size:12px;margin:0"></p>
@@ -331,7 +341,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
           <button class="btn b-sec" id="genVar">Otra versión</button>
           <button class="btn b-sec" id="genBack">Cambiar auto</button></div>
       </div>
+      <div class="segs redes" id="redSegs" role="tablist" aria-label="Red social" style="margin-top:11px">
+        <button data-red="fb" aria-pressed="true">Facebook</button>
+        <button data-red="ig" aria-pressed="false">Instagram</button>
+        <button data-red="tk" aria-pressed="false">TikTok</button>
+        <button data-red="mp" aria-pressed="false">Marketplace</button>
+      </div>
       <div id="genOut"></div>
+      <h3 style="margin:16px 2px 8px;font-size:14.5px">Respuestas para clientes</h3>
+      <div id="genMas"></div>
     </div>
   </section>
 
@@ -349,7 +367,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->27-10-2026 18:32 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->28-10-2026 16:02 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1508,7 +1526,8 @@ async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
 const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=20,CAP=9e6;  /* 2026-09-29: antes 1080 px / 55% (se veían borrosas) */
 const CATN={'SUV':'SUV','CAMIONETA':'camioneta','SEDÁN':'sedán','SEDAN':'sedán','HATCHBACK':'hatchback'};
 const CARN={'BARANDA':'baranda baja','FREEZER':'furgón freezer','GAVIOTA':'cajón gaviota'};
-let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0;
+let IDX={}, ST={vend:'',f:{},adel:[],ventas:[]}, tab='pStock', fS='todos', q='', qc='', gv=null, gvar=0, qcF='patio', redSel='fb';
+try{ const r=localStorage.getItem('amkv_redSel'); if(['fb','ig','tk','mp'].includes(r)) redSel=r; }catch(_){}   /* preferencia de pantalla: la última red elegida */
 /* 2026-09-29: filtro por estado (En patio / En camino) y orden de la lista, pedidos por Andre. Se recuerdan en el teléfono. */
 let fE='todos', ordenStock='rec', fT='todos', compacto=false; const EXP=new Set();
 try{ fE=localStorage.getItem('amkv_fE')||'todos'; ordenStock=localStorage.getItem('amkv_orden')||'rec'; fT=localStorage.getItem('amkv_tipo')||'todos'; compacto=localStorage.getItem('amkv_compacto')==='1'; }catch(_){}
@@ -1920,18 +1939,19 @@ function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso
  const B=`Disponible: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.join(' · ')}${sv}\n\nSeleccionado en persona en Corea antes de subirlo al contenedor.\n\n${priceLine(v)}\nConsultas por mensaje.\n\nAMK Vehículos Selectos · Iquique`;
  const C=`${v.ma} ${v.mo} ${v.an||''} en stock\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nPreparado y listo para entrega en Iquique.\n\n${priceLine(v)}\nTe respondo al tiro.\n\nAMK Vehículos Selectos`;
  return [A,B,C][k%3]}
-function genMP(v,k){const t=[`${v.ma} ${v.mo} ${v.an||''} ${v.tr||''}`.trim(),
- `${v.ma} ${v.mo} ${v.an||''} importado Corea`,`${v.ma} ${v.mo} ${v.an||''} ${CATN[v.cat]||''}`.trim()][k%3];
- return `TÍTULO\n${t}\n\nDESCRIPCIÓN\n${genFB(v,k)}`}
+/* 28/10/2026 (Andre): sin "TÍTULO / DESCRIPCIÓN". En Marketplace la marca, modelo y año se eligen en el formulario. */
+function genMP(v,k){ return genFB(v,k) }
 function genIG(v,k){const f=feats(v).slice(0,4);
  const A=`${v.ma} ${v.mo} ${v.an||''} 🇰🇷➡️🇨🇱\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nElegido en persona en Corea. Preparado en Iquique.\n${priceLine(v)}\n\n📍 Iquique · Escríbeme por DM\n\n${tags(v)}`;
  const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nNo compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.\n${priceLine(v)}\n\n📍 DM para agendar\n\n${tags(v)}`;
  return [A,B][k%2]}
-function genTT(v,k){const f=featsVideo(v);
- const hooks=v.trab?[`¿Necesitas ${CARN[v.ca]||'camioneta'} para trabajar?`,`Esta ${v.mo} llegó lista para producir.`,`Si trabajas con carga, mira esto.`]
-  :[`Este ${v.mo} llegó directo de Corea.`,`${v.mo} ${v.an||''}. Mira cómo llega.`,`¿Buscas ${CATN[v.cat]||'auto'} en Iquique?`];
- const h=hooks[k%hooks.length], b=f.slice(0,4);
- return `GUIÓN — 32 s aprox. · vertical 9:16\n\n[0-3 s] GANCHO\nToma: frontal 3/4 acercándose.\nTexto en pantalla: "${h}"\nVoz: "${h}"\n\n[3-8 s] PRESENTACIÓN\nToma: paneo lateral completo.\nVoz: "${v.ma} ${v.mo} ${v.an||''}, importado directo desde Corea del Sur."\n\n[8-18 s] DETALLES\n${b.map((x,i)=>`  Toma ${i+1}: ${['interior desde la puerta','tablero y volante','asientos traseros','detalle exterior'][i]||'detalle'}\n  Texto: "${x}"`).join('\n')}\n\n[18-26 s] DIFERENCIADOR\nVoz: "Lo revisamos en persona en Corea antes de comprarlo."\n${v.sv?'Texto: "Apto sello verde · circula en Santiago"\n':''}\n[26-32 s] CIERRE\nVoz: "Escríbeme y te cuento todo. Estamos en Iquique."\nCierre: logo AMK + contacto.\n\nMÚSICA: canción en tendencia, volumen bajo.\n\nDESCRIPCIÓN:\n${v.ma} ${v.mo} ${v.an||''} disponible en Iquique 🇰🇷\n${tags(v)}`}
+/* Descripción para TikTok (28/10/2026), con hashtags. Reemplaza al guion: los videos se arman con Claude en el Mac.
+   Sin km ni precio (regla de videos del 27/10/2026). */
+function genTK(v,k){const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an||''}`.trim();
+ const sv=v.sv?'\n🟢 Apto sello verde: circula en Santiago, Valparaíso y Viña del Mar.':'';
+ const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.\n\n${f.map(x=>'▸ '+x).join('\n')}${sv}\n\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${tags(v)}`;
+ const B=`Llegó a Iquique: ${n} 🚗\n\n${f.join(' · ')}${sv}\n\nNo compramos por foto: lo vemos en Corea y recién ahí lo traemos.\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${tags(v)}`;
+ return [A,B][k%2]}
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
 function tomasVideo(v,despues){
@@ -2228,26 +2248,63 @@ document.addEventListener('toggle',e=>{ const d=e.target; if(d&&d.dataset&&d.dat
   if(d.open) CTR_ABIERTOS.add(d.dataset.ctrg); else CTR_ABIERTOS.delete(d.dataset.ctrg); },true);
 document.addEventListener('click',async e=>{ const b=e.target.closest('[data-ctrcp]'); if(!b) return; e.preventDefault(); e.stopPropagation();
   const k=b.dataset.ctrcp, A=V.filter(v=>v.ctr===k&&pass(v)); await cp(ctrTexto(k,A),'Lista del contenedor copiada'); },true);
-function drawPick(){const s=qc.trim().toLowerCase();
- const TODOS=V.filter(v=>!s||(v.ma+' '+v.mo+' '+v.ch).toLowerCase().includes(s));
- const L=TODOS.slice(0,40);
- $('#lPick').innerHTML=L.length?L.map(v=>`<div class="pk" data-pick="${v.ch}">
-  <div><div class="tt" style="font-size:15px">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
-  <div class="ch">${v.ch} · ${v.ce}</div></div><div style="color:var(--ink2);font-weight:700">→</div></div>`).join('')
-  :'<div class="empty">Sin resultados.</div>';
- if(TODOS.length>L.length) $('#lPick').insertAdjacentHTML('beforeend',`<div class="cnt">Se muestran ${L.length} de ${TODOS.length}. Escribe arriba para buscar el resto.</div>`);}
+/* 28/10/2026 (Andre): el buscador de Textos funciona como el de Stock (varias palabras, también año) y por
+   defecto muestra solo lo que está en patio. */
+function pasaPick(v){
+ if(qcF==='patio') return v.st!=='ORIGEN';
+ if(qcF==='corea') return v.st==='ORIGEN'&&!!v.enCorea;
+ if(qcF==='camino') return v.st==='ORIGEN'&&!v.enCorea;
+ return true}
+function drawPick(){
+ const toks=qc.trim().toLowerCase().split(/\s+/).filter(Boolean);
+ const L=V.filter(v=>pasaPick(v)&&(!toks.length||toks.every(tk=>(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(tk))));
+ const fe=v=>String(v.llp||v.fe||'');
+ L.sort((a,b)=>fe(b).localeCompare(fe(a)));   /* lo último que llegó, primero */
+ const esc=t=>String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+ /* autosuficiente: carsC/etiquetasV viven dentro de draw() en esta app */
+ const cap=x=>{ x=String(x||'').toLowerCase(); return x?x[0].toUpperCase()+x.slice(1):''; };
+ const linea=v=>[ (v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'')))&&v.ca&&v.ca!=='S/N'?cap(CARN[v.ca]||v.ca):'', cap(v.ce),
+   +v.pa>=7?v.pa+' pasajeros':'', v.tr||'', v.km?Number(v.km).toLocaleString('es-CL')+' km':'', v.sv?'Sello verde':'' ].filter(Boolean).join(' · ');
+ const est=v=>v.res?'<span style="color:#B084E8">Reservado</span>':v.st!=='ORIGEN'?'':v.enCorea?'En Corea':(v.eta?(v.eta<=hoyISO()?'En puerto':'Llega ~'+ddmm(v.eta)):'En camino');
+ $('#cPick').textContent=L.length+(L.length===1?' vehículo':' vehículos');
+ $('#lPick').innerHTML=L.length?L.map(v=>{ const e=est(v); return `<div class="pk" data-pick="${esc(v.ch)}">
+  <div style="min-width:0"><div class="tt" style="font-size:15px">${esc(v.ma)} ${esc(v.mo)} <span class="y">${v.an||''}</span></div>
+  <div class="ch" style="white-space:normal">${esc(v.ch)} · ${esc(linea(v))}</div></div>
+  <div style="color:var(--ink2);font-weight:700;text-align:right;flex:0 0 auto">${e?`<div style="font-size:12px;font-weight:600;color:var(--mute)">${e}</div>`:''}→</div></div>`; }).join('')
+  :'<div class="empty">'+(toks.length?'Sin resultados.':'No hay vehículos acá.')+'</div>';}
+const RED={
+ fb:['Publicación de Facebook',v=>genFB(v,gvar),'https://www.facebook.com/'],
+ ig:['Instagram',v=>genIG(v,gvar),'https://www.instagram.com/'],
+ tk:['TikTok',v=>genTK(v,gvar),'https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video'],
+ mp:['Facebook Marketplace',v=>genMP(v,gvar),'https://www.facebook.com/marketplace/create/vehicle']};
+const RED_NOTA={mp:'Marca, modelo y año se eligen en el formulario de Marketplace. Esto va en "Descripción".',
+ tk:'"Abrir" copia el texto y lleva a subir el video. Pégalo en la descripción.'};
+const escPre=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function pintaRed(anim){
+ if(!gv) return;
+ $$('#redSegs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.red===redSel?'true':'false'));
+ const r=RED[redSel], blk=[r[0],r[1](gv),r[2]];
+ window.__BLK[0]=blk;
+ const poner=()=>{ $('#genOut').innerHTML=`<div class="gen">
+  <div class="gh"><h4>${blk[0]}</h4><span style="display:flex;gap:6px;flex:0 0 auto"><button class="btn b-sec" data-open="0">Abrir</button><button class="cpy" data-cp="0">Copiar</button></span></div>
+  ${RED_NOTA[redSel]?`<div class="mtr" style="margin:0 0 8px">${RED_NOTA[redSel]}</div>`:''}
+  <pre>${escPre(blk[1])}</pre></div>`; };
+ if(anim){ alturaFluida($('#genOut'),poner); entraSuave($('#genOut')); } else poner();
+}
 function drawGen(){
- if(!gv){$('#genWrap').hidden=true;$('#lPick').hidden=false;$('#qc').hidden=false;$('#rrGen').hidden=false;return}
- $('#genWrap').hidden=false;$('#lPick').hidden=true;$('#qc').hidden=true;$('#rrGen').hidden=true;
+ if(!gv){$('#genWrap').hidden=true;$('#ctPick').hidden=false;$('#rrGen').hidden=false;return}
+ $('#genWrap').hidden=false;$('#ctPick').hidden=true;$('#rrGen').hidden=true;
  $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
  $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
- const b=[['Facebook Marketplace',genMP(gv,gvar)],['Publicación de Facebook',genFB(gv,gvar)],
-  ['Instagram',genIG(gv,gvar)],['Tomas para grabar el video',tomasVideo(gv,'pásalas por AirDrop al Mac de Andre.')],['Guión TikTok / Reels',genTT(gv,gvar)],
-  ['Respuesta de WhatsApp',genWA(gv)],['Respuesta: ¿sigue disponible?',rrDisp(gv)],['Respuesta: sello verde',rrSV(gv)],
-  ['Respuesta: cómo reservar',rrRes(gv)],['Respuesta: dónde estamos',rrDir()],['Seguimiento (no ha respondido)',rrSeg(gv,'')],['Hashtags',tags(gv)]];
- $('#genOut').innerHTML=b.map((x,i)=>`<div class="gen"><div class="gh"><h4>${x[0]}</h4>
-  <button class="cpy" data-cp="${i}">Copiar</button></div><pre>${x[1].replace(/</g,'&lt;')}</pre></div>`).join('');
- window.__BLK=b}
+ window.__BLK=[null,['Respuesta de WhatsApp',genWA(gv)],['¿Sigue disponible?',rrDisp(gv)],['Sello verde',rrSV(gv)],
+  ['Cómo reservar',rrRes(gv)],['Dónde estamos',rrDir()],['Seguimiento (no ha respondido)',rrSeg(gv,'')],
+  ['Tomas para grabar el video',tomasVideo(gv,'pásalas por AirDrop al Mac de Andre.')]];
+ pintaRed(false);
+ /* Respuestas y tomas van plegadas: se copian sin abrirlas y no obligan a bajar buscando la red. */
+ $('#genMas').innerHTML=window.__BLK.slice(1).map((b,i)=>`<details class="gen">
+  <summary style="cursor:pointer;list-style:none"><div class="gh" style="margin:0"><h4>${b[0]}</h4><button class="cpy" data-cp="${i+1}">Copiar</button></div></summary>
+  <pre style="margin-top:9px">${escPre(b[1])}</pre></details>`).join('');
+}
 
 async function cp(t,m){try{await navigator.clipboard.writeText(t);toast(m)}
  catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();
@@ -2532,7 +2589,9 @@ document.addEventListener('click',async e=>{
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){ if(!confirm('¿Quitar esta foto?')) return; phArr.splice(+r.dataset.rm,1); await persist(); return }
  if(pk){gv=IDX[pk.dataset.pick];gvar=0;drawGen();return}
- if(c&&window.__BLK){cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
+ if(c&&window.__BLK){e.preventDefault();cp(window.__BLK[+c.dataset.cp][1],'Copiado ✓');return}
+ const op=e.target.closest('[data-open]');
+ if(op&&window.__BLK){const b=window.__BLK[+op.dataset.open]; await cp(b[1],'Texto copiado · pégalo al publicar'); window.open(b[2],'_blank','noopener'); return}
 });
 $('#soP').addEventListener('input',e=>{const n=pnum(e.target.value);fmtVivo(e.target,()=>n===''?'':clp(n))});
 $('#soOk').addEventListener('click',async()=>{
@@ -2553,6 +2612,10 @@ $('#q').addEventListener('input',e=>{q=e.target.value;draw()});
 $('#qc').addEventListener('input',e=>{qc=e.target.value;drawPick()});
 $('#genVar').addEventListener('click',()=>{gvar++;drawGen()});
 $('#genBack').addEventListener('click',()=>{gv=null;gvar=0;drawGen();drawPick()});
+$('#redSegs').addEventListener('click',e=>{ const b=e.target.closest('[data-red]'); if(!b||b.dataset.red===redSel) return;
+ redSel=b.dataset.red; try{ localStorage.setItem('amkv_redSel',redSel); }catch(_){} pintaRed(true); });
+$('#qcFil').addEventListener('click',e=>{ const c=e.target.closest('[data-qcf]'); if(!c) return;
+ $$('#qcFil .chip').forEach(x=>x.setAttribute('aria-selected',x===c?'true':'false')); qcF=c.dataset.qcf; drawPick(); entraSuave($('#lPick')); });
 $$('#pStock .chip[data-f]').forEach(ch=>ch.addEventListener('click',()=>{
  $$('#pStock .chip[data-f]').forEach(x=>x.setAttribute('aria-selected','false'));
  ch.setAttribute('aria-selected','true');fS=ch.dataset.f;draw()}));
