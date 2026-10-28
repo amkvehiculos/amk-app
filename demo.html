@@ -867,7 +867,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 16:02<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 19:21<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1265,6 +1265,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shCost">
   <h3 id="scT">Costos del vehículo</h3><div class="sb" id="scC"></div>
+  <div id="scNube" hidden role="status" style="border-left:3px solid var(--amber);border-radius:0 8px 8px 0;background:var(--paper);padding:8px 10px;margin:0 0 12px;font-size:12.5px;line-height:1.4;font-weight:600"></div>
   <div class="fld" id="scVwrap"><label for="scV">Vehículo</label><select id="scV"></select></div>
   <div id="scIqWrap" style="margin-bottom:13px">
     <div class="money" id="scIqReal" style="margin-bottom:6px"></div>
@@ -1342,7 +1343,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 </div>
 
 <div class="sheet" id="shSync">
-  <h3>Cambios sin enviar a la nube</h3><div class="sb">Lo que este aparato cambió y la nube todavía no tiene. Mientras esté acá, lo que llegue de otros aparatos para esos campos no se aplica.</div>
+  <h3>Nube: cambios de este aparato</h3><div class="sb">Lo que este aparato cambió y la nube todavía no tiene, y los cambios que no se aplicaron porque otro aparato ya había cambiado lo mismo.</div>
   <div id="syList"></div>
   <div class="sact fija"><button class="cx" data-close>Cerrar</button><button class="ok" id="syReintenta">Reintentar envío</button></div>
 </div>
@@ -1855,6 +1856,55 @@ const fbForzar=new Set();   /* vehículos que Andre decidió enviar igual ("Envi
 const fbRetenido=c=>!fbForzar.has(c)&&((fbConflicto[c]&&Object.keys(fbConflicto[c]).length>0)||(!fbBase[c]&&fbEnNube.has(c)));
 let fbCuentaAjena='';               /* correo de otra app (p. ej. corea@) si el navegador quedó con su sesión (28/10/2026) */
 const fbCostosDenegados=new Set();   /* vehículos cuyos costos la nube no dejó leer: no suben hasta volver a entrar como Sistema */
+/* 28/10/2026 (Andre abrió el Veloster 2013 en el computador y estaban los costos de hace 2 semanas; ayer igual). Costos (costs) y
+   pendientes (tasks) son LISTAS y se subían enteras: la lista de un aparato desactualizado reemplazaba la de la nube completa y
+   se perdía todo lo anotado después en los otros aparatos. Ahora cada costo y cada pendiente se fusiona por separado (por su ts),
+   contra la nube leída en ese mismo momento (transacción) y comparando con la última copia conocida de la nube (fbBase):
+   - lo que este aparato no tocó → queda como está en la nube (aunque acá sea una versión vieja);
+   - lo que solo cambió acá (agregado, cambiado o borrado) → se sube;
+   - lo que cambió acá Y en la nube → queda lo de la nube y lo de acá se guarda en fbChoques para que Andre elija.
+   Además cada escritura de Sistema lleva _w (marca única) y privado/costos lleva _tsW: las reglas de la nube rechazan lo que
+   escriba una versión vieja de la app (no pone _w), y si igual pasa, al leer se nota (_ts más nuevo que _tsW) y se avisa. */
+const FB_LISTAS=['costs','tasks'];
+const fbItemId=x=>(x&&x.ts!=null)?'t'+x.ts:'j'+fbHash(x);
+function fbIdx(L){ const m=new Map(); (Array.isArray(L)?L:[]).forEach(x=>{ const k0=fbItemId(x); let k=k0, n=1; while(m.has(k)) k=k0+'#'+(++n); m.set(k,x); }); return m; }
+/* L = lista de este aparato, B = la de la última copia conocida de la nube (null: no hay → nada se borra), C = la de la nube ahora.
+   Devuelve la lista fusionada; en `choques` deja los elementos que cambiaron en los dos lados (gana la nube). */
+function fbMezclaLista(L,B,C,choques){
+  const mL=fbIdx(L), mB=Array.isArray(B)?fbIdx(B):null, mC=fbIdx(C), out=[], vistos=new Set();
+  for(const k of [...mC.keys(), ...mL.keys()]){
+    if(vistos.has(k)) continue; vistos.add(k);
+    const enL=mL.has(k), enC=mC.has(k), enB=!!mB&&mB.has(k), l=mL.get(k), c=mC.get(k), b=enB?mB.get(k):undefined;
+    let r;
+    if(enL&&enC&&fbIgual(l,c)) r=c;
+    else if(enB){
+      const camL=!enL||!fbIgual(l,b), camC=!enC||!fbIgual(c,b);
+      if(!camL) r=enC?c:undefined;                 /* no lo tocó este aparato: manda la nube (también si allá se borró) */
+      else if(!camC) r=enL?l:undefined;            /* solo cambió acá: va lo de acá (también un borrado) */
+      else { r=enC?c:undefined; if(enL||enC) choques&&choques.push({k,aqui:enL?l:null,nube:enC?c:null}); }
+    }
+    else if(enL&&enC){ r=c; choques&&choques.push({k,aqui:l,nube:c}); }   /* apareció en los dos lados distinto: gana la nube */
+    else r=enL?l:c;                                 /* nuevo de un solo lado: se suma */
+    if(r!==undefined) out.push(r);
+  }
+  return out;
+}
+/* Cambios de este aparato que no se aplicaron porque la nube ya tenía otra cosa: {ch,campo,k,aqui,nube,f}. Se guardan en la despensa. */
+let fbChoques=[];
+const FB_CHOQ_KEY='amk_fb_choques';
+function fbChoquesAnota(ch,campo,lista){
+  if(!lista||!lista.length) return;
+  lista.forEach(x=>{ const i=fbChoques.findIndex(y=>y.ch===ch&&y.campo===campo&&y.k===x.k);
+    const o={ch,campo,k:x.k,aqui:x.aqui,nube:x.nube,f:Date.now()}; if(i>-1) fbChoques[i]=o; else fbChoques.push(o); });
+  try{ Promise.resolve(window.storage.set(FB_CHOQ_KEY,JSON.stringify(fbChoques.slice(-200)))).catch(()=>{}); }catch(_){}
+  try{ pintaPendientes(); }catch(_){}
+}
+const fbEscrituraVieja={};   /* {chasis: ms} costos escritos en la nube por una versión vieja de Sistema (sin _tsW al día) */
+let fbAlDia=0;               /* última vez que este aparato tuvo TODOS los costos confirmados con la nube (ms, en la despensa) */
+const FB_ALDIA_KEY='amk_fb_aldia';
+const FB_DEV=(()=>{ try{ let d=localStorage.getItem('amk_dev_id'); if(!d){ d=Math.random().toString(36).slice(2,10); localStorage.setItem('amk_dev_id',d); } return d; }catch(_){ return Math.random().toString(36).slice(2,10); } })();
+const fbMarcaW=()=>FB_DEV+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
+const fbMisW=new Set();      /* marcas _w de lo que subió este aparato en esta sesión (para reconocer su propio eco) */
 const esPorterBongo=v=>/^(PORTER|BONGO)/.test(String(v.mo||'').toUpperCase().trim());
 function aseguraOblig(){
   let n=0;
@@ -1967,6 +2017,7 @@ function fbActualizaAviso(){
   if(entrar) entrar.style.display = fbReady ? 'none' : '';
 }
 let fbAuth=null, fbEscuchando=false;
+let bootListoOk=null; const bootListo=new Promise(r=>{ bootListoOk=r; setTimeout(r,20000); });   /* si boot() fallara, la nube igual arranca a los 20 s */
 function fbMuestraLogin(mostrar){
   const el=document.getElementById('loginBox');
   if(!el) return;
@@ -1997,7 +2048,10 @@ async function fbInit(){ try{ fbPintaEstado('Modo demostración: sin nube (datos
         fbReady=true;
         fbMuestraLogin(false);
         fbPintaSync(); fbSchedulePush();   /* si había cambios pendientes de una vez anterior, salen ahora */
-        if(!fbEscuchando){ fbEscuchando=true; fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }
+        /* 28/10/2026: lo de la nube se aplica recién cuando boot() terminó de leer lo guardado en el aparato. Antes, si la nube
+           respondía primero, boot() reemplazaba los costos recién bajados por la copia vieja del aparato, y esa copia vieja
+           quedaba como "cambio de este aparato" y se subía, pisando lo más nuevo (probado con una nube simulada). */
+        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2050,7 +2104,9 @@ const FB_PEND_KEY='amk_fb_pend';
 let fbPend={}, fbBaseOk=false, fbEnviando=false, fbRepetir=false, fbFallos=0, fbReintentoT=null, fbUltimoError='';
 async function fbPendCarga(){
   try{ const r=await window.storage.get(FB_PEND_KEY); if(r&&r.value){ const o=JSON.parse(r.value); if(o&&typeof o==='object'&&!Array.isArray(o)) fbPend=o; }
-    const rb=await window.storage.get(FB_BASE_KEY); if(rb&&rb.value){ const b=JSON.parse(rb.value)||{}; for(const c in b) if(fbPend[c]&&!fbBase[c]) fbBase[c]=b[c]; } }
+    const rb=await window.storage.get(FB_BASE_KEY); if(rb&&rb.value){ const b=JSON.parse(rb.value)||{}; for(const c in b) if(fbPend[c]&&!fbBase[c]) fbBase[c]=b[c]; }
+    const rq=await window.storage.get(FB_CHOQ_KEY); if(rq&&rq.value){ const q=JSON.parse(rq.value); if(Array.isArray(q)) fbChoques=q; }
+    const ra=await window.storage.get(FB_ALDIA_KEY); if(ra&&ra.value) fbAlDia=+ra.value||0; }
   catch(e){ console.error('fbPendCarga',e); }
 }
 function fbPendGuarda(){ try{ Promise.resolve(window.storage.set(FB_PEND_KEY,JSON.stringify(fbPend))).catch(()=>{}); }catch(e){} fbBaseGuarda(); }
@@ -2066,7 +2122,7 @@ function fbDetectaCambios(){
   let nuevos=0;
   for(const v of V){
     if(fbPend[v.ch]||!fbPuedeSubir(v.ch)) continue;
-    if(fbLastPush[v.ch]!==fbHashVeh(v)){ fbPend[v.ch]=true; nuevos++; }
+    if(fbLastPush[v.ch]!==fbHashVeh(v)){ fbPend[v.ch]=Date.now(); nuevos++; }   /* desde el 28/10/2026 guarda desde cuándo (antes: true) */
   }
   if(nuevos){ fbPendGuarda(); guardaCacheV(true); }
   return nuevos;
@@ -2080,12 +2136,17 @@ function fbPintaSync(){
   else if(fbEnviando&&n){ t='↻ Enviando…'; c='sy-env'; tip='Enviando '+n+' cambio'+(n===1?'':'s')+' a la nube'; }
   else if(n){ t='⚠ '+n+' sin enviar'; c='sy-pend'; tip=(fbUltimoError?'Último error: '+fbUltimoError+'. ':'')+'Toca para reintentar ahora'; }
   else if(!fbReady){ t='○ Sin nube'; c='sy-off'; tip='Sin conexión con la nube'; }
+  else if(V.length&&fbSinConfirmar()){ t='↻ Poniéndose al día'; c='sy-env'; tip='Bajando de la nube los costos de '+fbSinConfirmar()+' vehículos: hasta entonces se ve lo guardado en este aparato'; }
   else { t='✓ Al día'; c='sy-ok'; tip='Todo lo de este aparato está en la nube'; }
   el.textContent=t; el.className='sync '+c; el.title=tip; el.setAttribute('aria-label','Nube: '+t.replace(/^\S+\s/,''));
+  clearTimeout(fbAvisoT); fbAvisoT=setTimeout(()=>{ try{ pintaPendientes(); pintaScNube(); }catch(_){} },500);   /* los avisos de la nube en la franja */
   const sh=document.getElementById('shSync');   /* hoja de pendientes abierta: se pone al día sola */
   if(sh&&sh.classList.contains('on')&&typeof pintaSync==='function'){ clearTimeout(fbPintaSyncT); fbPintaSyncT=setTimeout(()=>{ if(!fbQuedandoNube) pintaSync(); },400); }
 }
-let fbPintaSyncT=null;
+let fbPintaSyncT=null, fbAvisoT=null;
+/* el aviso "sin conexión" y "sin confirmar" solo después de unos segundos de abierta (no al conectar normal) */
+setTimeout(()=>{ try{ fbPintaSync(); }catch(_){} },9000);
+setTimeout(()=>{ try{ fbPintaSync(); }catch(_){} },16000);
 
 let fbPushTimer=null;
 function fbSchedulePush(){
@@ -2096,39 +2157,91 @@ function fbSchedulePush(){
   fbPushTimer=setTimeout(fbPushChanges, 900);
 }
 const fbLimite=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>{const e=new Error('la nube no respondió (¿sin internet?)');e.timeout=true;no(e)},ms))]);
-async function fbEnviaTanda(tanda){
-  const hs={}, sn={};
-  const dif=(a,b)=>{ if(!b) return a; const o={}; for(const k in a) if(!fbIgual(a[k],b[k])) o[k]=a[k]; return o; };
-  const arma=lista=>{
-    const batch=fbDb.batch();
-    for(const v of lista){
-      const pub=fbPubData(v), priv=fbPrivData(v), cor=fbCoreaData(v), b=fbBase[v.ch];
-      hs[v.ch]=fbHash(pub)+'|'+fbHash(priv)+'|'+fbHash(cor); sn[v.ch]=fbSnapVeh(v);
-      const ref=fbDb.collection(FB_COL).doc(v.ch);
-      /* sin base (vehículo nuevo o pendiente de una versión anterior) se sube completo, como antes */
-      const dp=dif(pub,b&&b.pub), dv=dif(priv,b&&b.priv), dc=dif(cor,b&&b.cor);
-      /* la app de Corea se entera por la ficha: si cambió solo lo de Corea, igual se le actualiza la hora a la ficha */
-      if(!b||Object.keys(dp).length||Object.keys(dc).length) batch.set(ref, Object.assign({}, dp, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-      if(!b||Object.keys(dv).length) batch.set(ref.collection('privado').doc('costos'), Object.assign({}, dv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-      if(Object.keys(dc).length) batch.set(ref.collection('privado').doc('corea'), Object.assign({}, dc, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-    }
-    return batch;
-  };
-  /* Recién acá, con la nube ya confirmada, se da por enviado. */
-  const confirma=lista=>{ lista.forEach(v=>{ fbLastPush[v.ch]=hs[v.ch]; if(sn[v.ch]) fbBase[v.ch]=sn[v.ch]; delete fbPend[v.ch]; delete fbConflicto[v.ch]; fbForzar.delete(v.ch); }); fbPendGuarda(); };
-  try{
-    await fbLimite(arma(tanda).commit(), 25000);
-    confirma(tanda);
-  }catch(e){
-    if(e.timeout||tanda.length===1) throw e;
-    /* Si la tanda falla por un vehículo con problema, se prueba de a uno para que los demás sí salgan. */
-    let ultimo=null;
-    for(const v of tanda){
-      try{ await fbLimite(arma([v]).commit(), 25000); confirma([v]); }
-      catch(e2){ ultimo=e2; console.error('fbEnviaTanda',v.ch,e2); if(e2.timeout) break; }
-    }
-    if(ultimo) throw ultimo;
-  }
+/* 28/10/2026: cada vehículo se sube con una transacción: se lee la nube EN ESE MOMENTO (ficha, costos y Corea) y se escribe
+   solo lo que este aparato cambió y la nube no tiene distinto. Costos y pendientes se fusionan elemento por elemento
+   (fbMezclaLista). Un campo que cambió acá y también en la nube no se escribe: queda en fbConflicto (vehículo retenido,
+   se decide en la hoja "Cambios sin enviar"). Sin internet la transacción falla y el cambio queda pendiente en el aparato
+   (nunca queda una escritura vieja en cola esperando la señal). sinBase = subir sin copia de referencia (vehículo nuevo,
+   "Enviar lo de este aparato" o "Subir todos mis datos"): en las listas no se borra nada de la nube y en un choque gana la nube. */
+const FB_CAMPOS={pub:FB_PUB_FIELDS.concat(FB_S_FIELDS), priv:FB_PRIV_FIELDS.concat(['costs'],FB_PRIV_S_FIELDS), cor:FB_COREA_FIELDS};
+async function fbSubeVeh(v,sinBase){
+  const ch=v.ch, b=sinBase?null:fbBase[ch], forz=sinBase||fbForzar.has(ch);
+  const env={pub:fbPubData(v),priv:fbPrivData(v),cor:fbCoreaData(v)};
+  const enviado=JSON.parse(JSON.stringify(env));
+  const SV=()=>firebase.firestore.FieldValue.serverTimestamp();
+  const ref=fbDb.collection(FB_COL).doc(ch), rp=ref.collection('privado').doc('costos'), rc=ref.collection('privado').doc('corea');
+  let R=null;
+  await fbDb.runTransaction(async tx=>{
+    const [sP,sV,sC]=await Promise.all([tx.get(ref),tx.get(rp),tx.get(rc)]);
+    const nube={pub:sP.exists?(sP.data()||{}):null, priv:sV.exists?(sV.data()||{}):null, cor:sC.exists?(sC.data()||{}):null};
+    if(nube.pub&&nube.pub.borrado===true){ R={borrado:true}; return; }
+    const cf={}, choq={}, o={pub:{},priv:{},cor:{}};
+    ['pub','priv','cor'].forEach(p=>{ const loc=env[p], bas=b&&b[p], nb=nube[p];
+      for(const k in loc){
+        if(k==='_ts'||k==='_w'||k==='_tsW') continue;
+        if(bas&&fbIgual(loc[k],bas[k])) continue;                 /* este aparato no lo cambió: no se escribe */
+        const nv=nb?nb[k]:undefined;
+        if(fbIgual(nv,loc[k])) continue;                          /* la nube ya lo tiene igual */
+        if(p==='priv'&&FB_LISTAS.includes(k)){ const c2=[];   /* la nube sin esa lista: se toma como que no cambió (no como vacía) */
+          const m=fbMezclaLista(loc[k],bas?bas[k]:null,nv===undefined?(bas?bas[k]:[]):nv,c2);
+          if(c2.length) choq[k]=c2; if(!fbIgual(m,nv)) o.priv[k]=m; continue; }
+        if(nb&&nv!==undefined&&!forz&&(!bas||!fbIgual(nv,bas[k]))){ cf[p+'.'+k]=nv; continue; }   /* cambió en los dos lados */
+        o[p][k]=loc[k];
+      } });
+    const hay=p=>Object.keys(o[p]).length>0, w=fbMarcaW(); fbMisW.add(w);
+    /* la ficha se toca siempre que cambie algo: los demás aparatos (y la app de Corea) se enteran por la ficha y bajan los costos al tiro */
+    if(hay('pub')||hay('priv')||hay('cor')||!nube.pub) tx.set(ref, Object.assign({}, o.pub, {_ts:SV(), _w:w}), {merge:true});
+    if(hay('priv')||(!nube.priv&&!b)) tx.set(rp, Object.assign({}, o.priv, {_ts:SV(), _tsW:SV(), _w:w}), {merge:true});
+    if(hay('cor')) tx.set(rc, Object.assign({}, o.cor, {_ts:SV()}), {merge:true});
+    R={nube,o,cf,choq};
+  });
+  return {R,enviado};
+}
+/* Después de la transacción: lo de este aparato queda igual que la nube, salvo lo que se cambió mientras se enviaba
+   (eso sale en la vuelta siguiente) y los campos en choque. La copia de referencia pasa a ser lo que la nube tiene ahora. */
+function fbTrasSubir(v,res){
+  const ch=v.ch, R=res&&res.R; if(!R) return false;
+  if(R.borrado){ fbApplyRemote(ch,{borrado:true}); return true; }
+  const t=st(ch), loc=fbSnapVeh(v)||{pub:{},priv:{},cor:{}}, bOld=fbBase[ch]||{pub:{},priv:{},cor:{}}, nb={pub:{},priv:{},cor:{}};
+  const pon=(p,k,x)=>{ x=x===undefined?undefined:JSON.parse(JSON.stringify(x));
+    if(p==='pub'){ if(FB_PUB_FIELDS.includes(k)) v[k]=x; else t[k]=x; }
+    else if(p==='priv'){ if(k==='costs'||FB_PRIV_S_FIELDS.includes(k)) t[k]=x; else v[k]=x; }
+    else v[k]=x; };
+  ['pub','priv','cor'].forEach(p=>{
+    const ahora=Object.assign({}, R.nube[p]||{}, R.o[p]), env=res.enviado[p]||{}, L=loc[p]||{};
+    FB_CAMPOS[p].forEach(k=>{
+      if(R.cf[p+'.'+k]!==undefined){ if((bOld[p]||{})[k]!==undefined) nb[p][k]=bOld[p][k]; return; }   /* en choque: se mantiene como estaba */
+      const cv=ahora[k];
+      if(p==='priv'&&FB_LISTAS.includes(k)){
+        /* la nube sin esa lista = no se sabe nada (no "lista vacía"): lo de acá no se toca */
+        if(cv===undefined){ if(env[k]!==undefined) nb[p][k]=JSON.parse(JSON.stringify(env[k])); return; }
+        nb[p][k]=JSON.parse(JSON.stringify(cv));
+        const m=fbMezclaLista(L[k],env[k],cv,null); if(!fbIgual(m,L[k])) pon(p,k,m); return; }
+      if(cv!==undefined) nb[p][k]=JSON.parse(JSON.stringify(cv));
+      if(!fbIgual(L[k],env[k])) return;                                 /* lo cambiaste mientras se enviaba: queda para la vuelta siguiente */
+      if(cv!==undefined&&!fbIgual(L[k],cv)) pon(p,k,cv);                 /* la nube tenía algo más nuevo que este aparato no había tocado */
+      else if(cv===undefined&&L[k]!==undefined) nb[p][k]=JSON.parse(JSON.stringify(L[k]));
+    }); });
+  fbBase[ch]=nb;
+  for(const k in R.choq) fbChoquesAnota(ch,k,R.choq[k]);
+  if(Object.keys(R.cf).length) fbConflicto[ch]=Object.assign(fbConflicto[ch]||{},R.cf); else delete fbConflicto[ch];
+  fbForzar.delete(ch);
+  const ya=fbSnapVeh(v)||{}, igual=['pub','priv','cor'].every(p=>{ const a=ya[p]||{}, bb=nb[p]||{}; return Object.keys(a).every(k=>k==='_ts'||fbIgual(a[k],bb[k])); });
+  if(igual&&!fbConflicto[ch]){ delete fbPend[ch]; fbLastPush[ch]=fbHashVeh(v); }
+  return true;
+}
+async function fbEnviaTanda(tanda,sinBase){
+  let ultimo=null, i=0, cambio=false;
+  /* de a 6 vehículos a la vez; si uno falla, los demás igual salen */
+  const uno=async()=>{ while(i<tanda.length){ const v=tanda[i++];
+    fbSubiendo.add(v.ch);
+    try{ const r=await fbLimite(fbSubeVeh(v,sinBase),25000); if(fbTrasSubir(v,r)) cambio=true; }
+    catch(e){ ultimo=e; console.error('fbEnviaTanda',v.ch,e); if(e&&e.timeout){ i=tanda.length; } }
+    finally{ fbSubiendo.delete(v.ch); fbSubidoEn[v.ch]=Date.now(); } } };
+  await Promise.all(Array.from({length:Math.min(6,tanda.length)},uno));
+  fbPendGuarda();
+  if(cambio){ guardaCacheV(true); try{ await window.storage.set(KEY,JSON.stringify(S)); }catch(_){} fbDibujaPronto(); }
+  if(ultimo) throw ultimo;
 }
 async function fbPushChanges(){
   if(!fbReady) return;
@@ -2154,6 +2267,11 @@ async function fbPushChanges(){
   }
 }
 
+/* 28/10/2026: lo que llega de la nube (costos, pendientes, precios) también se guarda en la despensa del aparato. Antes solo
+   se guardaba la lista de vehículos; los costos quedaban como la última vez que se anotó algo EN ESTE aparato (podían ser de
+   hace semanas) y eso es lo que se veía al abrir sin señal o mientras la nube no respondía. Sin subir nada a la nube. */
+let guardaST=null;
+function guardaSNube(){ clearTimeout(guardaST); guardaST=setTimeout(()=>{ try{ Promise.resolve(window.storage.set(KEY,JSON.stringify(S))).catch(()=>{}); }catch(_){} },1500); }
 function fbApplyRemote(ch, pub, priv, cor){
   /* Marcado como borrado en la nube: se quita de este aparato y no se vuelve a crear. */
   if(pub && pub.borrado===true){
@@ -2167,6 +2285,7 @@ function fbApplyRemote(ch, pub, priv, cor){
      los demás campos sí se ponen al día (16/10/2026). Sin base conocida, como antes: no se toca nada. */
   if(fbPend[ch] && IDX[ch]){
     const b=fbBase[ch]; if(!b) return;
+    if(priv&&priv._w&&fbMisW.has(priv._w)) priv=null;   /* el eco de lo que este mismo aparato acaba de subir: ya lo aplicó fbTrasSubir */
     const v0=IDX[ch], t0=st(ch), loc=fbSnapVeh(v0)||{pub:{},priv:{},cor:{}};
     /* 28/10/2026: si la nube también cambió ese campo (otro aparato), es un choque: se anota y el vehículo no se sube solo
        hasta que Andre elija (hoja "Cambios sin enviar"). Si los dos quedaron con el mismo valor, no es choque. */
@@ -2177,13 +2296,16 @@ function fbApplyRemote(ch, pub, priv, cor){
       if(FB_PUB_FIELDS.includes(k)) v0[k]=pub[k]; else if(FB_S_FIELDS.includes(k)) t0[k]=pub[k]; else continue;
       b.pub[k]=pub[k]; }
     if(priv) for(const k in priv){ if(k==='_ts'||priv[k]===undefined||priv[k]===null) continue;
+      /* costos y pendientes: se fusionan elemento por elemento (lo nuevo de la nube entra; lo que cambiaste acá se mantiene) */
+      if(FB_LISTAS.includes(k)&&!fbIgual(loc.priv[k],b.priv[k])){ const c2=[];
+        t0[k]=fbMezclaLista(loc.priv[k],b.priv[k],priv[k],c2); b.priv[k]=JSON.parse(JSON.stringify(priv[k])); fbChoquesAnota(ch,k,c2); continue; }
       if(!fbIgual(loc.priv[k],b.priv[k])){ choque('priv',k,priv[k],loc.priv[k],b.priv[k]); continue; }
       if(k==='costs') t0.costs=priv.costs; else if(FB_PRIV_FIELDS.includes(k)) v0[k]=priv[k]; else if(FB_PRIV_S_FIELDS.includes(k)) t0[k]=priv[k]; else continue;
       b.priv[k]=priv[k]; }
     if(cor){ const bc=b.cor||(b.cor={}); for(const k in cor){ if(!FB_COREA_FIELDS.includes(k)||cor[k]===undefined||cor[k]===null) continue;
       if(!fbIgual(loc.cor[k],bc[k])){ choque('cor',k,cor[k],loc.cor[k],bc[k]); continue; }
       v0[k]=cor[k]; bc[k]=cor[k]; } }
-    guardaCacheV(); fbActualizaAviso(); return;
+    guardaCacheV(); guardaSNube(); fbActualizaAviso(); return;
   }
   let v=IDX[ch];
   const esNuevoAqui=!v;
@@ -2200,7 +2322,7 @@ function fbApplyRemote(ch, pub, priv, cor){
   if(priv) FB_PRIV_S_FIELDS.forEach(k=>{ if(priv[k]!==undefined && priv[k]!==null) t[k]=priv[k]; });
   fbLastPush[ch]=fbHashVeh(v);
   { const sb=fbSnapVeh(v); if(sb){ if(!fbBase[ch]) fbBase[ch]=sb; else { if(pub) fbBase[ch].pub=sb.pub; if(priv) fbBase[ch].priv=sb.priv; if(cor) fbBase[ch].cor=sb.cor; } } }
-  guardaCacheV();
+  guardaCacheV(); if(priv||pub) guardaSNube();
   fbActualizaAviso();
 }
 
@@ -2227,6 +2349,7 @@ function fbStartListening(){
     }
     try{ aseguraOblig(); }catch(e){ console.error('aseguraOblig',e); }
     try{ aplicaMotoresVend(); }catch(e){ console.error('aplicaMotoresVend',e); }   /* 07/10/2026: lavado + pisos, con los costos ya bajados */
+    fbViejosANube();
     setTimeout(fbHistorialDiario, 30000);
   }, e=>console.error('fbListen', e));
 }
@@ -2253,7 +2376,7 @@ async function fbHistorialDiario(){
       const docs=await Promise.all(trozo.map(v=>fbDb.collection(FB_COL).doc(v.ch).collection('privado').doc('historial').get().catch(()=>null)));
       trozo.forEach((v,j)=>{ const d=docs[j]; if(!d) return; const x=d.exists?d.data():{};
         if(x[k]) return;   /* la copia de hoy ya la hizo otro aparato */
-        const o={_ts:firebase.firestore.FieldValue.serverTimestamp()}; o[k]=fbPrivData(v);
+        const o={_ts:firebase.firestore.FieldValue.serverTimestamp()}; o[k]=Object.assign(fbPrivData(v),{_t:Date.now()});
         Object.keys(x).forEach(z=>{ if(/^d\d{8}$/.test(z)&&z<corte) o[z]=firebase.firestore.FieldValue.delete(); });
         batch.set(d.ref,o,{merge:true}); n++; });
       if(n){ await batch.commit(); escritos+=n; }
@@ -2275,9 +2398,11 @@ async function rcCargaNube(){
 /* fuente: 'n:d20261027' (copia de la nube) o 'l:3' (foto N° 3 de este aparato). Devuelve {S por chasis, ts de la copia}. */
 function rcFuente(id){
   if(!id) return null;
-  if(id.startsWith('l:')){ const h=HIST_LISTA[+id.slice(2)]; return h?{S:h.S||{},ts:h.ts}:null; }
-  const k=id.slice(2), o={}; for(const c in (rcNube||{})){ const x=rcNube[c][k]; if(x) o[c]=x; }
-  return {S:o, ts:new Date(+k.slice(1,5),+k.slice(5,7)-1,+k.slice(7,9),23,59).getTime()};
+  if(id.startsWith('l:')){ const x=id.slice(2), h=x.startsWith('t')?(HIST_LISTA||[]).find(z=>String(z.ts)===x.slice(1)):HIST_LISTA[+x]; return h?{S:h.S||{},ts:h.ts}:null; }   /* por su hora (28/10/2026): una foto nueva ya no cambia cuál se eligió */
+  const k=id.slice(2), o={}; let tc=0; for(const c in (rcNube||{})){ const x=rcNube[c][k]; if(x){ o[c]=x; if(+x._t>tc) tc=+x._t; } }
+  /* hora de la copia: la que guarda la copia (desde el 28/10/2026); si no la trae, el comienzo de ese día (lo anotado ese día
+     cuenta como posterior a la copia: nunca se quita por "volver a la copia") */
+  return {S:o, ts:tc||new Date(+k.slice(1,5),+k.slice(5,7)-1,+k.slice(7,9),0,0).getTime()};
 }
 function rcFaltantes(id){
   const F=rcFuente(id); if(!F) return {L:[],rev:[]};
@@ -2295,11 +2420,35 @@ function rcFaltantes(id){
     if(fr.length) rev.push({c,ft:fr}); }
   return {L,rev};
 }
+/* 28/10/2026 (Veloster 2013: la nube volvió a los costos de mediados de octubre). "Recuperar lo que falta" solo agrega; no ve
+   un pendiente que en la copia estaba hecho y hoy volvió a pendiente, ni un costo viejo que ya se había borrado y volvió.
+   rcVolvio lista los vehículos donde hoy hay algo DISTINTO a la copia (cambiado, o de antes de la copia y que la copia no tiene). */
+function rcVolvio(id){
+  const F=rcFuente(id); if(!F) return [];
+  const out=[];
+  for(const c in F.S){ const h=F.S[c]; if(!h||!IDX[c]) continue; const t=S[c]||{}, det=[];
+    FB_LISTAS.forEach(campo=>{ if(!Array.isArray(h[campo])) return; const mH=fbIdx(h[campo]);
+      for(const [k,x] of fbIdx(t[campo]||[])){
+        if(mH.has(k)){ if(!fbIgual(x,mH.get(k))) det.push({campo,hoy:x,copia:mH.get(k)}); }
+        else if(x&&+x.ts&&+x.ts<=F.ts) det.push({campo,hoy:x,copia:null}); } });
+    if(det.length) out.push({c,det}); }
+  return out;
+}
+/* Deja costos y pendientes de esos vehículos como en la copia; lo anotado DESPUÉS de la copia se conserva. */
+function rcDejaComoCopia(F,chs){   /* F = rcFuente(...) tomado ANTES de guardar la foto de "Deshacer cambios" (la foto nueva corre los números) */
+  if(!F) return 0; let n=0;
+  chs.forEach(c=>{ const h=F.S[c]; if(!h||!IDX[c]) return; const t=st(c);
+    FB_LISTAS.forEach(campo=>{ if(!Array.isArray(h[campo])) return; const mH=fbIdx(h[campo]), res=[...mH.values()].map(x=>JSON.parse(JSON.stringify(x)));
+      for(const [k,x] of fbIdx(t[campo]||[])) if(!mH.has(k)&&!(x&&+x.ts&&+x.ts<=F.ts)) res.push(x);
+      t[campo]=res; });
+    n++; });
+  return n;
+}
 function rcOpciones(){
   const sel=$('#histDia'); if(!sel) return;
   const n={}; for(const c in (rcNube||{})) for(const z in rcNube[c]) if(/^d\d{8}$/.test(z)) n[z]=(n[z]||0)+1;
   const nube=Object.keys(n).sort().reverse().map(z=>`<option value="n:${z}">Nube · ${z.slice(7,9)}/${z.slice(5,7)}/${z.slice(1,5)} · ${n[z]} vehículos</option>`);
-  const loc=(HIST_LISTA||[]).map((h,i)=>`<option value="l:${i}">Este aparato · ${histCuando(h.ts)} · ${h.n} vehículos</option>`);
+  const loc=(HIST_LISTA||[]).map((h,i)=>`<option value="l:t${h.ts}">Este aparato · ${histCuando(h.ts)} · ${h.n} vehículos</option>`);
   sel.innerHTML=(loc.length?`<optgroup label="Fotos guardadas en este aparato">${loc.join('')}</optgroup>`:'')+(nube.length?`<optgroup label="Copias diarias en la nube">${nube.join('')}</optgroup>`:'');
   if(!loc.length&&!nube.length) sel.innerHTML='<option value="">Todavía no hay copias guardadas</option>';
   sel.disabled=!loc.length&&!nube.length; $('#histComparar').disabled=sel.disabled;
@@ -2312,13 +2461,14 @@ document.addEventListener('click',async e=>{
   try{
     if(b.id==='histCargar'){ res.textContent='Leyendo copias…'; if(fbReady){ try{ await rcCargaNube(); }catch(err){ console.error('rcCargaNube',err); } }
       alturaFluida($('#histBox'),()=>{ $('#rcSel').hidden=false; rcOpciones(); res.textContent=''; }); }
-    else if(b.id==='histComparar'){ const id=$('#histDia').value; const {L,rev}=rcFaltantes(id);
+    else if(b.id==='histComparar'){ const id=$('#histDia').value; const {L,rev}=rcFaltantes(id), at=rcVolvio(id);
       const nt=L.reduce((a,x)=>a+x.ft.length,0), nc=L.reduce((a,x)=>a+x.fc.length,0);
       const fila=(x,extra)=>{const v=IDX[x.c]||{}; return `<div style="padding:5px 0;border-bottom:1px solid var(--line)"><span style="font-family:var(--body)">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute)">${x.c}</span></span><br><span style="font-size:12px">${x.ft.map(t=>esc(TN[t.cat]||t.cat)+(t.nota?' · '+esc(t.nota):'')+(t.est?' '+clp(t.est):'')+(t.hecho?(t.noAplica?' (no se necesitó)':' (hecho)'):'')).join(' · ')}${x.fc&&x.fc.length?'<br>Costos: '+x.fc.map(k=>esc(CN[k.cat]||k.cat||'')+' '+clp(k.acor||0)+(k.date?' ('+fd(k.date)+')':'')).join(' · '):''}${extra||''}</span></div>`};
       alturaFluida($('#histBox'),()=>{ res.innerHTML=(!L.length?'<span style="color:var(--green)">✓ Todo lo que había en esa copia sigue estando hoy. No falta nada.</span>'
         :`<b>Faltan hoy ${nt} pendiente${nt===1?'':'s'}${nc?' y '+nc+' costo'+(nc===1?'':'s'):''} en ${L.length} vehículo${L.length===1?'':'s'}:</b>`+L.map(x=>fila(x)).join('')
          +`<button class="btn b-pri" id="histRecupera" data-id="${esc(id)}" type="button" style="width:100%;margin-top:9px;font-family:var(--body)">Recuperar lo que falta</button><div class="mtr" style="margin-top:4px">Solo agrega lo que falta; no borra ni cambia nada de lo que hay hoy.</div>`)
-         +(rev.length?`<div style="margin-top:10px;border-left:3px solid var(--amber);padding-left:9px"><b>Revisar a mano (no se recuperan solos):</b> ya anotaste un costo real de esa categoría después de la copia, así que el estimado podría contarse dos veces.${rev.map(x=>fila(x)).join('')}</div>`:''); }); }
+         +(rev.length?`<div style="margin-top:10px;border-left:3px solid var(--amber);padding-left:9px"><b>Revisar a mano (no se recuperan solos):</b> ya anotaste un costo real de esa categoría después de la copia, así que el estimado podría contarse dos veces.${rev.map(x=>fila(x)).join('')}</div>`:'')
+         +(at.length?`<div style="margin-top:12px;border-left:3px solid var(--red);padding-left:9px"><b>${at.length} vehículo${at.length===1?'':'s'} con costos o pendientes distintos a la copia</b> (¿volvieron atrás?). Si la copia es lo correcto, déjalos como en la copia: queda igual que en la copia y se conserva lo que anotaste después de ella.${at.map(x=>{ const v=IDX[x.c]||{}; return `<div style="padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-family:var(--body)">${esc(v.ma)} ${esc(v.mo)} ${v.an||''} <span style="color:var(--mute)">${x.c}</span></span>${x.det.slice(0,5).map(d=>`<div style="font-size:12px">${SY_ETIQ[d.campo]||d.campo}: hoy ${syItem(d.campo,d.hoy)} → copia ${d.copia?syItem(d.campo,d.copia):'<i>no estaba (se quita)</i>'}</div>`).join('')}${x.det.length>5?`<div class="mtr">y ${x.det.length-5} más</div>`:''}<button class="btn b-sec" data-rcvolver="${x.c}" data-id="${esc(id)}" type="button" style="margin-top:5px;font-family:var(--body)">Dejar este como en la copia</button></div>`; }).join('')}${at.length>1?`<button class="btn b-sec" data-rcvolver="*" data-id="${esc(id)}" type="button" style="width:100%;margin-top:8px;font-family:var(--body)">Dejar los ${at.length} como en la copia</button>`:''}</div>`:''); }); }
     else if(b.id==='histRecupera'){ const id=b.dataset.id; const {L}=rcFaltantes(id); if(!L.length) return;
       if(!confirm('¿Recuperar '+L.reduce((a,x)=>a+x.ft.length+x.fc.length,0)+' registros de '+L.length+' vehículos?\n\nSolo se agrega lo que falta; no se borra nada.')) return;
       L.forEach(x=>{ const t=st(x.c); if(x.ft.length) t.tasks=(t.tasks||[]).concat(JSON.parse(JSON.stringify(x.ft))); if(x.fc.length) t.costs=(t.costs||[]).concat(JSON.parse(JSON.stringify(x.fc))); });
@@ -2328,14 +2478,46 @@ document.addEventListener('click',async e=>{
   }catch(err){ console.error('recuperar',err); res.innerHTML='<span style="color:var(--red)">No se pudo: '+esc(err.message||err)+'</span>'; }
   finally{ if(b.isConnected) b.disabled=false; }
 });
+/* 28/10/2026: cuántos vehículos de la nube todavía muestran costos de este aparato sin confirmar. Cuando no queda ninguno se
+   anota la hora (fbAlDia, en la despensa): sin nube, el aviso dice desde cuándo no se ponen al día los datos de este aparato. */
+const fbSinConfirmar=()=>V.filter(v=>v&&v.ch&&(fbEnNube.size?fbEnNube.has(v.ch):true)&&!fbCostosOk.has(v.ch)).length;   /* sin respuesta de la nube todavía: todos */
+let fbAlDiaT=null;
+function fbMarcaAlDia(){ clearTimeout(fbAlDiaT); fbAlDiaT=setTimeout(()=>{
+  if(fbEnNube.size&&!fbSinConfirmar()){ fbAlDia=Date.now(); try{ Promise.resolve(window.storage.set(FB_ALDIA_KEY,String(fbAlDia))).catch(()=>{}); }catch(_){} }
+  try{ fbPintaSync(); }catch(_){} },600); }
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-rcvolver]'); if(!b||b.disabled) return;
+  const id=b.dataset.id, res=$('#histRes'), at=rcVolvio(id), chs=b.dataset.rcvolver==='*'?at.map(x=>x.c):[b.dataset.rcvolver], F=JSON.parse(JSON.stringify(rcFuente(id)||null));
+  if(!chs.length) return;
+  const v=IDX[chs[0]]||{};
+  if(!confirm('¿Dejar '+(chs.length===1?(v.ma+' '+v.mo):('los '+chs.length+' vehículos'))+' como en la copia?\n\nCostos y pendientes quedan igual que en esa copia; lo que anotaste después de la copia se conserva. Antes se guarda una foto en "Deshacer cambios".')) return;
+  b.disabled=true;
+  try{ await histTomar('antes de dejar como en la copia',true); const n=rcDejaComoCopia(F,chs); await save(); draw(); try{ pintaPendientes(); }catch(_){}
+    alturaFluida($('#histBox'),()=>{ res.innerHTML='<span style="color:var(--green)">✓ '+n+' vehículo'+(n===1?'':'s')+' como en la copia. Ya se está subiendo a la nube.</span>'; });
+    toast('Listo: '+n+' como en la copia'); }
+  catch(err){ console.error('rcDejaComoCopia',err); b.disabled=false; toast('No se pudo: '+(err.message||err)); }
+});
 /* Baja privado/costos + privado/corea de un vehículo. Si falla (sin señal), se reintenta: mientras no bajen, ese vehículo
    no sube nada (fbPuedeSubir), así que no puede quedar sin sincronizar para siempre (27/10/2026). */
+/* 28/10/2026: una lectura pedida ANTES de que este aparato terminara de subir algo de ese vehículo puede llegar DESPUÉS, con
+   los datos de antes de la subida, y volvía a poner lo viejo (probado con una nube simulada). Esa lectura se descarta y se
+   vuelve a leer; también se descarta si ya salió una lectura más nueva del mismo vehículo. */
+const fbBajaTok={}, fbSubidoEn={}, fbSubiendo=new Set();
 async function fbBajaCostosDe(id,intento){
   if(!id) return;
+  const tok=(fbBajaTok[id]=(fbBajaTok[id]||0)+1), t0=Date.now();
   try{
     const pr=fbDb.collection(FB_COL).doc(id).collection('privado');
-    const [ps,pc]=await Promise.all([pr.doc('costos').get(), pr.doc('corea').get().catch(e=>{ console.warn('privado/corea',id,e&&e.code); return null; })]);
+    /* 28/10/2026: siempre del servidor. Antes, sin señal, Firestore devolvía su copia guardada en el navegador (podía ser de
+       hace semanas) y se daba por "confirmado con la nube". Si falla, se reintenta y el vehículo queda marcado como no confirmado. */
+    const [ps,pc]=await Promise.all([pr.doc('costos').get({source:'server'}), pr.doc('corea').get({source:'server'}).catch(e=>{ console.warn('privado/corea',id,e&&e.code); return null; })]);
+    if(tok!==fbBajaTok[id]) return;
+    if(fbSubiendo.has(id)||(fbSubidoEn[id]||0)>=t0){ await new Promise(r=>setTimeout(r,400)); return fbBajaCostosDe(id,intento); }
     const priv=ps.exists?ps.data():null;
+    /* escrito por una versión vieja de Sistema (no pone _tsW): se avisa para cerrarla en el aparato que la tenga abierta */
+    if(priv&&priv._ts&&priv._tsW&&priv._ts.toMillis&&priv._tsW.toMillis&&priv._ts.toMillis()-priv._tsW.toMillis()>3000){
+      if(!fbEscrituraVieja[id]){ fbEscrituraVieja[id]=priv._ts.toMillis(); try{ pintaPendientes(); }catch(_){} } }
+    else delete fbEscrituraVieja[id];
     /* compra en wones, taller y seña: manda privado/corea (lo escribe también la mamá); lo que todavía no está ahí
        (vehículos de antes de fbMigraCorea) se toma de privado/costos. */
     const cor=(pc&&pc.exists)?Object.assign({},pc.data()):{};
@@ -2346,6 +2528,7 @@ async function fbBajaCostosDe(id,intento){
     { const vv=IDX[id]; if(vv){ if(Array.isArray(cor.pend)) vv.pendCorea=cor.pend; else delete vv.pendCorea; } }
     if(priv||hayCor) fbApplyRemote(id, null, priv, hayCor?cor:null);
     fbCostosOk.add(id);   /* costos de este vehículo ya confirmados con la nube */
+    fbMarcaAlDia();
   }catch(e){
     /* sin permiso (otra cuenta) no se insiste; si es falta de señal, se reintenta hasta lograrlo */
     if(e&&e.code==='permission-denied'){ fbCostosDenegados.add(id); fbUltimoError='sin permiso para leer los costos (¿sesión de otra cuenta?)'; fbPintaSync(); return; }
@@ -2555,18 +2738,11 @@ async function fbSubirTodo(){
   if(!confirm('Se van a subir '+total+' vehículos a la nube (colección '+FB_COL+'), con sus costos.\n\n¿Ya tienes descargado el respaldo completo en JSON? Si no, cancela y hazlo primero.')) return;
   let hechos=0;
   try{
-    for(let ini=0; ini<total; ini+=150){
-      const trozo=V.slice(ini, ini+150);   /* 150 vehículos = hasta 450 escrituras (tope de Firestore: 500) */
-      const batch=fbDb.batch();
-      for(const v of trozo){
-        const pub=fbPubData(v), priv=fbPrivData(v), cor=fbCoreaData(v);
-        const ref=fbDb.collection(FB_COL).doc(v.ch);
-        batch.set(ref, Object.assign({}, pub, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        batch.set(ref.collection('privado').doc('costos'), Object.assign({}, priv, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        if(Object.keys(cor).length) batch.set(ref.collection('privado').doc('corea'), Object.assign({}, cor, {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        fbLastPush[v.ch]=fbHash(pub)+'|'+fbHash(priv)+'|'+fbHash(cor); fbBase[v.ch]=fbSnapVeh(v);
-      }
-      await batch.commit();
+    /* 28/10/2026: vehículo por vehículo contra la nube leída en el momento (fbSubeVeh sin copia de referencia): los campos
+       van como están acá, pero de costos y pendientes no se borra nada de la nube y en un choque queda lo de la nube. */
+    for(let ini=0; ini<total; ini+=30){
+      const trozo=V.slice(ini, ini+30);
+      await fbEnviaTanda(trozo,true);
       hechos+=trozo.length;
       pinta('Subiendo… '+hechos+' de '+total);
     }
@@ -3112,7 +3288,7 @@ async function histAplicar(nuevaV, nuevaS, etiqueta){
   let enNube=0, fallos=0;
   if(sobran.length && typeof fbReady!=='undefined' && fbReady && fbDb){
     for(const ch of sobran){
-      try{ await fbDb.collection(FB_COL).doc(ch).set({borrado:true}, {merge:true}); enNube++; }
+      try{ await fbDb.collection(FB_COL).doc(ch).set({borrado:true,_w:fbMarcaW()}, {merge:true}); enNube++; }
       catch(e){ fallos++; console.error('histAplicar borrar', ch, e); }
     }
   }
@@ -3328,7 +3504,7 @@ async function fbMigraCorea(){
       const batch=fbDb.batch();
       lista.slice(i,i+200).forEach(id=>{ const ref=fbDb.collection(FB_COL).doc(id);
         batch.set(ref.collection('privado').doc('corea'), Object.assign({}, porCopiar[id], {_ts: firebase.firestore.FieldValue.serverTimestamp()}), {merge:true});
-        batch.set(ref, {_ts: firebase.firestore.FieldValue.serverTimestamp()}, {merge:true}); });   /* así la app de Corea, que escucha las fichas, lo recibe al tiro */
+        batch.set(ref, {_ts: firebase.firestore.FieldValue.serverTimestamp(), _w:fbMarcaW()}, {merge:true}); });   /* así la app de Corea, que escucha las fichas, lo recibe al tiro */
       await fbLimite(batch.commit(), 25000);
       pinta('Copiando… '+Math.min(i+200,lista.length)+' de '+lista.length);
     }
@@ -3499,7 +3675,7 @@ async function boot(){
     }catch(e){console.error('boot OLD',e)}
   }
   fbActualizaAviso();
-  $('#boot').remove(); show(tab); draw(); cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaFoda(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
+  $('#boot').remove(); show(tab); draw(); try{ bootListoOk(); }catch(_){} cargaTC(); cargaFX(); cargaRM(); cargaRecorea(); cargaGastosCorea(); cargaAvisosVend(); cargaPendVendLocal(); cargaDemandaLocal(); pintaDcCaracChips(); cargaFJ(); cargaLB(); cargaNavieras(); cargaEmb(); listasNv(); cargaAIKey(); cargaMktNews(); cargaFlowCfg(); cargaFoda(); cargaIG(); cargaGH(); cargaFB(); $('#fxD').value=iso(); $('#rmD').value=iso();
   podaAuto();
   setTimeout(()=>{ try{ if(migraEstEmb()) draw(); }catch(_){} },3000);
   await histCarga(); histDibuja(); await histTomar('al abrir'); histArranca();
@@ -4287,7 +4463,11 @@ document.addEventListener('click',e=>{
   const s2=e.target.closest('[data-sug2]');if(s2)$('#spP').value=clp(+s2.dataset.sug2);
 });
 
+/* 28/10/2026: en la hoja de costos, si lo que se ve de ese vehículo no está confirmado con la nube */
+function pintaScNube(siempre){ const el=$('#scNube'); if(!el) return; const sh=$('#shCost'); if(!siempre&&!(sh&&sh.classList.contains('on'))) return;
+  const t=fbAvisoVeh(editing||($('#scV')?$('#scV').value:null)); if(el.textContent!==t) el.textContent=t; el.hidden=!t; }
 function pintaScIq(){
+  try{ pintaScNube(true); }catch(_){}
   const wrap=$('#scIqWrap'); if(!wrap) return;
   const ch=editing||($('#scV')?$('#scV').value:null); const v=ch?IDX[ch]:null;
   if(!v){ wrap.hidden=true; return }
@@ -7263,8 +7443,42 @@ function abrirAvisoAdelanto(av){
 }
 /* ---------- Aviso grande arriba: cosas por confirmar entre Sistema, Corea y Vendedores.
    Pensado para sumar más casos más adelante sin rehacer nada de esto. ---------- */
+/* 28/10/2026 (Andre: "le descuadra cuando está trabajando"). Avisos de la nube, primeros en la franja: si lo que se ve puede no
+   estar al día (sin nube, otra sesión, costos sin confirmar), si hay vehículos retenidos o cambios que no se aplicaron, y si una
+   versión vieja de Sistema escribió costos. */
+let fbAbrioT=Date.now();
+const fbHace=ms=>{ const m=Math.round((Date.now()-ms)/60000); if(m<2) return 'recién'; if(m<60) return 'hace '+m+' min'; const h=Math.round(m/60); if(h<36) return 'hace '+h+' h'; return 'hace '+Math.round(h/24)+' días ('+fd(isoDe(ms))+')'; };
+function fbAvisosNube(){
+  const p=[]; if(!V.length||/^demo_/.test(FB_COL)) return p;   /* la DEMO no usa nube */
+  const al=fbAlDia?' Última vez al día en este aparato: '+fbHace(fbAlDia)+'.':'';
+  const viejo=Object.keys(fbEscrituraVieja).filter(c=>IDX[c]);
+  if(viejo.length){ const v=IDX[viejo[0]]; p.push({texto:'⛔ Una versión vieja de Sistema, abierta en algún aparato, cambió costos en la nube ('+(viejo.length===1?v.ma+' '+v.mo+' '+(v.an||''):viejo.length+' vehículos')+'). Cierra y vuelve a abrir Sistema en el iPhone, iPad y computador, y revisa esos costos.', ir:abrirSync}); }
+  if(fbCuentaAjena) p.push({texto:'⚠ Este navegador tiene la sesión de otra app: estás viendo los costos guardados en este aparato, pueden estar atrasados.'+al+' No anotes nada hasta entrar como Sistema.', ir:abrirSync});
+  else if(!fbReady&&Date.now()-fbAbrioT>8000) p.push({texto:'○ Sin conexión con la nube: estás viendo lo guardado en este aparato.'+al, ir:()=>toast('Lo que anotes queda guardado acá y se sube al volver la conexión, sin pisar lo de tus otros aparatos.')});
+  else if(fbReady&&Date.now()-fbAbrioT>15000){ const n=fbSinConfirmar();
+    if(n&&!fbEnNube.size) p.push({texto:'○ La nube no responde (¿sin señal?): estás viendo lo guardado en este aparato.'+al, ir:()=>toast('Lo que anotes queda guardado acá y se sube al volver la conexión, sin pisar lo de tus otros aparatos.')});
+    else if(n) p.push({texto:'⏳ Todavía no se confirman con la nube los costos de '+n+' vehículo'+(n===1?'':'s')+': lo que ves puede estar atrasado.'+al, ir:()=>toast('Se están bajando; si no hay señal se reintenta solo.')}); }
+  const ret=Object.keys(fbPend).filter(c=>IDX[c]&&fbRetenido(c)).length;
+  if(ret) p.push({texto:'⚠ '+ret+' vehículo'+(ret===1?' muestra':'s muestran')+' datos de este aparato que no coinciden con la nube · elige con cuál te quedas', ir:abrirSync});
+  const nq=fbChoques.filter(x=>IDX[x.ch]).length;
+  if(nq) p.push({texto:'⚠ '+nq+' cambio'+(nq===1?'':'s')+' de este aparato no se aplic'+(nq===1?'ó':'aron')+': en otro aparato ya habían cambiado lo mismo · revisar', ir:abrirSync});
+  return p;
+}
+/* Aviso dentro de la hoja de costos de un vehículo cuyos datos no están confirmados con la nube. */
+function fbAvisoVeh(ch){
+  if(!ch||!V.length||/^demo_/.test(FB_COL)) return '';
+  let t='';
+  if(fbEscrituraVieja[ch]) t='⛔ Una versión vieja de Sistema cambió estos costos en la nube ('+fbHace(fbEscrituraVieja[ch])+'). Revísalos.';
+  else if(fbCuentaAjena||fbCostosDenegados.has(ch)) t='⚠ Estos costos son los guardados en este aparato (la sesión es de otra app): pueden estar atrasados.';
+  else if(fbPend[ch]&&fbRetenido(ch)) t='⚠ Lo que ves es de este aparato y no coincide con la nube. Toca el aviso de arriba para elegir.';
+  else if((fbEnNube.size?fbEnNube.has(ch):fbReady)&&!fbCostosOk.has(ch)) t='⏳ Costos sin confirmar con la nube todavía: pueden estar atrasados'+(fbAlDia?' (al día '+fbHace(fbAlDia)+')':'')+'.';
+  else if(!fbReady&&IDX[ch]&&Date.now()-fbAbrioT>8000) t='○ Sin nube: costos guardados en este aparato'+(fbAlDia?' (al día '+fbHace(fbAlDia)+')':'')+'.';
+  const q=fbChoques.filter(x=>x.ch===ch).length;
+  if(q) t+=(t?' ':'')+'⚠ '+q+' cambio'+(q===1?'':'s')+' tuyo'+(q===1?'':'s')+' no se aplic'+(q===1?'ó':'aron')+' (otro aparato ya lo había cambiado).';
+  return t;
+}
 function pendientesGlobales(){
-  const p=[];
+  const p=fbAvisosNube();
   const nRec=RECOREA.filter(x=>!x.vinculada).length;
   if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   try{ Object.values(EMB||{}).forEach(em=>{ const cod=em.contCod||{}; if(em.itiInsc||!Object.values(cod).some(Boolean)||!(em.veh||[]).length) return;
@@ -7298,7 +7512,7 @@ function pintaPendientes(){
   if(!p.length){ el.hidden=true; el.onclick=null; return; }
   el.hidden=false;
   /* 01/10/2026: cada aviso es su propio botón (antes todo el aviso llevaba solo al primero). */
-  if(p.length===1){ el.textContent='⚠ '+p[0].texto; el.onclick=()=>p[0].ir(); return; }
+  if(p.length===1){ el.textContent=(/^(⚠|⛔|○|⏳|📷|💲)/.test(p[0].texto)?'':'⚠ ')+p[0].texto; el.onclick=()=>p[0].ir(); return; }   /* los avisos de la nube ya traen su símbolo */
   el.innerHTML='<div style="font-size:12px;opacity:.85;margin-bottom:5px">⚠ '+p.length+' cosas por revisar · toca la que quieras</div>'
     +p.map((x,i)=>`<button type="button" data-pendi="${i}" style="display:block;width:100%;text-align:left;background:rgba(255,255,255,.14);color:inherit;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:7px 10px;margin:4px 0;font:inherit;font-weight:700;cursor:pointer">${String(x.texto).replace(/</g,'&lt;')} ›</button>`).join('');
   el.onclick=e=>{ const b=e.target.closest('[data-pendi]'); if(b&&p[+b.dataset.pendi]) p[+b.dataset.pendi].ir(); };
@@ -12474,6 +12688,21 @@ function pintaSync(){
     <div style="font-size:12.5px;color:var(--ink2);margin-top:4px">Pasa cuando se abre la app de Corea (o su copia de pruebas) en este mismo navegador: comparten la sesión. Con esa cuenta Sistema no puede leer los costos ni enviar nada, por eso los cambios se quedan acá. Entra de nuevo con la cuenta de Sistema y la app se recarga sola.</div>
     <div class="acts" style="margin-top:9px"><button class="btn b-pri" id="syLogin" style="flex:1">Entrar como Sistema</button></div></div>`);
   else if(!fbReady) h.push('<p class="mtr" style="margin:4px 0 8px">Sin conexión con la nube por ahora: lo de abajo sale solo al volver.</p>');
+  { const VJ=Object.keys(fbEscrituraVieja).filter(c=>IDX[c]);   /* 28/10/2026 */
+    if(VJ.length) h.push(`<div class="xbox" style="border:1px solid var(--red);border-radius:12px;padding:11px;margin:4px 0 10px">
+      <div style="font-weight:700;color:var(--red)">Una versión vieja de Sistema cambió costos en la nube</div>
+      <div style="font-size:12.5px;color:var(--ink2);margin-top:4px">Pasa cuando Sistema quedó abierto días en un aparato (iPhone, iPad u otra pestaña del computador) con una versión anterior: al volver a usarlo sube su copia vieja de los costos. Ciérralo y vuelve a abrirlo en todos tus aparatos hasta ver el sello de hoy (Negocio → Ajustes). Después revisa estos vehículos y, si les falta algo, recupéralo en Negocio → Ajustes → Respaldo → Copias de seguridad.</div>
+      ${VJ.map(c=>{ const v=IDX[c]; return `<div class="xrow"><div>${syEsc(v.ma)} ${syEsc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono)">${c}</span></div><span>${fbHace(fbEscrituraVieja[c])}</span></div>`; }).join('')}</div>`); }
+  { const Q=fbChoques.map((x,i)=>Object.assign({i},x)).filter(x=>IDX[x.ch]);
+    if(Q.length) h.push(`<div style="border-left:3px solid var(--amber);padding-left:10px;margin:4px 0 14px">
+      <div style="font-weight:700">Cambios de este aparato que no se aplicaron</div>
+      <div class="mtr" style="margin:3px 0 6px">En otro aparato ya habían cambiado lo mismo, así que quedó lo de la nube. Si lo de este aparato era lo correcto, toca "Usar el de este aparato".</div>
+      ${Q.map(x=>{ const v=IDX[x.ch]; return `<div style="padding:8px 0;border-bottom:1px solid var(--line)">
+        <div style="font-weight:700">${syEsc(v.ma)} ${syEsc(v.mo)} ${v.an||''} <span style="color:var(--mute);font-family:var(--mono);font-weight:400">${x.ch}</span> · ${SY_ETIQ[x.campo]||x.campo}</div>
+        <div style="font-size:12.5px">Quedó (nube): ${syItem(x.campo,x.nube)}</div>
+        <div style="font-size:12.5px;color:var(--mute)">Este aparato: ${syItem(x.campo,x.aqui)}</div>
+        <div class="acts" style="margin-top:6px"><button class="btn b-sec" data-sychoq="${x.i}">Usar el de este aparato</button></div></div>`; }).join('')}
+      <div class="acts" style="margin-top:8px"><button class="btn b-pri" id="syChoqOk" style="flex:1">Entendido, dejar lo de la nube</button></div></div>`); }
   if(fbUltimoError) h.push('<p class="mtr" style="margin:4px 0 8px;color:var(--red)">Último error: '+String(fbUltimoError).replace(/</g,'&lt;')+'</p>');
   if(!L.length) h.push('<p class="mtr" style="margin:6px 0;color:var(--green)">✓ No queda nada sin enviar.</p>');
   else{
@@ -12491,12 +12720,28 @@ function pintaSync(){
   el.innerHTML=h.join('');
   $('#syReintenta').hidden=!fbReady||!L.length;
 }
+const syEsc=t=>String(t==null?'':t).replace(/</g,'&lt;');
+const syItem=(campo,x)=>{ if(!x) return '<i>borrado</i>';
+  if(campo==='tasks') return syEsc(TN[x.cat]||CN[x.cat]||x.cat||'')+(x.nota?' · '+syEsc(x.nota):'')+(x.est?' '+clp(x.est):'')+(x.hecho?(x.noAplica?' (no se necesitó)':' (hecho)'):' (pendiente)');
+  return syEsc(CN[x.cat]||x.cat||'')+(x.prov?' · '+syEsc(x.prov):'')+' '+clp(acor(x))+(x.date?' ('+fd(x.date)+')':'')+(csal(x)?' · debe '+clp(csal(x)):''); };
+function fbChoquesGuarda(){ try{ Promise.resolve(window.storage.set(FB_CHOQ_KEY,JSON.stringify(fbChoques))).catch(()=>{}); }catch(_){} try{ pintaPendientes(); pintaScNube(); }catch(_){} }
+document.addEventListener('click',async e=>{
+  if(e.target.closest('#syChoqOk')){ fbChoques=fbChoques.filter(x=>!IDX[x.ch]); fbChoquesGuarda(); alturaFluida($('#syList'),pintaSync); toast('Listo: queda lo de la nube'); return; }
+  const b=e.target.closest('[data-sychoq]'); if(!b) return;
+  const x=fbChoques[+b.dataset.sychoq]; if(!x||!IDX[x.ch]) return;
+  b.disabled=true;
+  const t=st(x.ch), out=[]; let puesto=false;
+  for(const [k,it] of fbIdx(t[x.campo]||[])){ if(k===x.k){ puesto=true; if(x.aqui) out.push(JSON.parse(JSON.stringify(x.aqui))); } else out.push(it); }
+  if(!puesto&&x.aqui) out.push(JSON.parse(JSON.stringify(x.aqui)));
+  t[x.campo]=out; fbChoques.splice(+b.dataset.sychoq,1); fbChoquesGuarda();
+  await save(); draw(); alturaFluida($('#syList'),pintaSync); toast('Listo: se usa el de este aparato y se sube a la nube');
+});
 function abrirSync(){ pintaSync(); openSheet('shSync'); }
-async function fbQuedateNube(chs){
+async function fbQuedateNube(chs,anotar){
   if(!fbReady||fbQuedandoNube) return null;
   fbQuedandoNube=true;
   try{
-    await histTomar('antes de quedarse con la nube',true);
+    await histTomar(anotar?'antes de poner al día cambios viejos sin enviar':'antes de quedarse con la nube',true);
     let n=0, falla=0;
     for(const ch of chs){
       const v=IDX[ch]; if(!v){ delete fbPend[ch]; continue; }
@@ -12508,6 +12753,10 @@ async function fbQuedateNube(chs){
         FB_COREA_FIELDS.forEach(k=>{ if(cor[k]===undefined&&priv[k]!==undefined&&priv[k]!==null) cor[k]=priv[k]; });
         /* lo que este aparato tiene y la nube no: se quita, para que quede igual que la nube */
         const loc=fbSnapVeh(v)||{pub:{},priv:{},cor:{}}, t=st(ch);
+        /* lo de este aparato en costos y pendientes que la nube no tiene igual: queda anotado para poder recuperarlo */
+        if(anotar) FB_LISTAS.forEach(k=>{ const mC=fbIdx(priv[k]||[]), q=[];
+          for(const [id,x] of fbIdx(loc.priv[k]||[])) if(!mC.has(id)||!fbIgual(mC.get(id),x)) q.push({k:id,aqui:x,nube:mC.get(id)||null});
+          fbChoquesAnota(ch,k,q); });
         for(const k in loc.pub) if(pub[k]===undefined&&k!=='ch'){ if(FB_PUB_FIELDS.includes(k)) delete v[k]; else if(FB_S_FIELDS.includes(k)) delete t[k]; }
         for(const k in loc.priv) if(priv[k]===undefined){ if(k==='costs') t.costs=[]; else if(FB_PRIV_FIELDS.includes(k)) delete v[k]; else if(FB_PRIV_S_FIELDS.includes(k)) delete t[k]; }
         for(const k in loc.cor) if(cor[k]===undefined) delete v[k];
@@ -12521,16 +12770,32 @@ async function fbQuedateNube(chs){
   }finally{ fbQuedandoNube=false; }
 }
 let fbQuedandoNube=false;
+/* 28/10/2026 (el Mac con "22 sin enviar" mostraba costos de hace 2 semanas). Un cambio pendiente SIN copia de referencia de la nube
+   solo puede venir de una versión de antes del 16/10/2026 (desde entonces todo pendiente guarda su copia): es viejo y nunca
+   llegó a la nube. Mientras estaba retenido, este aparato seguía mostrando su versión vieja. Ahora se pone igual que la nube
+   solo; antes se guarda una foto en "Deshacer cambios" y cada costo o pendiente de este aparato que no coincide queda en
+   "Cambios de este aparato que no se aplicaron" (hoja de la nube), para recuperarlo con un toque si era lo correcto. */
+let fbViejosHecho=false;
+async function fbViejosANube(){
+  if(fbViejosHecho||!fbReady||fbCuentaAjena||/^demo_/.test(FB_COL)) return;
+  /* solo los de versiones anteriores (fbPend===true) o con más de 3 días: uno recién creado acá sin conexión no se toca */
+  const L=Object.keys(fbPend).filter(c=>IDX[c]&&!fbBase[c]&&fbEnNube.has(c)&&!fbForzar.has(c)&&(fbPend[c]===true||Date.now()-(+fbPend[c]||0)>3*864e5));
+  if(!L.length) return;
+  fbViejosHecho=true;
+  const r=await fbQuedateNube(L,true);
+  if(r&&r.n){ toast('Se pusieron al día con la nube '+r.n+' vehículo'+(r.n===1?'':'s')+' que tenían cambios viejos sin enviar de este aparato'); try{ pintaPendientes(); }catch(_){} }
+  else fbViejosHecho=false;
+}
 document.getElementById('syncChip').addEventListener('click',()=>{
   const n=Object.keys(fbPend).length;
-  if(!n&&!fbCuentaAjena){ toast(fbReady?'Todo enviado a la nube ✓':'Sin conexión con la nube por ahora.'); return; }
+  if(!n&&!fbCuentaAjena&&!fbChoques.some(x=>IDX[x.ch])&&!Object.keys(fbEscrituraVieja).length){ toast(fbReady?'Todo enviado a la nube ✓':'Sin conexión con la nube por ahora.'); return; }
   abrirSync();
 });
 document.addEventListener('click',async e=>{
   if(e.target.closest('#syLogin')){ closeAll(); fbMuestraLogin(true); return; }
   const en=e.target.closest('[data-syenvia]');
   if(en){ const ch=en.dataset.syenvia, v=IDX[ch];
-    if(!confirm('¿Enviar a la nube lo que tiene este aparato para '+(v?v.ma+' '+v.mo:ch)+'?\n\nReemplaza en la nube los campos marcados (lo que cargaste en tus otros aparatos para esos campos se pierde).')) return;
+    if(!confirm('¿Enviar a la nube lo que tiene este aparato para '+(v?v.ma+' '+v.mo:ch)+'?\n\nReemplaza en la nube los campos marcados (lo que cargaste en tus otros aparatos para esos campos se pierde). Costos y pendientes no se reemplazan: se suman los de este aparato que falten y no se borra ninguno de la nube.')) return;
     en.disabled=true; fbForzar.add(ch); fbFallos=0; await fbPushChanges();
     alturaFluida($('#syList'),pintaSync); toast(fbPend[ch]?'No se pudo enviar todavía'+(fbUltimoError?' ('+fbUltimoError+')':''):'✓ Enviado'); return; }
   const b=e.target.closest('[data-synube]'), todos=e.target.closest('#syNubeTodos');
