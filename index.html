@@ -866,7 +866,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 19:21<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 19:55<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2000,7 +2000,10 @@ function fbCoreaData(v){   /* lo que va a privado/corea; mismo criterio que fbPr
   const o={}; FB_COREA_FIELDS.forEach(k=>{ if(v[k]!==undefined && v[k]!==null) o[k]=v[k]; });
   return o;
 }
-function fbHash(o){ try{return JSON.stringify(o)}catch(e){return ''} }
+/* 28/10/2026: la nube devuelve los campos de cada objeto en otro orden que el aparato; comparar el texto tal cual hacía ver
+   "cambios" que no eran (y la fusión por elemento frenaba como choque una edición real). Se compara con las claves ordenadas. */
+function fbCanon(x){ if(Array.isArray(x)) return x.map(fbCanon); if(x&&typeof x==='object'&&typeof x.toMillis!=='function'){ const o={}; Object.keys(x).sort().forEach(k=>{ o[k]=fbCanon(x[k]); }); return o; } return x; }
+function fbHash(o){ try{return JSON.stringify(fbCanon(o))}catch(e){return ''} }
 
 function fbPintaEstado(txt,color){
   const el=document.getElementById('fbEstadoSync');
@@ -2104,7 +2107,7 @@ let fbPend={}, fbBaseOk=false, fbEnviando=false, fbRepetir=false, fbFallos=0, fb
 async function fbPendCarga(){
   try{ const r=await window.storage.get(FB_PEND_KEY); if(r&&r.value){ const o=JSON.parse(r.value); if(o&&typeof o==='object'&&!Array.isArray(o)) fbPend=o; }
     const rb=await window.storage.get(FB_BASE_KEY); if(rb&&rb.value){ const b=JSON.parse(rb.value)||{}; for(const c in b) if(fbPend[c]&&!fbBase[c]) fbBase[c]=b[c]; }
-    const rq=await window.storage.get(FB_CHOQ_KEY); if(rq&&rq.value){ const q=JSON.parse(rq.value); if(Array.isArray(q)) fbChoques=q; }
+    const rq=await window.storage.get(FB_CHOQ_KEY); if(rq&&rq.value){ const q=JSON.parse(rq.value); if(Array.isArray(q)) fbChoques=q.filter(x=>x&&!fbIgual(x.aqui,x.nube)); }   /* los que solo diferían en el orden de los campos no eran choques (antes de las 19:55 del 28/10/2026) */
     const ra=await window.storage.get(FB_ALDIA_KEY); if(ra&&ra.value) fbAlDia=+ra.value||0; }
   catch(e){ console.error('fbPendCarga',e); }
 }
