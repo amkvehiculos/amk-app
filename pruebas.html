@@ -867,7 +867,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->28-10-2026 20:13 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-11-2026 17:01 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1306,7 +1306,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <button class="btn b-sec" id="scCoreaDeshacer" hidden style="margin:0 0 13px">↺ Deshacer "Aplicar costos"</button>
     <div id="scCoreaValorWrap" hidden style="margin-bottom:13px"><div class="fld"><label for="scCoreaValor">Valor de compra</label>
       <span style="display:flex;align-items:center;gap:6px"><input id="scCoreaValor" inputmode="numeric" placeholder="0" style="flex:1"> ₩</span></div></div>
-    <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Este vehículo no está vinculado a ningún embarque, así que el valor de compra no se puede editar desde acá -- se agrega al crear o cargar el embarque.</p>
+    <p id="scCoreaSinEmb" hidden style="color:var(--mute);font-size:12.5px;margin:0 0 13px">Es el mismo valor que ve tu mamá en su app: si lo cambias acá, a ella le llega solo.</p>
     <div id="scCoreaC"></div>
     <div class="money" id="scCoreaT" style="margin-top:11px"></div>
     <div class="sact fija" id="scCoreaGuardarWrap"><button class="cx" data-close>Cerrar</button><button class="ok" id="scCoreaGuardar">Guardar costos Corea</button></div>
@@ -2054,7 +2054,7 @@ async function fbInit(){
         /* 28/10/2026: lo de la nube se aplica recién cuando boot() terminó de leer lo guardado en el aparato. Antes, si la nube
            respondía primero, boot() reemplazaba los costos recién bajados por la copia vieja del aparato, y esa copia vieja
            quedaba como "cambio de este aparato" y se subía, pisando lo más nuevo (probado con una nube simulada). */
-        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
+        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); nubeValEscucha(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2796,6 +2796,10 @@ NUBE_DOCS['amk_cats_nube']={col:NUBE_DOCS['amk_embarques'].col,doc:'catsCosto',t
 /* 21/10/2026 (Andre): talleres o personas por categoría ("en Mecánica, Diego y Otro"), también entre aparatos.
    Mapa {'CAT|NOMBRE_NORMALIZADO':{cat,n:'DIEGO'}}: el mismo nombre con o sin tildes/mayúsculas es uno solo. Ver talleresDeCat. */
 NUBE_DOCS['amk_talleres_cat']={col:NUBE_DOCS['amk_embarques'].col,doc:'talleresCosto',tipo:'mapa',nom:'talleres por categoría'};
+/* 02/11/2026 (Andre): los gastos generales (combustible, insumos, trámites) y las compras de divisas quedaban solo en el
+   aparato donde se anotaban: el combustible del 30/10 estaba en el iPhone y el Mac no lo veía. Ahora viajan como los adelantos. */
+NUBE_DOCS['amk_gastos_gen']={col:NUBE_DOCS['amk_embarques'].col,doc:'gastosGenerales',tipo:'lista',clave:'ts',nom:'gastos generales'};
+NUBE_DOCS['amk_fx']={col:NUBE_DOCS['amk_embarques'].col,doc:'divisas',tipo:'lista',clave:'ts',nom:'compras de divisas'};
 const NUBE_MAX=900000;
 const nubeUlt={}, nubeMod={}, nubeBorr={}, nubeTimers={}, nubePend={}, nubeListo={};
 /* Hasta que este aparato no se haya puesto al día con la nube, lo que se guarde NO se sella con hora:
@@ -2913,9 +2917,12 @@ async function nubeAplicaLocal(k,mezcla){
   return true;
 }
 /* Refresca embarques/remesas en pantalla. Si estás escribiendo en un campo, espera a que termines. */
+/* Hay alguien escribiendo: un campo con el foco que no esté dentro de una hoja ya cerrada (al guardar, el foco
+   puede quedar en el campo de la hoja que se cerró, y eso no es estar escribiendo). */
+function nubeEscribiendo(){ const a=document.activeElement; if(!a||!/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;
+  const sh=a.closest&&a.closest('.sheet'); return !(sh&&!sh.classList.contains('on')); }
 function nubeRefresca(k){
-  const act=document.activeElement;
-  if(act&&/^(INPUT|TEXTAREA|SELECT)$/.test(act.tagName)){ clearTimeout(nubeTimers[k+'_r']); nubeTimers[k+'_r']=setTimeout(()=>nubeRefresca(k),1500); return; }
+  if(nubeEscribiendo()){ clearTimeout(nubeTimers[k+'_r']); nubeTimers[k+'_r']=setTimeout(()=>nubeRefresca(k),1500); return; }
   if(k==='amk_embarques'){
     (async()=>{ try{ const r=await window.storage.get(k); const o=nubeParse(r&&r.value)||{}; EMB=o.items||{};
       if(!embId||!EMB[embId]){ const ids=Object.keys(EMB); embId=ids.length?ids[0]:null; }
@@ -2932,6 +2939,10 @@ function nubeRefresca(k){
     (async()=>{ try{ const r=await window.storage.get(k); PF=nubeParse(r&&r.value)||[]; pintaFJ(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_remesas'){
     (async()=>{ try{ const r=await window.storage.get(k); RM=nubeParse(r&&r.value)||[]; pintaRM(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_gastos_gen'){
+    (async()=>{ try{ const r=await window.storage.get(k); GEN=nubeParse(r&&r.value)||[]; pintaGen(); drawResumen(); pintaFlujo(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_fx'){
+    (async()=>{ try{ const r=await window.storage.get(k); FX=nubeParse(r&&r.value)||[]; pintaFX(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_talleres_cat'){
     (async()=>{ try{ await cargaTalleresCat(); if($('#shCost').classList.contains('on')) pintaScProv(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_cats_nube'){
@@ -2974,6 +2985,103 @@ function nubeRestauraDocs(){
     });
   }
   window.addEventListener('online',()=>{ for(const k in NUBE_DOCS) if(nubePend[k]) nubeSube(k); });
+}
+/* 02/11/2026 (Andre): "nada debería quedar solo en el aparato". Los ajustes que no son una lista con id (sueldos base,
+   comisión, gastos fijos en Corea, liberación, FODA, tipo de cambio, flujo, comunas, talleres, período) viajan enteros:
+   cada aparato anota la hora de su último cambio (llave__mod) y gana el más nuevo. La primera vez, lo que tenía el
+   aparato queda respaldado en la nube (respaldo_local_…), igual que embarques y remesas, así nada se pierde. */
+const NUBE_VAL={
+  'amk_fijos':{nom:'sueldos base',carga:()=>cargaFJ()},
+  'amk_comision':{nom:'comisión por venta',carga:()=>cargaFJ()},
+  'amk_qveh':{nom:'descuento del vehículo',carga:()=>cargaFJ()},
+  'amk_fijos_krw':{nom:'gastos fijos en Corea',carga:()=>cargaFJ()},
+  'amk_liberacion':{nom:'datos de liberación',carga:()=>cargaLB()},
+  'amk_tc':{nom:'tipo de cambio',carga:async()=>{ const r=await window.storage.get('amk_tc'); const o=nubeParse(r&&r.value); if(o) TC=Object.assign(TC,o); pintaTC(); }},
+  'amk_flowcfg':{nom:'flujo de caja',carga:()=>cargaFlowCfg()},
+  'amk_periodo':{nom:'período',carga:async()=>{ const r=await window.storage.get('amk_periodo'); const o=nubeParse(r&&r.value); if(o) PER=o; if(!PER.saldoDesde) PER.saldoDesde=mesActual(); pintaEmb(); }},
+  'amk_foda':{nom:'FODA',carga:async()=>{ await cargaFoda(); pintaFin(); }},
+  'amk_comunas':{nom:'comunas',carga:()=>cargaComunas()},
+  'amk_talleres':{nom:'talleres',carga:()=>cargaTalleres()}
+};
+const nubeValMod={}, nubeValListo={}, nubeValTimers={}, nubeValPend={};
+setTimeout(()=>{ for(const k in NUBE_VAL) nubeValListo[k]=true; },8000);
+const nubeValRef=k=>fbDb.collection(NUBE_DOCS['amk_embarques'].col).doc('val_'+k.replace(/^amk_/,''));
+async function nubeValModLoc(k){
+  if(nubeValMod[k]==null){ try{ const r=await window.storage.get(k+'__mod'); nubeValMod[k]=+(r&&r.value)||0; }catch(_){ nubeValMod[k]=0; } }
+  return nubeValMod[k];
+}
+(function(){
+  const _set=window.storage.set.bind(window.storage);
+  window.storage.set=async function(k,v){
+    if(!NUBE_VAL[k]) return _set(k,v);
+    let antes=null; try{ const r=await window.storage.get(k); antes=r&&r.value; }catch(_){}
+    const r=await _set(k,v);
+    if(antes===v||!nubeValListo[k]) return r;
+    nubeValMod[k]=Date.now(); try{ await nubeRawSet(k+'__mod',String(nubeValMod[k])); }catch(_){}
+    nubeValPend[k]=true; clearTimeout(nubeValTimers[k]); nubeValTimers[k]=setTimeout(()=>nubeValSube(k),1500);
+    return r;
+  };
+})();
+/* Deja en este aparato lo que llegó de otro y repinta (si estás escribiendo en un campo, espera a que termines). */
+async function nubeValAplica(k,json,mod){
+  await nubeRawSet(k,json); await nubeRawSet(k+'__mod',String(mod)); nubeValMod[k]=mod;
+  nubeValRecarga(k);
+}
+function nubeValRecarga(k){
+  if(nubeEscribiendo()){ clearTimeout(nubeValTimers[k+'_r']); nubeValTimers[k+'_r']=setTimeout(()=>nubeValRecarga(k),1500); return; }
+  Promise.resolve().then(()=>NUBE_VAL[k].carga()).catch(e=>console.error('nubeValRecarga',k,e));
+}
+async function nubeValSube(k){
+  if(!fbReady||!fbDb){ nubeEstado('Sin conexión: guardado en este aparato, se sube al volver','var(--amber)'); return; }
+  let txt=null; try{ const r=await window.storage.get(k); txt=(r&&r.value)||null; }catch(_){}
+  if(txt==null){ nubeValPend[k]=false; return; }
+  const mod=(await nubeValModLoc(k))||1;   /* sin hora (dato de antes de este cambio): pierde contra cualquier cambio real */
+  try{
+    let gana=null;
+    await fbDb.runTransaction(async tx=>{
+      gana=null;
+      const s=await tx.get(nubeValRef(k)); const d=s.exists?(s.data()||{}):{};
+      if((+d._mod||0)>mod&&typeof d.json==='string'){ gana=d; return; }
+      if(txt.length>NUBE_MAX) throw new Error('Los datos de '+NUBE_VAL[k].nom+' pesan demasiado para la nube. Avísale a Claude.');
+      tx.set(nubeValRef(k),{json:txt,_mod:mod,_ts:firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    nubeValPend[k]=false;
+    if(gana&&gana.json!==txt) await nubeValAplica(k,gana.json,+gana._mod);
+    nubeEstado('✓ Sincronizado','var(--green)');
+  }catch(e){
+    console.error('nubeValSube',k,e);
+    nubeEstado(navigator.onLine===false?'Sin conexión: guardado en este aparato, se sube al volver':('✗ No se pudo sincronizar '+NUBE_VAL[k].nom+': '+(e.message||e.code||e)),'var(--amber)');
+  }
+}
+async function nubeValRespaldo(k){
+  const flag='nube_respaldo_v1_'+k;
+  try{ const f=await window.storage.get(flag); if(f&&f.value) return; }catch(_){}
+  let txt=''; try{ const r=await window.storage.get(k); txt=(r&&r.value)||''; }catch(_){}
+  try{
+    if(txt){ const ua=(navigator.userAgent.match(/iPhone|iPad|Macintosh|Android|Windows/)||['otro'])[0];
+      await fbDb.collection(NUBE_DOCS['amk_embarques'].col).doc('respaldo_local_'+ua+'_'+k.replace(/^amk_/,'')+'_'+Date.now()).set({json:txt,aparato:navigator.userAgent,fecha:new Date().toISOString()}); }
+    await nubeRawSet(flag,'1');
+  }catch(e){ console.error('nubeValRespaldo',k,e); }
+}
+let nubeValEscuchando=false;
+function nubeValEscucha(){
+  if(!fbReady||!fbDb||nubeValEscuchando) return;
+  nubeValEscuchando=true;
+  for(const k in NUBE_VAL){
+    nubeValRespaldo(k).then(()=>{
+      nubeValRef(k).onSnapshot(async s=>{
+        if(s.metadata&&s.metadata.hasPendingWrites) return;
+        const d=s.exists?(s.data()||{}):{}, cm=+d._mod||0, lm=await nubeValModLoc(k);
+        let txt=null; try{ const r=await window.storage.get(k); txt=(r&&r.value)||null; }catch(_){}
+        nubeValListo[k]=true;
+        if(typeof d.json==='string'&&cm>lm){
+          if(d.json!==txt) await nubeValAplica(k,d.json,cm);
+          else { nubeValMod[k]=cm; try{ await nubeRawSet(k+'__mod',String(cm)); }catch(_){} }
+        } else if(txt!=null&&(lm>cm||!s.exists||nubeValPend[k])){ clearTimeout(nubeValTimers[k]); nubeValTimers[k]=setTimeout(()=>nubeValSube(k),800); }
+      },e=>{ console.error('nube val listen',k,e); });
+    });
+  }
+  window.addEventListener('online',()=>{ for(const k in NUBE_VAL) if(nubeValPend[k]) nubeValSube(k); });
 }
 const WEB_COL='pruebas_catalogoPublico';
 const webUltimo={};
@@ -5680,6 +5788,8 @@ function personas(){
   const ps=Object.keys(FJ).filter(k=>k==='victor'||k==='bryan');
   return ps.length?ps:['victor','bryan'];
 }
+/* 02/11/2026: gastos generales y divisas viajan a la nube identificados por ts; uno viejo sin ts se perdería en la mezcla. */
+function conTs(L){ let n=0; (Array.isArray(L)?L:[]).forEach((x,i)=>{ if(x&&x.ts==null){ x.ts=(Date.parse(x.fecha||x.f||'')||Date.now())+i; n++; } }); return n; }
 async function cargaFJ(){
   try{const r=await window.storage.get('amk_fijos'); if(r&&r.value) FJ=JSON.parse(r.value)}catch(e){}
   if(!Object.keys(FJ).length) FJ=Object.fromEntries(FJDEF.map(([k])=>[k, k==='victor'?1800000:(k==='bryan'?500000:0)]));
@@ -5688,6 +5798,7 @@ async function cargaFJ(){
   try{const r=await window.storage.get('amk_deudas'); if(r&&r.value) DEU=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_fletes'); if(r&&r.value) FL=JSON.parse(r.value)||[]}catch(e){}
   try{const r=await window.storage.get('amk_gastos_gen'); if(r&&r.value) GEN=JSON.parse(r.value)}catch(e){}
+  if(conTs(GEN)) try{ await nubeRawSet('amk_gastos_gen',JSON.stringify(GEN)); }catch(_){}   /* la nube los identifica por ts */
   await cargaCatsCustom();
   try{const r=await window.storage.get('amk_comision'); if(r&&r.value) COMB=+JSON.parse(r.value)||0}catch(e){}
   try{const r=await window.storage.get('amk_qveh'); if(r&&r.value) QV=JSON.parse(r.value)}catch(e){}
@@ -6168,16 +6279,28 @@ $('#fjOk').addEventListener('click',async()=>{
   pintaFJ(); closeAll(); toast('Costos fijos guardados');
   fbSyncSueldosPronto();
 });
+/* 02/11/2026 (Andre): se pueden ver los meses anteriores (antes solo el mes en curso: el 2 de noviembre ya no había
+   forma de revisar si el combustible del 30/10 estaba anotado). */
+let genMes='';
 function pintaGen(){
   const el=$('#genList'); if(!el) return;
-  const m=mesActual();
+  const hoyM=mesActual(), m=genMes&&genMes<hoyM?genMes:hoyM;
+  const meses=[...new Set(GEN.map(x=>(x.fecha||'').slice(0,7)).filter(Boolean))].sort();
+  const primero=meses.length&&meses[0]<hoyM?meses[0]:hoyM;
+  const nomM=k=>{ const [y,mm]=k.split('-').map(Number); const t=new Date(y,mm-1,1).toLocaleDateString('es-CL',{month:'long',year:'numeric'}); return t.charAt(0).toUpperCase()+t.slice(1); };
+  const nav=primero<hoyM?`<div class="xrow" style="align-items:center;margin-bottom:6px"><button class="b-und" data-genmes="-1" ${m<=primero?'disabled style="opacity:.35"':''} aria-label="Mes anterior">‹ Anterior</button>
+      <span style="font-family:var(--body);font-weight:700">${nomM(m)}</span>
+      <button class="b-und" data-genmes="1" ${m>=hoyM?'disabled style="opacity:.35"':''} aria-label="Mes siguiente">Siguiente ›</button></div>`:'';
   const L=GEN.filter(x=>(x.fecha||'').slice(0,7)===m).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const tot=L.reduce((a,x)=>a+x.monto,0);
-  el.innerHTML=(L.length?L.map(x=>`<div class="xrow">
+  el.innerHTML=nav+(L.length?L.map(x=>`<div class="xrow">
       <span style="font-family:var(--body)">${GENCATN[x.cat]||x.cat}${x.nota?' · '+String(x.nota).toUpperCase().replace(/</g,'&lt;'):''}<br><span style="color:var(--mute);font-size:12px">${fd(x.fecha)}</span></span>
-      <span>${clp(x.monto)}<button class="b-sec" style="margin-left:8px;padding:4px 8px" data-genedit="${x.ts}" title="Corregir">✎</button><button class="b-und" style="margin-left:8px;padding:4px 8px" data-gendel="${x.ts}">✕</button></span></div>`).join(''):'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin gastos generales este mes.</p>')
+      <span>${clp(x.monto)}<button class="b-sec" style="margin-left:8px;padding:4px 8px" data-genedit="${x.ts}" title="Corregir">✎</button><button class="b-und" style="margin-left:8px;padding:4px 8px" data-gendel="${x.ts}">✕</button></span></div>`).join(''):'<p style="color:var(--mute);font-size:13.5px;margin:0">Sin gastos generales '+(m===hoyM?'este mes':'en '+nomM(m).toLowerCase())+'.</p>')
     +(L.length?`<div class="xrow" style="border-top:1px solid var(--line);margin-top:6px;padding-top:8px"><span style="font-family:var(--body);font-weight:700">Total del mes</span><span style="font-weight:700">${clp(tot)}</span></div>`:'');
 }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-genmes]'); if(!b||b.disabled) return;
+  const [y,mm]=(genMes||mesActual()).split('-').map(Number), d=new Date(y,mm-1+(+b.dataset.genmes),1);
+  genMes=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); alturaFluida($('#boxGen'),()=>pintaGen()); });
 $('#genAdd').addEventListener('click',()=>{
   genCat='COMBUSTIBLE';
   $('#genCatg').innerHTML=GENCAT.map(([k,n])=>`<button class="cg" data-genc="${k}" aria-pressed="${k===genCat}">${n}</button>`).join('');
@@ -6212,7 +6335,7 @@ $('#genOk').addEventListener('click',async()=>{
   const nota=$('#genN').value.trim().toUpperCase();
   if(!nota){toast('Toca un botón o "＋ Otro" para escribir qué compraste');return}
   const g={ts:Date.now(),cat:genNoIns||(/COMBUSTIBLE|BENCINA|PETR[OÓ]LEO|DI[EÉ]SEL/.test(nota)?'COMBUSTIBLE':'INSUMOS'),monto:m,fecha:$('#genD').value||iso(),nota};   /* categoría según lo que se compró */
-  GEN.push(g);
+  GEN.push(g); genMes=g.fecha.slice(0,7);   /* se ve el mes del gasto recién anotado */
   const nuevoFijo=insFijoDeGen(g);
   if(nuevoFijo) await guardaConfigPend();   /* primero el botón (antes se guardaba después y el aviso quedaba tapado por "Gasto anotado") */
   await guardaGen();
@@ -6453,6 +6576,7 @@ async function guardaTC(){
 let FX=[];
 async function cargaFX(){
   try{const r=await window.storage.get('amk_fx'); if(r&&r.value) FX=JSON.parse(r.value)}catch(e){}
+  if(conTs(FX)) try{ await nubeRawSet('amk_fx',JSON.stringify(FX)); }catch(_){}
   pintaFX();
 }
 function tcFX(){
@@ -7670,6 +7794,7 @@ document.addEventListener('change',async e=>{
     await guardaEmb(); pintaEmb(); return}
   const valset=e.target.closest('[data-emvvalset]');
   if(valset){const i=+valset.dataset.emvvalset; const ve=E()&&E().veh[i]; if(!ve)return;
+    const vv=IDX[ve.ch]; if(vv&&!vv.ct){ await guardaValorCompra(ve.ch, pnum(valset.value)||0); pintaEmb(); return; }   /* mismo valor que ve la mamá (02/11/2026) */
     ve.valor=pnum(valset.value)||0;
     await guardaEmb(); pintaEmb(); return}
   const contcod=e.target.closest('[data-emcontcod]');
@@ -9345,20 +9470,26 @@ const CIERRE_VIDEO='Escríbenos y te contamos todo.';
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
 function tomasVideo(v,despues){
-  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo. */
+  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo.
+     15 tomas de una sola vez (Andre, 02/11/2026): dos opciones por cada momento del video y el cierre; cada estilo
+     de video (clásico, ficha, 3 razones) usa una combinación distinta. Mismo texto que tomas() de GENERAR VIDEOS/fuente/nuevo.py. */
   const trab=!!(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim()));
   const ca=String(v.ca||'').trim().toUpperCase();
   const car=ca&&ca!=='S/N'?(CARN[ca]||({'BARANDA BAJA':'baranda baja','CAJON SIMPLE':'cajón simple','CAJÓN SIMPLE':'cajón simple','POWER GATE':'power gate'})[ca]||ca.toLowerCase()):'';
-  const t4=v.tp&&!trab?'techo panorámico desde adentro, mirando hacia arriba'
-    :(trab&&car?'la carrocería ('+car+') por fuera, abierta si se puede'
-    :(String(v.tr||'').toUpperCase()==='4X4'?'perilla o palanca de la tracción 4x4'
-    :'lo que más lo distingue (pantalla, cámara, llantas…)'));
-  const t6=trab?(car?'la zona de carga, vacía':'la cabina completa desde el lado del copiloto')
-    :((+v.pa||0)>=7?'segunda y tercera corrida de asientos':'asientos traseros');
-  const L=['frontal 3/4, caminando hacia el vehículo','paneo lateral completo, de adelante hacia atrás',
-    trab?'cabina desde la puerta abierta':'interior desde la puerta abierta',t4,'tablero, volante y palanca de cambios',t6,
-    'detalle de rueda o parrilla','frontal completo, con el teléfono quieto, 3 segundos'];
-  return 'Vertical · 1080p · 5 a 8 s cada una · en este orden\n\n'
+  const t4=v.tp&&!trab?['techo panorámico desde adentro, mirando hacia arriba','techo panorámico abierto, desde el asiento de atrás']
+    :(trab&&car?['la carrocería ('+car+') por fuera, abierta si se puede','la carrocería ('+car+') por dentro']
+    :(String(v.tr||'').toUpperCase()==='4X4'?['perilla o palanca de la tracción 4x4','rueda y suspensión de lado, que se vea la altura']
+    :['lo que más lo distingue (pantalla, cámara, llantas…)','otro detalle que lo distinga (luces, asientos, volante…)']));
+  const t6=trab?(car?['la zona de carga, vacía','la carrocería desde atrás, abierta']:['la parte de atrás, donde va la carga','vista trasera completa'])
+    :((+v.pa||0)>=7?['segunda y tercera corrida de asientos','tercera corrida desde el maletero abierto']:['asientos traseros','maletero abierto']);
+  const cab=trab?'cabina':'interior';
+  const L=['frontal 3/4, caminando hacia el vehículo','trasera 3/4, caminando hacia el vehículo',
+    'paneo lateral completo, de adelante hacia atrás','paneo por el otro lado, de atrás hacia adelante',
+    cab+' desde la puerta del conductor',trab?'cabina desde el lado del copiloto, mirando al volante':'interior desde el asiento de atrás, mirando hacia el tablero',
+    ...t4,'tablero, volante y palanca de cambios',trab?'palanca de cambios y pedales de cerca':'motor, con el capó abierto',...t6,
+    'rueda y llanta de cerca','parrilla y faros encendidos','frontal completo, con el teléfono quieto, 3 segundos'];
+  return '15 tomas de una vez · vertical · 1080p · 5 a 7 s cada una · en este orden\n'
+    +'Si alguna no se puede, graba 2 s de cualquier cosa igual, para que no se corra el orden.\n\n'
     +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
     +'\n\nDespués: '+despues;
 }
@@ -9368,7 +9499,7 @@ function genWA(v){
 
 Sobre el ${v.ma} ${v.mo} ${v.an||''}:
 ${f.map(x=>'• '+x).join('\n')}
-${v.sv?'• Apto sello verde (circula en Santiago, V y VI región)\n':''}
+${v.sv?'• Apto sello verde (circula en Santiago, Valparaíso y Viña del Mar)\n':''}
 ${priceLine(v)}
 
 Lo tenemos acá en Iquique y lo puedes venir a ver cuando quieras. ¿Te acomoda algún día de esta semana?`;
@@ -11862,14 +11993,12 @@ function pintaCorea(){
   const btnDesh=$('#scCoreaDeshacer'); if(btnDesh) btnDesh.hidden=!bloq;
   const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
   const vwrap=$('#scCoreaValorWrap'); const sinEmb=$('#scCoreaSinEmb');
-  if(veV){
-    vwrap.hidden=false; vwrap.style.display=''; sinEmb.hidden=true;
-    const inpVal=$('#scCoreaValor');
-    inpVal.value=veV.valor?Math.round(veV.valor).toLocaleString('es-CL'):'';
-    inpVal.disabled=bloq; inpVal.style.color=bloq?'var(--mute)':'var(--ink)';
-  } else {
-    vwrap.hidden=true; vwrap.style.display='none'; sinEmb.hidden=false;
-  }
+  /* 02/11/2026 (Andre): el valor de compra se edita siempre acá, esté o no en un embarque. Es uno solo:
+     v.krw (lo que carga la mamá, viaja a privado/corea) y, si está en un embarque, también su valor ahí (prorrateo). */
+  { vwrap.hidden=false; vwrap.style.display=''; sinEmb.hidden=bloq;
+    const inpVal=$('#scCoreaValor'), val=v.krw||(veV&&veV.valor)||0;
+    if(document.activeElement!==inpVal) inpVal.value=val?Math.round(val).toLocaleString('es-CL'):'';
+    inpVal.disabled=bloq; inpVal.style.color=bloq?'var(--mute)':'var(--ink)'; }
   $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
     <span style="font-family:var(--body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
     <span style="white-space:nowrap;flex:0 0 auto"><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
@@ -11879,6 +12008,17 @@ function pintaCorea(){
   $('#scCoreaT').innerHTML=t?`<div>Total en Corea <b>${Math.round(t).toLocaleString('es-CL')} ₩</b></div>
     <div>En pesos <b>${clp(ccCLP(v))}</b></div>`:'';
   const btnG=$('#scCoreaGuardar'); if(btnG){ btnG.hidden=bloq; btnG.style.display=bloq?'none':''; }
+}
+/* Valor de compra en wones: mismo dato en el vehículo (v.krw → nube → app de Corea) y en su embarque (veV.valor).
+   Devuelve true si cambió algo. */
+async function guardaValorCompra(ch,n){
+  const v=IDX[ch]; if(!v||v.ct) return false;
+  const emVeh=embDeVeh(ch), veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
+  let cambio=false;
+  if((+v.krw||0)!==n){ v.krw=n; cambio=true; guardaCacheV();
+    try{ if(typeof fbDetectaCambios==='function') fbDetectaCambios(); fbSchedulePush(); }catch(_){} }
+  if(veV && (+veV.valor||0)!==n){ veV.valor=n; cambio=true; await guardaEmb(); }
+  return cambio;
 }
 async function guardaScCorea(){
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
@@ -11894,18 +12034,14 @@ async function guardaScCorea(){
   guardaCacheV();
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
-  const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
-  if(veV && !v.ct){
-    const inpVal=$('#scCoreaValor');
-    if(inpVal && !inpVal.disabled){ veV.valor=pnum(inpVal.value)||0; await guardaEmb(); }
-  }
+  const inpVal=$('#scCoreaValor');
+  if(inpVal && !inpVal.disabled && !v.ct) await guardaValorCompra(ch, pnum(inpVal.value)||0);
   pintaCorea(); draw(); toast('Costos de Corea guardados ✓');
 }
 document.addEventListener('change',async e=>{
   const valEl=e.target.closest('#scCoreaValor'); if(valEl){
     const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v||v.ct)return;
-    const emVeh=embDeVeh(ch); const veV=emVeh&&(emVeh.veh||[]).find(x=>x.ch===ch);
-    if(veV){ veV.valor=pnum(valEl.value)||0; await guardaEmb(); toast('Valor de compra guardado'); }
+    if(await guardaValorCompra(ch, pnum(valEl.value)||0)) toast('Valor de compra guardado · tu mamá lo ve en su app');
     return;
   }
   const el=e.target.closest('[data-cck]'); if(!el)return;

@@ -93,6 +93,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .opt{display:flex;gap:6px;flex-wrap:wrap}
 .opt button{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:13.5px;color:var(--ink2);cursor:pointer}
 .opt button[aria-pressed="true"]{background:var(--sea);border-color:var(--sea);color:#fff}
+/* 02/11/2026 (Andre): marca, modelo, color y proveedor como lista (más simple para la mamá que muchos botones) */
+.fld select.lista{-webkit-appearance:none;appearance:none;font-weight:600;cursor:pointer;padding-right:42px;transition:border-color .2s var(--ease),background-color .2s var(--ease);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%239DACB2' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 15px center}
+.fld select.lista.vacia{color:var(--mute);font-weight:500}
+.fld select.lista:focus{outline:none;border-color:var(--sea)}
 .sact{display:flex;gap:9px;margin-top:8px}
 .sact button{flex:1;border:none;border-radius:11px;padding:14px;font-weight:800;font-size:16px;cursor:pointer}
 .cx{background:var(--seaL);color:var(--ink)}.ok{background:var(--sea);color:#fff}
@@ -351,7 +357,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="csSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="csDia">Copia desde la cual recuperar</label><select id="csDia"></select></div>
         <button class="btn b-pri" id="csComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
       <div id="csRes" class="mtr" style="margin-top:8px"></div></details>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->28-10-2026 20:13<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->02-11-2026 17:01<!--/VER--></b></p>
   </section>
 </main>
 
@@ -366,28 +372,31 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <div class="scrim" id="scrim"></div>
 
 <div class="sheet" id="shForm">
-  <h3 id="fmT">Nuevo vehículo</h3><div class="sb">Los campos con * son necesarios</div>
+  <h3 id="fmT">Nuevo vehículo</h3><div class="sb">Para guardar basta el chasis, la marca y el modelo. Lo demás se puede completar después.</div>
   <div class="steps" role="tablist" hidden>
     <button role="tab" id="stTabA" data-step="A" aria-selected="true">1 · Vehículo</button>
     <button role="tab" id="stTabB" data-step="B" aria-selected="false">2 · Compra y gastos</button></div>
   <div class="sbody" id="fBody"><div id="stA">
   <div class="fld" id="wVin"><label for="fVin">VIN completo (17) <span class="mtr">(el chasis y el año se completan solos)</span></label>
     <input id="fVin" autocapitalize="characters" autocomplete="off" maxlength="17" placeholder="Ej: KMHSW81UBFU432757" style="font-family:monospace">
-    <div class="err" id="eVin"></div></div>
+    <div class="err" id="eVin"></div>
+    <button class="cg" id="fVinFoto" type="button" style="width:100%;margin-top:8px;padding:12px;font-size:15px">📷 Sacar foto del VIN</button>
+    <input type="file" id="fVinFile" accept="image/*" hidden>
+    <div class="nota" id="vinOcr" hidden style="margin-top:8px"></div></div>
   <div class="fld" id="wCh"><label for="fCh">Chasis <span class="mtr">(últimos 8 del VIN)</span></label>
     <input id="fCh" autocapitalize="characters" autocomplete="off" placeholder="Ej: BA123290">
     <div class="err" id="eCh"></div>
     <button class="cg" id="fSinCh" aria-pressed="false" style="width:100%;margin-top:8px;padding:11px">
       Todavía no tengo el chasis</button></div>
-  <div class="fld"><label>Marca *</label><div class="opt" id="fMa"></div>
+  <div class="fld"><label for="fMaSel">Marca *</label><div id="fMa"></div>
     <input id="fMaNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe la marca nueva" hidden style="margin-top:8px"></div>
-  <div class="fld"><label>Modelo *</label><div class="opt" id="fMoOpts"></div>
+  <div class="fld"><label for="fMoSel">Modelo *</label><div id="fMoOpts"></div>
     <input id="fMoNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe el modelo" hidden style="margin-top:8px"></div>
   <div class="two">
-    <div class="fld"><label for="fAn">Año *</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
+    <div class="fld"><label for="fAn">Año</label><input id="fAn" inputmode="numeric" placeholder="2018"></div>
     <div class="fld"><label for="fKm">Kilometraje</label><input id="fKm" inputmode="numeric" data-dinero="1" placeholder="80000"></div>
   </div>
-  <div class="fld"><label>Color exterior</label><div class="opt" id="fCe"></div></div>
+  <div class="fld"><label for="fCeSel">Color exterior</label><div id="fCe"></div></div>
   <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
   <div class="nota" id="autoRes" hidden style="border-left-color:#2E7D32;display:flex;justify-content:space-between;gap:8px;align-items:center"></div>
   <div id="wAuto">
@@ -407,7 +416,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   </div>
   <div id="stB">
   <div class="mtr" style="margin:14px 0 10px;padding-top:12px;border-top:1px solid var(--line);font-weight:700;letter-spacing:.1em">COMPRA</div>
-  <div class="fld"><label>Proveedor</label><div class="opt" id="fPrOpts"></div>
+  <div class="fld"><label for="fPrSel">Proveedor</label><div id="fPrOpts"></div>
     <input id="fPr" hidden data-noup="1" autocomplete="off">
     <input id="fPrNew" autocapitalize="characters" autocomplete="off" placeholder="Escribe el proveedor nuevo" hidden style="margin-top:8px"></div>
   <div class="fld" hidden><label for="fCont">Contenedor</label>
@@ -742,7 +751,7 @@ async function boot(){
   try{const r=await window.storage.get('amkc_envios');if(r&&r.value)ENV=JSON.parse(r.value)}catch(e){console.error('boot ENV',e)}
   try{const r=await window.storage.get('amkc_fletes');if(r&&r.value)FLC=JSON.parse(r.value)||[]}catch(e){console.error('boot FLC',e)}
   try{const r=await window.storage.get('amkc_gastos');if(r&&r.value)GEN=JSON.parse(r.value)}catch(e){console.error('boot GEN',e)}
-  dlProv(); dlCont(); await cargaDemandaLocal();
+  dlProv(); dlCont(); LST=null; await lstCarga(); lstListo=true; await cargaDemandaLocal();
   $('#boot').remove();show(tab);opts();draw();pintaRE();pintaGastos();pintaFlete();
   pintaHK();
   await csCarga(); await csTomar('al abrir'); setInterval(()=>csTomar('automática'), CS_CADA);
@@ -1018,6 +1027,93 @@ function fbGastosListen(){
     if(cambio){ guardaGEN(); pintaGastos(); }
   }, e=>console.error('fbGastosListen', e));
 }
+/* 02/11/2026 (Andre): las marcas y modelos agregados, los proveedores y los nombres de contenedor vivían solo en
+   el teléfono de la mamá. Ahora viajan a la nube (coreaListas/listas), elemento por elemento: cada uno lleva la
+   hora de su último cambio y gana el más nuevo; lo que se quita (un contenedor desarmado) viaja como borrado.
+   Copia local con horas en amkc_listas. Sistema también puede leerlas. */
+const LISTAS_COL='coreaListas';
+let LST=null, lstTimer=null, lstPend=false, lstEscuchando=false;
+const LST_KEYS=['amkc_prov','amkc_cont','amkc_extra'];
+const lstId=x=>x.t+'|'+(x.ma?x.ma+'|':'')+x.v;
+function lstActual(){
+  const it={}, pon=x=>{ if(x.v) it[lstId(x)]=x; }, up=s=>String(s||'').trim().toUpperCase();
+  (EXTRA.marcas||[]).forEach(m=>pon({t:'ma',v:up(m)}));
+  Object.entries(EXTRA.modelos||{}).forEach(([ma,M])=>(M||[]).forEach(mo=>pon({t:'mo',ma:up(ma),v:up(mo)})));
+  PROV.forEach(p=>pon({t:'pr',v:up(p)}));
+  CONT.forEach(c=>pon({t:'ct',v:nomCont(c)}));
+  return it;
+}
+let lstListo=false;
+const bootListoL=()=>new Promise(r=>{ const t=()=>lstListo?r():setTimeout(t,200); t(); });   /* recién cuando el arranque cargó las tres listas se revisan cambios (antes, una lista vacía parecería borrada) */
+async function lstCarga(){
+  if(LST) return;
+  try{ const r=await window.storage.get('amkc_listas'); LST=r&&r.value?JSON.parse(r.value):null; }catch(_){ LST=null; }
+  LST=LST||{};
+  /* lo que esté en el teléfono y no en la copia con horas entra con hora 1: pierde contra cualquier cambio real, pero nunca se borra */
+  let n=0; const a=lstActual(); for(const id in a) if(!LST[id]){ LST[id]=Object.assign({_mod:1},a[id]); n++; }
+  if(n) lstGuarda();
+}
+function lstGuarda(){ try{ Promise.resolve(lstRawSet('amkc_listas',JSON.stringify(LST))).catch(()=>{}); }catch(_){} }
+/* Compara lo que hay en pantalla con la última copia: lo nuevo y lo quitado se sellan con la hora. */
+async function lstCambio(){
+  if(!lstListo) return;
+  await lstCarga();
+  const a=lstActual(), ahora=Date.now(); let hay=false;
+  for(const id in a) if(!LST[id]||LST[id].del){ LST[id]=Object.assign({_mod:ahora},a[id]); hay=true; }
+  for(const id in LST) if(!LST[id].del&&!a[id]){ LST[id]=Object.assign({},LST[id],{del:true,_mod:ahora}); hay=true; }
+  if(!hay) return;
+  lstGuarda(); lstPend=true; clearTimeout(lstTimer); lstTimer=setTimeout(lstSube,1200);
+}
+function lstMezcla(A,B){ const out=Object.assign({},A||{}); for(const id in (B||{})){ const b=B[id]; if(!out[id]||(+b._mod||0)>(+out[id]._mod||0)) out[id]=b; } return out; }
+const lstIgual=(A,B)=>JSON.stringify(Object.keys(A).sort().map(k=>[k,A[k]]))===JSON.stringify(Object.keys(B).sort().map(k=>[k,B[k]]));
+/* Deja en el teléfono lo que quedó después de mezclar y repinta las listas. */
+async function lstAplica(M){
+  const vivos=Object.values(M).filter(x=>!x.del), deT=t=>vivos.filter(x=>x.t===t);
+  if(lstIgual(M,LST)) return;
+  LST=M; lstGuarda();
+  const up=s=>String(s||'').trim().toUpperCase();
+  EXTRA.marcas=[...new Set(deT('ma').map(x=>x.v))];
+  const mo={}; deT('mo').forEach(x=>{ (mo[x.ma]=mo[x.ma]||[]).includes(x.v)||mo[x.ma].push(x.v); }); EXTRA.modelos=mo;
+  PROV=[...new Set(deT('pr').map(x=>up(x.v)))].filter(Boolean).sort();
+  CONT=[...new Set(deT('ct').map(x=>nomCont(x.v)))].filter(Boolean).sort();
+  try{ await lstRawSet('amkc_extra',JSON.stringify(EXTRA)); await lstRawSet('amkc_prov',JSON.stringify(PROV)); await lstRawSet('amkc_cont',JSON.stringify(CONT)); }catch(e){ console.error('lstAplica',e); }
+  try{ dlProv(); dlCont(); if(!document.querySelector('#shAdd.on, .sheet.on')) opts(); pintaContenedores(); }catch(_){}
+}
+async function lstSube(){
+  if(!fbReady||!fbDb) return;
+  await lstCarga();
+  const ref=fbDb.collection(LISTAS_COL).doc('listas');
+  try{
+    let M=null;
+    await fbDb.runTransaction(async tx=>{
+      const s=await tx.get(ref); const C=s.exists?(JSON.parse((s.data()||{}).json||'{}')):{};
+      M=lstMezcla(LST,C);
+      tx.set(ref,{json:JSON.stringify(M),_ts:firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    lstPend=false;
+    if(M) await lstAplica(M);
+  }catch(e){ console.error('lstSube',e); }
+}
+function lstListen(){
+  if(!fbReady||lstEscuchando) return;
+  lstEscuchando=true;
+  bootListoL().then(lstCarga).then(()=>{
+    fbDb.collection(LISTAS_COL).doc('listas').onSnapshot(async s=>{
+      if(s.metadata&&s.metadata.hasPendingWrites) return;
+      let C={}; try{ C=s.exists?JSON.parse((s.data()||{}).json||'{}'):{}; }catch(_){}
+      const M=lstMezcla(LST,C);
+      await lstAplica(M);
+      if(!lstIgual(M,C)||lstPend){ clearTimeout(lstTimer); lstTimer=setTimeout(lstSube,800); }
+    },e=>{ console.error('lstListen',e); lstEscuchando=false; });
+  });
+}
+/* Toda vez que la app guarda proveedores, contenedores o marcas/modelos, se revisa qué cambió. */
+window.addEventListener('online',()=>{ if(lstPend) lstSube(); });
+let lstRawSet=null;
+(function(){
+  const _set=window.storage.set.bind(window.storage); lstRawSet=_set;
+  window.storage.set=async function(k,v){ const r=await _set(k,v); if(LST_KEYS.includes(k)) lstCambio(); return r; };
+})();
 
 function pintaGenCat(bloqueado){
   $('#genCat').innerHTML=CC.map(([k,n])=>`<button data-gencat="${k}" aria-pressed="${k===genCat?'true':'false'}" ${bloqueado?'disabled':''}>${n}</button>`).join('');
@@ -1466,7 +1562,7 @@ async function fbInit(){ try{ fbEstado('Modo demostración: no se envía nada a 
     fbAuth=firebase.auth(); fbDb=firebase.firestore();
     try{ fbDb.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('persistencia nube',e&&e.code)); }catch(_){}
     fbAuth.onAuthStateChanged(u=>{
-      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); fbEnviosListen(); fbFletesListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } }
+      if(u){ fbReady=true; fbMuestraLogin(false); fbEstado('✓ Conectado · lo que cargues llega solo a Chile','#2E7D32'); fbEnviaPronto(); fbSyncRemesasPend(); if(!fbRecoreaEscuchando){ fbRecoreaEscuchando=true; fbRecoreaListen(); fbEnviosListen(); fbFletesListen(); } fbDemandaListen(); fbVehiculosListen(); fbEnviaGastosPronto(); if(!fbGastosEscuchando){ fbGastosEscuchando=true; fbGastosListen(); } lstListen(); }
       else { fbReady=false; fbEstado('Sin sesión: los vehículos quedan solo en este teléfono','#B5533C'); fbMuestraLogin(true); }
     });
   }catch(e){ console.error('fbInit',e); fbEstado('Sin conexión: los vehículos quedan solo en este teléfono','#B5533C'); }
@@ -1642,15 +1738,24 @@ function modelos(ma){return [...new Set([...(OPT.modelos[ma]||[]),...((EXTRA.mod
 function opts(){
   const el=document.getElementById('fMa');
   const ms=marcas(); if(sel.ma && !ms.includes(sel.ma)) ms.push(sel.ma);   /* editar un vehículo con marca fuera de la lista */
-  el.innerHTML=ms.map(v=>`<button data-k="ma" data-v="${esc(v)}" aria-pressed="${sel.ma===v}">${esc(v)}</button>`).join('')
-    +`<button id="fMaAdd" aria-pressed="false">＋ Otra marca</button>`;
-  chips('#fCat',OPT.cats,'cat');chips('#fCe',OPT.colores,'ce');
+  const otra=!$('#fMaNew').hidden;
+  el.innerHTML=listaSel('fMaSel',ms,otra?'__otra':sel.ma,'Elige la marca…','＋ Otra marca (escribirla)','__otra');
+  const cs=OPT.colores.slice(); if(sel.ce && !cs.includes(sel.ce)) cs.push(sel.ce);
+  $('#fCe').innerHTML=listaSel('fCeSel',cs,sel.ce,'Elige el color…');
+  chips('#fCat',OPT.cats,'cat');
   chips('#fTr',OPT.tracc,'tr');chips('#fCa',OPT.carr,'ca');
   chipsPar('#fMotor',OPT.motores,'motor');chipsPar('#fTrans',OPT.trans,'trans');
   moChips();
 }
-/* Modelo: botones filtrados por la marca elegida + "Otro modelo" (antes era un cuadro con lista desplegable que
-   no funcionaba bien al tacto). Si la marca todavía no está elegida, se puede escribir el modelo directamente. */
+/* Lista desplegable nativa (<select>): en el iPhone abre la rueda del sistema, que funciona bien al tacto
+   (lo que fallaba antes era un <datalist>, no un <select>). La opción "＋ Otra…" muestra el cuadro para escribir. */
+function listaSel(id,arr,val,ph,otroTxt,otroVal){
+  return `<select id="${id}" class="lista${val?'':' vacia'}"><option value="">${ph}</option>`
+    +arr.map(v=>`<option value="${esc(v)}"${val===v?' selected':''}>${esc(v)}</option>`).join('')
+    +(otroTxt?`<option value="${otroVal}"${val===otroVal?' selected':''}>${otroTxt}</option>`:'')+`</select>`;
+}
+/* Modelo: lista filtrada por la marca elegida + "Otro modelo". Si la marca todavía no está elegida, se puede
+   escribir el modelo directamente. */
 function moChips(){
   const el=document.getElementById('fMoOpts'), inp=document.getElementById('fMoNew');
   if(!el||!inp) return;
@@ -1658,11 +1763,10 @@ function moChips(){
     el.innerHTML='<span class="mtr" style="margin:0;align-self:center">Elige la marca para ver sus modelos, o escribe el modelo abajo.</span>';
     inp.hidden=false; return;
   }
-  const lista=modelos(sel.ma);
-  const todos=(sel.mo && !lista.includes(sel.mo)) ? [...lista,sel.mo] : lista;
-  el.innerHTML=todos.map(v=>`<button data-k="mo" data-v="${esc(v)}" aria-pressed="${sel.mo===v}">${esc(v)}</button>`).join('')
-    +`<button id="fMoAdd" aria-pressed="false">＋ Otro modelo</button>`;
+  const lst=modelos(sel.ma);
+  const todos=(sel.mo && !lst.includes(sel.mo)) ? [...lst,sel.mo] : lst;
   if(!todos.length) inp.hidden=false;
+  el.innerHTML=listaSel('fMoSel',todos,inp.hidden?sel.mo:'__otro','Elige el modelo…','＋ Otro modelo (escribirlo)','__otro');
 }
 async function guardaExtra(){try{await window.storage.set('amkc_extra',JSON.stringify(EXTRA))}catch(_){}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;
@@ -1676,6 +1780,7 @@ function limpia(){
   sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:''};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
   ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
+  { const n=$('#vinOcr'); if(n){ n.hidden=true; n.innerHTML=''; } }
   tocado={}; anAuto=''; autoAbierto=false; codMotor=''; cabSel=''; $('#fCh').readOnly=false; $('#fSinCh').hidden=false; $('#eVin').textContent=''; $('#wVin').classList.remove('bad'); $('#fCil').placeholder='Ej: 2.5';
   CC.forEach(([k])=>$('#c'+k).value=''); sumCC(); prNuevo=false; $('#fPrNew').value=''; pintaProv();
   $('#fFe').value=iso();$('#wCh').classList.remove('bad');
@@ -1687,6 +1792,17 @@ document.addEventListener('click',e=>{
     /* Marca nueva: se suelta la marca y el modelo elegidos para que no queden botones de modelos de OTRA marca. */
     if(!i.hidden){sel.ma='';sel.mo='';$('#fMoNew').value='';opts();i.focus()}}
   if(e.target.id==='fMoAdd'){const i=$('#fMoNew');i.hidden=!i.hidden;if(!i.hidden)i.focus()}
+});
+document.addEventListener('change',e=>{ const t=e.target; if(!t||!t.id) return;
+  if(t.id==='fMaSel'){ const nueva=t.value==='__otra';
+    sel.ma=nueva?'':t.value; sel.mo=''; $('#fMaNew').hidden=!nueva; $('#fMaNew').value=''; $('#fMoNew').value=''; $('#fMoNew').hidden=true;
+    opts(); pintaAuto(); if(nueva) $('#fMaNew').focus(); return; }
+  if(t.id==='fMoSel'){ const nuevo=t.value==='__otro';
+    sel.mo=nuevo?'':t.value; $('#fMoNew').value=''; $('#fMoNew').hidden=!nuevo;
+    opts(); aplicaModelo(); if(nuevo) $('#fMoNew').focus(); return; }
+  if(t.id==='fCeSel'){ sel.ce=t.value; t.classList.toggle('vacia',!t.value); return; }
+  if(t.id==='fPrSel'){ prNuevo=t.value==='__otro'; $('#fPr').value=prNuevo?'':t.value; $('#fPrNew').value='';
+    pintaProv(); if(prNuevo) $('#fPrNew').focus(); return; }
 });
 $('#fTrabNo').addEventListener('click',()=>{tocado.trab=1;setTrab(false)});
 $('#fMoNew').addEventListener('input',e=>{ const t=esModeloTrab(e.target.value); if(t!==esTrab){ setTrab(t); pintaAuto(); } });   /* modelo escrito a mano */
@@ -1706,6 +1822,71 @@ $('#fVin').addEventListener('input',()=>{
   const vinOk=v.length===17&&!/[IOQ]/.test(v); $('#fCh').readOnly=vinOk; $('#fSinCh').hidden=vinOk; $('#fCh').style.opacity=vinOk?.7:1;
   const ma=marcaDeVin(v); if(ma&&!sel.ma&&$('#fMaNew').hidden){ sel.ma=ma; if(!marcas().includes(ma)){ EXTRA.marcas=(EXTRA.marcas||[]).concat([ma]); guardaExtra(); } opts(); }
   autoAnio();
+});
+/* 02/11/2026 (Andre): foto del VIN para que la mamá no lo escriba. Se lee EN EL MISMO TELÉFONO con Tesseract.js
+   (gratis, sin servidor ni IA: no gasta nada). Se descarga la primera vez que se usa (~unos MB, necesita internet).
+   Lo que se lee se filtra: 17 caracteres sin I/O/Q; se prefieren los que empiezan como VIN coreano (KM, KN, KP…),
+   terminan en 6 números y, si traen dígito verificador, que cuadre. Siempre se le muestra la foto para comparar.
+   Mejor resultado: el documento de registro (자동차등록증, línea 차대번호); en la placa del parabrisas puede fallar. */
+const VIN_LETRAS='ABCDEFGHJKLMNPRSTUVWXYZ0123456789';
+let ocrW=null, ocrCarga=null, ocrOcupado=false;
+function cargaJs(src){ return new Promise((ok,mal)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>mal(new Error('red')); document.head.appendChild(s); }); }
+function ocrListo(){
+  if(ocrW) return Promise.resolve(ocrW);
+  if(!ocrCarga) ocrCarga=(async()=>{
+    if(!window.Tesseract) await cargaJs('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+    const w=await Tesseract.createWorker('eng',1);
+    await w.setParameters({tessedit_char_whitelist:VIN_LETRAS});
+    return (ocrW=w);
+  })().catch(e=>{ ocrCarga=null; throw e; });
+  return ocrCarga;
+}
+/* Foto → lienzo en grises con contraste estirado (ayuda con fotos oscuras o con reflejo). */
+function vinLienzo(file){ return new Promise((ok,mal)=>{ const u=URL.createObjectURL(file), im=new Image();
+  im.onload=()=>{ const k=Math.min(2600/Math.max(im.width,im.height),Math.max(1,2000/im.width))   /* letra chica: se agranda */, c=document.createElement('canvas');
+    c.width=Math.round(im.width*k); c.height=Math.round(im.height*k); const x=c.getContext('2d'); x.drawImage(im,0,0,c.width,c.height);
+    const d=x.getImageData(0,0,c.width,c.height), p=d.data, h=new Array(256).fill(0);
+    for(let i=0;i<p.length;i+=4){ const g=(p[i]*.3+p[i+1]*.59+p[i+2]*.11)|0; p[i]=g; h[g]++; }
+    let lo=0,hi=255,n=0,t=p.length/4*.02; while(lo<255&&(n+=h[lo])<t) lo++; n=0; while(hi>0&&(n+=h[hi])<t) hi--;
+    const r=Math.max(1,hi-lo); for(let i=0;i<p.length;i+=4){ const g=Math.max(0,Math.min(255,(p[i]-lo)*255/r)); p[i]=p[i+1]=p[i+2]=g; }
+    x.putImageData(d,0,0); URL.revokeObjectURL(u); ok({c,u:URL.createObjectURL(file)}); };
+  im.onerror=()=>{ URL.revokeObjectURL(u); mal(new Error('imagen')); }; im.src=u; }); }
+function vinDigitoOk(v){ const T={A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9}, P=[8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+  let s=0; for(let i=0;i<17;i++){ const c=v[i]; s+=(/\d/.test(c)?+c:T[c])*P[i]; } const r=s%11; return v[8]===(r===10?'X':String(r)); }
+/* En los VIN coreanos (empiezan con K) las 6 últimas son siempre números (y la 6ª-7ª en autos Hyundai/Kia):
+   ahí se corrigen las confusiones típicas de la lectura (B→8, Z→2, S→5…). En el resto se dejan como vienen. */
+const VIN_A_NUM={B:'8',D:'0',G:'6',I:'1',L:'1',O:'0',Q:'0',S:'5',T:'1',Z:'2',A:'4'};
+function vinArregla(s){ if(s[0]!=='K') return s; const a=s.split('');
+  /* 6ª-7ª solo en autos Hyundai/Kia (KMH/KNA); en Porter (KMF), Bongo (KNC) y Starex (KMJ) ahí puede ir letra */
+  [...(/^(KMH|KNA)/.test(s)?[5,6]:[]),11,12,13,14,15,16].forEach(i=>{ if(VIN_A_NUM[a[i]]) a[i]=VIN_A_NUM[a[i]]; }); return a.join(''); }
+function vinCandidatos(t,cand){
+  const lin=String(t||'').toUpperCase().split(/\n/).map(l=>l.replace(/[^A-Z0-9]/g,'')).filter(Boolean);
+  const pts=(s,exacta,fix)=>(exacta?4:0)+(/^K[L-T]/.test(s)?6:0)+(/\d{6}$/.test(s)?3:0)+(vinDigitoOk(s)?3:0)+(anioDeChasis(s)?1:0)-(fix?1:0);
+  lin.forEach(l=>{ for(let i=0;i+17<=l.length;i++){ const r=l.slice(i,i+17), s=vinArregla(r);
+    if(/^[A-HJ-NPR-Z0-9]{17}$/.test(s)){ const p=pts(s,l.length===17,s!==r); if(!cand.has(s)||cand.get(s).p<p) cand.set(s,{p,fix:s!==r}); } } });
+  return cand;
+}
+function vinMejor(cand){ const m=[...cand].sort((a,b)=>b[1].p-a[1].p)[0]; return m&&m[1].p>=7?{vin:m[0],fix:m[1].fix,p:m[1].p}:null; }
+$('#fVinFoto').addEventListener('click',()=>{ if(!ocrOcupado) $('#fVinFile').click(); });
+$('#fVinFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f||ocrOcupado) return;
+  const b=$('#fVinFoto'), n=$('#vinOcr'); ocrOcupado=true; b.disabled=true;
+  n.hidden=false; n.style.borderLeftColor='var(--sea)'; n.innerHTML='⏳ Leyendo el VIN… '+(ocrW?'':'<span class="mtr" style="margin:0">(la primera vez tarda un poco más)</span>');
+  try{
+    const {c,u}=await vinLienzo(f), w=await ocrListo();
+    const cand=vinCandidatos((await w.recognize(c)).data.text,new Map()); let m=vinMejor(cand);
+    if(!m||m.p<13){ await w.setParameters({tessedit_pageseg_mode:'11'});   /* segunda pasada, buscando texto suelto */
+      try{ vinCandidatos((await w.recognize(c)).data.text,cand); m=vinMejor(cand); } finally{ await w.setParameters({tessedit_pageseg_mode:'3'}); } }
+    const vin=m?m.vin:'';
+    const foto=`<img src="${u}" alt="Foto del VIN" style="display:block;width:100%;max-height:160px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`;
+    if(vin){ $('#fVin').value=vin; $('#fVin').dispatchEvent(new Event('input'));
+      n.style.borderLeftColor='var(--green)';
+      n.innerHTML=`✓ Leí <b style="font-family:monospace;letter-spacing:.04em">${vin}</b><br><span class="mtr" style="margin:0">${m.fix||m.p<13?'<b style="color:var(--amber)">Revísalo con cuidado:</b> la foto no salió del todo clara. ':''}Compáralo con la foto. Si una letra está mal, corrígela arriba.</span>${foto}`;
+    }else{ n.style.borderLeftColor='var(--amber)';
+      n.innerHTML=`No pude leer el VIN en esta foto. Prueba de frente, con más luz y sin reflejo, o saca la foto al documento de registro (차대번호). También puedes escribirlo arriba.${foto}`; }
+  }catch(err){ console.error('vin foto',err); n.style.borderLeftColor='var(--red)';
+    n.textContent=err&&err.message==='red'?'Para leer la foto se necesita internet la primera vez. Inténtalo con señal, o escribe el VIN arriba.':'No se pudo leer la foto. Inténtalo otra vez o escribe el VIN arriba.'; }
+  finally{ ocrOcupado=false; b.disabled=false; }
 });
 $('#fCh').addEventListener('input',()=>{
   const el=$('#fCh'); const v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -1836,7 +2017,7 @@ $('#fmOk').addEventListener('click',async()=>{
     sel.ma=maNew;
   }
   if(!sel.ma){irA();toast('Elige la marca');return}
-  if(esTrab&&!cabSel){ irA(); toast('Elige la cabina: simple, cabina y media o doble cabina'); return; }
+  /* 02/11/2026 (Andre): guardar con lo mínimo. La cabina y el año ya no frenan: si faltan, la tarjeta lo dice (faltaDe). */
   const moNew=$('#fMoNew').value.trim().toUpperCase();
   const mo=normalizaModelo((moNew&&!$('#fMoNew').hidden)?moNew:(sel.mo||'')); if(!mo){irA();toast('Falta el modelo');return}
   if(!modelos(sel.ma).includes(mo)){
@@ -1844,8 +2025,9 @@ $('#fmOk').addEventListener('click',async()=>{
     EXTRA.modelos[sel.ma]=[...(EXTRA.modelos[sel.ma]||[]),mo];
     await guardaExtra();
   }
-  const an=pnum($('#fAn').value); if(!an||an<1990||an>2030){irA();toast('Revisa el año');return}
-  { const yv=anioDeChasis(vin||ch); if(yv&&yv!==an&&!warnOnce){ warnOnce=true; irA(); toast('Según el '+(vin?'VIN':'chasis')+' el año sería '+yv+'. Si '+an+' está bien, toca Guardar otra vez.'); return; } }
+  let an=pnum($('#fAn').value)||null; if(!an) an=anioDeChasis(vin||(sinCh?'':ch))||null;   /* vacío: el del VIN/chasis, o queda pendiente */
+  if(an&&(an<1990||an>2030)){irA();toast('Revisa el año');return}
+  { const yv=anioDeChasis(vin||ch); if(an&&yv&&yv!==an&&!warnOnce){ warnOnce=true; irA(); toast('Según el '+(vin?'VIN':'chasis')+' el año sería '+yv+'. Si '+an+' está bien, toca Guardar otra vez.'); return; } }
   const cc={}; for(const[k]of CC){const n=pnum($('#c'+k).value); if(n) cc[k]=n}
   const prov=$('#fPr').value.trim().toUpperCase();
   if(prov&&!PROV.includes(prov)){PROV.push(prov);PROV.sort();
@@ -1885,9 +2067,8 @@ let gvCh=null, gvCat='', gvBusy=false, gvModo='G';
 function pintaProv(){
   const el=document.getElementById('fPrOpts'); if(!el) return;
   const cur=($('#fPr').value||'').trim().toUpperCase();
-  const lista=PROV.slice(); if(cur&&!prNuevo&&!lista.includes(cur)) lista.push(cur);
-  el.innerHTML=lista.map(p=>`<button type="button" data-pr="${esc(p)}" aria-pressed="${!prNuevo&&cur===p}">${esc(p)}</button>`).join('')
-    +`<button type="button" id="fPrAdd" aria-pressed="${prNuevo}">＋ Otro proveedor</button>`;
+  const ps=PROV.slice(); if(cur&&!prNuevo&&!ps.includes(cur)) ps.push(cur);
+  el.innerHTML=listaSel('fPrSel',ps,prNuevo?'__otro':cur,'Elige el proveedor…','＋ Otro proveedor (escribirlo)','__otro');
   $('#fPrNew').hidden=!prNuevo;
 }
 document.addEventListener('click',e=>{
@@ -2051,6 +2232,11 @@ function enGrupos(LV){
     out.push(...vs); });
   return out;
 }
+/* Lo que quedó sin llenar al guardar con lo mínimo (02/11/2026). Tocar la etiqueta abre Editar. */
+function faltaDe(v){ if(salio(v)) return [];
+  const f=[]; if(!v.an) f.push('año'); if(!v.krw) f.push('precio'); if(!v.ce) f.push('color');
+  if(esModeloTrab(v.mo)&&!v.cab) f.push('cabina');
+  return f.length?['Falta '+f.join(', ')]:[]; }
 function draw(){
   pintaHK();
   pintaContenedores();
@@ -2075,23 +2261,24 @@ function draw(){
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
     const en=enChile(v), sl=salio(v);
     const estTag=v.stS&&v.stS!=='ORIGEN'?'<span class="tag t-ok">En Iquique ✓</span>':(v.zarpe?`<span class="tag t-ok">🚢 Embarcado ${fd(v.zarpe)}</span>`:(toks.length?'<span class="tag t-pend">Por embarcar</span>':''));   /* sin buscar, la pestaña ya lo dice */
-    const falta=[!sl&&!v.nf?'Sin fotos':'',v.ch.startsWith('PEND-')?'Falta chasis':'',ppSaldo(v)?'Saldo '+krw(ppSaldo(v)):''].filter(Boolean);
+    const falta=[!sl&&!v.nf?'Sin fotos':'',v.ch.startsWith('PEND-')?'Falta chasis':'',...faltaDe(v),ppSaldo(v)?'Saldo '+krw(ppSaldo(v)):''].filter(Boolean);
     const subTag=en?'':'<span class="tag t-pend" title="La ficha todavía no llega a la nube">⚠ Sin subir</span>';
     const pAb=(v.pend||[]).filter(x=>!x.hecho), npend=pAb.length, CCN0=Object.fromEntries(CC);
     const pendTxt=pAb.map(x=>esc(CCN0[x.cat]||x.cat)+(x.est?' '+krw(x.est):'')+(x.nota?' ('+esc(x.nota)+')':'')).join(' · ');
     if(compacto && !abiertosC.has(v.ch)){
-      return `<div class="crow ${sl?'sent':''}" data-abre="${v.ch}" role="button" tabindex="0"><div class="cr1"><span class="tt">${v.ma} ${v.mo} <span class="y">${v.an}</span></span>
+      return `<div class="crow ${sl?'sent':''}" data-abre="${v.ch}" role="button" tabindex="0"><div class="cr1"><span class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></span>
         <span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${subTag}${estTag}</span></div>
         ${falta.length||npend?`<div class="crTags">${falta.map(t=>`<span class="tag t-pend">${t}</span>`).join('')}${npend?`<span class="tag t-pend">⏳ ${npend} por hacer</span>`:''}</div>`:''}
         <div class="ch">${[v.ch,v.prov,v.krw?krw(v.krw):'',tcc?'+ '+krw(tcc)+' gastos':'',npend?'⏳ '+npend+' por hacer':'',v.carga?'📦 lleva adentro':'',v.nf?v.nf+' fotos':''].filter(Boolean).map(esc).join(' · ')}</div></div>`;   /* "sin fotos" ya va como etiqueta */
     }
     return `<div class="card ${sl?'sent':''}">
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
-      <div class="tt"${compacto?` data-cierra="${v.ch}" title="Tocar para cerrar"`:''}>${v.ma} ${v.mo} <span class="y">${v.an}</span>${compacto?' ▴':''}</div>
+      <div class="tt"${compacto?` data-cierra="${v.ch}" title="Tocar para cerrar"`:''}>${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${compacto?' ▴':''}</div>
       <div class="ch">${v.ch}${v.ce?' · '+v.ce:''}${v.nf?' · '+v.nf+' fotos':' · sin fotos'} · ${fd(v.fe)}${v.prov?' · '+v.prov:''}</div></div></div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
       ${v.ch.startsWith('PEND-')?'<span class="tag t-nochas">Falta chasis</span>':''}
       ${!sl&&!v.nf?'<span class="tag t-pend">Sin fotos</span>':''}
+      ${faltaDe(v).length?`<span class="tag t-pend" data-edit="${v.ch}" role="button" style="cursor:pointer">✎ ${faltaDe(v).join(' · ')}</span>`:''}
       ${ppSaldo(v)?`<span class="tag t-pend">Saldo ${krw(ppSaldo(v))}</span>`:''}
       ${estTag}${subTag}</div></div>
      ${v.carga?`<div class="nota" style="border-left-color:#D9822B;background:rgba(217,130,43,.12)"><b>📦 Lleva adentro:</b> ${esc(v.carga)}</div>`:''}
@@ -2287,7 +2474,7 @@ $('#phShare').addEventListener('click',async()=>{
  if(!phArr.length){toast('No hay fotos');return}
  const v=L.find(x=>x.ch===phCh);
  const files=await toFiles(phArr,phCh);
- const txt=`${v.ma} ${v.mo} ${v.an} · Chasis ${v.ch}`;
+ const txt=`${v.ma} ${v.mo} ${v.an||''} · Chasis ${v.ch}`;
  if(navigator.canShare&&navigator.canShare({files})){
   try{await navigator.share({files,text:txt,title:txt});toast('Fotos enviadas');return}
   catch(e){if(e&&e.name==='AbortError')return}}

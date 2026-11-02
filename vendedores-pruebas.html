@@ -367,7 +367,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->28-10-2026 20:13 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->02-11-2026 17:01 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1955,25 +1955,31 @@ function genTK(v,k){const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an|
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
 function tomasVideo(v,despues){
-  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo. */
+  /* autosuficiente: en Vendedores CARN_NOM y esTrabV viven dentro de otra función. Porter y Bongo son de trabajo.
+     15 tomas de una sola vez (Andre, 02/11/2026): dos opciones por cada momento del video y el cierre; cada estilo
+     de video (clásico, ficha, 3 razones) usa una combinación distinta. Mismo texto que tomas() de GENERAR VIDEOS/fuente/nuevo.py. */
   const trab=!!(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim()));
   const ca=String(v.ca||'').trim().toUpperCase();
   const car=ca&&ca!=='S/N'?(CARN[ca]||({'BARANDA BAJA':'baranda baja','CAJON SIMPLE':'cajón simple','CAJÓN SIMPLE':'cajón simple','POWER GATE':'power gate'})[ca]||ca.toLowerCase()):'';
-  const t4=v.tp&&!trab?'techo panorámico desde adentro, mirando hacia arriba'
-    :(trab&&car?'la carrocería ('+car+') por fuera, abierta si se puede'
-    :(String(v.tr||'').toUpperCase()==='4X4'?'perilla o palanca de la tracción 4x4'
-    :'lo que más lo distingue (pantalla, cámara, llantas…)'));
-  const t6=trab?(car?'la zona de carga, vacía':'la cabina completa desde el lado del copiloto')
-    :((+v.pa||0)>=7?'segunda y tercera corrida de asientos':'asientos traseros');
-  const L=['frontal 3/4, caminando hacia el vehículo','paneo lateral completo, de adelante hacia atrás',
-    trab?'cabina desde la puerta abierta':'interior desde la puerta abierta',t4,'tablero, volante y palanca de cambios',t6,
-    'detalle de rueda o parrilla','frontal completo, con el teléfono quieto, 3 segundos'];
-  return 'Vertical · 1080p · 5 a 8 s cada una · en este orden\n\n'
+  const t4=v.tp&&!trab?['techo panorámico desde adentro, mirando hacia arriba','techo panorámico abierto, desde el asiento de atrás']
+    :(trab&&car?['la carrocería ('+car+') por fuera, abierta si se puede','la carrocería ('+car+') por dentro']
+    :(String(v.tr||'').toUpperCase()==='4X4'?['perilla o palanca de la tracción 4x4','rueda y suspensión de lado, que se vea la altura']
+    :['lo que más lo distingue (pantalla, cámara, llantas…)','otro detalle que lo distinga (luces, asientos, volante…)']));
+  const t6=trab?(car?['la zona de carga, vacía','la carrocería desde atrás, abierta']:['la parte de atrás, donde va la carga','vista trasera completa'])
+    :((+v.pa||0)>=7?['segunda y tercera corrida de asientos','tercera corrida desde el maletero abierto']:['asientos traseros','maletero abierto']);
+  const cab=trab?'cabina':'interior';
+  const L=['frontal 3/4, caminando hacia el vehículo','trasera 3/4, caminando hacia el vehículo',
+    'paneo lateral completo, de adelante hacia atrás','paneo por el otro lado, de atrás hacia adelante',
+    cab+' desde la puerta del conductor',trab?'cabina desde el lado del copiloto, mirando al volante':'interior desde el asiento de atrás, mirando hacia el tablero',
+    ...t4,'tablero, volante y palanca de cambios',trab?'palanca de cambios y pedales de cerca':'motor, con el capó abierto',...t6,
+    'rueda y llanta de cerca','parrilla y faros encendidos','frontal completo, con el teléfono quieto, 3 segundos'];
+  return '15 tomas de una vez · vertical · 1080p · 5 a 7 s cada una · en este orden\n'
+    +'Si alguna no se puede, graba 2 s de cualquier cosa igual, para que no se corra el orden.\n\n'
     +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
     +'\n\nDespués: '+despues;
 }
 function genWA(v){const f=feats(v), yo=ST.vend?`\n\n${ST.vend} · AMK Vehículos Selectos`:'';
- return `¡Hola! Gracias por escribir 👋\n\nSobre el ${v.ma} ${v.mo} ${v.an||''}:\n${f.map(x=>'• '+x).join('\n')}\n${v.sv?'• Apto sello verde (circula en Santiago, V y VI región)\n':''}\n${priceLine(v)}\n\nLo tenemos acá en Iquique y lo puedes venir a ver cuando quieras. ¿Te acomoda algún día de esta semana?${yo}`}
+ return `¡Hola! Gracias por escribir 👋\n\nSobre el ${v.ma} ${v.mo} ${v.an||''}:\n${f.map(x=>'• '+x).join('\n')}\n${v.sv?'• Apto sello verde (circula en Santiago, Valparaíso y Viña del Mar)\n':''}\n${priceLine(v)}\n\nLo tenemos acá en Iquique y lo puedes venir a ver cuando quieras. ¿Te acomoda algún día de esta semana?${yo}`}
 
 /* --- fotos --- */
 function shrink(file,w,qq){return new Promise((res,rej)=>{const r=new FileReader();
