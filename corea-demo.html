@@ -357,7 +357,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="csSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="csDia">Copia desde la cual recuperar</label><select id="csDia"></select></div>
         <button class="btn b-pri" id="csComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
       <div id="csRes" class="mtr" style="margin-top:8px"></div></details>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->03-11-2026 15:15<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->03-11-2026 18:43<!--/VER--></b></p>
   </section>
 </main>
 
@@ -791,12 +791,12 @@ const FB_GEN_EXTRA=['vin','motor','cil','trans','codMotor','cab'];
 /* Equipamiento (03/11/2026, Andre): v.eq = lista de códigos; la misma tabla en Sistema y Vendedores.
    [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique (lo marca Andre) | 'p' privado].
    Sin marcar = no se sabe. 03/11/2026 (Andre): radio o pantalla de fábrica se pregunta aparte (#fAud), porque si viene con radio
-   en Iquique hay que ponerle pantalla y es un costo a considerar. */
+   en Iquique hay que ponerle pantalla y es un costo a considerar.
+   03/11/2026 (Andre): sacados sensores, aire acondicionado y control crucero (vienen siempre, no distinguen) y la cámara
+   de retroceso (cuando trae pantalla de fábrica, trae cámara: va junta en PANT). Códigos viejos guardados se ignoran. */
 const EQ_OPC=[['AND','Pantalla Android','pantalla android','','i'],['PIS','Pisaderas','pisaderas','','i'],['CRO','Cromados','cromados','','i'],
-  ['RADIO','Solo radio','solo radio','','p'],['CAM','Cámara de retroceso','cámara'],['SENS','Sensores de estacionamiento','sensores'],['PANT','Pantalla multimedia','pantalla'],
-  ['LLAVE','Llave inteligente','llave intelig.'],['CRUC','Control crucero','crucero'],['CUERO','Asientos de cuero','cuero','a'],
-  ['CALEF','Asientos calefaccionados o ventilados','asientos calef.','a'],['PORTON','Portón trasero eléctrico','portón eléc.','a'],
-  ['AROS','Aros de aleación','aros','a'],['AC','Aire acondicionado','aire acond.','t']];
+  ['RADIO','Solo radio','solo radio','','p'],['PANT','Pantalla multimedia con cámara de retroceso','pantalla y cámara'],
+  ['LLAVE','Llave inteligente','llave intelig.'],['PORTON','Portón trasero eléctrico','portón eléc.','a']];
 const eqOpc=trab=>EQ_OPC.filter(o=>!o[3]||(o[3]==='t')===!!trab);
 const eqCorto=v=>{ const ok=eqOpc(esModeloTrab(v.mo)); return ok.filter(o=>(v.eq||[]).includes(o[0])).map(o=>o[2]); };
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
@@ -1777,7 +1777,7 @@ function opts(){
 function pintaEq(){ const el=$('#fEq'), au=$('#fAud'); if(!el) return; const eq=sel.eq||[];
   el.innerHTML=eqOpc(esTrab).filter(o=>!o[4]&&o[0]!=='PANT').map(([k,t])=>`<button type="button" data-eq="${k}" aria-pressed="${eq.includes(k)}">${t}</button>`).join('');
   /* Pantalla Android, pisaderas y cromados se ponen en Iquique: no se preguntan acá (pero se conservan al guardar). */
-  if(au) au.innerHTML=[['RADIO','Solo radio'],['PANT','Pantalla de fábrica']].map(([k,t])=>`<button type="button" data-aud="${k}" aria-pressed="${eq.includes(k)}">${t}</button>`).join(''); }
+  if(au) au.innerHTML=[['RADIO','Solo radio'],['PANT','Pantalla y cámara']].map(([k,t])=>`<button type="button" data-aud="${k}" aria-pressed="${eq.includes(k)}">${t}</button>`).join(''); }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-eq]'); if(!b) return;
   const k=b.dataset.eq, eq=sel.eq||(sel.eq=[]), i=eq.indexOf(k);
   if(i>=0) eq.splice(i,1); else eq.push(k);

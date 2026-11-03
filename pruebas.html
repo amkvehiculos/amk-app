@@ -504,6 +504,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div id="ctPub">
     <p class="mtr" id="ctPubAyuda" style="margin:0 0 10px">Elige un vehículo y copia el texto de cada red.</p>
     <div id="ctPick">
+      <div id="ctAgenda"></div>
       <input class="search" id="qc" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
       <div class="chips fila" id="qcFil" role="tablist" aria-label="Dónde está el vehículo">
         <button class="chip" data-qcf="patio" aria-selected="true">En patio</button>
@@ -534,7 +535,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       </div>
       <div class="box" id="boxPub">
         <h3>Publicar ahora</h3>
-        <p class="mtr" style="margin:0 0 10px">Publica en Instagram y Facebook de una vez. Si no eliges un video, se usa la foto de portada del vehículo.</p>
+        <p class="mtr" style="margin:0 0 10px">Publica en Instagram y Facebook de una vez. Si no eliges un video, se usa la foto de portada del vehículo. El video no se guarda en GitHub: pasa por tu página de Facebook (si solo eliges Instagram, queda oculto ahí y se borra al terminar).</p>
         <div class="acts" style="margin-bottom:9px">
           <button class="btn b-sec" id="pubPick" style="flex:1">🎬 Elegir video…</button>
           <button class="btn b-sec" id="pubClear">Quitar</button>
@@ -867,7 +868,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-11-2026 15:15 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-11-2026 18:43 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -883,7 +884,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
             <button class="btn b-pri" id="fixNOk" style="padding:7px 12px">Agregar</button></div></div></details></div>
     <div class="box"><h3>Redes sociales</h3>
       <div style="font-weight:700;font-size:14px;margin:4px 0 4px">Instagram (Meta)</div>
-      <p>Token de la app "AMK Contenido" de Meta for Developers. Se guarda solo en este dispositivo.</p>
+      <p>Token de la app "AMK Contenido" de Meta for Developers. Se guarda solo en este dispositivo. Para publicar en Instagram también tiene que estar configurada la página de Facebook (abajo): el archivo pasa por ahí.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de acceso de Instagram</div>
         <input id="igToken" type="password" autocomplete="off" placeholder="IGAA..."
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
@@ -908,7 +909,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="fbSave">Guardar</button></div>
       <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
     <div class="box"><h3>Bodega de fotos (GitHub)</h3>
-      <p>Instagram no acepta archivos desde tu computador: exige que estén publicados en internet. La app los sube sola a GitHub antes de publicar. Son dos bodegas distintas: una guarda las fotos de los vehículos y otra los videos y las publicaciones.</p>
+      <p>Desde el 03/11/2026 publicar en Instagram ya NO usa GitHub: el video o la foto pasa por tu página de Facebook. Estas bodegas quedan solo para las fotos y vistas 360° de la web.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de GitHub</div>
         <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_..."
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></div>
@@ -1409,6 +1410,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <select id="evTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
   <div class="fld"><label for="evProvSel">Proveedor</label><select id="evProvSel"></select>
     <input id="evProv" list="dlNvProv" autocapitalize="characters" placeholder="Escribe el proveedor" style="margin-top:6px" hidden></div>
+  <div class="fld"><label for="evKrw">Valor de compra en Corea</label>
+    <input id="evKrw" inputmode="numeric" placeholder="₩0" data-dinero>
+    <div class="mtr" id="evKrwNota" style="margin-top:4px"></div></div>
   <div class="fld" id="evTpWrap"><label>Equipamiento <span class="mtr">(marca solo lo que tiene)</span></label><div class="catg" id="evEq" style="grid-template-columns:1fr 1fr">
     <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button></div></div>
   <div class="fld"><label>Preparado en Iquique <span class="mtr">(lo que se le instaló acá)</span></label><div class="catg" id="evEqI" style="grid-template-columns:repeat(3,1fr)"></div></div>
@@ -1477,7 +1481,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div id="secVideo" hidden>
   <div class="fld"><label for="phVideo">Link del video</label>
     <input id="phVideo" placeholder="https://..." inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
-  <div class="mtr" id="phVideoMtr" style="margin-top:9px">Pega el link del video ya editado (YouTube, Vimeo, Instagram, o un archivo de video directo). Se muestra en la ficha del vehículo en la web, debajo del carrusel de fotos. Si lo dejas vacío, no aparece nada ahí.</div>
+  <div class="mtr" id="phVideoMtr" style="margin-top:9px">Pega el link del video ya editado (TikTok, YouTube, Vimeo, Instagram, o un archivo de video directo). TikTok y YouTube se reproducen ahí mismo en la web. Se muestra en la ficha del vehículo en la web, debajo del carrusel de fotos. Si lo dejas vacío, no aparece nada ahí.</div>
   </div>
   <div class="sact"><button class="cx" data-close>Cerrar</button></div>
 </div>
@@ -1954,7 +1958,7 @@ const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),pri
 const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','dest','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
@@ -4134,12 +4138,12 @@ const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())
    [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique | 'p' privado]. Sin marcar = no se sabe.
    03/11/2026 (Andre): Pantalla Android, pisaderas y cromados (lo que se pone en Iquique) van primero porque son lo que más vende;
    RADIO = de origen trae solo radio (lo marca Corea): no sale en textos ni web, avisa que habrá que poner pantalla.
-   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó). */
+   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó).
+   03/11/2026 (Andre): sacados sensores, aire acondicionado y control crucero (vienen siempre, no distinguen) y la cámara
+   de retroceso (cuando trae pantalla de fábrica, trae cámara: va junta en PANT). Códigos viejos guardados se ignoran. */
 const EQ_OPC=[['AND','Pantalla Android','Pantalla Android','','i'],['PIS','Pisaderas','Pisaderas','','i'],['CRO','Cromados','Cromados','','i'],
-  ['CAM','Cámara de retroceso','Cám. retroceso'],['SENS','Sensores de estacionamiento','Sensores estac.'],['PANT','Pantalla multimedia','Pantalla'],
-  ['LLAVE','Llave inteligente','Llave intelig.'],['CRUC','Control crucero','Crucero'],['CUERO','Asientos de cuero','Cuero','a'],
-  ['CALEF','Asientos calefaccionados o ventilados','Asientos calef.','a'],['PORTON','Portón trasero eléctrico','Portón eléc.','a'],
-  ['AROS','Aros de aleación','Aros aleación','a'],['AC','Aire acondicionado','Aire acond.','t'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p']];
+  ['PANT','Pantalla multimedia con cámara de retroceso','Pantalla y cámara'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p'],
+  ['LLAVE','Llave inteligente','Llave intelig.'],['PORTON','Portón trasero eléctrico','Portón eléc.','a']];
 const eqOpc=trab=>EQ_OPC.filter(o=>!o[3]||(o[3]==='t')===!!trab);
 const eqCod=(v,pub)=>{ const e=v.eq||[]; return eqOpc(esTrabV(v)).filter(o=>e.includes(o[0])&&!(pub&&o[4]==='p')&&!(o[0]==='PANT'&&e.includes('AND'))); };
 const eqDe=(v,i,pub)=>eqCod(v,pub).map(o=>o[i||1]);
@@ -8212,43 +8216,83 @@ async function fbPublicar(blob,mensaje,esVideo){
   if(!j||(!j.id&&!j.post_id)) throw new Error((j&&j.error&&j.error.message)||'Facebook no aceptó la publicación');
   return j.id||j.post_id;
 }
+/* 03/11/2026 (Andre): publicar ya NO pasa por GitHub (lo que se sube ahí queda para siempre en el historial y el espacio
+   es limitado). Instagram tiene que leer el archivo desde una dirección pública y, con el inicio de sesión de Instagram que usa
+   esta app, no acepta recibir el archivo directo (eso solo existe con "Facebook Login for Business"). Por eso la página de
+   Facebook hace de intermediaria: el archivo se sube a Facebook (publicado si también se eligió Facebook; si no, OCULTO) y a
+   Instagram se le pasa la dirección que entrega Facebook. Si quedó oculto, se borra de Facebook al terminar. */
+const FB_ESPERA=10000;
+async function fbSubirMedia(blob,o){
+  if(!FBTOKEN||!FBPAGE) throw new Error('Falta el token o el ID de la página de Facebook (Negocio → Ajustes). '+(o.publicar?'':'Instagram usa la página de Facebook como paso intermedio para no guardar el video en GitHub.'));
+  const fd=new FormData();
+  fd.append('access_token',FBTOKEN);
+  if(!o.publicar) fd.append('published','false');
+  if(o.esVideo){ if(o.publicar) fd.append('description',o.mensaje||''); fd.append('source',blob,'video.mp4'); }
+  else { if(o.publicar) fd.append('caption',o.mensaje||''); fd.append('source',blob,'foto.jpg'); }
+  const r=await fetch('https://graph.facebook.com/v23.0/'+FBPAGE+(o.esVideo?'/videos':'/photos'),{method:'POST',body:fd});
+  const j=await r.json();
+  if(!j||(!j.id&&!j.post_id)) throw new Error((j&&j.error&&j.error.message)||'Facebook no aceptó el archivo');
+  return j.id||j.post_id;
+}
+/* Dirección pública del archivo que quedó en Facebook (el video hay que esperar a que Facebook lo procese). */
+async function fbUrlPublica(id,esVideo,paso){
+  const tk='&access_token='+encodeURIComponent(FBTOKEN);
+  if(!esVideo){
+    const j=await (await fetch('https://graph.facebook.com/v23.0/'+id+'?fields=images'+tk)).json();
+    const im=j&&Array.isArray(j.images)&&j.images.length?j.images.slice().sort((a,b)=>(b.width||0)-(a.width||0))[0]:null;
+    if(!im||!im.source) throw new Error((j&&j.error&&j.error.message)||'Facebook no entregó la dirección de la foto');
+    return im.source;
+  }
+  for(let i=0;i<30;i++){
+    const j=await (await fetch('https://graph.facebook.com/v23.0/'+id+'?fields=source,status'+tk)).json();
+    if(j&&j.error) throw new Error(j.error.message||'Facebook no entregó el video');
+    const est=j&&j.status&&j.status.video_status;
+    if(est==='error') throw new Error('Facebook no pudo procesar el video');
+    if(j&&j.source&&(!est||est==='ready')) return j.source;
+    paso&&paso('Facebook está preparando el video para Instagram… ('+((i+1)*Math.round(FB_ESPERA/1000))+' s)');
+    await new Promise(r=>setTimeout(r,FB_ESPERA));
+  }
+  throw new Error('Facebook sigue procesando el video después de 5 minutos; vuelve a intentar en un rato');
+}
+async function fbBorrar(id){
+  try{ await fetch('https://graph.facebook.com/v23.0/'+id+'?access_token='+encodeURIComponent(FBTOKEN),{method:'DELETE'}); }
+  catch(e){ console.error('fbBorrar',id,e); }
+}
 async function publicarTodo(v,paso){
   const esVideo=!!pubFile;
   if(!pubRed.ig&&!pubRed.fb) throw new Error('Elige al menos una red');
   if(esVideo&&pubFile.size>PUB_MAX) throw new Error('El video pesa '+(pubFile.size/1048576).toFixed(1)+' MB; el máximo que se puede subir son '+(PUB_MAX/1048576)+' MB');
   paso&&paso('Preparando el archivo…');
-  let dataURI='', urlYa='';
-  if(esVideo){ dataURI=await fileADataURI(pubFile); }
+  let blob=null, urlYa='';
+  if(esVideo) blob=pubFile;
   else{
     const arrFotos=await loadPhotos(v.ch);
     const foto=arrFotos[0]||'';
     if(!foto) throw new Error('Este vehículo no tiene fotos cargadas; elige un video o sube fotos primero');
-    if(foto.indexOf('http')===0){ urlYa=foto; }               /* ya está publicada en la bodega */
-    else dataURI=(await shrinkDataURI(foto,1080,0.85))||foto;
+    if(foto.indexOf('http')===0) urlYa=foto;   /* ya es pública (fotos de la web): no se sube nada nuevo */
+    else blob=dataURIaBlob((await shrinkDataURI(foto,1080,0.85))||foto);
   }
   const oks=[], errores=[];
+  let fbId=null, fbOculto=false;
+  if(pubRed.fb){
+    try{
+      paso&&paso('Publicando en Facebook…');
+      fbId=await fbSubirMedia(blob||await (await fetch(urlYa)).blob(),{mensaje:genFB(v,gvar),esVideo:esVideo,publicar:true});
+      oks.push('Facebook');
+    }catch(e){ console.error('FB',e); errores.push('Facebook: '+e.message); }
+  }
   if(pubRed.ig){
     try{
       let url=urlYa;
       if(!url){
-        paso&&paso('Subiendo el archivo a la bodega…');
-        url=await subirFotoGH(dataURI,v.ch+'-'+Date.now()+(esVideo?'.mp4':'.jpg'),GHMEDIA);
+        if(!fbId){ paso&&paso('Preparando el archivo para Instagram…'); fbId=await fbSubirMedia(blob,{esVideo:esVideo,publicar:false}); fbOculto=true; }
+        url=await fbUrlPublica(fbId,esVideo,paso);
       }
       paso&&paso('Creando la publicación en Instagram…');
       await igPublicar(url,genIG(v,gvar),esVideo,paso);
       oks.push('Instagram');
     }catch(e){ console.error('IG',e); errores.push('Instagram: '+e.message); }
-  }
-  if(pubRed.fb){
-    try{
-      paso&&paso('Publicando en Facebook…');
-      let blobFB;
-      if(esVideo) blobFB=pubFile;
-      else if(dataURI) blobFB=dataURIaBlob(dataURI);
-      else blobFB=await (await fetch(urlYa)).blob();   /* la foto vive en la bodega */
-      await fbPublicar(blobFB,genFB(v,gvar),esVideo);
-      oks.push('Facebook');
-    }catch(e){ console.error('FB',e); errores.push('Facebook: '+e.message); }
+    finally{ if(fbOculto&&fbId){ paso&&paso('Limpiando el archivo temporal…'); await fbBorrar(fbId); } }
   }
   return {oks:oks,errores:errores};
 }
@@ -9693,7 +9737,7 @@ function drawPick(){
      <div style="color:var(--ink2);font-weight:700;text-align:right;flex:0 0 auto">${e?`<div style="font-size:12px;font-weight:600;color:var(--mute)">${e}</div>`:''}→</div></div>`; }).join('')
    :'<div class="empty">'+(toks.length?'Sin resultados.':'No hay vehículos acá.')+'</div>';
 }
-const PUB_MAX=45*1048576, IG_ESPERA=15000;
+const PUB_MAX=200*1048576, IG_ESPERA=15000;   /* 03/11/2026: ya no pasa por GitHub (tope 45 MB); Facebook e Instagram aceptan videos más grandes */
 let pubFile=null, pubRed={ig:true,fb:true};
 function pintaPubArch(){
   const el=$('#pubArch'); if(!el) return;
@@ -9707,6 +9751,42 @@ const RED={
   tk:['TikTok',v=>genTK(v,gvar),'https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video'],
   mp:['Facebook Marketplace',v=>genMP(v,gvar),'https://www.facebook.com/marketplace/create/vehicle']
 };
+/* 03/11/2026 (Andre): se hacen 3 videos por vehículo (estilos del Mac: clásico, 3 razones, ficha). Después de subir cada uno
+   a TikTok se pega su link acá (v.vids). Uno solo va a la web (v.video, por defecto el primero publicado): tres videos
+   parecidos alargan la ficha. Vendedores recibe los tres para mandarlos por WhatsApp. */
+const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
+const esLinkVideo=u=>/^https?:\/\/\S+$/i.test(String(u||'').trim());
+function vidsHTML(v){
+  const vs=v.vids||{};
+  return `<div class="box" id="vidsBox" style="margin-top:12px"><h3 style="margin:0 0 4px">Videos publicados en TikTok</h3>
+    <p class="mtr" style="margin:0 0 10px">Después de subir cada video, en TikTok toca Compartir → Copiar enlace y acá "Pegar". Uno va a la web (★); Víctor y Bryan ven los tres.</p>
+    ${VID_EST.map(([k,n])=>{ const u=vs[k]||'', web=!!u&&v.video===u; return `<div class="fld" style="margin-bottom:9px"><label for="vid_${k}">${n}</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="vid_${k}" data-vid="${k}" value="${u.replace(/"/g,'&quot;')}" placeholder="https://www.tiktok.com/…" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" data-noup="1" style="flex:1;min-width:0">
+        <button class="btn b-sec" type="button" data-vidpega="${k}" style="flex:0 0 auto;padding:10px 12px">Pegar</button>
+        <button class="cg" type="button" data-vidweb="${k}" aria-pressed="${web}" ${u?'':'disabled'} title="Este es el que se ve en la web" style="flex:0 0 auto;padding:10px 12px;opacity:${u?1:.45}">★ Web</button>
+      </div>${u?`<div class="mtr" style="margin-top:5px;display:flex;align-items:center;gap:8px">Publicado el <input type="date" data-vidfe="${k}" value="${(v.vidsFe||{})[k]||''}" style="width:auto;padding:5px 8px;font-size:13px"></div>`:''}</div>`; }).join('')}
+  </div>`;
+}
+function vidGuarda(k,url,web){
+  const v=gv; if(!v) return;
+  url=String(url||'').trim();
+  if(url&&!esLinkVideo(url)){ toast('Eso no parece un link de video'); return; }
+  const vs=Object.assign({},v.vids||{}), antes=vs[k]||'';
+  if(url) vs[k]=url; else delete vs[k];
+  /* fecha de publicación: la de hoy al pegarlo (se puede corregir); sirve para el calendario "Para publicar hoy" */
+  const fe=Object.assign({},v.vidsFe||{});
+  if(url&&url!==antes) fe[k]=iso(); else if(!url) delete fe[k];
+  v.vidsFe=Object.keys(fe).length?fe:null;
+  const hay=Object.keys(vs).length;
+  v.vids=hay?vs:null;   /* null (no se quita): así la nube también lo borra */
+  if(web&&url) v.video=url;
+  else if(antes&&v.video===antes) v.video=url||(VID_EST.map(x=>vs[x[0]]).find(Boolean)||'');   /* cambió o se borró el de la web */
+  else if(!v.video&&url) v.video=url;   /* el primero publicado va a la web */
+  guardaCacheV(true); save(); draw();
+  const b=$('#vidsBox'); if(b) b.outerHTML=vidsHTML(v);
+  toast(url?(v.video===url?'✓ Guardado · este es el de la web':'✓ Guardado'):'Link quitado');
+}
 const RED_NOTA={mp:'Marca, modelo y año se eligen en el formulario de Marketplace. Esto va en "Descripción".',
   tk:'"Abrir" copia el texto y lleva a subir el video. Pégalo en la descripción.'};
 function pintaRed(anim){
@@ -9720,11 +9800,66 @@ function pintaRed(anim){
      ${RED_NOTA[redSel]?`<div class="mtr" style="margin:0 0 8px">${RED_NOTA[redSel]}</div>`:''}
      <pre>${blk[1].replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre></div>`;
     $('#mpExtra').hidden=redSel!=='mp';
+    if(redSel==='tk') $('#genOut').insertAdjacentHTML('beforeend',vidsHTML(gv));
   };
   if(anim){ alturaFluida($('#genOut'),poner); entraSuave($('#genOut')); } else poner();
 }
+$('#genOut').addEventListener('change',e=>{ const i=e.target.closest('[data-vid]'); if(i) vidGuarda(i.dataset.vid,i.value);
+  const f=e.target.closest('[data-vidfe]');
+  if(f&&gv&&f.value){ gv.vidsFe=Object.assign({},gv.vidsFe||{},{[f.dataset.vidfe]:f.value}); guardaCacheV(true); save(); toast('✓ Fecha guardada'); } });
+$('#genOut').addEventListener('click',async e=>{
+  const p=e.target.closest('[data-vidpega]'), w=e.target.closest('[data-vidweb]');
+  if(p){ let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
+    if(!t){ toast('No se pudo leer lo copiado: pégalo a mano en la casilla'); $('#vid_'+p.dataset.vidpega)?.focus(); return; }
+    vidGuarda(p.dataset.vidpega,t.trim().split(/\s+/).find(esLinkVideo)||t.trim()); return; }
+  if(w&&gv&&(gv.vids||{})[w.dataset.vidweb]) vidGuarda(w.dataset.vidweb,gv.vids[w.dataset.vidweb],true);
+});
+/* 03/11/2026 (Andre): calendario de los 3 videos de cada vehículo. Orden y espera acordados: Clásico → (4 días) 3 razones →
+   (5 días) Ficha, intercalando autos; máximo 2 videos por día en total. Sale de los links pegados en la pestaña TikTok
+   (v.vids) y su fecha (v.vidsFe). Los vendidos salen solos: sus videos pendientes se cancelan. */
+const VID_ESPERA={raz:4,fic:5}, VID_MAX_DIA=2;
+const masDias=(f,n)=>{ const d=new Date(f+'T12:00:00'); d.setDate(d.getDate()+n); return isoDe(d); };
+const diasEntre=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+function agendaVideos(){
+  const hoy=iso(), filas=[]; let hoyN=0, completos=0, vendidos=0;
+  V.forEach(v=>{
+    if(v.baja||v.borrado||v.creando) return;
+    const vs=v.vids||{}, fe=v.vidsFe||{}, pub=VID_EST.filter(([k])=>vs[k]);
+    pub.forEach(([k])=>{ if(fe[k]===hoy) hoyN++; });
+    if(!pub.length) return;
+    if(sold(v.ch)){ if(pub.length<VID_EST.length) vendidos++; return; }
+    if(pub.length>=VID_EST.length){ completos++; return; }
+    const sig=VID_EST.find(([k])=>!vs[k]);
+    const ult=pub.map(([k])=>fe[k]).filter(Boolean).sort().pop()||'';
+    const toca=ult?masDias(ult,VID_ESPERA[sig[0]]||4):hoy;
+    filas.push({v,sig,toca,pub,fe});
+  });
+  filas.sort((a,b)=>a.toca.localeCompare(b.toca)||(+b.v.an||0)-(+a.v.an||0));
+  return {hoy,hoyN,filas,completos,vendidos};
+}
+function pintaAgenda(){
+  const box=$('#ctAgenda'); if(!box) return;
+  const A=agendaVideos(), hoy=A.hoy, ya=A.hoyN>=VID_MAX_DIA;
+  const cuando=f=>{ const d=diasEntre(hoy,f); return d<0?`<b style="color:var(--red)">atrasado ${-d} día${d===-1?'':'s'}</b>`:d===0?'<b style="color:var(--green)">toca hoy</b>':d===1?'mañana':'en '+d+' días ('+fd(f).slice(0,5)+')'; };
+  const fila=x=>`<div class="xrow" style="align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)">
+      <div style="min-width:0;flex:1"><div style="font-weight:700">${x.v.ma} ${x.v.mo} ${x.v.an||''}</div>
+        <div class="mtr" style="margin:2px 0 0">Siguiente: <b>${x.sig[1]}</b> · ${cuando(x.toca)}</div>
+        <div class="mtr" style="margin:2px 0 0">${x.pub.map(([k,n])=>'✓ '+n+(x.fe[k]?' '+fd(x.fe[k]).slice(0,5):'')).join(' · ')}</div></div>
+      <button class="btn b-sec" type="button" data-agvid="${x.v.ch}" style="flex:0 0 auto;padding:9px 12px">Ir →</button></div>`;
+  const hoyF=A.filas.filter(x=>x.toca<=hoy), luego=A.filas.filter(x=>x.toca>hoy);
+  box.innerHTML=`<div class="box"><h3 style="margin:0 0 4px">Para publicar hoy</h3>
+    <p class="mtr" style="margin:0 0 6px">Hoy llevas <b>${A.hoyN}</b> de ${VID_MAX_DIA} videos${ya?' · <b>ya llegaste al máximo sugerido: lo demás, mañana</b>':''}. Orden: Clásico → 3 razones (4 días después) → Ficha (5 días después), intercalando autos.</p>
+    ${A.filas.length?'':'<p class="mtr" style="margin:6px 0 0">Cuando pegues el link del primer video de un auto (pestaña TikTok del auto), acá aparece cuándo le toca el siguiente.</p>'}
+    ${hoyF.length?hoyF.map(fila).join(''):(A.filas.length?'<p class="mtr" style="margin:8px 0 0">Hoy no toca ningún video. 👌</p>':'')}
+    ${luego.length?`<details style="margin-top:8px"><summary class="mtr" style="cursor:pointer">Próximos (${luego.length})</summary>${luego.map(fila).join('')}</details>`:''}
+    ${(A.completos||A.vendidos)?`<p class="mtr" style="margin:8px 0 0">${A.completos?A.completos+' con sus 3 videos publicados':''}${A.completos&&A.vendidos?' · ':''}${A.vendidos?A.vendidos+' vendido'+(A.vendidos===1?'':'s')+' (sus videos pendientes se cancelan)':''}</p>`:''}
+  </div>`;
+}
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-agvid]'); if(!b) return;
+  gv=IDX[b.dataset.agvid]; gvar=0; redSel='tk'; try{ localStorage.setItem('amk_redSel','tk'); }catch(_){}
+  drawGen(); setTimeout(()=>{ const x=$('#vidsBox'); if(x) x.scrollIntoView({behavior:'smooth',block:'center'}); },120); });
 function drawGen(){
-  if(!gv){$('#genWrap').hidden=true;$('#ctPick').hidden=false;$('#ctPubAyuda').hidden=false;return}
+  if(!gv){$('#genWrap').hidden=true;$('#ctPick').hidden=false;$('#ctPubAyuda').hidden=false;pintaAgenda();return}
   $('#genWrap').hidden=false;$('#ctPick').hidden=true;$('#ctPubAyuda').hidden=true;
   $('#genT').textContent=gv.ma+' '+gv.mo+' '+(gv.an||'');
   $('#genC').textContent=gv.ch+' · versión '+(gvar%3+1);
@@ -12487,6 +12622,15 @@ const EQ_EXCL={RADIO:'PANT',PANT:'RADIO'};
   const k=b.dataset.eqv, i=evEqSel.indexOf(k); if(i>=0) evEqSel.splice(i,1); else evEqSel.push(k);
   if(i<0&&EQ_EXCL[k]){ const j=evEqSel.indexOf(EQ_EXCL[k]); if(j>=0){ evEqSel.splice(j,1); const o=$('#evEq [data-eqv="'+EQ_EXCL[k]+'"]'); if(o) o.setAttribute('aria-pressed','false'); } }
   evEqT=true; b.setAttribute('aria-pressed',i<0?'true':'false'); }));
+/* 03/11/2026 (Andre): el valor de compra en wones también se corrige desde Editar vehículo (antes solo en Costos → Corea).
+   Es el mismo dato: v.krw (lo ve la mamá en su app) y el valor del embarque. Con los costos de Zofri ya aplicados queda bloqueado. */
+let evKrwIni=0;
+function evKrwPinta(v){ const i=$('#evKrw'), n=$('#evKrwNota'); const em=embDeVeh(v.ch), ve=em&&(em.veh||[]).find(x=>x.ch===v.ch);
+  evKrwIni=Math.round(+v.krw||(ve&&+ve.valor)||0); i.value=evKrwIni?'₩'+evKrwIni.toLocaleString('es-CL'):'';
+  i.disabled=!!v.ct; i.style.color=v.ct?'var(--mute)':'';
+  n.style.color=v.ct?'var(--amber)':'';
+  n.textContent=v.ct?'Ya se ingresó por Zofri. Para cambiarlo, hay que tocar "Deshacer Aplicar costos" en Costos → Corea y después volver a aplicarlos en Embarque.'
+    :'Es el que anotó tu mamá: si lo cambias, a ella le llega solo y el embarque se recalcula.'; }
 const evEsTrab=v=>!!(v.trab||esModeloTrabajo(normalizaModelo(String($('#evMo').value||v.mo||'').trim().toUpperCase())));
 function abrirEditVeh(ch){
   const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
@@ -12505,6 +12649,7 @@ function abrirEditVeh(ch){
   $('#evMotor').value=v.motor||''; pintaCilSel('evCilSel','evCil',v.cil||'');
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
   evEqSel=(v.eq||[]).slice(); evEqT=false;
+  evKrwPinta(v);
   evSvActualizar();
   $('#evTrans').value=(v.zof&&v.zof.trans)||'';
   if($('#evNMotor')) $('#evNMotor').value=(()=>{ try{ return zofEf(v).motor||''; }catch(_){ return (v.zof&&v.zof.motor)||''; } })();
@@ -12543,6 +12688,7 @@ $('#evOk').addEventListener('click',()=>{
   v.tp=!evEsTrab(v)&&$('#evTp').getAttribute('aria-pressed')==='true';
   if(evEqT){ const ok=eqOpc(evEsTrab(v)).map(o=>o[0]); v.eq=ok.filter(k=>evEqSel.includes(k)); }
   v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
+  { const k=pnum($('#evKrw').value)||0; if(!v.ct&&k!==evKrwIni) guardaValorCompra(ch,k).then(c=>{ if(c&&typeof pintaEmb==='function') pintaEmb(); }).catch(e=>console.error('valor de compra',e)); }
   const evTransVal=$('#evTrans').value;
   if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
   { const nm=$('#evNMotor')?normMotor($('#evNMotor').value):''; if(nm&&nm!==(smdaAntes||{}).motor){ v.zof=v.zof||{}; v.zof.motor=nm; } }

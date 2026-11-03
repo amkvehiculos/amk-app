@@ -367,7 +367,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->03-11-2026 15:15 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->03-11-2026 18:43 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -696,8 +696,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='pruebas_vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','vids','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','vids','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='pruebas_sueldosVend';
@@ -1517,6 +1517,19 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 const WEB_BASE='https://amkvehiculos.github.io/amk-web/'; // URL pública de la web (GitHub Pages).
 function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
+/* 03/11/2026 (Andre): los videos que Andre publicó en TikTok (Sistema → Contenido), para mandarlos cuando pregunten por un auto.
+   Se comparte el video y, debajo, la ficha en la web. Con varios, se elige cuál. */
+const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
+function vidsDe(v){ const vs=v.vids||{}, out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
+  if(!out.length&&v.video) out.push({n:'Video',u:v.video}); return out; }
+async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe(v);
+  if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
+    if(!box.hidden){ box.hidden=true; return; }
+    box.innerHTML=vs.map((x,j)=>`<button class="btn b-sec" data-vidi="${ch}|${j}">▶ ${x.n}</button>`).join(''); box.hidden=false; entraSuave&&entraSuave(box); return; }
+  const x=vs[i||0]; if(!x) return; const link=webLink(ch);
+  const txt='Hola, te comparto el video del '+v.ma+' '+v.mo+' '+(v.an||'')+': '+x.u+(link?'\n\nFicha completa y fotos: '+link:'');
+  if(navigator.share){try{await navigator.share({text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(txt);toast('Video copiado · pégalo en WhatsApp')}catch(_){toast('No se pudo copiar')}}
 async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
  if(!link){toast('Todavía no está lista la web para compartir el link');return}
  const txt='Hola, te comparto el '+v.ma+' '+v.mo+' '+(v.an||'')+', puedes verlo aquí: '+link;
@@ -1928,12 +1941,12 @@ const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())
    [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique | 'p' privado]. Sin marcar = no se sabe.
    03/11/2026 (Andre): Pantalla Android, pisaderas y cromados (lo que se pone en Iquique) van primero porque son lo que más vende;
    RADIO = de origen trae solo radio (lo marca Corea): no sale en textos ni web, avisa que habrá que poner pantalla.
-   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó). */
+   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó).
+   03/11/2026 (Andre): sacados sensores, aire acondicionado y control crucero (vienen siempre, no distinguen) y la cámara
+   de retroceso (cuando trae pantalla de fábrica, trae cámara: va junta en PANT). Códigos viejos guardados se ignoran. */
 const EQ_OPC=[['AND','Pantalla Android','Pantalla Android','','i'],['PIS','Pisaderas','Pisaderas','','i'],['CRO','Cromados','Cromados','','i'],
-  ['CAM','Cámara de retroceso','Cám. retroceso'],['SENS','Sensores de estacionamiento','Sensores estac.'],['PANT','Pantalla multimedia','Pantalla'],
-  ['LLAVE','Llave inteligente','Llave intelig.'],['CRUC','Control crucero','Crucero'],['CUERO','Asientos de cuero','Cuero','a'],
-  ['CALEF','Asientos calefaccionados o ventilados','Asientos calef.','a'],['PORTON','Portón trasero eléctrico','Portón eléc.','a'],
-  ['AROS','Aros de aleación','Aros aleación','a'],['AC','Aire acondicionado','Aire acond.','t'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p']];
+  ['PANT','Pantalla multimedia con cámara de retroceso','Pantalla y cámara'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p'],
+  ['LLAVE','Llave inteligente','Llave intelig.'],['PORTON','Portón trasero eléctrico','Portón eléc.','a']];
 const eqDe=(v,i)=>{ const e=v.eq||[]; return EQ_OPC.filter(o=>(!o[3]||(o[3]==='t')===esTrabV(v))&&e.includes(o[0])&&o[4]!=='p'&&!(o[0]==='PANT'&&e.includes('AND'))).map(o=>o[i||1]); };
 const featsVideo=v=>feats(v).filter(x=>!/ km$/.test(x));
 function feats(v){const f=[];
@@ -2235,7 +2248,9 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
     <button class="btn b-sec" data-mi360="${v.ch}">📷 Mi 360°${sin360?' ⚠':(t.n360?' ✓':'')}</button></div>
    <div class="acts a3">${(v.f360&&v.f360.length)?`<button class="btn b-sec" data-v360="${v.ch}">🔄 Ver 360°</button>`:''}
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
+    ${vidsDe(v).length?`<button class="btn b-sec" data-vid="${v.ch}">▶ Video${vidsDe(v).length>1?' ('+vidsDe(v).length+')':''}</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
+   <div class="acts vidpick" id="vidpick_${v.ch}" hidden></div>
    <div class="acts a3"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
     <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos${datosDe(v.ch).some(x=>x.campo==='motor')?' ✓':''}</button>
     <button class="btn b-sec" data-sold="${v.ch}">✓ Vendí</button></div></div>`};
@@ -2589,9 +2604,12 @@ document.addEventListener('click',async e=>{
  { const vz=e.target.closest('[data-vzver]'); if(vz){ visorAbre(phArr,+vz.dataset.vzver); return; } }
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
+  vd=e.target.closest('[data-vid]'),vi=e.target.closest('[data-vidi]'),
   c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]'),
   v3b=e.target.closest('[data-v360]'), m3b=e.target.closest('[data-mi360]'), cv=e.target.closest('[data-cpvid]');
  if(sh){shareVehicle(sh.dataset.share,null);return}
+ if(vd){shareVideo(vd.dataset.vid);return}
+ if(vi){const [ch,j]=vi.dataset.vidi.split('|'); shareVideo(ch,+j);return}
  if(lk){shareLink(lk.dataset.link);return}
  if(so){const v=IDX[so.dataset.sold]; if(!v) return; if(pideQuien('avisar una venta')) return;
   $('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
