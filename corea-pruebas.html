@@ -357,7 +357,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="csSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="csDia">Copia desde la cual recuperar</label><select id="csDia"></select></div>
         <button class="btn b-pri" id="csComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
       <div id="csRes" class="mtr" style="margin-top:8px"></div></details>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->02-11-2026 17:01 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->03-11-2026 12:44 · PRUEBAS<!--/VER--></b></p>
   </section>
 </main>
 
@@ -398,6 +398,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
   </div>
   <div class="fld"><label for="fCeSel">Color exterior</label><div id="fCe"></div></div>
   <div class="fld"><label>Tracción</label><div class="opt" id="fTr"></div></div>
+  <div class="fld" id="wTp"><label>Techo panorámico</label><div class="opt" id="fTp"></div></div>
+  <div class="fld"><label>¿Pantalla o radio?</label><div class="opt" id="fAud"></div></div>
+  <div class="fld" id="wEq"><label>Equipamiento <span class="mtr">(marca solo lo que tiene)</span></label><div class="opt" id="fEq"></div></div>
   <div class="nota" id="autoRes" hidden style="border-left-color:#2E7D32;display:flex;justify-content:space-between;gap:8px;align-items:center"></div>
   <div id="wAuto">
   <div class="fld"><label>Categoría</label><div class="opt" id="fCat"></div></div>
@@ -755,6 +758,17 @@ const FB_GEN=['ch','ma','mo','an','km','cat','ce','tr','pa','ca','fe','nota','pr
 /* Viajan a Sistema solo si tienen valor (2026-09-28). Solo el VIN cuenta para la firma, para no reenviar de golpe
    todos los vehículos ya cargados (y pisar en la nube correcciones hechas en Sistema). */
 const FB_GEN_EXTRA=['vin','motor','cil','trans','codMotor','cab'];
+/* Equipamiento (03/11/2026, Andre): v.eq = lista de códigos; la misma tabla en Sistema y Vendedores.
+   [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique (lo marca Andre) | 'p' privado].
+   Sin marcar = no se sabe. 03/11/2026 (Andre): radio o pantalla de fábrica se pregunta aparte (#fAud), porque si viene con radio
+   en Iquique hay que ponerle pantalla y es un costo a considerar. */
+const EQ_OPC=[['AND','Pantalla Android','pantalla android','','i'],['PIS','Pisaderas','pisaderas','','i'],['CRO','Cromados','cromados','','i'],
+  ['RADIO','Solo radio','solo radio','','p'],['CAM','Cámara de retroceso','cámara'],['SENS','Sensores de estacionamiento','sensores'],['PANT','Pantalla multimedia','pantalla'],
+  ['LLAVE','Llave inteligente','llave intelig.'],['CRUC','Control crucero','crucero'],['CUERO','Asientos de cuero','cuero','a'],
+  ['CALEF','Asientos calefaccionados o ventilados','asientos calef.','a'],['PORTON','Portón trasero eléctrico','portón eléc.','a'],
+  ['AROS','Aros de aleación','aros','a'],['AC','Aire acondicionado','aire acond.','t']];
+const eqOpc=trab=>EQ_OPC.filter(o=>!o[3]||(o[3]==='t')===!!trab);
+const eqCorto=v=>{ const ok=eqOpc(esModeloTrab(v.mo)); return ok.filter(o=>(v.eq||[]).includes(o[0])).map(o=>o[2]); };
 let fbDb=null, fbAuth=null, fbReady=false, fbAvisoCostos=false;
 /* Estado real de cada vehículo en la nube. v.nube guarda la "firma" de lo último que la nube confirmó (ver fbFirma):
    si coincide con la firma actual => "En Chile ✓". null => cargado/editado y todavía sin confirmar.
@@ -779,6 +793,8 @@ function fbFirma(v){
   try{ s=JSON.stringify([FB_GEN.map(k=>v[k]===undefined?null:v[k]), v.krw===undefined?null:v.krw, v.cc===undefined?null:v.cc, v.senia===undefined?null:v.senia]); }
   catch(e){ return ''; }
   if(v.vin) s+='|'+v.vin;
+  if(v.tp!==undefined) s+='|tp'+(v.tp?1:0);   /* 03/11/2026 */
+  if(Array.isArray(v.eq)) s+='|eq'+v.eq.join(',');   /* equipamiento: solo si se contestó, así los ya cargados no se reenvían */
   let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0;
   return (h>>>0).toString(36)+'.'+s.length;
 }
@@ -847,6 +863,8 @@ async function fbEnvia(){
       const firma=fbFirma(v);
       const gen={}; FB_GEN.forEach(k=>{ if(v[k]!==undefined) gen[k]=v[k]; });
       FB_GEN_EXTRA.forEach(k=>{ if(v[k]) gen[k]=v[k]; });
+      if(v.tp!==undefined) gen.tp=!!v.tp;   /* techo panorámico: viaja también el "no" */
+      if(Array.isArray(v.eq)) gen.eq=v.eq.slice();   /* equipamiento: viaja también la lista vacía (se desmarcó todo) */
       if(esModeloTrab(v.mo)) gen.trab=true;   /* 16/10/2026: fuera de FB_GEN a propósito: meterlo ahí cambia fbFirma de TODOS y se reenviarían todos */
       if(v._primerEnvio) gen.st='ORIGEN';   /* recién comprado en Corea: arranca 'En camino' en Sistema, solo la primera vez */
       gen._ts=firebase.firestore.FieldValue.serverTimestamp();
@@ -1377,6 +1395,12 @@ function fbVehiculosListen(){
         });
       }
       if(d.cab && d.cab!==v.cab){ v.cab=d.cab; cambio=true; }
+      /* Techo panorámico marcado en Sistema: llega acá, salvo que esta app tenga un cambio suyo todavía sin enviar. */
+      if(d.tp!==undefined && d.tp!==null && !!d.tp!==v.tp && (v.soloReferencia || (v.nube && v.nube===fbFirma(v)) || v.tp===undefined)){
+        const alDia=!!(v.nube && v.nube===fbFirma(v)); v.tp=!!d.tp; if(alDia) v.nube=fbFirma(v); cambio=true; }
+      /* Equipamiento corregido en Sistema: misma regla que el techo. */
+      if(Array.isArray(d.eq) && d.eq.join(',')!==(v.eq||[]).join(',') && (v.soloReferencia || (v.nube && v.nube===fbFirma(v)) || v.eq===undefined)){
+        const alDia=!!(v.nube && v.nube===fbFirma(v)); v.eq=d.eq.slice(); if(alDia) v.nube=fbFirma(v); cambio=true; }
       if(d.carga!==undefined && (d.carga||'')!==(v.carga||'') && !(CARGA_PEND[ch]!==undefined)){ if(d.carga) v.carga=d.carga; else delete v.carga; cambio=true; }
       if(d.zarpe!==undefined && (d.zarpe||'')!==(v.zarpe||'') && !v.soloReferencia && !(ZARPE_PEND[ch]!==undefined)){ if(d.zarpe) v.zarpe=d.zarpe; else delete v.zarpe; cambio=true; }
       /* 26/10/2026: estado en Sistema (ORIGEN = todavía no llega; IQQ… = ya en Iquique). Solo se guarda acá para saber qué
@@ -1715,8 +1739,24 @@ function opts(){
   chips('#fCat',OPT.cats,'cat');
   chips('#fTr',OPT.tracc,'tr');chips('#fCa',OPT.carr,'ca');
   chipsPar('#fMotor',OPT.motores,'motor');chipsPar('#fTrans',OPT.trans,'trans');
+  chipsPar('#fTp',[['NO','No tiene'],['SI','Sí tiene']],'tp');   /* 03/11/2026 (Andre): techo panorámico, lo mismo que v.tp en Sistema */
+  pintaEq();
   moChips();
 }
+/* Equipamiento: se marcan varios a la vez (data-eq, no data-k, que es de una sola opción). */
+function pintaEq(){ const el=$('#fEq'), au=$('#fAud'); if(!el) return; const eq=sel.eq||[];
+  el.innerHTML=eqOpc(esTrab).filter(o=>!o[4]&&o[0]!=='PANT').map(([k,t])=>`<button type="button" data-eq="${k}" aria-pressed="${eq.includes(k)}">${t}</button>`).join('');
+  /* Pantalla Android, pisaderas y cromados se ponen en Iquique: no se preguntan acá (pero se conservan al guardar). */
+  if(au) au.innerHTML=[['RADIO','Solo radio'],['PANT','Pantalla de fábrica']].map(([k,t])=>`<button type="button" data-aud="${k}" aria-pressed="${eq.includes(k)}">${t}</button>`).join(''); }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-eq]'); if(!b) return;
+  const k=b.dataset.eq, eq=sel.eq||(sel.eq=[]), i=eq.indexOf(k);
+  if(i>=0) eq.splice(i,1); else eq.push(k);
+  sel.eqT=1; b.setAttribute('aria-pressed',i<0?'true':'false'); });
+/* Radio o pantalla: una sola respuesta (tocar la marcada la suelta). */
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-aud]'); if(!b) return;
+  const k=b.dataset.aud, ya=(sel.eq||[]).includes(k);
+  sel.eq=(sel.eq||[]).filter(x=>x!=='RADIO'&&x!=='PANT'); if(!ya) sel.eq.push(k);
+  sel.eqT=1; pintaEq(); });
 /* Lista desplegable nativa (<select>): en el iPhone abre la rueda del sistema, que funciona bien al tacto
    (lo que fallaba antes era un <datalist>, no un <select>). La opción "＋ Otra…" muestra el cuadro para escribir. */
 function listaSel(id,arr,val,ph,otroTxt,otroVal){
@@ -1747,7 +1787,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b
 });
 
 function limpia(){
-  sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:''};edit=null;sinCh=false;warnOnce=false;
+  sel={ma:'',mo:'',cat:'',ce:'',tr:'',ca:'S/N',motor:'',trans:'',tp:'',eq:[],eqT:0};edit=null;sinCh=false;warnOnce=false;
   $('#fSinCh').setAttribute('aria-pressed','false');$('#fCh').disabled=false;$('#fCh').style.opacity=1;
   ['fVin','fCh','fAn','fKm','fPa','fCil','fKrw','fSenia','fNo','fPr','fCont'].forEach(i=>$('#'+i).value='');
   { const n=$('#vinOcr'); if(n){ n.hidden=true; n.innerHTML=''; } }
@@ -1947,7 +1987,9 @@ function setTrab(v){
   $('#fTrabNo').setAttribute('aria-pressed',v?'false':'true');
   $('#fTrabSi').setAttribute('aria-pressed',v?'true':'false');
   $('#wCa').hidden=!v;
+  { const w=$('#wTp'); if(w) w.hidden=!!v; }   /* los de trabajo no llevan techo panorámico */
   if(!v) sel.ca='';
+  pintaEq();   /* los de trabajo tienen otras opciones de equipamiento */
 }
 $('#fSinCh').addEventListener('click',()=>{
   sinCh=!sinCh;
@@ -2015,6 +2057,10 @@ $('#fmOk').addEventListener('click',async()=>{
     nota:$('#fNo').value.trim(),nf:0,cov:'',sent:false,ts:Date.now()};
   /* Al editar se conserva TODO lo que la ficha ya tenía y este formulario no toca (✓ de 360°, costo total real que
      llegó de Sistema, estado en la nube...). Antes se armaba un objeto nuevo y se perdía el ✓ de la vista 360°. */
+  /* Techo panorámico: solo si se contestó. Sin contestar no se toca lo que ya tenía (ni lo que marcó Andre en Sistema). */
+  if(!esTrab&&sel.tp) o.tp=sel.tp==='SI'; else if(esTrab) o.tp=false;
+  /* Equipamiento: solo si se tocó; si no, queda lo que ya tenía (o lo que corrigió Andre en Sistema). */
+  if(sel.eqT){ const ok=eqOpc(esTrab).map(x=>x[0]); o.eq=ok.filter(k=>(sel.eq||[]).includes(k)); }
   if(edit){const i=L.findIndex(x=>x.ch===edit); const old=L[i]; L[i]=Object.assign({},old,o,{nf:old.nf,cov:old.cov,nube:old.nube})}
   else{ o.nube=null; o._primerEnvio=true; L.unshift(o); }
   await save();draw();closeAll();toast(edit?'Actualizado ✓':'Vehículo cargado ✓');
@@ -2206,6 +2252,8 @@ function enGrupos(LV){
 function faltaDe(v){ if(salio(v)) return [];
   const f=[]; if(!v.an) f.push('año'); if(!v.krw) f.push('precio'); if(!v.ce) f.push('color');
   if(esModeloTrab(v.mo)&&!v.cab) f.push('cabina');
+  if(!esModeloTrab(v.mo)&&v.tp===undefined) f.push('techo panorámico');
+  if(!(v.eq||[]).some(k=>k==='RADIO'||k==='PANT')) f.push('pantalla o radio');
   return f.length?['Falta '+f.join(', ')]:[]; }
 function draw(){
   pintaHK();
@@ -2226,7 +2274,7 @@ function draw(){
     if(v.__h) return v.__h;
     const tcc=v.cc?Object.values(v.cc).reduce((a,b)=>a+b,0):0;
     const ccTxt=v.cc?CC.filter(([k])=>v.cc[k]).map(([k,n])=>n+' '+krw(v.cc[k])).join(' · '):'';
-    const sp=[v.cat,v.tr,(v.cab?{SIMPLE:'cabina simple',MEDIA:'cabina y media',DOBLE:'doble cabina'}[v.cab]:(v.pa?v.pa+' pas.':'')),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
+    const sp=[v.cat,v.tr,(v.cab?{SIMPLE:'cabina simple',MEDIA:'cabina y media',DOBLE:'doble cabina'}[v.cab]:(v.pa?v.pa+' pas.':'')),(v.ca&&v.ca!=='S/N'?v.ca:''),(v.tp&&!esModeloTrab(v.mo)?'techo panorámico':''),...eqCorto(v),(v.km?v.km.toLocaleString('es-CL')+' km':''),(v.krw?krw(v.krw):''),(tcc?'+ '+krw(tcc)+' gastos':'')]
       .filter(Boolean).map(x=>`<span class="sp">${x}</span>`).join('');
     const cov=v.cov?`<img class="cover" src="${v.cov}" alt="">`:'';
     const en=enChile(v), sl=salio(v);
@@ -2667,7 +2715,7 @@ document.addEventListener('click',async e=>{
   [phArr[i],phArr[j]]=[phArr[j],phArr[i]];await persist();return}
  if(r){phArr.splice(+r.dataset.rm,1);await persist();return}
  if(ed){const v=L.find(x=>x.ch===ed.dataset.edit);edit=v.ch;
-  sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:String(v.ce||'').toUpperCase(),tr:v.tr,ca:v.ca,motor:v.motor||'',trans:v.trans||''};
+  sel={ma:v.ma,mo:v.mo,cat:v.cat,ce:String(v.ce||'').toUpperCase(),tr:v.tr,ca:v.ca,motor:v.motor||'',trans:v.trans||'',tp:v.tp===undefined?'':(v.tp?'SI':'NO'),eq:(v.eq||[]).slice(),eqT:0};
   $('#fMaNew').value='';$('#fMaNew').hidden=true;$('#fMoNew').value='';$('#fMoNew').hidden=true;
   setTrab(esModeloTrab(v.mo));opts();
   $('#fCh').value=v.ch;$('#fAn').value=v.an;$('#fKm').value=v.km||'';

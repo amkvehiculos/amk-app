@@ -366,7 +366,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->02-11-2026 17:01<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->03-11-2026 12:44<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -695,7 +695,7 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
 const FB_LIMPIABLES=['vev','fotos','f360','video','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
@@ -1922,17 +1922,28 @@ $$('[data-close]').forEach(b=>b.addEventListener('click',closeAll));
 /* Transmisión (2026-10-27): la anotada; si no, la de siempre (automática; mecánica en los de trabajo). */
 const transTxt=v=>String(v.trans||(v.trab?'MECANICA':'AUTOMATICA')).toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
 /* Regla de Andre (2026-10-27): los guiones de video nunca dicen los km ni el precio de venta. */
+const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));   /* Porter y Bongo son los de trabajo (Andre). Global (03/11/2026): antes vivía dentro de draw() y feats() fallaba con techo panorámico */
+/* Equipamiento (03/11/2026, Andre): v.eq = lista de códigos, la misma tabla en Corea y Sistema.
+   [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique | 'p' privado]. Sin marcar = no se sabe.
+   03/11/2026 (Andre): Pantalla Android, pisaderas y cromados (lo que se pone en Iquique) van primero porque son lo que más vende;
+   RADIO = de origen trae solo radio (lo marca Corea): no sale en textos ni web, avisa que habrá que poner pantalla.
+   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó). */
+const EQ_OPC=[['AND','Pantalla Android','Pantalla Android','','i'],['PIS','Pisaderas','Pisaderas','','i'],['CRO','Cromados','Cromados','','i'],
+  ['CAM','Cámara de retroceso','Cám. retroceso'],['SENS','Sensores de estacionamiento','Sensores estac.'],['PANT','Pantalla multimedia','Pantalla'],
+  ['LLAVE','Llave inteligente','Llave intelig.'],['CRUC','Control crucero','Crucero'],['CUERO','Asientos de cuero','Cuero','a'],
+  ['CALEF','Asientos calefaccionados o ventilados','Asientos calef.','a'],['PORTON','Portón trasero eléctrico','Portón eléc.','a'],
+  ['AROS','Aros de aleación','Aros aleación','a'],['AC','Aire acondicionado','Aire acond.','t'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p']];
+const eqDe=(v,i)=>{ const e=v.eq||[]; return EQ_OPC.filter(o=>(!o[3]||(o[3]==='t')===esTrabV(v))&&e.includes(o[0])&&o[4]!=='p'&&!(o[0]==='PANT'&&e.includes('AND'))).map(o=>o[i||1]); };
 const featsVideo=v=>feats(v).filter(x=>!/ km$/.test(x));
 function feats(v){const f=[];
  if(v.tr)f.push('Tracción '+v.tr); const tx=transTxt(v); if(tx)f.push('Transmisión '+tx); if(v.pa)f.push(v.pa+' pasajeros');
- if(v.ca&&CARN[v.ca])f.push('Carrocería '+CARN[v.ca]); if(v.tp)f.push('Techo panorámico');
+ if(v.ca&&CARN[v.ca])f.push('Carrocería '+CARN[v.ca]); if(v.tp&&!esTrabV(v))f.push('Techo panorámico'); f.push(...eqDe(v));
  if(v.ce)f.push('Color '+v.ce.toLowerCase()); if(v.km)f.push(v.km.toLocaleString('es-CL')+' km');
  return f}
 const priceLine=v=>v.pventa?clp(v.pventa):((v.oferta&&v.vev)?clp(v.vev):'Consultar precio por interno · pregúntale a Andre');
-function tags(v){const b=['#Iquique','#ZonaFranca','#AutosIquique','#ImportadosDesdeCorea','#AMKVehiculosSelectos',
- '#'+v.ma.replace(/\s+/g,''),'#'+v.mo.replace(/[^A-Za-z0-9]/g,'')];
- if(v.trab)b.push('#VehiculosDeTrabajo','#Camioneta'); else b.push('#AutosUsados');
- if(v.sv)b.push('#SelloVerde'); b.push('#Tarapaca'); return b.join(' ')}
+function tags(v){/* Máximo 5 (Andre, 03/11/2026): las redes avisan si son más de 5. Lugar, zona franca, marca, modelo y lo que distingue. */
+ const b=['#Iquique','#ZonaFranca','#'+v.ma.replace(/\s+/g,''),'#'+String(v.mo||'').replace(/\s+(I{1,3}|IV|V)$/i,'').replace(/[^A-Za-z0-9]/g,''),v.sv?'#SelloVerde':v.trab?'#VehiculosDeTrabajo':'#AutosIquique'];
+ return [...new Set(b.filter(t=>t.length>1))].slice(0,5).join(' ')}
 function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
  const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nLo revisamos en persona en Corea antes de comprarlo, y lo preparamos acá en Iquique.\n\n${priceLine(v)}\nEscríbeme por interno y coordinamos que lo veas.\n\nAMK Vehículos Selectos · Iquique`;
  const B=`Disponible: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.join(' · ')}${sv}\n\nSeleccionado en persona en Corea antes de subirlo al contenedor.\n\n${priceLine(v)}\nConsultas por mensaje.\n\nAMK Vehículos Selectos · Iquique`;
@@ -1971,7 +1982,7 @@ function tomasVideo(v,despues){
     'paneo lateral completo, de adelante hacia atrás','paneo por el otro lado, de atrás hacia adelante',
     cab+' desde la puerta del conductor',trab?'cabina desde el lado del copiloto, mirando al volante':'interior desde el asiento de atrás, mirando hacia el tablero',
     ...t4,'tablero, volante y palanca de cambios',trab?'palanca de cambios y pedales de cerca':'motor, con el capó abierto',...t6,
-    'rueda y llanta de cerca','parrilla y faros encendidos','frontal completo, con el teléfono quieto, 3 segundos'];
+    'rueda y llanta de cerca','de frente: parrilla y faros delanteros encendidos (no las luces de atrás)','frontal completo, con el teléfono quieto, 3 segundos'];
   return '15 tomas de una vez · vertical · 1080p · 5 a 7 s cada una · en este orden\n'
     +'Si alguna no se puede, graba 2 s de cualquier cosa igual, para que no se corra el orden.\n\n'
     +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
@@ -2176,7 +2187,6 @@ function draw(){
    dependía de v.trab, que la app de Corea no mandaba: los Porter/Bongo cargados por la mamá salían sin tipo. Ahora es de
    trabajo si v.trab o si el modelo es Porter/Bongo (los únicos de trabajo). BARANDA = "Baranda baja". */
 const CARN_NOM={'BARANDA':'Baranda baja','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer','GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','CAJON SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
-const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));   /* Porter y Bongo son los de trabajo (Andre) */
 const carNom=v=>{ const k=String((v&&v.ca)||'').trim(); if(!k||k.toUpperCase()==='S/N'||!esTrabV(v)) return ''; return CARN_NOM[k.toUpperCase()]||(k.charAt(0).toUpperCase()+k.slice(1).toLowerCase()); };
 const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
   const cn=carNom(v); if(cn) t.push(cn);
@@ -2205,7 +2215,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
     <div style="text-align:right">${v.pventa?`<div class="cm-p">${precioNuevo(v)?'<span style="color:var(--amber)" title="Precio actualizado">↻ </span>':''}${clp(v.pventa)}</div>`:'<div class="cm-s">sin precio</div>'}<div style="margin-top:4px">${chipEstado(v,true)}</div></div></div>`;
   }
   const capCe=String(v.ce||'').charAt(0)+String(v.ce||'').slice(1).toLowerCase();
-  const sp=etiquetasV(v).map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${(v.ce&&x===capCe)?`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cp};margin-right:5px;border:1px solid rgba(255,255,255,.35)"></i>`:''}${x}</span>`).join('');
+  const sp=etiquetasV(v).concat(eqDe(v,2)).map(x=>`<span class="sp${x==='Sello verde'?' sp-sv':''}">${(v.ce&&x===capCe)?`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${cp};margin-right:5px;border:1px solid rgba(255,255,255,.35)"></i>`:''}${x}</span>`).join('');
   return `<div class="card"${compacto?` data-exp="${v.ch}"`:''}><span class="strip" style="background:${estado}"></span>
    <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
     <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
@@ -2923,10 +2933,15 @@ function ivFeatsBase(){ return [ivMotorTexto(), ivTracPasTexto(), ...ivCaracSel]
 function ivFeatsDestacables(){ return [ivMotorTexto(), ivTracSel, ivPasSel, ...ivCaracSel].filter(Boolean); }
 function ivDefsCarac(v){
   const defs=[{label:'PARA PRIMER DUEÑO, ZOFRI', on:true}];
-  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp)});
+  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp&&!esTrabV(v))});
   if(v&&v.ca&&v.ca!=='S/N') defs.push({label:(CARN[v.ca]||v.ca).toString().toUpperCase(), on:true});
+  /* 03/11/2026 (Andre): la pantalla Android es lo que más vende: si está marcada en el vehículo, viene premarcada.
+     Pisaderas y cromados se ofrecen solo si el vehículo los tiene (sin premarcar, por el tope de 5). */
+  const eqV=(v&&v.eq)||[];
   ['PANT. BLUETOOTH + CAM. RETROCESO','RADIO ANDROID + CAM. RETROCESO','AROS DE ALEACION DEPORTIVOS','DOBLE TUBO DE ESCAPE']
-    .forEach(l=>defs.push({label:l, on:false}));
+    .forEach(l=>defs.push({label:l, on:l==='RADIO ANDROID + CAM. RETROCESO'&&eqV.includes('AND')}));
+  if(eqV.includes('PIS')) defs.push({label:'PISADERAS', on:false});
+  if(eqV.includes('CRO')) defs.push({label:'CROMADOS', on:false});
   return defs;
 }
 function pintaIvCarac(v){

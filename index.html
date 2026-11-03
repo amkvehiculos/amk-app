@@ -866,7 +866,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->02-11-2026 17:01<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-11-2026 12:44<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1408,18 +1408,20 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <select id="evTrans"><option value="">Sin especificar</option><option value="AUTOMATICA">Automática</option><option value="MECANICA">Mecánica</option></select></div>
   <div class="fld"><label for="evProvSel">Proveedor</label><select id="evProvSel"></select>
     <input id="evProv" list="dlNvProv" autocapitalize="characters" placeholder="Escribe el proveedor" style="margin-top:6px" hidden></div>
-  <div class="fld"><label>Otros</label><div class="catg" style="grid-template-columns:1fr 1fr">
-    <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button>
-    <button class="cg" type="button" id="evSv" aria-pressed="false" disabled tabindex="-1" style="pointer-events:none" title="Se calcula solo: año 2018 en adelante y que no sea vehículo de trabajo">Sello verde (automático)</button></div></div>
+  <div class="fld" id="evTpWrap"><label>Equipamiento <span class="mtr">(marca solo lo que tiene)</span></label><div class="catg" id="evEq" style="grid-template-columns:1fr 1fr">
+    <button class="cg" type="button" id="evTp" aria-pressed="false">Techo panorámico</button></div></div>
+  <div class="fld"><label>Preparado en Iquique <span class="mtr">(lo que se le instaló acá)</span></label><div class="catg" id="evEqI" style="grid-template-columns:repeat(3,1fr)"></div></div>
   <div class="mtr" style="margin-top:4px">Corrige los datos del vehículo (no toca estado, ventas ni costos). Se sincroniza solo con la nube.</div>
   <div class="sact fija"><button class="cx" data-close>Cancelar</button><button class="ok" id="evOk">Guardar</button></div>
 </div>
 
 <div class="sheet" id="shPub">
   <h3 id="spT"></h3><div class="sb" id="spC"></div>
-  <div class="fld"><label>Estado en la web</label><div class="catg" style="grid-template-columns:repeat(2,1fr)">
+  <div class="fld"><label>Estado en la web</label><div class="catg" style="grid-template-columns:repeat(3,1fr)">
     <button class="cg" id="spPub" aria-pressed="false">Publicado</button>
-    <button class="cg" id="spOf" aria-pressed="false">Oferta</button></div></div>
+    <button class="cg" id="spOf" aria-pressed="false">Oferta</button>
+    <button class="cg" id="spDest" aria-pressed="false">★ Portada</button></div>
+    <div class="mtr" style="margin-top:6px">★ Portada es opcional: si marcas autos, la foto grande de la web muestra solo esos (si su foto de portada está en alta y horizontal). Si no marcas ninguno, se eligen solos.</div></div>
   <div class="fld" id="spPwrap"><label for="spP">Precio público (solo ofertas)</label><input id="spP" inputmode="numeric" placeholder="$0">
     <div class="sug" id="spS"></div></div>
   <div class="fld"><label for="spVenta">Precio de venta · lo que deben pedir</label>
@@ -1951,8 +1953,8 @@ const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),pri
 const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
-const FB_S_FIELDS=['sold','price','date','pub','of','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_S_FIELDS=['sold','price','date','pub','of','dest','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
    Lo de Corea viaja aparte, en privado/corea, que es lo único privado que puede leer la cuenta de Corea; privado/costos
@@ -2053,7 +2055,7 @@ async function fbInit(){
         /* 28/10/2026: lo de la nube se aplica recién cuando boot() terminó de leer lo guardado en el aparato. Antes, si la nube
            respondía primero, boot() reemplazaba los costos recién bajados por la copia vieja del aparato, y esa copia vieja
            quedaba como "cambio de este aparato" y se subía, pisando lo más nuevo (probado con una nube simulada). */
-        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); nubeValEscucha(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
+        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } webPendSale(); fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); nubeValEscucha(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -2274,7 +2276,19 @@ async function fbPushChanges(){
    hace semanas) y eso es lo que se veía al abrir sin señal o mientras la nube no respondía. Sin subir nada a la nube. */
 let guardaST=null;
 function guardaSNube(){ clearTimeout(guardaST); guardaST=setTimeout(()=>{ try{ Promise.resolve(window.storage.set(KEY,JSON.stringify(S))).catch(()=>{}); }catch(_){} },1500); }
+/* 03/11/2026 (Andre): la compra en wones que anota (o corrige) la mamá llega a v.krw, pero el embarque tiene su propia copia
+   (veV.valor, la que usa el prorrateo y la que se ve en Embarque) y no se enteraba. Ahora, si v.krw cambió desde la nube,
+   el embarque toma el mismo valor. Solo si no se aplicaron los costos de Zofri (v.ct): ahí el valor queda congelado. */
 function fbApplyRemote(ch, pub, priv, cor){
+  const krw0=IDX[ch]?(+IDX[ch].krw||0):null;
+  fbApplyRemoteVeh(ch, pub, priv, cor);
+  const v=IDX[ch]; if(!v||v.ct||krw0===null) return;
+  const n=+v.krw||0; if(!n||n===krw0) return;
+  const em=embDeVeh(ch), ve=em&&(em.veh||[]).find(x=>x.ch===ch);
+  if(ve&&(+ve.valor||0)!==n){ ve.valor=n; clearTimeout(fbKrwEmbT); fbKrwEmbT=setTimeout(async()=>{ try{ await guardaEmb(); if(typeof pintaEmb==='function') pintaEmb(); }catch(e){ console.error('krw→embarque',e); } },300); }
+}
+let fbKrwEmbT=null;
+function fbApplyRemoteVeh(ch, pub, priv, cor){
   /* Marcado como borrado en la nube: se quita de este aparato y no se vuelve a crear. */
   if(pub && pub.borrado===true){
     const j=V.findIndex(x=>x.ch===ch);
@@ -3092,13 +3106,20 @@ function webDoc(v){
   const fe3=fotosEfectivas360(v);
   return {
     ch:v.ch, st:v.st||'', ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'',
-    cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp, km:v.km||null,
+    cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp&&!esTrabV(v), km:v.km||null,
     trab:!!v.trab, sv:!!v.sv,
     oferta:!!t.of,
+    dest:!!t.dest,   /* ★ Portada (03/11/2026): la web muestra en la foto grande solo los marcados; sin ninguno, elige sola */
     enCorea: !!v.enCorea,
     cab: v.cab||'',  /* cabina de los vehículos de trabajo: SIMPLE | MEDIA | DOBLE */
     eta: v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null,  /* llegada (estimada desde el embarque o la del BL): la web muestra "llega ~dd/mm" / "En puerto" */
     reservado: !!resAct(v.ch),
+    /* 03/11/2026 (Andre, a partir de lo que muestra la competencia): combustible, transmisión, cilindrada y equipamiento.
+       Combustible y cilindrada solo si están anotados; la transmisión, la misma de los textos (transTxt). */
+    ...(()=>{ let z={}; try{ z=zofEf(v)||{}; }catch(_){}
+      const cb=String(v.motor||z.combustible||'').toUpperCase();
+      return {comb: /DIES/.test(cb)?'DIESEL':(/BENC|GASOL/.test(cb)?'BENCINA':''), trans: String(transTxt(v)||'').toUpperCase().replace('Á','A'),
+        cil: v.cil?String(v.cil):'', eq: eqCod(v,true).map(o=>o[0])}; })(),
     precio: t.of ? (t.pprice||v.vev||null) : null,
     foto: fe.fotos[0] || '',
     /* 2026-10-03: la galeria ya no va aca (la web bajaba ~700 KB por auto al abrirse). Va aparte en
@@ -3151,8 +3172,11 @@ async function webPublicaPatio(btn){
   }finally{ if(btn) btn.disabled=false; }
 }
 let webTimer=null;
+async function webPendSale(){ try{ const r=await window.storage.get('amk_webPend'); if(r&&r.value) webSyncPronto(); }catch(_){} }
+/* 03/11/2026 (Andre): un cambio hecho sin sesión/sin señal antes se quedaba sin llegar a la web (no se reintentaba).
+   Ahora queda anotado en la despensa del aparato y sale apenas la nube esté lista, aunque se haya cerrado la app. */
 function webSyncPronto(){
-  if(!fbReady) return;
+  if(!fbReady){ try{ Promise.resolve(window.storage.set('amk_webPend','1')).catch(()=>{}); }catch(_){} return; }
   contSyncPronto();   /* cada cambio que mueve la web también actualiza el resumen para contenido */
   clearTimeout(webTimer);
   webTimer=setTimeout(()=>webSync(false), 2000);
@@ -3200,6 +3224,7 @@ async function webSync(completo){
         }
       }
     }
+    try{ Promise.resolve(window.storage.delete('amk_webPend')).catch(()=>{}); }catch(_){}
     if(completo || puestos || sacados){
       const total=V.filter(webVaEnLaWeb).length;
       pinta('✓ Web al día · '+total+' vehículos publicados'+(puestos?(' · '+puestos+' actualizados'):'')+(sacados?(' · '+sacados+' retirados'):''),'var(--green)');
@@ -3225,7 +3250,7 @@ function contResumen(){
   const veh=V.filter(v=>!v.borrado&&!v.baja&&!v.creando&&!sold(v.ch)).map(v=>{
     const t=st(v.ch);
     return {ch:v.ch, ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'', cat:v.cat||'', ca:v.ca||'', cab:v.cab||'',
-      tr:v.tr||'', pa:v.pa||null, tp:!!v.tp, km:v.km||null, motor:v.motor||'', trans:transTxt(v),
+      tr:v.tr||'', pa:v.pa||null, tp:!!v.tp&&!esTrabV(v), km:v.km||null, motor:v.motor||'', trans:transTxt(v), eq:eqDe(v,1,true),
       st:v.st||'', enCorea:!!v.enCorea, eta:v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null, llp:v.llp||null,
       trab:!!v.trab, sv:!!v.sv, web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
       precio:t.of?(t.pprice||v.vev||null):null,
@@ -3948,7 +3973,7 @@ function cardS(v){
   const pest=tasks(v.ch).filter(x=>!x.hecho&&x.cat!=='LAVADO').reduce((a,x)=>a+(x.est||0),0);
   const deb=debe(v.ch), pv=postv(v.ch), nf=s.nf||0;
   const capCe=String(v.ce||'').charAt(0)+String(v.ce||'').slice(1).toLowerCase();
-  const carsHtml=`<div class="specs">${etiquetasV(v).map(x=>
+  const carsHtml=`<div class="specs">${etiquetasV(v).concat(eqDe(v,2)).map(x=>
     `<span class="sp${x==='Sello verde'?' sp-sv':''}">${(v.ce&&x===capCe)?`<i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:5px;border:1px solid rgba(255,255,255,.35)"></i>`:''}${x}</span>`).join('')}</div>`;
 
   let estado, chip;
@@ -4104,6 +4129,19 @@ setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); i
    trabajo si v.trab o si el modelo es Porter/Bongo (los únicos de trabajo). BARANDA = "Baranda baja". */
 const CARN_NOM={'BARANDA':'Baranda baja','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer','GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','CAJON SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
 const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));   /* Porter y Bongo son los de trabajo (Andre) */
+/* Equipamiento (03/11/2026, Andre): v.eq = lista de códigos, la misma tabla en Corea y Vendedores.
+   [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique | 'p' privado]. Sin marcar = no se sabe.
+   03/11/2026 (Andre): Pantalla Android, pisaderas y cromados (lo que se pone en Iquique) van primero porque son lo que más vende;
+   RADIO = de origen trae solo radio (lo marca Corea): no sale en textos ni web, avisa que habrá que poner pantalla.
+   Con Pantalla Android no se muestra la pantalla de fábrica (se reemplazó). */
+const EQ_OPC=[['AND','Pantalla Android','Pantalla Android','','i'],['PIS','Pisaderas','Pisaderas','','i'],['CRO','Cromados','Cromados','','i'],
+  ['CAM','Cámara de retroceso','Cám. retroceso'],['SENS','Sensores de estacionamiento','Sensores estac.'],['PANT','Pantalla multimedia','Pantalla'],
+  ['LLAVE','Llave inteligente','Llave intelig.'],['CRUC','Control crucero','Crucero'],['CUERO','Asientos de cuero','Cuero','a'],
+  ['CALEF','Asientos calefaccionados o ventilados','Asientos calef.','a'],['PORTON','Portón trasero eléctrico','Portón eléc.','a'],
+  ['AROS','Aros de aleación','Aros aleación','a'],['AC','Aire acondicionado','Aire acond.','t'],['RADIO','Solo radio (sin pantalla)','Solo radio','','p']];
+const eqOpc=trab=>EQ_OPC.filter(o=>!o[3]||(o[3]==='t')===!!trab);
+const eqCod=(v,pub)=>{ const e=v.eq||[]; return eqOpc(esTrabV(v)).filter(o=>e.includes(o[0])&&!(pub&&o[4]==='p')&&!(o[0]==='PANT'&&e.includes('AND'))); };
+const eqDe=(v,i,pub)=>eqCod(v,pub).map(o=>o[i||1]);
 const carNom=v=>{ const k=String((v&&v.ca)||'').trim(); if(!k||k.toUpperCase()==='S/N'||!esTrabV(v)) return ''; return CARN_NOM[k.toUpperCase()]||(k.charAt(0).toUpperCase()+k.slice(1).toLowerCase()); };
 const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').slice(1).toLowerCase();
   const cn=carNom(v); if(cn) t.push(cn);
@@ -4326,7 +4364,7 @@ function drawVit(){
      <div class="r1"><div style="display:flex;gap:10px;align-items:flex-start">${cov}<div>
       <div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div>
       <div class="ch">${v.ch}${t.nf?' · '+t.nf+' fotos tuyas':' · sin fotos tuyas'}</div>${fotoWebHTML(v)}</div></div><div style="display:flex;gap:5px">
-      ${t.pub?'<span class="tag t-pub">En web</span>':''}${t.of?'<span class="tag t-of">Oferta</span>':''}</div></div>
+      ${t.pub?'<span class="tag t-pub">En web</span>':''}${t.of?'<span class="tag t-of">Oferta</span>':''}${t.dest?'<span class="tag t-pub">★ Portada</span>':''}</div></div>
      <div class="money"><div>Precio visible <b>${t.of&&t.pprice?clp(t.pprice):'Consultar'}</b></div>
       ${t.pventa?`<div>Precio de venta <b>${clp(t.pventa)}${conUSD(t.pventa,t.pventaUSD)}</b></div>`:'<div style="color:var(--red)">⚠ Falta precio de venta</div>'}
      ${t.pmin?`<div>Precio mínimo <b style="color:var(--amber)">${clp(t.pmin)}${conUSD(t.pmin,t.pminUSD)}</b></div>`:'<div style="color:var(--red)">⚠ Falta valor mínimo</div>'}
@@ -4371,6 +4409,7 @@ function draw(){
   try{ coreaSync(); }catch(_){}
   try{ const fz=$('#ngFinanzas'); if(fz&&!fz.hidden&&$('#pDatos').classList.contains('on')&&!(document.activeElement&&fz.contains(document.activeElement)&&document.activeElement.matches('input'))) pintaFin(); }catch(e){ console.error('pintaFin',e); }
   try{ refrescaBaseLib(); }catch(_){}
+  try{ estRadioPend(); }catch(_){}
   const pat=V.filter(v=>v.st==='IQQ'&&!sold(v.ch)&&!v.baja&&!v.creando).length;
   const ven=V.filter(v=>sold(v.ch)&&!v.baja&&!v.creando).length;
   const pub=V.filter(v=>!sold(v.ch)&&!v.baja&&!v.creando&&st(v.ch).pub).length;
@@ -4491,6 +4530,7 @@ document.addEventListener('click',e=>{
     $('#spT').textContent=v.ma+' '+v.mo;$('#spC').textContent=v.ch;
     $('#spPub').setAttribute('aria-pressed',t.pub?'true':'false');
     $('#spOf').setAttribute('aria-pressed',t.of?'true':'false');
+    $('#spDest').setAttribute('aria-pressed',t.dest?'true':'false');
     $('#spP').value=t.pprice?clp(t.pprice):'';
     $('#spVenta').value=t.pventa?clp(t.pventa):'';
     $('#spMin').value=t.pmin?clp(t.pmin):'';
@@ -5139,6 +5179,7 @@ $('#ssPrune').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pre
   e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#spPub').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#spOf').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
+$('#spDest').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 /* 16/10/2026 (Andre): aviso de cambio de precio para Víctor y Bryan. Cuando un precio de venta o mínimo que ya existía cambia,
    queda en la ficha el anterior (pventaAnt/pminAnt) y la hora (precioFe); Vendedores lo muestra arriba de Stock hasta que lo
    marquen visto. Los cambios seguidos (escribiendo, o venta y mínimo juntos) dentro de 10 min cuentan como uno solo y
@@ -5157,6 +5198,7 @@ function anotaCambioPrecio(t,k,antes){
 $('#spOk').addEventListener('click',()=>{const t=st(editing); const pv0=t.pventa, pm0=t.pmin;
   t.pub=$('#spPub').getAttribute('aria-pressed')==='true';
   t.of=$('#spOf').getAttribute('aria-pressed')==='true';
+  t.dest=$('#spDest').getAttribute('aria-pressed')==='true';   /* 03/11/2026 (Andre): destacar en la portada de la web, opcional */
   t.pprice=pnum($('#spP').value);
   t.pventa=pnum($('#spVenta').value);
   t.pmin=pnum($('#spMin').value);
@@ -5518,6 +5560,27 @@ function libConflicto(v){ const t=S[v.ch]||{}, b=calcBaseLib(v), lim=+t.pmin||+t
 let tcListo=false, baseLibT=null;
 /* Mantiene S[ch].baseLib al día (cambia el dólar observado o llega el CIF del Z). Solo escribe cuando se puede
    calcular: nunca manda null a la nube por no tener el CIF cargado todavía en este aparato. */
+/* 03/11/2026 (Andre): si de Corea viene "solo radio" (v.eq RADIO) y no tiene pantalla Android, en Iquique sí o sí va pantalla.
+   Se crea solo un estimado de TV por $135.000 (tarifa promedio de Andre: pantalla instalada ~$115.000, más el bisel de
+   $20.000-$38.000 que necesitan los modelos más nuevos; Sorento 2010-2012 y algunas Sportage no lo llevan), igual que el de "Costos estimados
+   (este embarque)": origen 'emb', así suma al costo pero no es trabajo pendiente hasta que se ve en persona.
+   Nunca dos: si ya hay CUALQUIER trabajo de TV (estimado, hecho o "No se necesitó"), no se toca. El ts es fijo por chasis
+   (03/11/2026 + hash): si dos aparatos lo crean a la vez, la nube los junta en uno solo en vez de sumarlos. */
+const PANT_EST=135000;
+const estRadioTs=ch=>{ let h=5381; for(const c of String(ch)) h=((h<<5)+h+c.charCodeAt(0))|0; return Date.UTC(2026,10,3)+((h>>>0)%86400000); };
+let estRadioT=null;
+function estRadioPend(){
+  clearTimeout(estRadioT); estRadioT=setTimeout(async()=>{
+    let n=0;
+    for(const v of V){
+      const e=v.eq||[]; if(!e.includes('RADIO')||e.includes('AND')||v.baja||v.borrado||sold(v.ch)) continue;
+      const tl=tasks(v.ch); if(tl.some(x=>x&&x.cat==='TV')) continue;
+      const est=PANT_EST;
+      tl.push({ts:estRadioTs(v.ch),cat:'TV',nota:'',est,est1:est,hecho:false,origen:'emb',auto:'radio'}); n++;
+    }
+    if(n){ await save(); draw(); }
+  },1500);
+}
 function refrescaBaseLib(){
   if(!tcListo) return;
   clearTimeout(baseLibT); baseLibT=setTimeout(async()=>{
@@ -9356,7 +9419,8 @@ function feats(v){
   const tx=transTxt(v); if(tx) f.push('Transmisión '+tx);
   if(v.pa) f.push(v.pa+' pasajeros');
   if(v.ca&&CARN[v.ca]) f.push('Carrocería '+CARN[v.ca]);
-  if(v.tp) f.push('Techo panorámico');
+  if(v.tp&&!esTrabV(v)) f.push('Techo panorámico');
+  f.push(...eqDe(v,1,true));   /* equipamiento marcado en Corea o en Editar vehículo (sin "solo radio") */
   if(v.ce) f.push('Color '+v.ce.toLowerCase());
   if(v.km) f.push(v.km.toLocaleString('es-CL')+' km');
   return f;
@@ -9366,14 +9430,11 @@ function priceLine(v){
   return (t.of&&(t.pprice||v.vev)) ? clp(t.pprice||v.vev) : 'Consultar precio por interno';
 }
 function tags(v){
-  const b=['#Iquique','#ZonaFranca','#AutosIquique','#ImportadosDesdeCorea','#AMKVehiculosSelectos'];
-  b.push('#'+v.ma.replace(/\s+/g,''));
-  b.push('#'+v.mo.replace(/[^A-Za-z0-9]/g,''));
-  if(v.trab) b.push('#VehiculosDeTrabajo','#Camioneta','#Emprendedores');
-  else b.push('#AutosUsados','#'+(CATN[v.cat]||'Auto').replace(/\s+/g,''));
-  if(v.sv) b.push('#SelloVerde');
-  b.push('#Tarapaca','#ChileAutos');
-  return b.join(' ');
+  /* Máximo 5 (Andre, 03/11/2026): TikTok, Instagram y Facebook repiten que no se usen más de 5.
+     Los más relevantes: lugar, zona franca, marca, modelo y lo que distingue al vehículo. */
+  const b=['#Iquique','#ZonaFranca','#'+v.ma.replace(/\s+/g,''),'#'+String(v.mo||'').replace(/\s+(I{1,3}|IV|V)$/i,'').replace(/[^A-Za-z0-9]/g,'')];
+  b.push(v.sv?'#SelloVerde':v.trab?'#VehiculosDeTrabajo':'#AutosIquique');
+  return [...new Set(b.filter(t=>t.length>1))].slice(0,5).join(' ');
 }
 
 function genFB(v,k){
@@ -9486,7 +9547,7 @@ function tomasVideo(v,despues){
     'paneo lateral completo, de adelante hacia atrás','paneo por el otro lado, de atrás hacia adelante',
     cab+' desde la puerta del conductor',trab?'cabina desde el lado del copiloto, mirando al volante':'interior desde el asiento de atrás, mirando hacia el tablero',
     ...t4,'tablero, volante y palanca de cambios',trab?'palanca de cambios y pedales de cerca':'motor, con el capó abierto',...t6,
-    'rueda y llanta de cerca','parrilla y faros encendidos','frontal completo, con el teléfono quieto, 3 segundos'];
+    'rueda y llanta de cerca','de frente: parrilla y faros delanteros encendidos (no las luces de atrás)','frontal completo, con el teléfono quieto, 3 segundos'];
   return '15 tomas de una vez · vertical · 1080p · 5 a 7 s cada una · en este orden\n'
     +'Si alguna no se puede, graba 2 s de cualquier cosa igual, para que no se corra el orden.\n\n'
     +L.map((x,i)=>String(i+1).padStart(2,'0')+'  '+x[0].toUpperCase()+x.slice(1)).join('\n')
@@ -9879,10 +9940,15 @@ function imFeatsBase(){ return [imMotorTexto(), imTracPasTexto(), ...imCaracSel]
 function imFeatsDestacables(){ return [imMotorTexto(), imTracSel, imPasSel, ...imCaracSel].filter(Boolean); }
 function imDefsCarac(v){
   const defs=[{label:'PARA PRIMER DUEÑO, ZOFRI', on:true}];
-  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp)});
+  defs.push({label:'TECHO PANORAMICO', on: !!(v&&v.tp&&!esTrabV(v))});
   if(v&&v.ca&&v.ca!=='S/N') defs.push({label:(CARN[v.ca]||v.ca).toString().toUpperCase(), on:true});
+  /* 03/11/2026 (Andre): la pantalla Android es lo que más vende: si está marcada en el vehículo, viene premarcada.
+     Pisaderas y cromados se ofrecen solo si el vehículo los tiene (sin premarcar, por el tope de 5). */
+  const eqV=(v&&v.eq)||[];
   ['PANT. BLUETOOTH + CAM. RETROCESO','RADIO ANDROID + CAM. RETROCESO','AROS DE ALEACION DEPORTIVOS','DOBLE TUBO DE ESCAPE']
-    .forEach(l=>defs.push({label:l, on:false}));
+    .forEach(l=>defs.push({label:l, on:l==='RADIO ANDROID + CAM. RETROCESO'&&eqV.includes('AND')}));
+  if(eqV.includes('PIS')) defs.push({label:'PISADERAS', on:false});
+  if(eqV.includes('CRO')) defs.push({label:'CROMADOS', on:false});
   return defs;
 }
 function pintaImCarac(v){
@@ -11287,6 +11353,9 @@ function pintaEmb(){
         <span style="font-family:var(--body);font-size:12.5px">Compra en Corea (₩)</span>
         <input data-emvvalset="${f._i}" inputmode="numeric" value="${f.valor?Math.round(f.valor).toLocaleString('es-CL'):''}" placeholder="0" style="width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12.5px;text-align:right;background:var(--paper);color:var(--ink)">
       </div>
+      ${(!v.ct&&+v.krw&&(+v.krw)!==(+f.valor||0))?`<div class="xrow" style="align-items:center;margin-top:4px;font-size:12px;color:var(--amber)">
+        <span style="font-family:var(--body)">En la app de tu mamá: <b>₩${Math.round(v.krw).toLocaleString('es-CL')}</b></span>
+        <button class="btn b-sec" style="flex:0 0 auto;padding:4px 10px;font-size:12px;width:auto" data-emvusakrw="${f.ch}">Usar ese</button></div>`:''}
       <div class="xrow" style="align-items:center;margin-top:2px">
         <span style="font-family:var(--body);font-size:12.5px">Costos taller Corea (₩)</span>
         <b style="font-family:var(--mono);font-size:12.5px">${ccKRW(v)?('₩'+Math.round(ccKRW(v)).toLocaleString('es-CL')):'—'}</b>
@@ -11783,6 +11852,9 @@ document.addEventListener('click',async e=>{
   if(cd){E().costos.splice(+cd.dataset.emcdel,1); await guardaEmb(); pintaEmb(); return}
   const vd=e.target.closest('[data-emvdel]');
   if(vd){E().veh.splice(+vd.dataset.emvdel,1); await guardaEmb(); pintaEmb(); return}
+  const uk=e.target.closest('[data-emvusakrw]');
+  if(uk){ const ch=uk.dataset.emvusakrw, v=IDX[ch]; if(!v||v.ct||!+v.krw) return; uk.disabled=true;
+    await guardaValorCompra(ch,+v.krw); pintaEmb(); toast('Listo: el embarque usa el valor de tu mamá'); return}
   if(e.target.closest('[data-zofmarcador]')){e.preventDefault(); toast('Arrástralo a la barra de favoritos del navegador; se usa en la página de Zofri'); return}
   if(e.target.closest('#zofVinsBtn')){const ta=$('#zofVins'); const r=await zofGuardarVins(ta?ta.value:'');
     toast(r&&r.total?(r.n+' VIN guardado'+(r.n===1?'':'s')+(r.total>r.n?' ('+(r.total-r.n)+' ya estaban o no son de este embarque)':'')):'No encontré VINs de 17 caracteres'); return}
@@ -11841,7 +11913,11 @@ function emResCarac(v){
   let trab='';
   try{ const ef=zofEf(v); if(ef.esCam){ const cab=v.cab?CAB_TXT[v.cab]:(ef.cab==='DOBLE'?'doble cabina':(ef.cab==='REGULAR'?((+v.pa||0)>3?'cabina y media':'cabina simple'):''));
     trab=' · <b style="color:var(--amber)">'+[v.ca&&v.ca!=='S/N'?low(v.ca):'',cab].filter(Boolean).join(' · ')+'</b>'; } }catch(_){}
-  return p.filter(x=>x&&!(trab&&x===low(v.ca))).join(' · ')+trab+(v.tp?' · <b style="color:var(--green)">techo panorámico</b>':'');
+  const eq=eqDe(v,2,true).map(low).join(' · ');
+  /* 03/11/2026 (Andre): si de Corea viene solo con radio, acá sí o sí va pantalla: se avisa para considerarlo en el costo. */
+  const e0=v.eq||[], radio=e0.includes('RADIO')&&!e0.includes('AND')
+    ?' · <b style="color:var(--amber)">📻 solo radio: va pantalla'+(tasks(v.ch).some(x=>x.cat==='TV')?'':' (sin estimar)')+'</b>':'';
+  return p.filter(x=>x&&!(trab&&x===low(v.ca))).join(' · ')+trab+(v.tp&&!esTrabV(v)?' · <b style="color:var(--green)">techo panorámico</b>':'')+(eq?' · '+eq:'')+radio;
 }
 /* Precio sugerido (2026-09-29): mediana de lo que se vendieron autos parecidos (mismo modelo, año ±1; en
    camionetas misma carrocería y cabina; en el resto mismos pasajeros y techo panorámico). Si no hay, afloja
@@ -11997,7 +12073,11 @@ function pintaCorea(){
   { vwrap.hidden=false; vwrap.style.display=''; sinEmb.hidden=bloq;
     const inpVal=$('#scCoreaValor'), val=v.krw||(veV&&veV.valor)||0;
     if(document.activeElement!==inpVal) inpVal.value=val?Math.round(val).toLocaleString('es-CL'):'';
-    inpVal.disabled=bloq; inpVal.style.color=bloq?'var(--mute)':'var(--ink)'; }
+    inpVal.disabled=bloq; inpVal.style.color=bloq?'var(--mute)':'var(--ink)';
+    const vEmb=+(veV&&veV.valor)||0, dif=!bloq&&vEmb&&+v.krw&&vEmb!==+v.krw;
+    sinEmb.style.color=dif?'var(--amber)':'var(--mute)';
+    sinEmb.innerHTML=dif?'En el embarque figura <b>₩'+Math.round(vEmb).toLocaleString('es-CL')+'</b>, distinto a lo que anotó tu mamá. Al guardar, el embarque y su app quedan con el valor de arriba.'
+      :'Es el mismo valor que ve tu mamá en su app: si lo cambias acá, a ella le llega solo.'; }
   $('#scCoreaC').innerHTML=CCAT.map(([k,n])=>`<div class="xrow" style="align-items:center;flex-wrap:nowrap">
     <span style="font-family:var(--body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</span>
     <span style="white-space:nowrap;flex:0 0 auto"><input data-cck="${k}" inputmode="numeric" value="${v.cc[k]?Math.round(v.cc[k]).toLocaleString('es-CL'):''}"
@@ -12387,8 +12467,26 @@ function evSugerir(){
 function evSvActualizar(){
   const v=IDX[editing]; if(!v) return;
   const an=pnum($('#evAn').value);
-  $('#evSv').setAttribute('aria-pressed', (!!(an&&an>=2018)&&!v.trab) ? 'true' : 'false');
+  /* 03/11/2026 (Andre): el sello verde ya no se muestra acá (se calcula solo al guardar, no se edita).
+     Los de trabajo nunca tienen techo panorámico: el campo no se muestra. */
+  const trab=evEsTrab(v), tp=$('#evTp'); tp.hidden=trab; tp.style.display=trab?'none':'';
+  if(trab) tp.setAttribute('aria-pressed','false');
+  evEqPinta(trab);
 }
+/* Equipamiento (03/11/2026): mismas opciones que Corea. evEqSel = lo marcado; solo se guarda si se tocó. */
+let evEqSel=[], evEqT=false;
+function evEqPinta(trab){ const w=$('#evEq'), wi=$('#evEqI'); if(!w||!wi) return;
+  const bt=([k,t])=>`<button class="cg" type="button" data-eqv="${k}" aria-pressed="${evEqSel.includes(k)}">${t}</button>`;
+  w.querySelectorAll('[data-eqv]').forEach(b=>b.remove());
+  w.insertAdjacentHTML('beforeend',eqOpc(trab).filter(o=>o[4]!=='i').map(bt).join(''));
+  wi.innerHTML=eqOpc(trab).filter(o=>o[4]==='i').map(bt).join(''); }
+/* "Solo radio" y "Pantalla multimedia" (de fábrica) no pueden ir juntas: marcar una suelta la otra. */
+const EQ_EXCL={RADIO:'PANT',PANT:'RADIO'};
+['#evEq','#evEqI'].forEach(s=>$(s).addEventListener('click',e=>{ const b=e.target.closest('[data-eqv]'); if(!b) return;
+  const k=b.dataset.eqv, i=evEqSel.indexOf(k); if(i>=0) evEqSel.splice(i,1); else evEqSel.push(k);
+  if(i<0&&EQ_EXCL[k]){ const j=evEqSel.indexOf(EQ_EXCL[k]); if(j>=0){ evEqSel.splice(j,1); const o=$('#evEq [data-eqv="'+EQ_EXCL[k]+'"]'); if(o) o.setAttribute('aria-pressed','false'); } }
+  evEqT=true; b.setAttribute('aria-pressed',i<0?'true':'false'); }));
+const evEsTrab=v=>!!(v.trab||esModeloTrabajo(normalizaModelo(String($('#evMo').value||v.mo||'').trim().toUpperCase())));
 function abrirEditVeh(ch){
   const v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
   editing=ch;
@@ -12405,6 +12503,7 @@ function abrirEditVeh(ch){
   $('#evProv').value=v.prov||'';
   $('#evMotor').value=v.motor||''; pintaCilSel('evCilSel','evCil',v.cil||'');
   $('#evTp').setAttribute('aria-pressed', v.tp?'true':'false');
+  evEqSel=(v.eq||[]).slice(); evEqT=false;
   evSvActualizar();
   $('#evTrans').value=(v.zof&&v.zof.trans)||'';
   if($('#evNMotor')) $('#evNMotor').value=(()=>{ try{ return zofEf(v).motor||''; }catch(_){ return (v.zof&&v.zof.motor)||''; } })();
@@ -12422,6 +12521,7 @@ $('#evPa').addEventListener('input',()=>{evPaTocado=true});
 $('#evMo').addEventListener('input',evSugerir);
 $('#evCa').addEventListener('input',evSugerir);
 $('#evAn').addEventListener('input',evSvActualizar);
+$('#evMo').addEventListener('input',evSvActualizar);
 $('#evTp').addEventListener('click',e=>e.currentTarget.setAttribute('aria-pressed',e.currentTarget.getAttribute('aria-pressed')==='true'?'false':'true'));
 $('#evOk').addEventListener('click',()=>{
   const ch=editing, v=IDX[ch]; if(!v){toast('No se encontró el vehículo');return}
@@ -12439,7 +12539,8 @@ $('#evOk').addEventListener('click',()=>{
   if(!avisaProvSiParecido($('#evProv').value)) return;
   v.prov=$('#evProv').value.trim().toUpperCase();
   v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil'); { const cm=codMotorDe(v.mo,v.cil); if(cm) v.codMotor=cm; if(esModeloTrabajo(v.mo)&&$('#evCab').value) v.cab=$('#evCab').value; }
-  v.tp=$('#evTp').getAttribute('aria-pressed')==='true';
+  v.tp=!evEsTrab(v)&&$('#evTp').getAttribute('aria-pressed')==='true';
+  if(evEqT){ const ok=eqOpc(evEsTrab(v)).map(o=>o[0]); v.eq=ok.filter(k=>evEqSel.includes(k)); }
   v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
   const evTransVal=$('#evTrans').value;
   if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
@@ -12621,13 +12722,13 @@ function descargaRespaldoExcel(auto){
 
   const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
     'Alerón','Pintura','Eléctrico','TV','Parabrisas','Mecánica','Obligatorio','Repuestos','Rep. usados','Batería','Neumáticos','Asientos',
-    'Transmisión','Combustible','Cilindrada','Motor'];
+    'Transmisión','Combustible','Cilindrada','Motor','Equipamiento'];
   /* Datos del Z (2026-10-27): los mismos que se declaran en Zofri, con la transmisión por defecto si no se anotó
      (automática; mecánica en los de trabajo). Los guiones de video salen de este respaldo. */
   const vehZ=v=>{ try{ const ef=zofEf(v), lin=x=>String(x||'').toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
     return [lin(ef.trans),lin(ef.combustible).replace('diesel o semidiesel','diésel'),ef.cilind||'',ef.motor||'']; }catch(_){ return ['','','','']; } };
   const vehRows=[vehHead, ...V.map(v=>[v.ch,v.st,v.ma,v.mo,v.an,v.ce,v.cat,v.tr,v.pa,v.ca,v.tp?'Sí':'No',v.km,v.cif,v.fob,v.cifusd,v.ct,v.vev,v.trab?'Sí':'No',v.sv?'Sí':'No',
-    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0,...vehZ(v)])];
+    (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0,...vehZ(v),eqDe(v).join(', ')])];
   sheets.push({name:'Vehículos',rows:vehRows});
 
   const rmHead=['Fecha','Tipo','USD enviados','Comisión (USD)','IVA comisión (%)','KRW estimado','KRW recibido','Cambio real (KRW/USD)','Embarque vinculado','Vehículos vinculados'];
