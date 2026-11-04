@@ -868,7 +868,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 16:41 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 17:52 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8342,7 +8342,7 @@ function fbVidWeb(v){ const f=v&&v.fbVids; return f?(['cla','raz','fic'].map(k=>
 let fbVidsEnCurso=false, fbVidsUlt=0;
 async function fbVidsSync(forzar){
   if(!FBTOKEN||!FBPAGE||fbVidsEnCurso||!V.length) return null;
-  if(!forzar&&Date.now()-fbVidsUlt<25*60000) return null;
+  if(!forzar&&Date.now()-fbVidsUlt<8*60000) return null;
   fbVidsEnCurso=true;
   try{
     let url='https://graph.facebook.com/v23.0/'+FBPAGE+'/videos?fields=id,description,permalink_url,created_time,published&limit=100&access_token='+encodeURIComponent(FBTOKEN);
@@ -8371,7 +8371,11 @@ async function fbVidsSync(forzar){
   }catch(e){ console.warn('fbVidsSync (sin internet?)',e); return null; }
   finally{ fbVidsEnCurso=false; }
 }
-setInterval(()=>{ if(document.visibilityState==='visible') fbVidsSync(); }, 30*60000);
+/* 04/11/2026 (primer video real): la app estaba abierta desde antes de publicar y no lo vio hasta media hora después.
+   Ahora también busca al volver a la app (si pasaron 2 min desde la última vez) y cada 10 min mientras está a la vista. */
+setInterval(()=>{ if(document.visibilityState==='visible') fbVidsSync(); }, 10*60000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-fbVidsUlt>2*60000) fbVidsSync(true); });
+window.addEventListener('focus',()=>{ if(Date.now()-fbVidsUlt>2*60000) fbVidsSync(true); });
 async function publicarTodo(v,paso){
   const esVideo=!!pubFile;
   if(!pubRed.ig&&!pubRed.fb) throw new Error('Elige al menos una red');
