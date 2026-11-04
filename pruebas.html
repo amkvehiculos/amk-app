@@ -868,7 +868,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->03-11-2026 18:43 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 16:41 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -895,7 +895,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="igTest">Probar conexión</button>
         <button class="btn b-pri" id="igSave">Guardar</button></div>
       <div id="igEstado" class="mtr" style="margin-top:9px"></div>
-      <div class="mtr" style="margin-top:8px">El token de Meta caduca cada 60 días: cuando deje de funcionar, hay que generar uno nuevo en el panel de Meta y volver a pegarlo acá.</div>
+      <div class="mtr" id="igVence" style="margin-top:8px">El token de Instagram dura 60 días y Sistema lo renueva solo cada semana, mientras abras la app al menos una vez cada 2 meses.</div>
       <div style="font-weight:700;font-size:14px;margin:16px 0 4px;border-top:1px solid var(--line);padding-top:12px">Facebook (página)</div>
       <p>Token de página de Meta. Facebook acepta la foto o el video directo, sin pasar por GitHub.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de acceso de la página</div>
@@ -907,7 +907,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts">
         <button class="btn b-sec" id="fbTest">Probar conexión</button>
         <button class="btn b-pri" id="fbSave">Guardar</button></div>
-      <div id="fbEstado" class="mtr" style="margin-top:9px"></div></div>
+      <div id="fbEstado" class="mtr" style="margin-top:9px"></div>
+      <div style="font-weight:700;font-size:14px;margin:16px 0 4px;border-top:1px solid var(--line);padding-top:12px">Publicar desde el Mac (AMK VIDEO)</div>
+      <p>Copia las llaves de Facebook e Instagram de este aparato para pegarlas una sola vez en el menú AMK VIDEO del Mac (opción F). Pégalas solo ahí: no las mandes por WhatsApp ni por correo.</p>
+      <button class="btn b-sec" id="metaMac" style="width:100%">⧉ Copiar llaves para el Mac</button>
+      <div id="metaMacEst" class="mtr" style="margin-top:8px"></div></div>
     <div class="box"><h3>Bodega de fotos (GitHub)</h3>
       <p>Desde el 03/11/2026 publicar en Instagram ya NO usa GitHub: el video o la foto pasa por tu página de Facebook. Estas bodegas quedan solo para las fotos y vistas 360° de la web.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de GitHub</div>
@@ -1958,7 +1962,7 @@ const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),pri
 const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','fbVids','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','dest','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
@@ -3132,7 +3136,7 @@ function webDoc(v){
     lista: true, nf: Math.min(fe.fotos.length,20),
     hd: (fe.hd||[]).slice(0,20), hdCol: FB_FOTOS_COL,  /* ids de las mismas fotos en alta (la web las pide al abrir el detalle) */
     f360: fe3.fotos.slice(0,24),  /* vista 360° completa, misma prioridad (ver fotosEfectivas360) */
-    video: v.video || ''  /* link del video editado (YouTube, Vimeo, Instagram o archivo directo), opcional */
+    video: v.video || fbVidWeb(v) || ''  /* link del video editado (TikTok ★, o si no hay, el de la página de Facebook que publicó el Mac) */
   };
 }
 /* Galeria liviana del vehiculo (propias si hay; si no, las de Víctor/Bryan/Corea, ver fotosEfectivas). */
@@ -3259,7 +3263,8 @@ function contResumen(){
       st:v.st||'', enCorea:!!v.enCorea, eta:v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null, llp:v.llp||null,
       trab:!!v.trab, sv:!!v.sv, web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
       precio:t.of?(t.pprice||v.vev||null):null,
-      nf:fotosEfectivas(v).fotos.length, n360:fotosEfectivas360(v).fotos.length, video:!!v.video};
+      nf:fotosEfectivas(v).fotos.length, n360:fotosEfectivas360(v).fotos.length, video:!!(v.video||fbVidWeb(v)),
+      tx:[genTK(v,0),genTK(v,1)]};   /* 04/11/2026: texto de los videos que el Mac publica solo en Facebook e Instagram (sin km ni precio) */
   });
   /* Vendidos de los últimos 60 días: solo qué se vendió y cuándo (sin precio ni cliente) */
   const desde60=isoDe(ahora-60*864e5);
@@ -7904,9 +7909,54 @@ async function cargaIG(){
     const a=await window.storage.get('amk_ig_token'); if(a&&a.value){IGTOKEN=a.value; $('#igToken').value=IGTOKEN;}
     const b=await window.storage.get('amk_ig_user'); if(b&&b.value){IGUSER=b.value; $('#igUser').value=IGUSER;}
   }catch(e){console.error('cargaIG',e)}
+  igRenuevaSiToca();
+}
+/* 04/11/2026 (Andre): el token de Instagram (inicio de sesión de Instagram) dura 60 días. Se renueva solo con
+   refresh_access_token: al abrir Sistema, si pasó una semana desde la última renovación (o nunca se renovó). Meta solo deja
+   renovar tokens válidos y con más de 24 h, así que un "todavía no" no es error: se reintenta la próxima vez que se abra.
+   Si el token ya no sirve (venció, o se cambió la contraseña de Instagram/Facebook), avisa una vez para generar otro.
+   Todo queda solo en este aparato, como el token. */
+const IG_RENUEVA_CADA=7*864e5;
+let igAvisado=false;
+async function igInfo(){ const g=async k=>{ try{ const r=await window.storage.get(k); return r&&r.value?+r.value:0; }catch(_){ return 0; } };
+  return {ren:await g('amk_ig_renovado'), vence:await g('amk_ig_vence')}; }
+async function igMarca(ren,vence){
+  try{ await window.storage.set('amk_ig_renovado',String(ren)); await window.storage.set('amk_ig_vence',String(vence)); }catch(e){ console.error('igMarca',e); }
+  pintaIGVence();
+}
+async function pintaIGVence(malo){
+  const el=$('#igVence'); if(!el) return;
+  if(malo){ el.innerHTML='<span style="color:var(--red)">⚠ El token de Instagram ya no sirve ('+malo+'). Genera uno nuevo en Meta for Developers y pégalo acá.</span>'; return; }
+  if(!IGTOKEN){ el.textContent='El token de Instagram dura 60 días y Sistema lo renueva solo cada semana, mientras abras la app al menos una vez cada 2 meses.'; return; }
+  const i=await igInfo(), hoyMs=Date.now();
+  if(!i.vence){ el.textContent='Se renueva solo cada semana mientras abras Sistema (la primera renovación se hace cuando el token cumple 24 horas).'; return; }
+  const d=Math.ceil((i.vence-hoyMs)/864e5);
+  el.innerHTML=(d<=10?'<span style="color:var(--red)">⚠ ':'<span style="color:var(--green)">✓ ')+'Se renueva solo · vence el '+fd(isoDe(i.vence))+(d<=10?' (en '+Math.max(d,0)+' día'+(d===1?'':'s')+')':'')+(i.ren?' · última renovación '+fd(isoDe(i.ren)):'')+'</span>';
+}
+async function igRenuevaSiToca(forzar){
+  if(!IGTOKEN){ pintaIGVence(); return; }
+  const i=await igInfo();
+  if(!forzar&&i.ren&&Date.now()-i.ren<IG_RENUEVA_CADA){ pintaIGVence(); return; }
+  try{
+    const r=await fetch('https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token='+encodeURIComponent(IGTOKEN));
+    const j=await r.json();
+    if(j&&j.access_token){
+      IGTOKEN=j.access_token;
+      await window.storage.set('amk_ig_token',IGTOKEN); if($('#igToken')) $('#igToken').value=IGTOKEN;
+      await igMarca(Date.now(), Date.now()+(+j.expires_in||60*86400)*1000);
+      return;
+    }
+    const msg=String((j&&j.error&&j.error.message)||'');
+    const venc=/expired|has expired|session has been invalidated|changed the password|Error validating access token|Invalid OAuth/i.test(msg)&&!/24 hours|not been active long|too soon/i.test(msg);
+    if(venc){ pintaIGVence('Meta dice: '+msg.slice(0,90));
+      if(!igAvisado){ igAvisado=true; toast('⚠ El token de Instagram ya no sirve: genera uno nuevo (Negocio → Ajustes)'); } }
+    else { console.warn('Instagram todavía no deja renovar el token:',msg); pintaIGVence(); }
+  }catch(e){ console.warn('igRenueva (sin internet?)',e); pintaIGVence(); }
 }
 $('#igSave').addEventListener('click',async()=>{
+  const nuevo=$('#igToken').value.trim()!==IGTOKEN;
   IGTOKEN=$('#igToken').value.trim(); IGUSER=$('#igUser').value.trim();
+  if(nuevo&&IGTOKEN){ try{ await window.storage.delete('amk_ig_renovado'); await window.storage.delete('amk_ig_vence'); }catch(_){} pintaIGVence(); }   /* token nuevo: se renueva desde que cumpla 24 h */
   try{
     IGTOKEN?await window.storage.set('amk_ig_token',IGTOKEN):await window.storage.delete('amk_ig_token');
     IGUSER?await window.storage.set('amk_ig_user',IGUSER):await window.storage.delete('amk_ig_user');
@@ -8147,6 +8197,7 @@ async function cargaFB(){
     const a=await window.storage.get('amk_fb_token'); if(a&&a.value){FBTOKEN=a.value; $('#fbToken').value=FBTOKEN;}
     const b=await window.storage.get('amk_fb_page'); if(b&&b.value){FBPAGE=b.value; $('#fbPage').value=FBPAGE;}
   }catch(e){console.error('cargaFB',e)}
+  setTimeout(()=>fbVidsSync(true), 4000);   /* 04/11/2026: videos que el Mac publicó en la página */
 }
 $('#fbSave').addEventListener('click',async()=>{
   FBTOKEN=$('#fbToken').value.trim(); FBPAGE=$('#fbPage').value.trim();
@@ -8170,6 +8221,30 @@ $('#fbTest').addEventListener('click',async()=>{
       el.innerHTML='<span style="color:var(--red)">✗ Meta respondió: '+((j&&j.error&&j.error.message)||'respuesta inesperada')+'</span>';
     }
   }catch(e){ console.error('fbTest',e); el.innerHTML='<span style="color:var(--red)">✗ No se pudo conectar ('+e.message+')</span>'; }
+});
+/* 04/11/2026: los cuadros de token son de contraseña (no dejan copiar). Este botón copia todo junto, en una línea, para que el
+   menú AMK VIDEO del Mac (fuente/publicar.py --configurar) lo reciba de una vez. Base64 solo para que sea una línea sin espacios. */
+/* 04/11/2026: en Safari/la app instalada, copiar solo se permite en el mismo instante del toque: nada de esperas (await) antes.
+   Por eso el código del resumen se lee al abrir (metaCont) y se copia de inmediato; si igual no deja, se intenta con
+   execCommand y, como último recurso, se muestra el texto ya seleccionado para Cmd+C (se borra solo al minuto). */
+let metaCont='';
+(async()=>{ try{ const r=await window.storage.get('amk_cont_id'); if(r&&r.value) metaCont=r.value; }catch(_){} })();
+$('#metaMac').addEventListener('click',()=>{
+  const el=$('#metaMacEst');
+  if(!FBTOKEN||!IGTOKEN){ el.innerHTML='<span style="color:var(--red)">Falta '+(!FBTOKEN?'el token de Facebook':'el token de Instagram')+' en este aparato (arriba).</span>'; return; }
+  const o={fb_token:FBTOKEN, fb_page:FBPAGE||'', ig_token:IGTOKEN, ig_user:IGUSER||'', cont:metaCont||contId||''};
+  const txt='AMK1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  const ok='<span style="color:var(--green)">✓ Copiadas. En el Mac: AMK VIDEO → F → pegar (Cmd+V) → Enter.</span>';
+  const viejo=()=>{ const t=document.createElement('textarea'); t.value=txt; t.setAttribute('readonly',''); t.style.cssText='position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(t); t.select(); t.setSelectionRange(0,txt.length); let b=false; try{ b=document.execCommand('copy'); }catch(_){} t.remove(); return b; };
+  const manual=()=>{ el.innerHTML='<div style="margin-bottom:6px">El aparato no dejó copiar solo. Está seleccionado abajo: aprieta <b>Cmd+C</b> (o mantén el dedo → Copiar). Se borra en 1 minuto.</div>'
+      +'<textarea id="metaMacTxt" readonly data-noup="1" style="width:100%;height:70px;font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--paper);color:var(--ink)"></textarea>';
+    const t=$('#metaMacTxt'); t.value=txt; t.focus(); t.select(); t.setSelectionRange(0,txt.length);
+    t.addEventListener('copy',()=>setTimeout(()=>{ el.innerHTML=ok; },50));
+    setTimeout(()=>{ if($('#metaMacTxt')) el.textContent='Se borró el texto por seguridad. Toca el botón otra vez si hace falta.'; },60000); };
+  let p=null; try{ p=navigator.clipboard&&navigator.clipboard.writeText(txt); }catch(_){ p=null; }
+  if(p) p.then(()=>{ el.innerHTML=ok; }).catch(()=>{ viejo()?(el.innerHTML=ok):manual(); });
+  else viejo()?(el.innerHTML=ok):manual();
 });
 function fileADataURI(f){
   return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(new Error('No se pudo leer el archivo')); r.readAsDataURL(f); });
@@ -8258,6 +8333,45 @@ async function fbBorrar(id){
   try{ await fetch('https://graph.facebook.com/v23.0/'+id+'?access_token='+encodeURIComponent(FBTOKEN),{method:'DELETE'}); }
   catch(e){ console.error('fbBorrar',id,e); }
 }
+/* 04/11/2026 (Andre: "automatizar todo desde que grabo hasta que se publique"): el Mac (GENERAR VIDEOS → opción 6,
+   fuente/publicar.py) publica los videos en la página de Facebook con el link de la ficha "?ch=CHASIS&v=cla|raz|fic" en la
+   descripción. Acá se leen los videos de la página y se anotan en el vehículo (v.fbVids), sin pegar nada: la web muestra
+   el primero si no hay uno de TikTok marcado ★, y Vendedores los ve en "▶ Video". Los programados aparecen cuando
+   Facebook los publica. Corre al abrir Sistema y cada 30 min, solo en el aparato que tiene el token de la página. */
+function fbVidWeb(v){ const f=v&&v.fbVids; return f?(['cla','raz','fic'].map(k=>f[k]).find(Boolean)||''):''; }   /* sin constantes: se llama desde webDoc/contResumen, que pueden correr antes */
+let fbVidsEnCurso=false, fbVidsUlt=0;
+async function fbVidsSync(forzar){
+  if(!FBTOKEN||!FBPAGE||fbVidsEnCurso||!V.length) return null;
+  if(!forzar&&Date.now()-fbVidsUlt<25*60000) return null;
+  fbVidsEnCurso=true;
+  try{
+    let url='https://graph.facebook.com/v23.0/'+FBPAGE+'/videos?fields=id,description,permalink_url,created_time,published&limit=100&access_token='+encodeURIComponent(FBTOKEN);
+    const nuevos={};
+    for(let pag=0;pag<3&&url;pag++){
+      const j=await (await fetch(url)).json();
+      if(j&&j.error){ console.warn('fbVidsSync',j.error.message); return null; }
+      (j&&j.data||[]).slice().sort((a,b)=>String(a.created_time).localeCompare(String(b.created_time))).forEach(x=>{
+        if(x.published===false) return;   /* programado: todavía no se ve */
+        const m=String(x.description||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
+        const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase();
+        const link=x.permalink_url?(/^https?:/.test(x.permalink_url)?x.permalink_url:'https://www.facebook.com'+x.permalink_url):'https://www.facebook.com/'+FBPAGE+'/videos/'+x.id+'/';
+        const o=nuevos[ch]=nuevos[ch]||{}; if(!o[k]) o[k]=link;   /* el más antiguo de cada estilo */
+      });
+      url=j&&j.paging&&j.paging.next||'';
+    }
+    fbVidsUlt=Date.now();
+    let cambios=0;
+    V.forEach(v=>{ const n=nuevos[v.ch]; if(!n) return;
+      const antes=v.fbVids||{}, junto=Object.assign({},antes,n);
+      if(JSON.stringify(junto)!==JSON.stringify(antes)){ v.fbVids=junto; cambios++; } });
+    if(cambios){ guardaCacheV(true); save(); try{ webSyncPronto(); }catch(_){} try{ draw(); }catch(_){}
+      if(gv&&$('#vidsBox')) $('#vidsBox').outerHTML=vidsHTML(gv);
+      toast('🎬 '+cambios+' vehículo'+(cambios>1?'s':'')+' con video nuevo de Facebook (web y Vendedores al día)'); }
+    return cambios;
+  }catch(e){ console.warn('fbVidsSync (sin internet?)',e); return null; }
+  finally{ fbVidsEnCurso=false; }
+}
+setInterval(()=>{ if(document.visibilityState==='visible') fbVidsSync(); }, 30*60000);
 async function publicarTodo(v,paso){
   const esVideo=!!pubFile;
   if(!pubRed.ig&&!pubRed.fb) throw new Error('Elige al menos una red');
@@ -9759,7 +9873,8 @@ const esLinkVideo=u=>/^https?:\/\/\S+$/i.test(String(u||'').trim());
 function vidsHTML(v){
   const vs=v.vids||{};
   return `<div class="box" id="vidsBox" style="margin-top:12px"><h3 style="margin:0 0 4px">Videos publicados en TikTok</h3>
-    <p class="mtr" style="margin:0 0 10px">Después de subir cada video, en TikTok toca Compartir → Copiar enlace y acá "Pegar". Uno va a la web (★); Víctor y Bryan ven los tres.</p>
+    <p class="mtr" style="margin:0 0 10px">Opcional. Después de subir cada video, en TikTok toca Compartir → Copiar enlace y acá "Pegar". Uno va a la web (★); Víctor y Bryan ven los tres. Si no hay ninguno de TikTok, la web usa el de Facebook.</p>
+    ${v.fbVids&&fbVidWeb(v)?`<div class="mtr" style="margin:0 0 10px;padding:9px 11px;border-radius:10px;border:1px solid var(--line);color:var(--fg,inherit)">✓ En Facebook (publicado desde el Mac): ${VID_EST.filter(([k])=>v.fbVids[k]).map(([k,n])=>`<a href="${v.fbVids[k]}" target="_blank" rel="noopener" style="color:var(--green)">${n}</a>`).join(' · ')}${v.video?'':'<br>A la web va el '+(VID_EST.find(([k])=>v.fbVids[k])||['',''])[1]+'.'}</div>`:''}
     ${VID_EST.map(([k,n])=>{ const u=vs[k]||'', web=!!u&&v.video===u; return `<div class="fld" style="margin-bottom:9px"><label for="vid_${k}">${n}</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input id="vid_${k}" data-vid="${k}" value="${u.replace(/"/g,'&quot;')}" placeholder="https://www.tiktok.com/…" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" data-noup="1" style="flex:1;min-width:0">

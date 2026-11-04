@@ -366,7 +366,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->03-11-2026 18:43<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->04-11-2026 16:41<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -695,8 +695,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','vids','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','vids','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','vids','fbVids','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','vids','fbVids','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='sueldosVend';
@@ -1519,7 +1519,8 @@ function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
 /* 03/11/2026 (Andre): los videos que Andre publicó en TikTok (Sistema → Contenido), para mandarlos cuando pregunten por un auto.
    Se comparte el video y, debajo, la ficha en la web. Con varios, se elige cuál. */
 const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
-function vidsDe(v){ const vs=v.vids||{}, out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
+/* 04/11/2026: si un estilo no tiene link de TikTok, va el de la página de Facebook (lo publica el Mac y Sistema lo anota solo) */
+function vidsDe(v){ const vs=Object.assign({},v.fbVids||{},v.vids||{}), out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
   if(!out.length&&v.video) out.push({n:'Video',u:v.video}); return out; }
 async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe(v);
   if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
