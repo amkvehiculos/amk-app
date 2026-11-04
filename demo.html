@@ -868,7 +868,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 18:01<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 19:03<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -962,6 +962,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-sec" id="fbLeer" style="width:100%">Comprobar lectura desde la nube</button></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="fbMigCorea" style="width:100%">⇄ Separar los costos de Corea (para la app de tu mamá)</button></div>
+      <div class="acts" style="margin-top:8px">
+        <button class="btn b-sec" id="xcRecBtn" style="width:100%">⇩ Recuperar el detalle de costos del Excel original</button>
+        <input type="file" id="xcRecFile" accept=".json,application/json" style="display:none"></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="resBtn" style="width:100%">⇩ Restaurar datos faltantes desde un respaldo</button></div>
       <div class="acts" style="margin-top:8px">
@@ -1965,7 +1968,7 @@ const fbSnapVeh=v=>{ try{ return JSON.parse(JSON.stringify({pub:fbPubData(v),pri
 const fbIgual=(a,b)=>fbHash(a)===fbHash(b);
 const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
-const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','fbVids','igVids','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
+const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','fbVids','igVids','vidMp4','vidsMp4','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','dest','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
 const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
@@ -2201,7 +2204,7 @@ async function fbSubeVeh(v,sinBase){
         if(p==='priv'&&FB_LISTAS.includes(k)){ const c2=[];   /* la nube sin esa lista: se toma como que no cambió (no como vacía) */
           const m=fbMezclaLista(loc[k],bas?bas[k]:null,nv===undefined?(bas?bas[k]:[]):nv,c2);
           if(c2.length) choq[k]=c2; if(!fbIgual(m,nv)) o.priv[k]=m; continue; }
-        if(nb&&nv!==undefined&&!forz&&(!bas||!fbIgual(nv,bas[k]))){ cf[p+'.'+k]=nv; continue; }   /* cambió en los dos lados */
+        if(nb&&nv!==undefined&&!forz&&(!bas||!fbIgual(nv===undefined?null:nv,bas[k]===undefined?null:bas[k]))){ cf[p+'.'+k]=nv; continue; }   /* cambió en los dos lados (04/11/2026: null en la nube = vacío, igual que no estar en la copia; antes era un falso choque) */
         o[p][k]=loc[k];
       } });
     const hay=p=>Object.keys(o[p]).length>0, w=fbMarcaW(); fbMisW.add(w);
@@ -3139,7 +3142,9 @@ function webDoc(v){
     lista: true, nf: Math.min(fe.fotos.length,20),
     hd: (fe.hd||[]).slice(0,20), hdCol: FB_FOTOS_COL,  /* ids de las mismas fotos en alta (la web las pide al abrir el detalle) */
     f360: fe3.fotos.slice(0,24),  /* vista 360° completa, misma prioridad (ver fotosEfectivas360) */
-    video: v.video || fbVidWeb(v) || ''  /* link del video editado (TikTok ★, o si no hay, el de la página de Facebook que publicó el Mac) */
+    video: v.video || fbVidWeb(v) || '',  /* link del video editado (TikTok ★, o si no hay, el de Instagram/Facebook que publicó el Mac) */
+    /* 04/11/2026: archivo del video para el reproductor propio de la web (sin barras de Instagram); solo si no hay TikTok ★ */
+    mp4: !v.video&&v.vidMp4&&v.vidMp4.exp>Date.now()?v.vidMp4.u:'', mp4Exp: !v.video&&v.vidMp4?(v.vidMp4.exp||0):0
   };
 }
 /* Galeria liviana del vehiculo (propias si hay; si no, las de Víctor/Bryan/Corea, ver fotosEfectivas). */
@@ -3621,6 +3626,87 @@ async function fbComprobarLectura(){
 /* 17/10/2026: copia la compra en wones, el taller y la seña de privado/costos a privado/corea, para todos los vehículos de la nube.
    Solo rellena lo que privado/corea todavía no tiene (nunca pisa lo que la mamá ya cargó ahí) y NO borra nada de privado/costos.
    Se puede apretar las veces que haga falta: lo ya copiado se salta. Al final relee lo escrito para confirmar. */
+/* 04/11/2026 (Andre: "no aparecen costos que había ingresado"): en la migración a la nube de septiembre se perdió el desglose por
+   categoría del Excel original (v.xc) de 94 vehículos que estaban en Iquique; el costo hasta Chile (ct) quedó bien y ya lo incluye.
+   Esto lo rellena desde un archivo (AMK_datos_originales_del_archivo.json o un respaldo de antes del 18/09), solo donde está vacío
+   y solo si el vehículo tiene ct (así el costo total no cambia). Si el Excel ya traía Obligatorio, quita el Obligatorio AUTOMÁTICO
+   que la app agregó después (se contaba dos veces). Sube por el camino normal (fbSubeVeh): los costos se fusionan uno por uno,
+   así que lo anotado en otro aparato (iPhone) no se toca. Los datos NO van dentro de este archivo: la app está publicada. */
+let xcRecEnCurso=false;
+function xcBuscaLista(d){
+  let best=[];
+  const walk=o=>{
+    if(typeof o==='string'&&/^[\[{]/.test(o)){ try{ o=JSON.parse(o); }catch(_){ return; } }
+    if(Array.isArray(o)){
+      if(o.length>best.length&&o.slice(0,3).every(x=>x&&typeof x==='object'&&x.ch&&('xc' in x))) best=o;
+      o.forEach(walk);
+    } else if(o&&typeof o==='object') Object.values(o).forEach(walk);
+  };
+  walk(d); return best;
+}
+async function xcRecupera(file){
+  const el=document.getElementById('fbMigEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  if(xcRecEnCurso) return;
+  if(!fbReady){ pinta('No hay conexión con la nube todavía. Espera a que diga "✓ Al día" y vuelve a intentarlo.','var(--red)'); return; }
+  xcRecEnCurso=true;
+  const bt=document.getElementById('xcRecBtn'); if(bt) bt.disabled=true;
+  try{
+    let lista=[];
+    try{ lista=xcBuscaLista(JSON.parse(await file.text())); }catch(_){}
+    if(!lista.length){ pinta('Ese archivo no trae vehículos con su detalle de costos. Elige AMK_datos_originales_del_archivo.json (carpeta AMK PROYECTO).','var(--red)'); return; }
+    const plan=[], noListos=[]; let yaTenian=0, sinCt=0;
+    for(const o of lista){
+      const v=IDX[o.ch]; if(!v||!o.xc) continue;
+      const xc={}; Object.entries(o.xc).forEach(([k,m])=>{ m=+m; if(m>0) xc[k]=m; });
+      if(!Object.keys(xc).length) continue;
+      if(xls(v)>0){ yaTenian++; continue; }
+      if(!(v.ct>0)){ sinCt++; continue; }
+      if(!fbCostosOk.has(v.ch)||fbRetenido(v.ch)){ noListos.push(v.ch); continue; }
+      const auto=xc.OBLIG>0?((S[v.ch]||{}).costs||[]).filter(x=>x&&x.cat==='OBLIG'&&x.auto):[];
+      plan.push({v,xc,auto});
+    }
+    const nota=(yaTenian?' · '+yaTenian+' ya tenían su detalle':'')+(sinCt?' · '+sinCt+' sin costo hasta Chile (no se tocan)':'')+(noListos.length?' · '+noListos.length+' todavía bajando de la nube (vuelve a intentarlo en un rato)':'');
+    if(!plan.length){ pinta((noListos.length?'Nada listo para recuperar todavía':'✓ No falta nada: todos tienen su detalle')+nota+'.', noListos.length?'var(--amber)':'var(--green)'); return; }
+    const tot=plan.reduce((a,p)=>a+Object.values(p.xc).reduce((x,y)=>x+y,0),0);
+    const nAuto=plan.reduce((a,p)=>a+p.auto.length,0), mAuto=plan.reduce((a,p)=>a+p.auto.reduce((x,y)=>x+abo(y),0),0);
+    if(!confirm('Recuperar el detalle del Excel original en '+plan.length+' vehículo'+(plan.length===1?'':'s')+' ('+clp(tot)+').\n\n'+
+      '• El costo total NO cambia: esos montos ya estaban dentro del costo hasta Chile.\n'+
+      (nAuto?'• Se quita el Obligatorio automático en '+nAuto+' vehículo'+(nAuto===1?'':'s')+' ('+clp(mAuto)+') porque el Excel ya traía su Obligatorio (se contaba dos veces).\n':'')+
+      '• Los costos que anotaste en este aparato o en el iPhone no se tocan.\n\nAntes se guarda una foto en "Deshacer cambios". ¿Seguir?')) return;
+    await histTomar('antes de recuperar el detalle del Excel', true);
+    const esperado={};
+    plan.forEach(({v,xc,auto})=>{ v.xc=xc;
+      if(auto.length){ const t=st(v.ch), fuera=new Set(auto); t.costs=(t.costs||[]).filter(x=>!fuera.has(x)); t.obligNo=true; }
+      esperado[v.ch]={xc, sinAuto:auto.map(x=>String(x.ts))}; });
+    guardaCacheV(true); await save(); draw();
+    pinta('Subiendo a la nube… 0 de '+plan.length);
+    const ids=Object.keys(esperado);
+    for(let s=0;s<90;s++){
+      await new Promise(r=>setTimeout(r,1000));
+      const faltan=ids.filter(ch=>fbPend[ch]).length;
+      pinta('Subiendo a la nube… '+(ids.length-faltan)+' de '+ids.length);
+      if(!faltan) break;
+      if(s%15===14) fbSchedulePush();
+    }
+    pinta('Comprobando en la nube…');
+    let malos=[];
+    for(let i=0;i<ids.length;i+=10){
+      await Promise.all(ids.slice(i,i+10).map(async ch=>{
+        try{ const d=await fbDb.collection(FB_COL).doc(ch).collection('privado').doc('costos').get({source:'server'});
+          const x=d.exists?(d.data()||{}):{}, e=esperado[ch];
+          const okXc=fbIgual(x.xc,e.xc), okAuto=!(x.costs||[]).some(y=>y&&e.sinAuto.includes(String(y.ts)));
+          if(!okXc||!okAuto) malos.push(ch);
+        }catch(_){ malos.push(ch); }
+      }));
+    }
+    if(malos.length) pinta('⚠ Quedó en este aparato pero '+malos.length+' vehículo'+(malos.length===1?'':'s')+' todavía no se confirma en la nube ('+malos.slice(0,6).join(', ')+(malos.length>6?'…':'')+'). Revisa el chip de la nube y vuelve a apretar el botón: no se duplica nada.','var(--amber)');
+    else{ pinta('✓ Listo y comprobado en la nube: detalle recuperado en '+ids.length+' vehículo'+(ids.length===1?'':'s')+' ('+clp(tot)+')'+(nAuto?' · '+nAuto+' Obligatorio'+(nAuto===1?'':'s')+' automático'+(nAuto===1?'':'s')+' repetido'+(nAuto===1?'':'s')+' quitado'+(nAuto===1?'':'s'):'')+'. El costo total no cambió'+nota+'.','var(--green)'); toast('Detalle del Excel recuperado'); }
+  }catch(e){
+    console.error('xcRecupera',e);
+    pinta('✗ Se detuvo: '+(e.message||e)+'. Puedes volver a apretar el botón; lo ya recuperado no se duplica.','var(--red)');
+  }finally{ xcRecEnCurso=false; if(bt) bt.disabled=false; }
+}
 let fbMigCoreaEnCurso=false;
 async function fbMigraCorea(){
   const el=document.getElementById('fbMigEstado');
@@ -3720,6 +3806,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(s) s.addEventListener('click',fbSubirTodo);
   const mc=document.getElementById('fbMigCorea');
   if(mc) mc.addEventListener('click',fbMigraCorea);
+  const xb=document.getElementById('xcRecBtn'), xf=document.getElementById('xcRecFile');
+  if(xb&&xf){ xb.addEventListener('click',()=>{ if(!xcRecEnCurso){ xf.value=''; xf.click(); } });
+    xf.addEventListener('change',()=>{ const f=xf.files&&xf.files[0]; if(f) xcRecupera(f); }); }
   const cn=document.getElementById('fbContar');
   if(cn) cn.addEventListener('click',fbContarNube);
 });
@@ -4842,7 +4931,7 @@ function pintaScPend(){
 function drawCostList(){ try{ pintaScPend(); }catch(_){}
   const c=editing||$('#scV').value;
   const L=(S[c]&&S[c].costs)?S[c].costs:[];
-  $('#scList').innerHTML=L.length?'<div class="mtr" style="margin-bottom:7px">Costos registrados</div>'+
+  $('#scList').innerHTML=xcDetalleHtml(c)+(L.length?'<div class="mtr" style="margin-bottom:7px">Costos registrados</div>'+
    L.slice().reverse().map(x=>`<div class="card plain" style="padding:11px">
     <div class="r1"><div><div class="tt" style="font-size:15px">${CN[x.cat]||x.cat}</div>
       ${x.prov?`<div class="ch" style="text-transform:none;letter-spacing:0">${String(x.prov).replace(/</g,'&lt;')}</div>`:''}
@@ -4859,7 +4948,17 @@ function drawCostList(){ try{ pintaScPend(); }catch(_){}
       ${x.auto?'':`<button class="btn b-sec" data-ccat="${x.ts}" style="flex:0 0 auto" aria-label="Cambiar categoría">✎ Categoría</button>`}
       <button class="btn b-sec" data-cacor="${x.ts}" style="flex:0 0 auto">✎$</button>
       <button class="b-und" style="flex:0 0 auto" data-cdel="${x.ts}">✕</button></div></div>`).join('')
-   :'';
+   :'');
+}
+/* 04/11/2026: el desglose del Excel original (v.xc) ya está sumado dentro del costo hasta Chile (ct); se muestra solo para
+   consulta, sin botones: no es un costo nuevo y no se suma otra vez. */
+const XC_NOM={ALERON:'Alerón',PINTURA:'Pintura',ELECT:'Eléctrico',TV:'TV',PARB:'Parabrisas',MECANICO:'Mecánica',OBLIG:'Obligatorio',REPNUE:'Repuestos',REPUSA:'Repuestos usados',BATERIA:'Batería',NEUMAT:'Neumáticos',ASIENTOS:'Asientos'};
+function xcDetalleHtml(c){
+  const v=IDX[c]; if(!v||!v.xc) return '';
+  const it=Object.entries(v.xc).filter(([k,m])=>+m>0); if(!it.length) return '';
+  return `<details class="card plain" style="padding:11px;margin-bottom:9px"><summary style="cursor:pointer;font-weight:600">Del Excel original · ${clp(xls(v))}</summary>
+    <div class="mtr" style="margin:6px 0 4px">Ya incluido en el costo hasta Chile: no se suma otra vez.</div>
+    ${it.map(([k,m])=>`<div class="xrow"><span>${XC_NOM[k]||k}</span><span>${clp(+m)}</span></div>`).join('')}</details>`;
 }
 
 $('#scCat').addEventListener('click',e=>{const b=e.target.closest('[data-cg]');if(!b)return;
@@ -8413,17 +8512,20 @@ async function fbVidsSync(forzar){
   fbVidsEnCurso=true; est('Videos de la página: revisando…');
   try{
     /* 04/11/2026: si el ID de la página no quedó guardado, "me" con el token de página es la misma página */
-    let url='https://graph.facebook.com/v23.0/'+(FBPAGE||'me')+'/videos?fields=id,description,permalink_url,created_time,published&limit=100&access_token='+encodeURIComponent(FBTOKEN);
-    const nuevos={}, fbFe={};
+    let url='https://graph.facebook.com/v23.0/'+(FBPAGE||'me')+'/videos?fields=id,description,permalink_url,created_time,published,source&limit=100&access_token='+encodeURIComponent(FBTOKEN);
+    const nuevos={}, fbFe={}, fbMp4={}, vend={};
     for(let pag=0;pag<3&&url;pag++){
       const j=await (await fetch(url)).json();
       if(j&&j.error){ console.warn('fbVidsSync',j.error.message); est('✗ Videos de la página: Facebook respondió "'+String(j.error.message||'').slice(0,120)+'"','var(--red)'); return null; }
       (j&&j.data||[]).slice().sort((a,b)=>String(a.created_time).localeCompare(String(b.created_time))).forEach(x=>{
-        if(x.published===false) return;   /* programado: todavía no se ve */
         const m=String(x.description||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase();
+        /* archivo para que Víctor y Bryan lo bajen (los 3 estilos, también los programados: Facebook ya lo tiene) */
+        if(x.source){ const t=vend[ch]=vend[ch]||{}; if(!t[k]) t[k]={id:x.id,u:x.source}; }
+        if(x.published===false) return;   /* programado: todavía no se ve en la página ni en la web */
         const link=x.permalink_url?(/^https?:/.test(x.permalink_url)?x.permalink_url:'https://www.facebook.com'+x.permalink_url):'https://www.facebook.com/'+FBPAGE+'/videos/'+x.id+'/';
-        const o=nuevos[ch]=nuevos[ch]||{}; if(!o[k]){ o[k]=link; fbFe[ch+'|'+k]=Date.parse(x.created_time)||0; }   /* el más antiguo de cada estilo */
+        const o=nuevos[ch]=nuevos[ch]||{}; if(!o[k]){ o[k]=link; fbFe[ch+'|'+k]=Date.parse(x.created_time)||0;
+          if(x.source) (fbMp4[ch]=fbMp4[ch]||{})[k]={id:x.id,u:x.source}; }   /* el más antiguo de cada estilo */
       });
       url=j&&j.paging&&j.paging.next||'';
     }
@@ -8455,6 +8557,21 @@ async function fbVidsSync(forzar){
         if(JSON.stringify(junto)!==JSON.stringify(antes)){ v.fbVids=junto; c1=true; } }
       const g=igNuevos[v.ch]; if(g){ const antes=v.igVids||{}, junto=Object.assign({},antes,g);
         if(JSON.stringify(junto)!==JSON.stringify(antes)){ v.igVids=junto; c1=true; } }
+      /* 04/11/2026 (Andre: las barras blancas de Instagram desentonan): la web reproduce el ARCHIVO del video con su propio
+         reproductor, como TikTok. El archivo lo entrega Facebook con un link que vence en ~4 días (parámetro oe): se guarda el
+         del primer estilo publicado y se renueva cuando le quedan menos de 2 días (no en cada pasada, para no reescribir la
+         nube cada 10 min). Si vence igual, la web cae al reel de Instagram. */
+      const m=fbMp4[v.ch]; const mk=m&&['cla','raz','fic'].find(k=>m[k]);
+      if(mk){ const x=m[mk], oe=parseInt((String(x.u).match(/[?&]oe=([0-9a-f]+)/i)||[])[1]||'0',16)*1000||0, a=v.vidMp4||{};
+        if(a.id!==x.id||!a.exp||a.exp-Date.now()<2*864e5){ v.vidMp4={id:x.id,u:x.u,exp:oe||Date.now()+3*864e5}; c1=true; } }
+      /* 04/11/2026 (Víctor): los 3 videos en 720p para que Víctor y Bryan los bajen desde Vendedores ("⬇ Video para mis redes")
+         y los suban a sus redes, sin que Andre se los mande por WhatsApp. Mismo link de Facebook, misma renovación. */
+      const vv=vend[v.ch];
+      if(vv){ const a=v.vidsMp4||{}, nv=Object.assign({},a); let cam=false;
+        ['cla','raz','fic'].forEach(k=>{ const x=vv[k]; if(!x) return; const o=a[k]||{};
+          const oe=parseInt((String(x.u).match(/[?&]oe=([0-9a-f]+)/i)||[])[1]||'0',16)*1000||0;
+          if(o.id!==x.id||!o.exp||o.exp-Date.now()<2*864e5){ nv[k]={id:x.id,u:x.u,exp:oe||Date.now()+3*864e5}; cam=true; } });
+        if(cam){ v.vidsMp4=nv; c1=true; } }
       if(c1) cambios++; });
     if(cambios){ guardaCacheV(true); save(); try{ webSyncPronto(); }catch(_){} try{ draw(); }catch(_){}
       if(gv&&$('#vidsBox')) $('#vidsBox').outerHTML=vidsHTML(gv);

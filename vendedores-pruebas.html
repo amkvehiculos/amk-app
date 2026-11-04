@@ -367,7 +367,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->04-11-2026 16:41 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->04-11-2026 19:03 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -696,8 +696,8 @@ const KEY='amkv_estado', CATK='amkv_catalogo', PK=c=>'amkv_fotos_'+c;
 const FB_CONFIG={apiKey:"AIzaSyAeFaKM9TPYxyveX8xStlJtVeFUJmFnwuM",authDomain:"amk-vehiculos.firebaseapp.com",projectId:"amk-vehiculos",storageBucket:"amk-vehiculos.firebasestorage.app",messagingSenderId:"322448037480",appId:"1:322448037480:web:1d977f03cf3e9e1ef30ddd"};
 const FB_USER='vendedores@amk-vehiculos.app';
 const FB_COL='pruebas_vehiculos';
-const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','vids','fbVids','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
-const FB_LIMPIABLES=['vev','fotos','f360','video','vids','fbVids','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
+const FB_CAMPOS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','km','trab','sv','vev','llp','f360','video','vids','fbVids','igVids','vidsMp4','fotos','motor','cil','eta','enCorea','cab','carga','ctr','ctrN'];  /* ctr/ctrN = contenedor en que viene (lo pone Sistema desde el embarque) */  /* eq = equipamiento (EQ_OPC), lo marca la mamá en Corea o Andre en Sistema */  /* st faltaba: sin esto, todo vehiculo mostraba "En patio" aunque estuviera "En camino". llp = fecha en que llego a patio. f360 = direcciones de la vista 360 (Sistema). fotos = fotos propias de Andre, solo para saber si ya tiene (ver hayOtrasFotos) -- acá no se muestran en ningún lado */
+const FB_LIMPIABLES=['vev','fotos','f360','video','vids','fbVids','igVids','vidsMp4','llp','km','eta','carga','ctr','ctrN'];   /* si llegan en null, André los borró en Sistema: hay que borrarlos acá también */
 const PINES={'Víctor':'4264','Bryan':'5905'};
 let fbDb=null, fbAuth=null, fbReady=false, fbEscuchando=false;
 const SUELDOSVEND_COL='pruebas_sueldosVend';
@@ -1521,16 +1521,51 @@ function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
    Se comparte el video y, debajo, la ficha en la web. Con varios, se elige cuál. */
 const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
 /* 04/11/2026: si un estilo no tiene link de TikTok, va el de la página de Facebook (lo publica el Mac y Sistema lo anota solo) */
-function vidsDe(v){ const vs=Object.assign({},v.fbVids||{},v.vids||{}), out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
+function vidsDe(v){ const vs=Object.assign({},v.fbVids||{},v.igVids||{},v.vids||{}), out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
   if(!out.length&&v.video) out.push({n:'Video',u:v.video}); return out; }
 async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe(v);
   if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
-    if(!box.hidden){ box.hidden=true; return; }
+    if(!box.hidden&&box.dataset.modo!=='baja'){ box.hidden=true; return; }
+    box.dataset.modo='ver';
     box.innerHTML=vs.map((x,j)=>`<button class="btn b-sec" data-vidi="${ch}|${j}">▶ ${x.n}</button>`).join(''); box.hidden=false; entraSuave&&entraSuave(box); return; }
   const x=vs[i||0]; if(!x) return; const link=webLink(ch);
   const txt='Hola, te comparto el video del '+v.ma+' '+v.mo+' '+(v.an||'')+': '+x.u+(link?'\n\nFicha completa y fotos: '+link:'');
   if(navigator.share){try{await navigator.share({text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}catch(e){if(e&&e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(txt);toast('Video copiado · pégalo en WhatsApp')}catch(_){toast('No se pudo copiar')}}
+/* 04/11/2026 (Víctor): bajar el video (720p, el archivo que guarda Facebook) para subirlo a sus propias redes o estados,
+   sin que Andre lo mande por WhatsApp. El link lo renueva Sistema (vence en ~4 días). En el teléfono abre el menú de
+   compartir con el ARCHIVO (Guardar video / WhatsApp / Instagram…); en computador lo descarga. */
+function mp4sDe(v){ const m=v.vidsMp4||{}; return VID_EST.filter(([k])=>m[k]&&m[k].u&&(!m[k].exp||m[k].exp>Date.now()+600e3)).map(([k,n])=>({k,n,u:m[k].u})); }
+let bajandoVid=false; const VID_LISTO={};
+function compartirListo(ch){ const f=VID_LISTO[ch]; if(!f) return; navigator.share({files:[f]}).then(()=>{ const b=document.getElementById('vidpick_'+ch); if(b) b.hidden=true; }).catch(e=>{ if(!e||e.name!=='AbortError') toast('No se pudo abrir el menú de compartir'); }); }
+async function bajaVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=mp4sDe(v);
+  if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
+    if(!box.hidden&&box.dataset.modo==='baja'){ box.hidden=true; return; }
+    box.dataset.modo='baja';
+    box.innerHTML=vs.map((x,j)=>`<button class="btn b-sec" data-bajai="${ch}|${j}">⬇ ${x.n}</button>`).join(''); box.hidden=false; entraSuave&&entraSuave(box); return; }
+  const x=vs[i||0]; if(!x){ toast('El video todavía no está listo para bajar'); return; }
+  if(bajandoVid) return; bajandoVid=true;
+  const nombre=(v.ma+' '+v.mo+' '+(v.an||'')+' - '+x.n).replace(/\s+/g,' ').trim()+'.mp4';
+  try{
+    toast('Bajando el video '+x.n+'…');
+    const r=await fetch(x.u,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}); if(!r.ok) throw new Error('HTTP '+r.status);   /* sin referer: con él, el servidor de Facebook rechaza la descarga */
+    const blob=await r.blob(); const f=new File([blob],nombre,{type:'video/mp4'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      try{ await navigator.share({files:[f]}); }
+      catch(e){
+        if(e&&e.name==='AbortError') return;
+        /* iPhone: si bajar tardó, el teléfono ya no deja abrir el menú de compartir sin otro toque. Queda listo en un botón. */
+        if(e&&e.name==='NotAllowedError'){ VID_LISTO[ch]=f; const box=document.getElementById('vidpick_'+ch);
+          if(box){ box.dataset.modo='baja'; box.innerHTML='<button class="btn b-pri" data-bajalisto="'+ch+'">📲 Listo: guardar o compartir '+x.n+'</button>'; box.hidden=false; entraSuave&&entraSuave(box); }
+          toast('Video listo: toca "Guardar o compartir"'); return; }
+        throw e; }
+    }else{
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre; document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000); toast('✓ Video descargado');
+    }
+  }catch(e){ console.warn('bajaVideo',e); toast('No se pudo bajar el video. Pídele a Andre que abra Sistema (renueva el link) y vuelve a intentar.'); }
+  finally{ bajandoVid=false; }
+}
 async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
  if(!link){toast('Todavía no está lista la web para compartir el link');return}
  const txt='Hola, te comparto el '+v.ma+' '+v.mo+' '+(v.an||'')+', puedes verlo aquí: '+link;
@@ -2251,6 +2286,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
     ${vidsDe(v).length?`<button class="btn b-sec" data-vid="${v.ch}">▶ Video${vidsDe(v).length>1?' ('+vidsDe(v).length+')':''}</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
+   ${mp4sDe(v).length?`<div class="acts"><button class="btn b-sec" data-baja="${v.ch}">⬇ Video para mis redes${mp4sDe(v).length>1?' ('+mp4sDe(v).length+')':''}</button></div>`:''}
    <div class="acts vidpick" id="vidpick_${v.ch}" hidden></div>
    <div class="acts a3"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
     <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos${datosDe(v.ch).some(x=>x.campo==='motor')?' ✓':''}</button>
@@ -2605,12 +2641,15 @@ document.addEventListener('click',async e=>{
  { const vz=e.target.closest('[data-vzver]'); if(vz){ visorAbre(phArr,+vz.dataset.vzver); return; } }
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
-  vd=e.target.closest('[data-vid]'),vi=e.target.closest('[data-vidi]'),
+  vd=e.target.closest('[data-vid]'),vi=e.target.closest('[data-vidi]'),bj=e.target.closest('[data-baja]'),bi=e.target.closest('[data-bajai]'),
   c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]'),
   v3b=e.target.closest('[data-v360]'), m3b=e.target.closest('[data-mi360]'), cv=e.target.closest('[data-cpvid]');
  if(sh){shareVehicle(sh.dataset.share,null);return}
  if(vd){shareVideo(vd.dataset.vid);return}
  if(vi){const [ch,j]=vi.dataset.vidi.split('|'); shareVideo(ch,+j);return}
+ if(bj){bajaVideo(bj.dataset.baja);return}
+ {const bl=e.target.closest('[data-bajalisto]'); if(bl){compartirListo(bl.dataset.bajalisto);return}}
+ if(bi){const [ch,j]=bi.dataset.bajai.split('|'); bajaVideo(ch,+j);return}
  if(lk){shareLink(lk.dataset.link);return}
  if(so){const v=IDX[so.dataset.sold]; if(!v) return; if(pideQuien('avisar una venta')) return;
   $('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
