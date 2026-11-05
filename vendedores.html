@@ -86,6 +86,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 .xrow>:first-child,.frow>:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .xrow>:last-child:not(:first-child),.frow>:last-child:not(:first-child){flex:0 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
 .xrow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)),.frow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)){flex:0 0 auto;white-space:nowrap}
+/* 05/11/2026 (Andre): el monto de la derecha nunca se corta por la mitad ($1.250.\n000): no se achica más que su palabra más larga; si la descripción es larga, baja la descripción. */
+.xrow>:last-child:not(:first-child):not(:has(input,select,textarea)),.frow>:last-child:not(:first-child):not(:has(input,select,textarea)){min-width:auto;overflow-wrap:normal}
 .xrow>:last-child button,.frow>:last-child button{vertical-align:middle}
 .xrow:has(input,select,textarea),.frow:has(input,select,textarea){flex-wrap:wrap;row-gap:6px}
 .xrow:has(input,select,textarea)>:last-child,.frow:has(input,select,textarea)>:last-child{margin-left:auto;max-width:100%}
@@ -366,7 +368,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->04-11-2026 19:03<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->05-11-2026 18:26<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -616,6 +618,41 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
 <script>
+/* BLINDAJE (amk-seguridad, 05/11/2026): todo texto que llega de la nube pasa por aquí antes de que la app lo use.
+   Otra cuenta (Corea, Vendedores) o alguien que le robe la clave podría escribir código disfrazado de texto
+   (<img onerror=…>, comillas para salirse de un atributo) y la app lo pintaría con innerHTML, ejecutándolo con la sesión de Sistema.
+   Se cambian < > " ' ` por sus parecidos tipográficos, que se ven casi igual pero el navegador no interpreta.
+   Los textos que son JSON (respaldos de remesas/embarques) se limpian por dentro y siguen siendo JSON válido. */
+(function(){
+  var fs=window.firebase&&firebase.firestore; if(!fs||fs.__amkBlindado) return; fs.__amkBlindado=true;
+  var MAL=/[<>"'`]/;
+  function txt(s){
+    if(!MAL.test(s)) return s;
+    var t=s.trim();
+    if(t[0]==='{'||t[0]==='['){ try{ return JSON.stringify(val(JSON.parse(s))); }catch(e){} }
+    return s.replace(/</g,'‹').replace(/>/g,'›').replace(/"/g,'″').replace(/'/g,'’').replace(/`/g,'´');
+  }
+  function val(v){
+    if(typeof v==='string') return txt(v);
+    if(Array.isArray(v)) return v.map(val);
+    if(v&&typeof v==='object'&&(Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null)){
+      var o={}; for(var k in v) o[txt(k)]=val(v[k]); return o;
+    }
+    return v;   /* números, fechas de Firestore, referencias: tal cual */
+  }
+  window.amkLimpiaNube=val;
+  ['DocumentSnapshot','QueryDocumentSnapshot'].forEach(function(n){
+    var C=fs[n]; if(!C||!C.prototype) return; var p=C.prototype;
+    var d=Object.getOwnPropertyDescriptor(p,'data');
+    if(d&&typeof d.value==='function'){ var od=d.value; p.data=function(){ return val(od.apply(this,arguments)); }; }
+    var g=Object.getOwnPropertyDescriptor(p,'get');
+    if(g&&typeof g.value==='function'){ var og=g.value; p.get=function(){ return val(og.apply(this,arguments)); }; }
+    var i=Object.getOwnPropertyDescriptor(p,'id');
+    if(i&&i.get){ var oi=i.get; Object.defineProperty(p,'id',{get:function(){ return txt(String(oi.call(this))); },configurable:true}); }
+  });
+})();
+</script>
+<script>
 /* 2026-09-29: la app abre y guarda aunque no haya internet (sw.js), y Firebase guarda en el aparato lo que no alcanzó a subir. */
 if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(_){} }
 
@@ -757,6 +794,13 @@ function fuenteWeb(v){
   const orden=['victor','bryan'].filter(k=>ks.includes(k)).concat(ks.filter(k=>k!=='victor'&&k!=='bryan'&&k!=='corea').sort(),ks.includes('corea')?['corea']:[]);
   return orden.length?{k:orden[0],n:c[orden[0]].fotos.length}:{k:null,n:0};
 }
+/* 05/11/2026 (Andre: las tarjetas quedaron sin foto). La portada salía solo de las fotos guardadas en ESTE teléfono; si el
+   teléfono las perdió o las tomó otro, la tarjeta quedaba vacía aunque el auto tuviera fotos subidas. Ahora: la tuya si la
+   tienes en el teléfono; si no, la portada que muestra la web (misma prioridad que fuenteWeb). */
+function portadaDe(v){ const t=fst(v.ch); if(t.cov) return t.cov;
+  const fw=fuenteWeb(v); if(!fw.k) return '';
+  const a=fw.k==='sistema'?v.fotos:((fotosVendCache[v.ch]||{})[fw.k]||{}).fotos; const u=a&&a[0];
+  return typeof u==='string'?u.replace(/"/g,'&quot;'):''; }
 function fotoWebInfo(v){
   const fw=fuenteWeb(v), mia=slugFuente(ST.vend), pub=v.pub===true;
   const nom=k=>k===mia?'tuyas':'de '+(FUENTE_NOM[k]||k);
@@ -1534,34 +1578,51 @@ async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe
 /* 04/11/2026 (Víctor): bajar el video (720p, el archivo que guarda Facebook) para subirlo a sus propias redes o estados,
    sin que Andre lo mande por WhatsApp. El link lo renueva Sistema (vence en ~4 días). En el teléfono abre el menú de
    compartir con el ARCHIVO (Guardar video / WhatsApp / Instagram…); en computador lo descarga. */
-function mp4sDe(v){ const m=v.vidsMp4||{}; return VID_EST.filter(([k])=>m[k]&&m[k].u&&(!m[k].exp||m[k].exp>Date.now()+600e3)).map(([k,n])=>({k,n,u:m[k].u})); }
+/* 05/11/2026 (Andre): cada uno sube a sus redes un video DISTINTO. Los estilos van en el orden en que el Mac los publica
+   (clásico → 3 razones → ficha): el 1.º es el de Andre (página de AMK), el 2.º el de Víctor y el 3.º el de Bryan.
+   Si el suyo todavía no existe, no se le ofrece el de otro: se le avisa que viene. */
+const VID_TURNO={'Víctor':1,'Bryan':2};
+function miVideoDe(v){ const m=v.vidsMp4||{}, ks=VID_EST.filter(([k])=>m[k]&&m[k].u);
+  if(!ks.length) return {estado:'nada'};
+  const t=VID_TURNO[ST.vend]; if(t==null) return {estado:'quien'};
+  const e=ks[t]; if(!e) return {estado:'falta'};
+  const x=m[e[0]]; if(x.exp&&x.exp<=Date.now()+600e3) return {estado:'vencido',k:e[0],n:e[1]};
+  return {estado:'ok',k:e[0],n:e[1],u:x.u}; }
+function miVideoHTML(v){ const x=miVideoDe(v);
+  if(x.estado==='nada') return '';
+  if(x.estado==='falta') return '<div style="margin-top:9px;font-size:12.5px;color:var(--mute)">🎬 Tu video para redes todavía no está listo · Andre prepara uno distinto para cada uno</div>';
+  return `<div class="acts"><button class="btn b-sec" data-baja="${v.ch}">⬇ Mi video para redes${x.n?' · '+x.n:''}</button></div>`; }
+/* Samsung/Android (05/11/2026, Bryan): el menú de compartir no deja "guardar en la galería" y lo que se guardaba por ahí
+   la galería no lo abría. En Android se descarga directo (queda en Descargas y la Galería lo muestra en el álbum Download).
+   El archivo es el mismo de Facebook: MP4 H.264 + AAC, 720×1280, el formato que reproduce cualquier teléfono. */
+const ES_ANDROID=/Android/i.test(navigator.userAgent||'');
 let bajandoVid=false; const VID_LISTO={};
 function compartirListo(ch){ const f=VID_LISTO[ch]; if(!f) return; navigator.share({files:[f]}).then(()=>{ const b=document.getElementById('vidpick_'+ch); if(b) b.hidden=true; }).catch(e=>{ if(!e||e.name!=='AbortError') toast('No se pudo abrir el menú de compartir'); }); }
-async function bajaVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=mp4sDe(v);
-  if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
-    if(!box.hidden&&box.dataset.modo==='baja'){ box.hidden=true; return; }
-    box.dataset.modo='baja';
-    box.innerHTML=vs.map((x,j)=>`<button class="btn b-sec" data-bajai="${ch}|${j}">⬇ ${x.n}</button>`).join(''); box.hidden=false; entraSuave&&entraSuave(box); return; }
-  const x=vs[i||0]; if(!x){ toast('El video todavía no está listo para bajar'); return; }
+function descargaArchivo(f){ const a=document.createElement('a'); a.href=URL.createObjectURL(f); a.download=f.name; a.rel='noopener'; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },60000); }
+async function bajaVideo(ch){ const v=IDX[ch]; if(!v) return;
+  if(pideQuien('bajar tu video')) return;
+  const x=miVideoDe(v);
+  if(x.estado==='falta'||x.estado==='nada'){ toast('Tu video todavía no está listo'); return; }
+  if(x.estado==='vencido'){ toast('El link del video venció. Pídele a Andre que abra Sistema (lo renueva) y vuelve a intentar.'); return; }
   if(bajandoVid) return; bajandoVid=true;
-  const nombre=(v.ma+' '+v.mo+' '+(v.an||'')+' - '+x.n).replace(/\s+/g,' ').trim()+'.mp4';
+  const nombre=(v.ma+' '+v.mo+' '+(v.an||'')+' - '+x.n).replace(/\s+/g,' ').trim().normalize('NFD').replace(/[̀-ͯ]/g,'')+'.mp4';
   try{
-    toast('Bajando el video '+x.n+'…');
+    toast('Bajando tu video ('+x.n+')…');
     const r=await fetch(x.u,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}); if(!r.ok) throw new Error('HTTP '+r.status);   /* sin referer: con él, el servidor de Facebook rechaza la descarga */
-    const blob=await r.blob(); const f=new File([blob],nombre,{type:'video/mp4'});
+    const blob=await r.blob(); if(!blob.size) throw new Error('archivo vacío');
+    const f=new File([blob],nombre,{type:'video/mp4'});
+    if(ES_ANDROID){ descargaArchivo(f); toast('✓ Video guardado en Descargas · lo ves en la Galería (álbum Download)'); return; }
     if(navigator.canShare&&navigator.canShare({files:[f]})){
       try{ await navigator.share({files:[f]}); }
       catch(e){
         if(e&&e.name==='AbortError') return;
         /* iPhone: si bajar tardó, el teléfono ya no deja abrir el menú de compartir sin otro toque. Queda listo en un botón. */
         if(e&&e.name==='NotAllowedError'){ VID_LISTO[ch]=f; const box=document.getElementById('vidpick_'+ch);
-          if(box){ box.dataset.modo='baja'; box.innerHTML='<button class="btn b-pri" data-bajalisto="'+ch+'">📲 Listo: guardar o compartir '+x.n+'</button>'; box.hidden=false; entraSuave&&entraSuave(box); }
+          if(box){ box.dataset.modo='baja'; box.innerHTML='<button class="btn b-pri" data-bajalisto="'+ch+'">📲 Listo: guardar o compartir tu video</button>'; box.hidden=false; entraSuave&&entraSuave(box); }
           toast('Video listo: toca "Guardar o compartir"'); return; }
         throw e; }
-    }else{
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre; document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },4000); toast('✓ Video descargado');
-    }
+    }else{ descargaArchivo(f); toast('✓ Video descargado'); }
   }catch(e){ console.warn('bajaVideo',e); toast('No se pudo bajar el video. Pídele a Andre que abra Sistema (renueva el link) y vuelve a intentar.'); }
   finally{ bajandoVid=false; }
 }
@@ -2248,8 +2309,8 @@ const etiquetasV=v=>{ const t=[], cap=x=>String(x||'').charAt(0)+String(x||'').s
   if(v.sv) t.push('Sello verde');
   return t.filter(Boolean); };
 const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta: lo relevante del vehículo */
- const cardV=v=>{const t=fst(v.ch),nf=t.nf||0;
-  const cov=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
+ const cardV=v=>{const t=fst(v.ch),nf=t.nf||0, pc=portadaDe(v);
+  const cov=pc?`<img class="cover" src="${pc}" alt="" loading="lazy" decoding="async">`:'';
   const cp=colorDe(v.ce), sin360=!!(ST.up360&&ST.up360[v.ch]);
   const enCam=v.st==='ORIGEN';
   const estado=enCam?'var(--fAzul)':'var(--fVerde)';
@@ -2257,7 +2318,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
   const chip=chipEstado(v);
   const nuevo=esNuevo(v)?'<span class="nuevo">Nuevo</span>':'';
   if(compacto&&!EXP.has(v.ch)){
-   const cm=t.cov?`<img class="cover" src="${t.cov}" alt="">`:'';
+   const cm=cov;
    return `<div class="card cmp" data-exp="${v.ch}"><span class="strip" style="background:${estado}"></span>${cm}
     <div class="cm-t"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span>${nuevo}</div>
     <div class="cm-s" style="white-space:normal">${String(carsC(v)).replace(/</g,'&lt;')}</div>${fotoWebHTML(v,true)}</div>
@@ -2285,7 +2346,7 @@ const carsC=v=>etiquetasV(v).join(' · ');   /* 2.ª línea de la lista compacta
     ${nf?`<button class="btn b-sec" data-share="${v.ch}">➦ Enviar</button>`:''}
     ${vidsDe(v).length?`<button class="btn b-sec" data-vid="${v.ch}">▶ Video${vidsDe(v).length>1?' ('+vidsDe(v).length+')':''}</button>`:''}
     <button class="btn b-sec" data-link="${v.ch}">🔗 Link</button></div>
-   ${mp4sDe(v).length?`<div class="acts"><button class="btn b-sec" data-baja="${v.ch}">⬇ Video para mis redes${mp4sDe(v).length>1?' ('+mp4sDe(v).length+')':''}</button></div>`:''}
+   ${miVideoHTML(v)}
    <div class="acts vidpick" id="vidpick_${v.ch}" hidden></div>
    <div class="acts a3"><button class="btn b-sec" data-pend="${v.ch}">⚠ Pendiente</button>
     <button class="btn b-sec" data-dato="${v.ch}">🔧 Motor / datos${datosDe(v.ch).some(x=>x.campo==='motor')?' ✓':''}</button>
@@ -2640,7 +2701,7 @@ document.addEventListener('click',async e=>{
  { const vz=e.target.closest('[data-vzver]'); if(vz){ visorAbre(phArr,+vz.dataset.vzver); return; } }
  const m=e.target.closest('[data-mv]'),r=e.target.closest('[data-rm]'),p=e.target.closest('[data-photo]'),
   sh=e.target.closest('[data-share]'),sl=e.target.closest('[data-sel]'),pk=e.target.closest('[data-pick]'),
-  vd=e.target.closest('[data-vid]'),vi=e.target.closest('[data-vidi]'),bj=e.target.closest('[data-baja]'),bi=e.target.closest('[data-bajai]'),
+  vd=e.target.closest('[data-vid]'),vi=e.target.closest('[data-vidi]'),bj=e.target.closest('[data-baja]'),
   c=e.target.closest('[data-cp]'),so=e.target.closest('[data-sold]'),lk=e.target.closest('[data-link]'),
   v3b=e.target.closest('[data-v360]'), m3b=e.target.closest('[data-mi360]'), cv=e.target.closest('[data-cpvid]');
  if(sh){shareVehicle(sh.dataset.share,null);return}
@@ -2648,7 +2709,6 @@ document.addEventListener('click',async e=>{
  if(vi){const [ch,j]=vi.dataset.vidi.split('|'); shareVideo(ch,+j);return}
  if(bj){bajaVideo(bj.dataset.baja);return}
  {const bl=e.target.closest('[data-bajalisto]'); if(bl){compartirListo(bl.dataset.bajalisto);return}}
- if(bi){const [ch,j]=bi.dataset.bajai.split('|'); bajaVideo(ch,+j);return}
  if(lk){shareLink(lk.dataset.link);return}
  if(so){const v=IDX[so.dataset.sold]; if(!v) return; if(pideQuien('avisar una venta')) return;
   $('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
@@ -2708,6 +2768,7 @@ $('#whoOk').addEventListener('click',async()=>{
   ST.vend=nombre; try{pintaInsMios()}catch(_){}
   $('#who').textContent=ST.vend||'sin nombre';await save();closeAll();toast('Guardado');pintaAV();
   pintaVT();
+  try{draw()}catch(_){}   /* el video para redes depende de quién es (05/11/2026) */
   if(fbReady){ fbSueldosListen(); reintenta(); }
 });
 async function espacio(){let n=0,c=0;for(const k in ST.f){if(ST.f[k].nf){n+=ST.f[k].nf;c++}}
@@ -2798,14 +2859,14 @@ function cbBusca(){
   if(!s){ el.innerHTML=''; return; }
   const toks=s.split(/\s+/);
   const L=V.filter(v=>(true)&&toks.every(tk=>(v.ma+' '+v.mo+' '+v.ch+' '+(v.an||'')).toLowerCase().includes(tk)));
-  el.innerHTML=L.length?L.slice(0,6).map(v=>{ const c=(fst(v.ch).cov||(v.fotos&&v.fotos[0])||'');
+  el.innerHTML=L.length?L.slice(0,6).map(v=>{ const c=portadaDe(v);
     return `<div class="pk" data-cbpick="${v.ch}">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><div style="color:var(--ink2);font-weight:700">→</div></div>`; }).join('')
     +(L.length>6?`<div class="cnt" style="margin:4px 0 0">…y ${L.length-6} más. Sigue escribiendo para acotar.</div>`:'')
     :'<p class="mtr" style="margin:4px 0 0">Sin resultados.</p>';
 }
 function cbElige(ch){
   const v=IDX[ch]; if(!v) return;
-  const c=(fst(ch).cov||(v.fotos&&v.fotos[0])||'');
+  const c=portadaDe(v);
   alturaFluida(MAIN,()=>{
     $('#cbV').value=`${v.ma} ${v.mo} ${v.an||''} · ${v.ch}`;
     $('#cbVenta').value='';

@@ -114,6 +114,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .xrow>:first-child{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
 .xrow>:last-child:not(:first-child){flex:0 1 auto;min-width:0;text-align:right;overflow-wrap:anywhere}
 .xrow>:last-child:not(:first-child):has(button):not(:has(input,select,textarea)){flex:0 0 auto;white-space:nowrap}
+/* 05/11/2026 (Andre): el monto de la derecha nunca se corta por la mitad ($1.250.\n000): no se achica más que su palabra más larga; si la descripción es larga, baja la descripción. */
+.xrow>:last-child:not(:first-child):not(:has(input,select,textarea)){min-width:auto;overflow-wrap:normal}
 .xrow>:last-child button{vertical-align:middle}
 .xrow>:last-child>button:not(.btn){min-height:30px;min-width:30px;padding:4px 9px;font-size:12.5px;border-radius:8px;line-height:1.1}   /* ✎ y ✕ del mismo tamaño */
 .xrow:has(input,select,textarea){flex-wrap:wrap;row-gap:6px}
@@ -863,12 +865,13 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="ctaShare" style="width:100%;margin-top:9px">🖼️ Enviar imagen + datos al cliente</button></div>
     <div class="box" id="boxSRF" style="margin-top:13px">
       <h3>Formulario SRF (Zofri)</h3>
-      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Las ventas en dólares o de exportación no aparecen acá — esas van por Traspaso (203), no por SRF.</p>
+      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Las ventas en dólares o de exportación no aparecen acá (van por Traspaso 203), ni las de comunas fuera de Iquique/Arica (van por Factura de Importación). Con "Copiar para Rellenar SRF" y el favorito, Zofri se rellena solo (ver abajo).</p>
       <div id="ngSRF"></div>
+      <div id="ngSRFfav"></div>
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->04-11-2026 19:03 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->05-11-2026 18:26 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1254,8 +1257,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="mtr" id="clRchk"></div></div>
     <div class="fld"><label for="clD">Dirección</label><input id="clD" placeholder="Calle y número"></div>
     <div class="fld"><label for="clC">Comuna</label>
-      <input id="clC" list="dlCom" autocomplete="off" placeholder="Iquique">
-      <datalist id="dlCom"></datalist></div>
+      <select id="clC"></select>
+      <div class="mtr" id="clDoc" style="margin-top:6px"></div></div>
     <div class="fld"><label for="clT">Teléfono</label><input id="clT" inputmode="tel" placeholder="+56 9 ..."></div>
     <div class="fld" id="wCarnet"><label id="clCL">Carnet del cliente (ambos lados)</label>
       <div class="g360">
@@ -1361,8 +1364,6 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shReserva">
   <h3 id="rvT"></h3><div class="sb" id="rvC"></div>
-  <div class="fld"><label for="rvCli">Cliente</label><input id="rvCli" placeholder="Nombre" autocomplete="off"></div>
-  <div class="fld"><label for="rvTel">Teléfono (opcional)</label><input id="rvTel" inputmode="tel" placeholder="+56 9 ..."></div>
   <div class="fld"><label for="rvPrecio">Precio acordado</label><input id="rvPrecio" inputmode="numeric" placeholder="$0"></div>
   <div id="rvNueva">
     <div style="display:flex;gap:8px"><div class="fld" style="flex:1"><label for="rvFecha">Fecha de reserva</label><input id="rvFecha" type="date"></div>
@@ -1378,6 +1379,10 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   </div>
   <div class="fld"><label>Medio de pago</label><div class="opt" style="display:flex;gap:6px;flex-wrap:wrap" id="rvMed">
     <button class="chip" data-rvmed="transf" aria-pressed="true">Transferencia</button><button class="chip" data-rvmed="efectivo" aria-pressed="false">Efectivo</button><button class="chip" data-rvmed="otro" aria-pressed="false">Otro</button></div></div>
+  <!-- 05/11/2026 (Andre): la reserva pide los mismos datos del cliente que la venta. No es una copia: al abrir la reserva
+       se mueve aquí el mismo bloque #secCli de la hoja de venta (cliA), así los campos, el RUT, la comuna y el carnet son idénticos. -->
+  <details id="rvCliDet" style="margin:0 0 13px"><summary style="cursor:pointer;font-weight:700;font-size:14.5px;padding:4px 0 10px">Datos del cliente <span id="rvCliFalta" style="font-weight:600;font-size:12px"></span></summary>
+    <div id="rvCliBox"></div></details>
   <div id="rvAcc" class="acts" style="flex-wrap:wrap;margin-bottom:10px">
     <button class="btn b-pri" id="rvVender" style="flex:1 1 100%">✓ Pago completo · Marcar vendido</button>
     <button class="btn b-sec" id="rvExt">+7 días</button>
@@ -1615,6 +1620,41 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore-compat.js"></script>
+<script>
+/* BLINDAJE (amk-seguridad, 05/11/2026): todo texto que llega de la nube pasa por aquí antes de que la app lo use.
+   Otra cuenta (Corea, Vendedores) o alguien que le robe la clave podría escribir código disfrazado de texto
+   (<img onerror=…>, comillas para salirse de un atributo) y la app lo pintaría con innerHTML, ejecutándolo con la sesión de Sistema.
+   Se cambian < > " ' ` por sus parecidos tipográficos, que se ven casi igual pero el navegador no interpreta.
+   Los textos que son JSON (respaldos de remesas/embarques) se limpian por dentro y siguen siendo JSON válido. */
+(function(){
+  var fs=window.firebase&&firebase.firestore; if(!fs||fs.__amkBlindado) return; fs.__amkBlindado=true;
+  var MAL=/[<>"'`]/;
+  function txt(s){
+    if(!MAL.test(s)) return s;
+    var t=s.trim();
+    if(t[0]==='{'||t[0]==='['){ try{ return JSON.stringify(val(JSON.parse(s))); }catch(e){} }
+    return s.replace(/</g,'‹').replace(/>/g,'›').replace(/"/g,'″').replace(/'/g,'’').replace(/`/g,'´');
+  }
+  function val(v){
+    if(typeof v==='string') return txt(v);
+    if(Array.isArray(v)) return v.map(val);
+    if(v&&typeof v==='object'&&(Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null)){
+      var o={}; for(var k in v) o[txt(k)]=val(v[k]); return o;
+    }
+    return v;   /* números, fechas de Firestore, referencias: tal cual */
+  }
+  window.amkLimpiaNube=val;
+  ['DocumentSnapshot','QueryDocumentSnapshot'].forEach(function(n){
+    var C=fs[n]; if(!C||!C.prototype) return; var p=C.prototype;
+    var d=Object.getOwnPropertyDescriptor(p,'data');
+    if(d&&typeof d.value==='function'){ var od=d.value; p.data=function(){ return val(od.apply(this,arguments)); }; }
+    var g=Object.getOwnPropertyDescriptor(p,'get');
+    if(g&&typeof g.value==='function'){ var og=g.value; p.get=function(){ return val(og.apply(this,arguments)); }; }
+    var i=Object.getOwnPropertyDescriptor(p,'id');
+    if(i&&i.get){ var oi=i.get; Object.defineProperty(p,'id',{get:function(){ return txt(String(oi.call(this))); },configurable:true}); }
+  });
+})();
+</script>
 <script>
 /* 2026-09-29: la app abre y guarda aunque no haya internet (sw.js), y Firebase guarda en el aparato lo que no alcanzó a subir. */
 if('serviceWorker' in navigator && location.protocol==='https:'){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(_){} }
@@ -4104,7 +4144,7 @@ function cardS(v){
   if(pv)   filas.push(`Posventa <b style="color:var(--red)">${clp(pv)}</b>`);
   if(ac)   filas.push(`De esta app <b>${clp(ac)}</b>`);
 
-  const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.det?' · '+String(x.det).replace(/</g,'&lt;'):''} · ${fd(x.date)}</span><span>${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
+  const xr=(s.costs||[]).slice(-3).map(x=>`<div class="xrow"><span>${CN[x.cat]||x.cat}${x.det?' · '+String(x.det).replace(/</g,'&lt;'):''} · ${fd(x.date)}</span><span style="white-space:nowrap">${clp(abo(x))}${csal(x)?' <span style="color:var(--amber)">(debe '+clp(csal(x))+')</span>':''}</span></div>`).join('');
   /* 17/10/2026 (Andre): "Debe taller" sin botón. Ahora la tarjeta trae lo que se le debe al taller (＄ Pagar saldo: abono al MISMO costo,
      no un costo nuevo) y los trabajos abiertos (＄ Anotar costo: abre Costo real enlazado a ese trabajo, costTs, y el estimado deja de sumar). */
   const tallerBox=(()=>{ if(!deb) return '';
@@ -4117,7 +4157,8 @@ function cardS(v){
     return `<div class="xlist" style="font-size:13px"><div class="mtr" style="margin:0 0 3px">Con el taller</div>${fD}${fT?`<div class="mtr" style="margin:7px 0 3px">Trabajos por pagar</div>${fT}`:''}</div>`; })();
   const cov=s.cov?`<img class="cover" src="${s.cov}" alt="">`:'';
   const saldoCorea=(v.krw&&v.senia)?Math.max(0,v.krw-v.senia):null;
-  const extra=(v.prov?`<div class="xlist" style="font-size:12.5px;color:var(--mute)">Proveedor: <b style="color:var(--ink)">${String(v.prov).replace(/</g,'&lt;')}</b></div>`:'')
+  /* 05/11/2026 (Andre): el proveedor de Corea ya no se muestra en la tarjeta (a él no le sirve; a la mamá sí, en Corea). Se sigue guardando y editando en Editar vehículo. */
+  const extra=''
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
     +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · ${saldoCorea?'Pagado':'Seña'} ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
     +(()=>{ const pc=(v.pendCorea||[]).filter(x=>!x.hecho); if(!pc.length) return '';
@@ -4307,9 +4348,41 @@ function inPer(d){
   return d>=lim;
 }
 /* ---------- VISTA PREVIA DE VENTA (SRF) ---------- */
+/* 05/11/2026 (Andre): automatizar el SRF. De qué documento de ingreso (Z) e ítem viene cada auto: lo escrito a mano en
+   "N° Doc. Ingreso vinculado" (formato 101-26-065045-014), o lo guardado al pegar el Z en "Comparar con el Z" (v.zof.zDoc
+   + v.zof.zItem, el orden de los ítems del Z), o el orden ya conocido de un Z (Z_CONOCIDOS). El favorito "Rellenar SRF"
+   igual revisa en Zofri que el chasis del ítem sea el del auto vendido: si no calza, se detiene. */
+const Z_CONOCIDOS={
+  '101-26-065045':'EA493481 EK573617 FU395308 EK533744 GK084184 FA081004 FU432757 BA122938 HK280997 BA141392 CK224983 KS470685 GK006852 JU500967 HU357043 DU096613 KS544114 GU255940 BK021998 GU259761 DK794013 GK041454 FU495654 EU748137 FU461455 FU954258 GU224807 HU349016 KU618405 HU419129'.split(' ')
+};
+function srfIngreso(v){
+  const z=(v&&v.zof)||{}, m=String(z.docIngreso||'').trim().match(/^(\d{3}-\d{2}-\d{6})-0*(\d{1,3})$/);
+  if(m) return {doc:m[1],item:+m[2],src:'a mano'};
+  if(z.zDoc&&z.zItem) return {doc:z.zDoc,item:+z.zItem,src:'del Z'};
+  const ch=String((v&&v.ch)||'').toUpperCase();
+  for(const d in Z_CONOCIDOS){ const i=Z_CONOCIDOS[d].indexOf(ch); if(i>=0) return {doc:d,item:i+1,src:'del Z'}; }
+  return z.docIngreso?{doc:String(z.docIngreso).trim(),item:0,src:'a mano'}:null;
+}
+function srfIngresoTxt(x){ return x?(x.item?x.doc+'-'+String(x.item).padStart(3,'0'):x.doc):''; }
+/* "CERRO LA CRUZ PJE LA NEGRA 226" → calle + número (en Zofri van en dos casillas) */
+function dirPartes(d){
+  d=String(d||'').trim().toUpperCase().replace(/\s+/g,' ');
+  const m=d.match(/^(.*?)[\s,]*(?:N[°ºO]\.?|#)?\s*(\d+[A-Z]?)$/);
+  return (m&&m[1])?{calle:m[1].replace(/[\s,#]+$/,''),nro:m[2]}:{calle:d,nro:''};
+}
+function rutPuntos(r){ const s=rutLimpio(r); if(s.length<2) return String(r||''); const c=s.slice(0,-1), dv=s.slice(-1); return c.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'-'+dv; }
+function srfGlosa(v,t){ const n=String(((t.cliente||{}).n)||'').trim().toUpperCase().split(/\s+/)[0]||''; return [n,String(v.mo||'').toUpperCase(),v.ch].filter(Boolean).join(' '); }
+function srfDatosFav(v,t){
+  const cl=t.cliente||{}, ing=srfIngreso(v), dp=dirPartes(cl.d), zf=srfZF(cl.c);
+  return {amkSRF:1,ch:v.ch,vin:String((v.zof||{}).vin||v.vin||'').toUpperCase(),auto:[v.ma,v.mo,v.an].filter(Boolean).join(' '),
+    glosa:srfGlosa(v,t),zf:zf==='ARICA'?'80':(zf==='IQUIQUE'?'81':''),rut:rutPuntos(cl.r),nom:String(cl.n||'').toUpperCase(),
+    dir:dp.calle,nro:dp.nro,com:comunaCod(cl.c),nota:String(t.srfNota||''),info:srfInfoAdic(t),
+    doc:ing?ing.doc:'',item:ing?ing.item:0,fob:v.fob?Math.round(+v.fob*100)/100:0};
+}
 const SRF_ZFEXT={'IQUIQUE':'IQUIQUE','ALTO HOSPICIO':'IQUIQUE','POZO ALMONTE':'IQUIQUE','PICA':'IQUIQUE','ARICA':'ARICA'};
-function srfZF(comuna){ return SRF_ZFEXT[String(comuna||'').trim().toUpperCase()]||''; }
-function srfAplica(t){ return t.sold && t.moneda!=='USD' && (t.cliente||{}).tipo!=='export'; }
+function srfZF(comuna){ return SRF_ZFEXT[comSinT(comuna)]||''; }
+/* 05/11/2026: comuna fuera de Iquique/Arica = Factura de Importación (docZofri), no SRF */
+function srfAplica(t){ return t.sold && t.moneda!=='USD' && (t.cliente||{}).tipo!=='export' && docZofri(t.cliente)!=='FI'; }
 function srfInfoAdic(t){
   if(t.srfInfoAdic) return t.srfInfoAdic;
   if(t.dolarObs) return `01:DOBS-${Number(t.dolarObs).toFixed(2)};`;
@@ -4320,6 +4393,7 @@ function srfCampos(v,t){
   const i18=(v.cifusd&&t18&&dolAd)?imp18(v):null;
   return [
     ['Documento','SRF'],
+    ['Glosa',srfGlosa(v,t)],
     ['Procedencia','EXTRANJERO'],
     ['Z.F. Extensión',zf],
     ['Moneda Ingreso','DOLAR USA'],
@@ -4329,30 +4403,46 @@ function srfCampos(v,t){
     ['Tipo ID Comprador','RUT'],
     ['RUT Comprador',cl.r||''],
     ['Nom Comprador',cl.n||''],
-    ['Dir. Comprador',cl.d||''],
-    ['Comuna Comprador',cl.c||''],
+    ['Dir. Comprador',dirPartes(cl.d).calle],
+    ['Dir. Comprador nro.',dirPartes(cl.d).nro],
+    ['Comuna Comprador',(comunaCanon(cl.c)||cl.c||'')+(comunaCod(cl.c)?' ['+comunaCod(cl.c)+']':'')],
     ['Impuesto','LEY 18.211'],
-    ['Ley 18.211 (monto)',i18!=null?clp(i18):''],
+    ['Ley 18.211 (monto)','lo calcula Zofri'+(i18!=null?' (≈ '+clp(i18)+')':'')],
     ['N° Int. Usuario',t.srfNota||''],
     ['Información Adicional',srfInfoAdic(t)],
-    ['N° Doc. Ingreso vinculado',(v.zof||{}).docIngreso||''],
+    ['Doc. Ingreso + ítem',srfIngresoTxt(srfIngreso(v))],
+    ['Valor FOB (FOB Zeta)',v.fob?obs2(v.fob):''],
+    ['Valor Venta','lo escribes tú en Zofri'],
   ];
 }
 function srfFaltantes(v,t){
   const cl=t.cliente||{}, F=[];
-  if(!srfZF(cl.c)) F.push('Z.F. Extensión (comuna no reconocida)');
+  if(cl.c&&!srfZF(cl.c)) F.push('Z.F. Extensión (comuna escrita a mano: elígela de la lista en la ficha de venta)');
   if(!cl.r) F.push('RUT comprador');
   if(!cl.n) F.push('Nombre comprador');
   if(!cl.d) F.push('Dirección comprador');
   if(!cl.c) F.push('Comuna comprador');
-  if(!(v.cifusd&&t18&&dolAd)) F.push('Ley 18.211 (falta CIF USD, tasa o dólar aduanero)');
+  /* Ley 18.211: el monto lo calcula Zofri al elegir el impuesto (Andre, 05/11/2026), no hace falta tenerlo aquí */
   if(!t.srfNota) F.push('N° Int. Usuario (número de nota de venta)');
   if(!srfInfoAdic(t)) F.push('Información Adicional (dólar observado no capturado al vender — complétalo a mano)');
-  if(!(v.zof||{}).docIngreso) F.push('N° Doc. Ingreso vinculado');
+  { const ing=srfIngreso(v); if(!ing||!ing.item) F.push('Doc. Ingreso + ítem (pega el Z en Embarque → "Comparar con el Z", o escríbelo: 101-26-065045-014)'); }
+  if(cl.d&&!dirPartes(cl.d).nro) F.push('N° de la dirección (Zofri lo pide aparte)');
+  if(!v.fob) F.push('FOB Zeta');
   return F;
+}
+function srfAyuda(){
+  return `<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Cómo rellenar el SRF en Zofri con un clic</summary>
+    <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
+      <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos del navegador → <a href="${srfMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">Rellenar SRF</a></li>
+      <li>Una vez por embarque: en Embarque → "Comparar con el Z", pega la página del Z (Cmd+A, Cmd+C en Zofri). Así la app sabe de qué Z e ítem viene cada auto.</li>
+      <li>Vende como siempre (Marcar vendido, con el cliente y la nota de venta). Aquí toca "Copiar para Rellenar SRF".</li>
+      <li>En Zofri abre 201-Salida → SRF y toca el favorito. Te muestra los cambios; si aceptas, rellena todo, busca el ítem y <b>revisa que el chasis sea el del auto vendido</b> (si no, se detiene).</li>
+      <li>Tú escribes el Valor Venta, revisas y aprietas Guardar / Enviar a Visar. El favorito nunca guarda ni envía.</li>
+    </ol></details>`;
 }
 function pintaSRF(){
   const box=$('#ngSRF'); if(!box) return;
+  { const fb=$('#ngSRFfav'); if(fb&&!fb.innerHTML) fb.innerHTML=srfAyuda(); }
   const items=[];
   for(const c in S){
     const t=S[c];
@@ -4362,9 +4452,11 @@ function pintaSRF(){
   }
   const srf=items.filter(x=>srfAplica(x.t));
   const otros=items.length-srf.length;
+  const nFI=items.filter(x=>x.t.moneda!=='USD'&&(x.t.cliente||{}).tipo!=='export'&&docZofri(x.t.cliente)==='FI').length, nTr=otros-nFI;
+  const otrosTxt=[nTr?nTr+' en dólares o exportación (van por Traspaso 203)':'',nFI?nFI+' a comunas fuera de Iquique/Arica (van por Factura de Importación)':''].filter(Boolean).join(' · ');
   if(!srf.length){
     box.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin ventas SRF en este período.'
-      +(otros?(' ('+otros+' venta'+(otros===1?'':'s')+' en dólares o exportación, no es SRF)'):'')+'</p>';
+      +(otros?(' No son SRF: '+otrosTxt+'.'):'')+'</p>';
     return;
   }
   box.innerHTML=srf.map(({c,v,t})=>{
@@ -4381,11 +4473,12 @@ function pintaSRF(){
       <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Información Adicional</label>
         <input data-srfinfo="${c}" value="${srfInfoAdic(t)}" placeholder="01:DOBS-923.23;" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
       <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">N° Doc. Ingreso vinculado</label>
-        <input data-srfdoc="${c}" value="${(v.zof||{}).docIngreso||''}" placeholder="Ej: 202500123456" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
-      <button class="btn b-sec" data-srfcp="${c}" style="width:100%;margin-top:8px;font-size:12px">Copiar datos SRF</button>
+        <input data-srfdoc="${c}" value="${srfIngresoTxt(srfIngreso(v))}" placeholder="101-26-065045-014" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)"></div>
+      <div class="acts" style="margin-top:8px;gap:8px"><button class="btn b-pri" data-srffav="${c}" style="flex:2;font-size:12px">Copiar para Rellenar SRF</button>
+        <button class="btn b-sec" data-srfcp="${c}" style="flex:1;font-size:12px">Copiar texto</button></div>
     </div>`;
   }).join('')
-    + (otros?(`<p style="color:var(--mute);font-size:12px;margin:8px 0 0">${otros} venta${otros===1?'':'s'} más en este período son en dólares o exportación — no son SRF, van por Traspaso (203).</p>`):'');
+    + (otros?(`<p style="color:var(--mute);font-size:12px;margin:8px 0 0">No son SRF: ${otrosTxt}.</p>`):'');
 }
 function drawResumen(){
   const ven=[],cos=[];
@@ -4411,7 +4504,7 @@ function drawResumen(){
      <div class="vl">${clp(tv2-tc)||'$0'}</div>
      <div class="ft">No incluye el costo de compra de los vehículos vendidos</div></div>`;
   const com={};
-  for(const x of ven){const c=(S[x.ch].cliente||{}).c; if(c) com[c]=(com[c]||0)+1}
+  for(const x of ven){const c0=(S[x.ch].cliente||{}).c, c=comunaCanon(c0)||c0; if(c) com[c]=(com[c]||0)+1}
   const ck=Object.keys(com).sort((a,b)=>com[b]-com[a]);
   const cmax=Math.max(1,...Object.values(com));
   $('#byCom').innerHTML=ck.length?ck.map(k=>`<div style="margin-bottom:9px">
@@ -4553,13 +4646,9 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     $('#ssPrWrap').hidden = nf<=KEEP;
     $('#ssPrune').setAttribute('aria-pressed','true');
     $('#ssPruneTxt').textContent='Dejar solo '+KEEP+' fotos de '+nf+' (registro histórico)';
-    const cl=st(v.ch).cliente||{n:'',r:'',d:'',t:''};
-    $('#clN').value=cl.n||'';$('#clR').value=cl.r||'';$('#clD').value=cl.d||'';
-    $('#clC').value=cl.c||'';$('#clT').value=cl.t||'';$('#clG').value=cl.giro||'';
-    clPais=cl.pais||''; setPais(clPais); setPais(clPais);
-    $('#pPY').setAttribute('aria-pressed',clPais==='Paraguay'?'true':'false');
-    $('#pBO').setAttribute('aria-pressed',clPais==='Bolivia'?'true':'false');
-    setTipo(cl.tipo||'persona');
+    /* 05/11/2026: si el vehículo está reservado y todavía no tiene cliente de venta, se usan los datos de la reserva */
+    cliA('venta');
+    { const r=resAct(v.ch); ponCliente(st(v.ch).cliente||(r&&(r.cl||{n:r.cli||'',t:r.tel||''}))||{}); }
     const cu=v.cifusd||0;
     $('#ss18Wrap').hidden=false;
     if(cu&&t18&&dolAd){
@@ -4576,7 +4665,6 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     pintaQuien();
     setMoneda(st(v.ch).moneda||'CLP');
     $('#ssTC').value=st(v.ch).tc||(TC.medio?Math.round((+TC.medio)+(+TC.spread||0)):'')||'';
-    cargaComunas(); chkRut();
     vseg('venta'); loadCarnet(v.ch);
     { const mw=$('#ssModoWrap'); if(mw) mw.hidden=!!resAct(v.ch)||sold(v.ch); $('#ssModoVenta').setAttribute('aria-pressed','true'); $('#ssModoRes').setAttribute('aria-pressed','false'); }
     pintaVentaGan(); openSheet('shSell');setTimeout(()=>$('#ssP').focus(),240);}
@@ -5092,10 +5180,14 @@ function resPlan(r){
     +`<br>O en efectivo retirado en el banco, en un solo pago.`+(fuera?`<br><span style="color:var(--red)">Por transferencia no alcanza antes del vencimiento (${fd(r.vence)}).</span>`:'');
 }
 function rvPintaMed(){ $$('#rvMed [data-rvmed]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.rvmed===rvMed))); }
-function abrirReserva(ch){
-  const v=IDX[ch]; if(!v) return; rvCh=ch; const t=st(ch), r=resAct(ch);
+function abrirReserva(ch,mantener){
+  const v=IDX[ch]; if(!v) return; rvCh=ch; editing=ch; const t=st(ch), r=resAct(ch);
+  /* 05/11/2026: mismos datos del cliente que en la venta (mismo bloque, ver cliA) */
+  cliA('res');
+  if(!mantener){ ponCliente((r&&(r.cl||{n:r.cli||'',t:r.tel||''}))||t.cliente||{}); loadCarnet(ch); }
+  else pintaClDoc();
+  rvCliFalta();
   $('#rvT').textContent=(r?'Reserva · ':'Reservar · ')+v.ma+' '+v.mo+' '+(v.an||''); $('#rvC').textContent=v.ch;
-  $('#rvCli').value=r?r.cli||'':''; $('#rvTel').value=r?r.tel||'':'';
   $('#rvPrecio').value=(r&&r.precio)||t.pventa?clp((r&&r.precio)||t.pventa):'';
   $('#rvNueva').hidden=!!r; $('#rvActiva').hidden=!r; $('#rvAcc').hidden=!r;
   rvMed='transf'; rvPintaMed();
@@ -5124,17 +5216,18 @@ document.addEventListener('click',async e=>{
 });
 $('#rvOk').addEventListener('click',async()=>{
   const ch=rvCh, t=st(ch), r=resAct(ch);
-  const cli=$('#rvCli').value.trim(), tel=$('#rvTel').value.trim(), precio=pnum($('#rvPrecio').value)||0;
-  if(!cli){toast('Falta el nombre del cliente');return}
+  const cl=leerCliente(), cli=cl.n, tel=cl.t, precio=pnum($('#rvPrecio').value)||0;
+  if(!cli){toast('Falta el nombre del cliente'); $('#rvCliDet').open=true; return}
+  { const F=cliFaltan(cl); if(F.length&&!confirm('Faltan datos del cliente: '+F.join(', ')+'.\n\nSon los mismos que se piden al vender (y los del SRF). ¿Guardar igual y completarlos después?')){ $('#rvCliDet').open=true; return; } }
   if(!r){
     const ab=pnum($('#rvAbono').value)||0, f=$('#rvFecha').value||iso(), dias=Math.max(1,parseInt($('#rvDias').value)||RES_DIAS);
     if(!ab){toast('Falta el abono');return}
     if(ab<RES_MIN&&!confirm('El abono es menor al mínimo de '+clp(RES_MIN)+'. ¿Guardar igual?')) return;
     if(rvMed==='transf'&&ab>TR_DIA1&&!confirm('Por transferencia el primer día normalmente se puede hasta $250.000. ¿Guardar igual?')) return;
-    t.res={cli,tel,precio,fecha:f,vence:sumaDias(f,dias),pagos:[{m:ab,f,med:rvMed}],est:'activa',ts:Date.now()};
+    t.res={cli,tel,cl,precio,fecha:f,vence:sumaDias(f,dias),pagos:[{m:ab,f,med:rvMed}],est:'activa',ts:Date.now()};
     await rvGuarda('Reservado hasta '+fd(t.res.vence)); closeAll(); return;
   }
-  const nr=Object.assign({},r,{cli,tel,precio});
+  const nr=Object.assign({},r,{cli,tel,cl,precio});
   const pm=pnum($('#rvPm').value)||0;
   if(pm){ const f=$('#rvPf').value||iso(); nr.pagos=(r.pagos||[]).concat([{m:pm,f,med:rvMed}]);
     if(rvMed==='transf'){ const lim=f<=r.fecha?TR_DIA1:TR_DIA, dia=nr.pagos.filter(x=>x.f===f&&x.med==='transf').reduce((a,x)=>a+(+x.m||0),0);
@@ -5154,11 +5247,10 @@ $('#rvAnuDev').addEventListener('click',()=>rvAnula(false));
 $('#rvAnuRet').addEventListener('click',()=>rvAnula(true));
 $('#rvVender').addEventListener('click',()=>{ const r=resAct(rvCh), ch=rvCh; if(!r) return; closeAll();
   abrirVentaSheet(ch); if(r.precio) $('#ssP').value=clp(r.precio);
-  try{ if(r.cli&&!$('#clN').value) $('#clN').value=r.cli; if(r.tel&&!$('#clT').value) $('#clT').value=r.tel; }catch(_){}
   openSheet('shSell'); });
 
-$('#ssModoRes').addEventListener('click',()=>{ const ch=editing, p=pnum($('#ssP').value)||0, n=($('#clN')||{}).value||'', tl=($('#clT')||{}).value||'';
-  closeAll(); abrirReserva(ch); if(p) $('#rvPrecio').value=clp(p); if(n) $('#rvCli').value=n; if(tl) $('#rvTel').value=tl; });
+$('#ssModoRes').addEventListener('click',()=>{ const ch=editing, p=pnum($('#ssP').value)||0;
+  closeAll(); abrirReserva(ch,true); if(p) $('#rvPrecio').value=clp(p); });
 
 const DIAS_PODA=30;
 function diasDesde(f){
@@ -8686,19 +8778,74 @@ function chkRut(){
   el.textContent = ok?'RUT válido':'El dígito verificador no calza. Revísalo.';
   el.style.color = ok?'var(--green)':'var(--red)';
 }
-const COMUNAS=['Iquique','Alto Hospicio','Pozo Almonte','Pica','Huara','Camiña','Colchane',
- 'Arica','Antofagasta','Calama','Tocopilla','María Elena','Mejillones','Taltal',
- 'Copiapó','La Serena','Coquimbo','Valparaíso','Viña del Mar','Santiago','Rancagua','Concepción','Temuco','Punta Arenas'];
-let COMX=[];
-async function cargaComunas(){
-  try{const r=await window.storage.get('amk_comunas'); if(r&&r.value) COMX=JSON.parse(r.value)}catch(e){}
-  const d=$('#dlCom'); if(d) d.innerHTML=[...new Set([...COMUNAS,...COMX])].sort().map(c=>`<option value="${c}">`).join('');
+/* 05/11/2026 (Andre): la comuna ya no se escribe a mano (uno se puede equivocar): se elige de la lista oficial de las 346
+   comunas de Chile (código CUT = el mismo que usa Zofri, ej. 1101 IQUIQUE, 15101 ARICA). Arriba las de siempre. */
+const COMUNAS_CL=[["15101","ARICA"],["15102","CAMARONES"],["15201","PUTRE"],["15202","GENERAL LAGOS"],["1101","IQUIQUE"],["1107","ALTO HOSPICIO"],["1401","POZO ALMONTE"],["1402","CAMIÑA"],["1403","COLCHANE"],["1404","HUARA"],["1405","PICA"],["2101","ANTOFAGASTA"],["2102","MEJILLONES"],["2103","SIERRA GORDA"],["2104","TALTAL"],["2201","CALAMA"],["2202","OLLAGÜE"],["2203","SAN PEDRO DE ATACAMA"],["2301","TOCOPILLA"],["2302","MARÍA ELENA"],["3101","COPIAPÓ"],["3102","CALDERA"],["3103","TIERRA AMARILLA"],["3201","CHAÑARAL"],["3202","DIEGO DE ALMAGRO"],["3301","VALLENAR"],["3302","ALTO DEL CARMEN"],["3303","FREIRINA"],["3304","HUASCO"],["4101","LA SERENA"],["4102","COQUIMBO"],["4103","ANDACOLLO"],["4104","LA HIGUERA"],["4105","PAIHUANO"],["4106","VICUÑA"],["4201","ILLAPEL"],["4202","CANELA"],["4203","LOS VILOS"],["4204","SALAMANCA"],["4301","OVALLE"],["4302","COMBARBALÁ"],["4303","MONTE PATRIA"],["4304","PUNITAQUI"],["4305","RÍO HURTADO"],["5101","VALPARAÍSO"],["5102","CASABLANCA"],["5103","CONCÓN"],["5104","JUAN FERNÁNDEZ"],["5105","PUCHUNCAVÍ"],["5107","QUINTERO"],["5109","VIÑA DEL MAR"],["5201","ISLA DE PASCUA"],["5301","LOS ANDES"],["5302","CALLE LARGA"],["5303","RINCONADA"],["5304","SAN ESTEBAN"],["5401","LA LIGUA"],["5402","CABILDO"],["5403","PAPUDO"],["5404","PETORCA"],["5405","ZAPALLAR"],["5501","QUILLOTA"],["5502","LA CALERA"],["5503","HIJUELAS"],["5504","LA CRUZ"],["5506","NOGALES"],["5601","SAN ANTONIO"],["5602","ALGARROBO"],["5603","CARTAGENA"],["5604","EL QUISCO"],["5605","EL TABO"],["5606","SANTO DOMINGO"],["5701","SAN FELIPE"],["5702","CATEMU"],["5703","LLAY-LLAY"],["5704","PANQUEHUE"],["5705","PUTAENDO"],["5706","SANTA MARÍA"],["5801","QUILPUÉ"],["5802","LIMACHE"],["5803","OLMUÉ"],["5804","VILLA ALEMANA"],["6101","RANCAGUA"],["6102","CODEGUA"],["6103","COINCO"],["6104","COLTAUCO"],["6105","DOÑIHUE"],["6106","GRANEROS"],["6107","LAS CABRAS"],["6108","MACHALÍ"],["6109","MALLOA"],["6110","MOSTAZAL"],["6111","OLIVAR"],["6112","PEUMO"],["6113","PICHIDEGUA"],["6114","QUINTA DE TILCOCO"],["6115","RENGO"],["6116","REQUÍNOA"],["6117","SAN VICENTE"],["6201","PICHILEMU"],["6202","LA ESTRELLA"],["6203","LITUECHE"],["6204","MARCHIGÜE"],["6205","NAVIDAD"],["6206","PAREDONES"],["6301","SAN FERNANDO"],["6302","CHÉPICA"],["6303","CHIMBARONGO"],["6304","LOLOL"],["6305","NANCAGUA"],["6306","PALMILLA"],["6307","PERALILLO"],["6308","PLACILLA"],["6309","PUMANQUE"],["6310","SANTA CRUZ"],["7101","TALCA"],["7102","CONSTITUCIÓN"],["7103","CUREPTO"],["7104","EMPEDRADO"],["7105","MAULE"],["7106","PELARCO"],["7107","PENCAHUE"],["7108","RÍO CLARO"],["7109","SAN CLEMENTE"],["7110","SAN RAFAEL"],["7201","CAUQUENES"],["7202","CHANCO"],["7203","PELLUHUE"],["7301","CURICÓ"],["7302","HUALAÑÉ"],["7303","LICANTÉN"],["7304","MOLINA"],["7305","RAUCO"],["7306","ROMERAL"],["7307","SAGRADA FAMILIA"],["7308","TENO"],["7309","VICHUQUÉN"],["7401","LINARES"],["7402","COLBÚN"],["7403","LONGAVÍ"],["7404","PARRAL"],["7405","RETIRO"],["7406","SAN JAVIER"],["7407","VILLA ALEGRE"],["7408","YERBAS BUENAS"],["16101","CHILLÁN"],["16102","BULNES"],["16103","CHILLÁN VIEJO"],["16104","EL CARMEN"],["16105","PEMUCO"],["16106","PINTO"],["16107","QUILLÓN"],["16108","SAN IGNACIO"],["16109","YUNGAY"],["16201","QUIRIHUE"],["16202","COBQUECURA"],["16203","COELEMU"],["16204","NINHUE"],["16205","PORTEZUELO"],["16206","RÁNQUIL"],["16207","TREGUACO"],["16301","SAN CARLOS"],["16302","COIHUECO"],["16303","ÑIQUÉN"],["16304","SAN FABIÁN"],["16305","SAN NICOLÁS"],["8101","CONCEPCIÓN"],["8102","CORONEL"],["8103","CHIGUAYANTE"],["8104","FLORIDA"],["8105","HUALQUI"],["8106","LOTA"],["8107","PENCO"],["8108","SAN PEDRO DE LA PAZ"],["8109","SANTA JUANA"],["8110","TALCAHUANO"],["8111","TOMÉ"],["8112","HUALPÉN"],["8201","LEBU"],["8202","ARAUCO"],["8203","CAÑETE"],["8204","CONTULMO"],["8205","CURANILAHUE"],["8206","LOS ÁLAMOS"],["8207","TIRÚA"],["8301","LOS ÁNGELES"],["8302","ANTUCO"],["8303","CABRERO"],["8304","LAJA"],["8305","MULCHÉN"],["8306","NACIMIENTO"],["8307","NEGRETE"],["8308","QUILACO"],["8309","QUILLECO"],["8310","SAN ROSENDO"],["8311","SANTA BÁRBARA"],["8312","TUCAPEL"],["8313","YUMBEL"],["8314","ALTO BIOBÍO"],["9101","TEMUCO"],["9102","CARAHUE"],["9103","CUNCO"],["9104","CURARREHUE"],["9105","FREIRE"],["9106","GALVARINO"],["9107","GORBEA"],["9108","LAUTARO"],["9109","LONCOCHE"],["9110","MELIPEUCO"],["9111","NUEVA IMPERIAL"],["9112","PADRE LAS CASAS"],["9113","PERQUENCO"],["9114","PITRUFQUÉN"],["9115","PUCÓN"],["9116","SAAVEDRA"],["9117","TEODORO SCHMIDT"],["9118","TOLTÉN"],["9119","VILCÚN"],["9120","VILLARRICA"],["9121","CHOLCHOL"],["9201","ANGOL"],["9202","COLLIPULLI"],["9203","CURACAUTÍN"],["9204","ERCILLA"],["9205","LONQUIMAY"],["9206","LOS SAUCES"],["9207","LUMACO"],["9208","PURÉN"],["9209","RENAICO"],["9210","TRAIGUÉN"],["9211","VICTORIA"],["14101","VALDIVIA"],["14102","CORRAL"],["14103","LANCO"],["14104","LOS LAGOS"],["14105","MÁFIL"],["14106","MARIQUINA"],["14107","PAILLACO"],["14108","PANGUIPULLI"],["14201","LA UNIÓN"],["14202","FUTRONO"],["14203","LAGO RANCO"],["14204","RÍO BUENO"],["10101","PUERTO MONTT"],["10102","CALBUCO"],["10103","COCHAMÓ"],["10104","FRESIA"],["10105","FRUTILLAR"],["10106","LOS MUERMOS"],["10107","LLANQUIHUE"],["10108","MAULLÍN"],["10109","PUERTO VARAS"],["10201","CASTRO"],["10202","ANCUD"],["10203","CHONCHI"],["10204","CURACO DE VÉLEZ"],["10205","DALCAHUE"],["10206","PUQUELDÓN"],["10207","QUEILÉN"],["10208","QUELLÓN"],["10209","QUEMCHI"],["10210","QUINCHAO"],["10301","OSORNO"],["10302","PUERTO OCTAY"],["10303","PURRANQUE"],["10304","PUYEHUE"],["10305","RÍO NEGRO"],["10306","SAN JUAN DE LA COSTA"],["10307","SAN PABLO"],["10401","CHAITÉN"],["10402","FUTALEUFÚ"],["10403","HUALAIHUÉ"],["10404","PALENA"],["11101","COYHAIQUE"],["11102","LAGO VERDE"],["11201","AYSÉN"],["11202","CISNES"],["11203","GUAITECAS"],["11301","COCHRANE"],["11302","O'HIGGINS"],["11303","TORTEL"],["11401","CHILE CHICO"],["11402","RÍO IBÁÑEZ"],["12101","PUNTA ARENAS"],["12102","LAGUNA BLANCA"],["12103","RÍO VERDE"],["12104","SAN GREGORIO"],["12201","CABO DE HORNOS"],["12202","ANTÁRTICA"],["12301","PORVENIR"],["12302","PRIMAVERA"],["12303","TIMAUKEL"],["12401","NATALES"],["12402","TORRES DEL PAINE"],["13101","SANTIAGO"],["13102","CERRILLOS"],["13103","CERRO NAVIA"],["13104","CONCHALÍ"],["13105","EL BOSQUE"],["13106","ESTACIÓN CENTRAL"],["13107","HUECHURABA"],["13108","INDEPENDENCIA"],["13109","LA CISTERNA"],["13110","LA FLORIDA"],["13111","LA GRANJA"],["13112","LA PINTANA"],["13113","LA REINA"],["13114","LAS CONDES"],["13115","LO BARNECHEA"],["13116","LO ESPEJO"],["13117","LO PRADO"],["13118","MACUL"],["13119","MAIPÚ"],["13120","ÑUÑOA"],["13121","PEDRO AGUIRRE CERDA"],["13122","PEÑALOLÉN"],["13123","PROVIDENCIA"],["13124","PUDAHUEL"],["13125","QUILICURA"],["13126","QUINTA NORMAL"],["13127","RECOLETA"],["13128","RENCA"],["13129","SAN JOAQUÍN"],["13130","SAN MIGUEL"],["13131","SAN RAMÓN"],["13132","VITACURA"],["13201","PUENTE ALTO"],["13202","PIRQUE"],["13203","SAN JOSÉ DE MAIPO"],["13301","COLINA"],["13302","LAMPA"],["13303","TIL TIL"],["13401","SAN BERNARDO"],["13402","BUIN"],["13403","CALERA DE TANGO"],["13404","PAINE"],["13501","MELIPILLA"],["13502","ALHUÉ"],["13503","CURACAVÍ"],["13504","MARÍA PINTO"],["13505","SAN PEDRO"],["13601","TALAGANTE"],["13602","EL MONTE"],["13603","ISLA DE MAIPO"],["13604","PADRE HURTADO"],["13605","PEÑAFLOR"]];
+const COM_TOP=['IQUIQUE','ALTO HOSPICIO','ARICA','PICA','POZO ALMONTE'];
+function comSinT(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim(); }
+const COM_IDX={}; COMUNAS_CL.forEach(([k,n])=>{ COM_IDX[comSinT(n)]={k,n}; });
+function comunaCanon(c){ const x=COM_IDX[comSinT(c)]; return x?x.n:''; }
+function comunaCod(c){ const x=COM_IDX[comSinT(c)]; return x?x.k:''; }
+const COM_ORD=COMUNAS_CL.map(x=>x[1]).filter(n=>!COM_TOP.includes(n)).sort((a,b)=>a.localeCompare(b,'es'));
+function pintaComunas(sel,actual){
+  if(!sel) return;
+  const can=comunaCanon(actual), o=n=>`<option value="${n}">${n}</option>`;
+  sel.innerHTML='<option value="">Elegir comuna…</option>'
+    +(actual&&!can?`<option value="${String(actual).replace(/"/g,'&quot;')}">${actual} (escrita a mano antes)</option>`:'')
+    +'<optgroup label="Las de siempre">'+COM_TOP.map(o).join('')+'</optgroup>'
+    +'<optgroup label="Todas las comunas">'+COM_ORD.map(o).join('')+'</optgroup>';
+  sel.value=can||actual||'';
 }
-async function recuerdaComuna(c){
-  if(!c||COMUNAS.includes(c)||COMX.includes(c))return;
-  COMX.push(c);
-  try{await window.storage.set('amk_comunas',JSON.stringify(COMX))}catch(e){}
-  cargaComunas();
+/* Qué documento de Zofri corresponde según el cliente: exportación → Traspaso (203); comuna de Iquique/Arica → SRF (201);
+   cualquier otra comuna → el auto sale de la zona franca, y como no se pueden importar autos usados, va por
+   Factura de Importación con liberación por discapacidad (Ley 20.422). */
+function docZofri(cl){
+  cl=cl||{};
+  if(cl.tipo==='export') return 'TRASPASO';
+  if(!cl.c) return '';
+  if(!comunaCanon(cl.c)) return 'REVISAR';   /* comuna vieja escrita a mano que no calza con la lista: no se adivina */
+  return srfZF(cl.c)?'SRF':'FI';
+}
+const DOCZ_TXT={TRASPASO:'Documento Zofri: <b>Traspaso (203)</b> · lo exporta otra empresa de Zofri',
+  SRF:'Documento Zofri: <b>SRF (201)</b>',
+  REVISAR:'Comuna escrita a mano antes: <b>elígela de la lista</b> para saber qué documento de Zofri va.',
+  FI:'Documento Zofri: <b>Factura de Importación</b> · sale de la zona franca (liberación por discapacidad, Ley 20.422). No es SRF.'};
+function pintaClDoc(){
+  const el=$('#clDoc'); if(!el) return;
+  const cl={tipo:clTipo,c:($('#clC')||{}).value||''}, d=docZofri(cl);
+  el.innerHTML=d?DOCZ_TXT[d]+(d==='SRF'?' · Z.F. Extensión '+srfZF(cl.c):''):'';
+  el.style.color=(d==='FI'||d==='REVISAR')?'var(--amber)':'';
+}
+let COMX=[];
+async function cargaComunas(){ const s=$('#clC'); if(s&&!s.options.length) pintaComunas(s,''); }
+async function recuerdaComuna(c){ /* ya no hace falta: la comuna se elige de la lista oficial */ }
+/* Pone en el bloque Cliente (#secCli) los datos de un cliente. Lo usan la venta y la reserva. */
+function ponCliente(cl){
+  cl=cl||{};
+  $('#clN').value=cl.n||''; $('#clR').value=cl.r||''; $('#clD').value=cl.d||'';
+  $('#clT').value=cl.t||''; $('#clG').value=cl.giro||'';
+  pintaComunas($('#clC'),cl.c||'');
+  clPais=cl.pais||''; setPais(clPais); setPais(clPais);
+  setTipo(cl.tipo||'persona'); chkRut(); pintaClDoc();
+}
+/* El bloque Cliente es uno solo: vive en la hoja de venta y se presta a la reserva mientras está abierta. */
+function cliA(donde){
+  const sec=$('#secCli'); if(!sec) return;
+  if(donde==='res'){ $('#rvCliBox').appendChild(sec); sec.hidden=false; }
+  else if(sec.parentElement.id!=='shSell'){ $('#ssSegs').after(sec); }
+}
+function rvCliFalta(alAbrir){
+  const el=$('#rvCliFalta'); if(!el) return;
+  const cl=leerCliente(), F=(cl.n?[]:['nombre']).concat(cliFaltan(cl));
+  el.textContent=F.length?'· falta '+F.join(', '):'· ✓ completos';
+  el.style.color=F.length?'var(--amber)':'var(--green)';
+  if(alAbrir!==false){ const d=$('#rvCliDet'); if(d) d.open=F.length>0; }
+}
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target.closest&&e.target.closest('#rvCliBox')) rvCliFalta(false); }));
+function cliFaltan(cl){
+  cl=cl||{}; const F=[];
+  if(!cl.r) F.push('RUT'); if(!cl.d) F.push('dirección'); if(!cl.c) F.push('comuna'); if(!cl.t) F.push('teléfono');
+  return F;
 }
 let clLado='F', clArr={F:'',B:''}, clTipo='persona', clPais='', moneda='CLP';
 
@@ -8718,7 +8865,9 @@ function setTipo(t){
   }else if(t==='empresa'){
     n.hidden=false; n.innerHTML='El RUT de empresa se valida igual que el de una persona.';
   }else n.hidden=true;
+  pintaClDoc();
 }
+$('#clC').addEventListener('change',pintaClDoc);
 function setPais(p){
   clPais=(clPais===p)?'':p;
   $('#pPY').setAttribute('aria-pressed',clPais==='Paraguay'?'true':'false');
@@ -10913,19 +11062,40 @@ function zComparar(txt){
   });
   return {items:items.length,n,difs,sin};
 }
+/* 05/11/2026: al pegar el Z también se guarda de qué Z e ítem viene cada auto (para el SRF). El N° del Z (101-26-065045)
+   se busca en el texto; si no está, se pregunta. El N° de ítem = orden del vehículo en el Z. */
+function zDocDeTexto(t){ const m=String(t||'').match(/\b(10[1-9])-(\d{2})-(\d{6})\b/); return m?m[0]:''; }
+async function zGuardaItems(txt){
+  const items=zParseItems(txt); if(!items.length) return null;
+  let doc=zDocDeTexto(txt);
+  if(!doc) doc=(prompt('¿Cuál es el N° de este Z? Como aparece en Zofri, ej. 101-26-065045 (sirve para el SRF). Deja vacío para omitir.')||'').trim();
+  if(!/^\d{3}-\d{2}-\d{6}$/.test(doc)) return {doc:'',n:0};
+  let n=0; const cambios={};
+  items.forEach((z,i)=>{ const vin=String(z.vin||'').toUpperCase();
+    const v=V.find(x=>x.ch&&(String((x.zof||{}).vin||x.vin||'').toUpperCase()===vin||vin.endsWith(String(x.ch).toUpperCase()))); if(!v) return;
+    v.zof=v.zof||{}; if(v.zof.zDoc!==doc||+v.zof.zItem!==i+1){ v.zof.zDoc=doc; v.zof.zItem=i+1; cambios[v.ch]=v.zof; } n++; });
+  if(Object.keys(cambios).length){
+    let prevZ=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prevZ=JSON.parse(r.value)}catch(_){}
+    for(const ch in cambios){ const i=prevZ.findIndex(x=>x.ch===ch); if(i>=0) prevZ[i].zof=cambios[ch]; else prevZ.push({ch,zof:cambios[ch],soloZof:true}); }
+    try{await window.storage.set(EXK,JSON.stringify(prevZ))}catch(_){}
+    if(typeof guardaCacheV==='function') guardaCacheV();
+    if(typeof fbSchedulePush==='function') fbSchedulePush();
+  }
+  return {doc,n};
+}
 function pintaZComp(){
   const box=$('#zCompRes'); if(!box) return; const r=zComp; if(!r){ box.innerHTML=''; return; }
   const esc=t=>String(t||'').replace(/</g,'&lt;');
   if(!r.items){ box.innerHTML='<p class="mtr" style="color:var(--red)">No encontré vehículos en el texto. Copia la página completa del documento en ZOFRI Virtual (Cmd+A, Cmd+C) y pégala aquí.</p>'; return; }
   const g={}; r.difs.forEach((d,i)=>{ (g[d.ch]=g[d.ch]||[]).push([d,i]); });
-  box.innerHTML=`<p class="mtr" style="margin:6px 0">${r.items} vehículos en el Z · ${r.n} encontrados en la app · <b>${r.difs.length} diferencia${r.difs.length===1?'':'s'}</b>${r.sin.length?` · <span style="color:var(--red)">sin encontrar: ${r.sin.join(', ')}</span>`:''}</p>`
+  box.innerHTML=`<p class="mtr" style="margin:6px 0">${r.items} vehículos en el Z · ${r.n} encontrados en la app · <b>${r.difs.length} diferencia${r.difs.length===1?'':'s'}</b>${r.sin.length?` · <span style="color:var(--red)">sin encontrar: ${r.sin.join(', ')}</span>`:''}${r.gi&&r.gi.n?` · <span style="color:var(--green)">✓ Doc. Ingreso e ítem guardados para el SRF en ${r.gi.n} auto${r.gi.n===1?'':'s'} (Z ${r.gi.doc})</span>`:''}</p>`
    +Object.keys(g).map(c=>{const v=IDX[c]||{}; return `<div style="border:1px solid var(--line);border-radius:10px;padding:9px;margin-bottom:7px"><b style="font-size:13.5px">${esc(v.ma)} ${esc(v.mo)} ${v.an||''}</b> <span style="color:var(--mute);font-family:var(--mono);font-size:11.5px">${c}</span>
       ${g[c].map(([d,i])=>`<label style="display:flex;gap:8px;align-items:center;padding:3px 0;font-size:13px"><input type="checkbox" data-zdif="${i}" ${d.campo==='motor'&&!motorOk(IDX[c])?'':'checked'}><span style="flex:1">${smdaNom(d.campo)}</span><span style="font-family:var(--mono);font-size:12px">Z: <s style="color:var(--mute)">${esc(d.antes)||'(vacío)'}</s> → app: <b>${esc(d.despues)||'(vacío)'}</b></span></label>`).join('')}</div>`}).join('')
    +(r.difs.length?`<p class="mtr" style="margin:4px 0">Desmarca lo que NO corresponda (por ejemplo, si la app está mal y el Z bien). Un N° de motor incompleto en la app queda desmarcado.</p><button class="btn b-pri" id="zCompOk" style="width:100%">Anotar marcados para SMDA</button>`:'<p class="mtr">La app y el Z coinciden en todo.</p>');
 }
 document.addEventListener('click',async e=>{
   if(e.target.closest('#zCompAbre')){ const w=$('#zCompWrap'); w.hidden=!w.hidden; return; }
-  if(e.target.closest('#zCompGo')){ zComp=zComparar($('#zCompTxt').value); pintaZComp(); return; }
+  if(e.target.closest('#zCompGo')){ const tx=$('#zCompTxt').value; zComp=zComparar(tx); try{ zComp.gi=await zGuardaItems(tx); }catch(err){ console.error('zGuardaItems',err); } pintaZComp(); return; }
   if(e.target.closest('#zCompOk')){ if(!zComp) return; let n=0;
     zComp.difs.forEach((d,i)=>{ const ck=document.querySelector(`[data-zdif="${i}"]`); if(!ck||!ck.checked) return;
       const t=st(d.ch); t.smda=t.smda||[]; const e0=t.smda.find(x=>x.campo===d.campo&&!x.env);
@@ -11366,6 +11536,73 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('#itiPayloadCp')){ const em=E(); if(!em) return; const P=itiPayload(em); await cp(JSON.stringify(P),'Datos copiados ('+P.cont.length+' contenedores) — ahora toca el favorito "AMK · ITI" en la ITI'); return; }
 });
 function zofMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+zofMarcador.toString()+')())'); }
+/* Favorito "Rellenar SRF" (05/11/2026). Corre dentro de ZOFRI Virtual, en 201-Salida → SRF. Lee lo copiado con
+   "Copiar para Rellenar SRF", muestra los cambios y solo si Andre acepta: rellena el encabezado, busca el Doc. Ingreso +
+   ítem, REVISA QUE EL CHASIS DEL ÍTEM SEA EL DEL AUTO VENDIDO (si no, se detiene y marca la fila en rojo) y pone el
+   Valor FOB. Nunca escribe el Valor Venta (lo escribe Andre) y nunca aprieta Guardar ni Enviar a Visar. */
+function srfMarcador(){
+  (async()=>{
+    const J=window.jQuery, sl=ms=>new Promise(r=>setTimeout(r,ms)), q=a=>document.querySelector('[attr="'+a+'"]');
+    const vis=el=>!!el&&el.getClientRects().length>0, norm=s=>String(s??'').trim().toUpperCase();
+    if(!q('rutComprador')||!q('docRebaje')){ alert('Abre primero en ZOFRI Virtual: 201-Salida → SRF, y vuelve a tocar el favorito.'); return; }
+    let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
+    if(!t||t.indexOf('amkSRF')<0) t=prompt('Pega aquí los datos copiados desde AMK (Negocio → Mes → Formulario SRF → "Copiar para Rellenar SRF"):')||'';
+    if(!t) return; let D; try{ D=JSON.parse(t.slice(t.indexOf('{'))); }catch(_){ alert('Los datos pegados no son válidos. Vuelve a copiarlos desde AMK.'); return; }
+    if(!D||!D.amkSRF){ alert('Estos datos no vienen de AMK.'); return; }
+    const selTxt=el=>{ const o=el.options[el.selectedIndex]; return o&&o.value!==''?o.text:'(vacío)'; };
+    const C=[['glosa','Glosa',D.glosa],['procedenciaCodigo','Procedencia','EXT'],['zonaFrancaExtensionCodigo','Z.F. Extensión',D.zf],
+      ['monedaIngresoCodigo','Moneda Ingreso','13'],['monedaVentaCodigo','Moneda Venta','200'],['condVentaCodigo','Condición Venta','CTDO'],
+      ['tipoIdCompradorCodigo','Tipo ID Comprador','R'],['rutComprador','RUT Comprador',D.rut],['nombreComprador','Nombre',D.nom],
+      ['direccionComprador','Dirección',D.dir],['direccionCompradorNumero','Dirección nro.',D.nro],['comunasCodigo','Comuna',D.com],
+      ['paisCodigo','País','997'],['medioTransporteCodigo','Medio Transporte',''],['modalidadImpuesto','Impuesto (Ley 18.211)',''],
+      ['numeroInternoUsuario','N° Int. Usuario',D.nota],['informacionAdicional','Información Adicional',D.info]];
+    const cambios=[], avisos=[], ops=[];
+    for(const [a,lab,val] of C){
+      const el=q(a); if(!el){ avisos.push('No encontré la casilla "'+lab+'" en la página.'); continue; }
+      if(val==null||(val===''&&a!=='medioTransporteCodigo'&&a!=='modalidadImpuesto')){ if(val==='') avisos.push(lab+': AMK no lo tiene, escríbelo tú.'); continue; }
+      if(el.tagName==='SELECT'){
+        if(String(el.value)===String(val)) continue;
+        const o=[...el.options].find(o=>String(o.value)===String(val)); if(!o){ avisos.push(lab+': Zofri no tiene la opción '+val+', elígela tú.'); continue; }
+        cambios.push(lab+': '+selTxt(el)+' → '+(o.value===''?'(vacío)':o.text));
+        ops.push(()=>{ if(J){ J(el).val(o.value); try{ J(el).selectpicker('refresh'); }catch(_){} J(el).trigger('change'); } else { el.value=o.value; el.dispatchEvent(new Event('change',{bubbles:true})); } });
+      }else{
+        if(norm(el.value)===norm(val)) continue;
+        cambios.push(lab+': '+(el.value||'(vacío)')+' → '+val);
+        ops.push(()=>{ el.value=val; if(J) J(el).trigger('change').trigger('blur'); else el.dispatchEvent(new Event('change',{bubbles:true})); });
+      }
+    }
+    const filas=()=>[...document.querySelectorAll('tr[attr=fila_item]')].filter(vis);
+    const col=(tr,re)=>{ const tb=tr.closest('table'); const ths=tb?[...tb.querySelectorAll('th')]:[]; const k=ths.findIndex(th=>re.test(th.textContent.replace(/\s+/g,' '))); const td=k>=0?tr.querySelectorAll(':scope > td')[k]:null; return td?td.querySelector('input,select'):null; };
+    const itemInv=tr=>{ const e=col(tr,/ítem inventario|item inventario/i); return e?norm(e.value):''; };
+    const chasisFila=tr=>{ const n=tr.nextElementSibling, d=(n&&n.getAttribute('attr')==='fila_descriptor')?n:tr;
+      const i=d.querySelector('[attr-descriptorcodigo="8"]'); if(i&&i.value) return norm(i.value);
+      const m=(d.innerText||d.textContent||'').match(/Chassis:\s*([A-Z0-9]+)/i); return m?norm(m[1]):''; };
+    const ya=filas().find(tr=>itemInv(tr));
+    cambios.push(ya?('Ítem ya cargado en Zofri: '+itemInv(ya)+' (no se vuelve a buscar)'):('Buscar Doc. Ingreso '+(D.doc||'¿?')+' · ítem '+(D.item||'¿?')));
+    cambios.push('Revisar que el chasis del ítem sea '+(D.vin||D.ch));
+    if(D.fob) cambios.push('Valor FOB del ítem: '+D.fob); else avisos.push('Valor FOB: AMK no tiene el FOB Zeta de este auto, escríbelo tú.');
+    cambios.push('Valor Venta: NO se toca (lo escribes tú)');
+    if(!confirm('AMK · Rellenar SRF\n'+D.auto+' · '+D.ch+'\n\n'+cambios.join('\n')+(avisos.length?'\n\nOJO:\n'+avisos.join('\n'):'')+'\n\n¿Aplicar? No se guarda ni se envía nada.')) return;
+    for(const f of ops){ f(); await sl(150); }
+    let tr=ya;
+    if(!tr){
+      if(!D.doc||!D.item){ alert('AMK no sabe de qué Doc. Ingreso / ítem viene este auto. Escríbelos tú en Zofri y aprieta Buscar; después vuelve a tocar el favorito: revisará el chasis y pondrá el FOB.'); return; }
+      const dI=q('docRebaje'), iI=q('itemsRebaje'), b=q('btn_rebajarDoc');
+      dI.value=D.doc; iI.value=String(D.item); if(J){ J(dI).trigger('change'); J(iI).trigger('change'); }
+      b.click();
+      for(let k=0;k<40&&!(tr=filas().find(x=>itemInv(x)));k++) await sl(250);
+      if(!tr){ alert('Zofri no trajo el ítem (Doc. Ingreso "'+D.doc+'", ítem "'+D.item+'"). Puede que pida otro formato: escríbelo tú, aprieta Buscar y vuelve a tocar el favorito (revisará el chasis y pondrá el FOB).'); return; }
+      await sl(500);
+    }
+    const chZ=chasisFila(tr), okCh=!!chZ&&((D.vin&&chZ===norm(D.vin))||chZ.endsWith(norm(D.ch)));
+    if(!okCh){ tr.style.outline='3px solid #d33';
+      alert('⚠ NO ES EL MISMO AUTO.\n\nEl ítem que trajo Zofri ('+itemInv(tr)+') tiene chasis '+(chZ||'(no lo pude leer)')+'.\nEl auto vendido es '+D.ch+'.\n\nNo guardes: quita esa fila y revisa el Doc. Ingreso / ítem. No se puso el FOB.'); return; }
+    if(D.fob){ const f=col(tr,/valor fob/i); if(f){ if(J) J(f).trigger('focus'); f.value=(+D.fob).toFixed(2); if(J) J(f).trigger('change').trigger('blur'); else f.dispatchEvent(new Event('change',{bubbles:true})); } else avisos.push('No encontré la casilla Valor FOB: escríbela tú.'); }
+    const vv=col(tr,/valor venta unit/i); if(vv){ vv.style.outline='3px solid #e8a33d'; try{ vv.focus(); }catch(_){} }
+    alert('✓ Listo. Chasis verificado: '+chZ+'.\n\nAhora escribe tú el Valor Venta (casilla marcada en naranjo). La Ley 18.211 la calcula Zofri.\nRevisa todo y aprieta Guardar / Enviar a Visar tú.');
+  })();
+}
+function srfMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+srfMarcador.toString()+')())'); }
 async function setZof(ch,key,val){
   const v=IDX[ch]; if(!v) return;
   const smdaAntes=smdaFoto(v);
@@ -12272,6 +12509,10 @@ document.addEventListener('click',async e=>{
     await cp(texto,'Descriptores copiados'); return}
   const zofuse=e.target.closest('[data-zofuse]');
   if(zofuse){const [ch,key,val]=zofuse.dataset.zofuse.split('|'); await setZof(ch,key,pnum(val)||val); return}
+  const srffav=e.target.closest('[data-srffav]');
+  if(srffav){const ch=srffav.dataset.srffav; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
+    const F=srfFaltantes(v,t); if(F.length&&!confirm('A esta venta todavía le falta: '+F.join(', ')+'.\n\n¿Copiar igual? Lo que falte lo escribes tú en Zofri.')) return;
+    await cp('AMK '+JSON.stringify(srfDatosFav(v,t)),'Copiado · en Zofri abre el SRF y toca el favorito "Rellenar SRF"'); return}
   const srfcp=e.target.closest('[data-srfcp]');
   if(srfcp){const ch=srfcp.dataset.srfcp; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
     const texto=srfCampos(v,t).map(([k,val])=>`${k}: ${val||''}`).join('\n');
@@ -13184,9 +13425,9 @@ function descargaRespaldoExcel(auto){
 
   /* 01/10/2026: el respaldo incluye también todo lo nuevo (ventas, costos, reservas, sueldos, deudas, gastos, insumos). */
   try{
-    const sv=[['Chasis','Marca','Modelo','Año','Vendido','Fecha venta','Precio venta','Vendedor','Cliente','Teléfono cliente','Precio a pedir','Precio mínimo','Publicado','Oferta','Reserva','Reserva: cliente','Reserva: precio','Reserva: pagado','Reserva: vence']];
+    const sv=[['Chasis','Marca','Modelo','Año','Vendido','Fecha venta','Precio venta','Vendedor','Cliente','Teléfono cliente','RUT cliente','Dirección cliente','Comuna cliente','Documento Zofri','Precio a pedir','Precio mínimo','Publicado','Oferta','Reserva','Reserva: cliente','Reserva: RUT','Reserva: comuna','Reserva: precio','Reserva: pagado','Reserva: vence']];
     V.forEach(v=>{ const t=S[v.ch]||{}, r=t.res||null, pg=r?(r.pagos||[]).reduce((a,x)=>a+(+x.m||0),0):'';
-      sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r?r.precio:'',pg,r?r.vence:'']); });
+      sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',(t.cliente&&t.cliente.r)||'',(t.cliente&&t.cliente.d)||'',(t.cliente&&t.cliente.c)||'',t.sold?({SRF:'SRF',FI:'Factura de Importación',TRASPASO:'Traspaso'}[t.moneda==='USD'?'TRASPASO':docZofri(t.cliente)]||''):'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r&&r.cl?r.cl.r||'':'',r&&r.cl?r.cl.c||'':'',r?r.precio:'',pg,r?r.vence:'']); });
     sheets.push({name:'Ventas y precios',rows:sv});
     const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Detalle','Fecha','Acordado','Pagado','Debe','Posventa']];
     for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.det||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
