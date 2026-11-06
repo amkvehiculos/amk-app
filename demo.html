@@ -871,7 +871,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->05-11-2026 18:26<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 13:30<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8590,7 +8590,7 @@ async function fbBorrar(id){
 /* 04/11/2026 (Andre: "automatizar todo desde que grabo hasta que se publique"): el Mac (GENERAR VIDEOS → opción 6,
    fuente/publicar.py) publica los videos en la página de Facebook con el link de la ficha "?ch=CHASIS&v=cla|raz|fic" en la
    descripción. Acá se leen los videos de la página y se anotan en el vehículo (v.fbVids), sin pegar nada: la web muestra
-   el primero si no hay uno de TikTok marcado ★, y Vendedores los ve en "▶ Video". Los programados aparecen cuando
+   el primero si no hay uno de TikTok marcado ★, y Vendedores los ve en "▶ Video". Los programados (para ver) aparecen cuando
    Facebook los publica. Corre al abrir Sistema y cada 30 min, solo en el aparato que tiene el token de la página. */
 function fbVidWeb(v){ const g=v&&v.igVids, f=v&&v.fbVids, K=['cla','raz','fic'];
   return (g&&K.map(k=>g[k]).find(Boolean))||(f&&K.map(k=>f[k]).find(Boolean))||''; }   /* Instagram primero: Facebook no deja insertar los reels nuevos */   /* sin constantes: se llama desde webDoc/contResumen, que pueden correr antes */
@@ -8621,6 +8621,19 @@ async function fbVidsSync(forzar){
       });
       url=j&&j.paging&&j.paging.next||'';
     }
+    /* 06/11/2026 (Víctor: "el tuyo no está disponible"): /videos NO trae los programados, así que el 2.º y 3.º video
+       (los de Víctor y Bryan) no llegaban a Vendedores hasta que Facebook los publicaba. Están en /scheduled_posts,
+       con el archivo listo (attachments → media.source) y el id del video (target.id). */
+    try{
+      const sj=await (await fetch('https://graph.facebook.com/v23.0/'+(FBPAGE||'me')+'/scheduled_posts?fields=message,attachments{target,media}&limit=100&access_token='+encodeURIComponent(FBTOKEN))).json();
+      if(sj&&sj.error) console.warn('fbVidsSync programados',sj.error.message);
+      (sj&&sj.data||[]).forEach(p=>{
+        const m=String(p.message||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
+        const a=((p.attachments||{}).data||[]).find(x=>x&&x.media&&x.media.source); if(!a) return;
+        const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase(), t=vend[ch]=vend[ch]||{};
+        if(!t[k]) t[k]={id:String((a.target&&a.target.id)||p.id),u:a.media.source};
+      });
+    }catch(e){ console.warn('fbVidsSync programados (sin internet?)',e); }
     /* 04/11/2026: Facebook no deja insertar en otras páginas los reels nuevos ("Este video no se puede insertar"), pero
        Instagram sí. Se buscan los reels de Instagram del mismo auto: por el link de la ficha en el texto (?ch=…&v=…) o, para
        los publicados antes de que el texto lo llevara, por marca y modelo en el texto y publicado hasta 3 días después del
