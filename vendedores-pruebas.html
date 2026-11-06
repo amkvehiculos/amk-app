@@ -369,7 +369,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-11-2026 17:44 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-11-2026 18:22 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1630,7 +1630,8 @@ async function bajaVideo(ch){ const v=IDX[ch]; if(!v) return;
 async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
  if(!link){toast('Todavía no está lista la web para compartir el link');return}
  const txt='Hola, te comparto el '+v.ma+' '+v.mo+' '+(v.an||'')+', puedes verlo aquí: '+link;
- if(navigator.share){try{await navigator.share({url:link,text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}
+ /* 06/11/2026 (Andre: "aparece el link doble"): sin url aparte. El iPhone y WhatsApp juntan text + url, y el link ya va en el texto. */
+ if(navigator.share){try{await navigator.share({text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}
   catch(e){if(e&&e.name==='AbortError')return}}
  try{await navigator.clipboard.writeText(txt);toast('Link copiado')}catch(_){toast('No se pudo copiar el link')}}
 const MAXW=1600,Q=.8,COVW=220,COVQ=.45,MAXN=20,CAP=9e6;  /* 2026-09-29: antes 1080 px / 55% (se veían borrosas) */
@@ -2071,10 +2072,11 @@ function genIG(v,k){const f=feats(v).slice(0,4);
  return [A,B][k%2]}
 /* Descripción para TikTok (28/10/2026), con hashtags. Reemplaza al guion: los videos se arman con Claude en el Mac.
    Sin km ni precio (regla de videos del 27/10/2026). */
+/* 06/11/2026 (Andre): en TikTok el link no se puede tocar y a veces lo esconden: va solo "amkvehiculos.cl", fácil de escribir. */
 function genTK(v,k){const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an||''}`.trim();
  const sv=v.sv?'\n🟢 Apto sello verde: circula en Santiago, Valparaíso y Viña del Mar.':'';
- const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.\n\n${f.map(x=>'▸ '+x).join('\n')}${sv}\n\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${linkFicha(v)}\n\n${tags(v)}`;
- const B=`Llegó a Iquique: ${n} 🚗\n\n${f.join(' · ')}${sv}\n\nNo compramos por foto: lo vemos en Corea y recién ahí lo traemos.\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${linkFicha(v)}\n\n${tags(v)}`;
+ const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.\n\n${f.map(x=>'▸ '+x).join('\n')}${sv}\n\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n🌐 amkvehiculos.cl\n\n${tags(v)}`;
+ const B=`Llegó a Iquique: ${n} 🚗\n\n${f.join(' · ')}${sv}\n\nNo compramos por foto: lo vemos en Corea y recién ahí lo traemos.\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n🌐 amkvehiculos.cl\n\n${tags(v)}`;
  return [A,B][k%2]}
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */

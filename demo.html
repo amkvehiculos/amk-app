@@ -871,7 +871,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 17:44<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 18:22<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -10051,6 +10051,7 @@ ${tags(v)}`;
 
 /* Descripción para TikTok (28/10/2026): lo que se pega al subir el video, con hashtags, parecido a Instagram.
    Es texto de un video, así que tampoco lleva km ni precio (regla de videos del 27/10/2026). */
+/* 06/11/2026 (Andre): en TikTok el link no se puede tocar y a veces lo esconden: va solo "amkvehiculos.cl", fácil de escribir. */
 function genTK(v,k){
   const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an||''}`.trim();
   const sv=v.sv?'\n🟢 Apto sello verde: circula en Santiago, Valparaíso y Viña del Mar.':'';
@@ -10060,7 +10061,7 @@ ${f.map(x=>'▸ '+x).join('\n')}${sv}
 
 ${CIERRE_VIDEO} 📍 Iquique, Zona Franca
 
-${linkFicha(v)}
+🌐 amkvehiculos.cl
 
 ${tags(v)}`;
   const B=`Llegó a Iquique: ${n} 🚗
@@ -10070,7 +10071,7 @@ ${f.join(' · ')}${sv}
 No compramos por foto: lo vemos en Corea y recién ahí lo traemos.
 ${CIERRE_VIDEO} 📍 Iquique, Zona Franca
 
-${linkFicha(v)}
+🌐 amkvehiculos.cl
 
 ${tags(v)}`;
   return [A,B][k%2];
