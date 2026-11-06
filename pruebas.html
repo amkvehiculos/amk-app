@@ -871,7 +871,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 13:45 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 17:44 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -9916,6 +9916,12 @@ function tags(v){
   return [...new Set(b.filter(t=>t.length>1))].slice(0,5).join(' ');
 }
 
+/* 06/11/2026 (Andre): todas las publicaciones de videos (Facebook, Instagram, TikTok) llevan el link de la web
+   con la ficha del vehículo. Marketplace no (Facebook rechaza avisos con links externos). El Mac (publicar.py)
+   cambia esta línea por la suya con &v=estilo, para saber qué video es. */
+const WEB_URL='https://amkvehiculos.cl/';
+function linkFicha(v){ return '🌐 Ficha y fotos: '+WEB_URL+'?ch='+encodeURIComponent(v.ch); }
+const sinLinkFicha=t=>String(t).replace(/\n*🌐 Ficha y fotos: [^\n]*/,'');
 function genFB(v,k){
   const f=feats(v), sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
   const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea
@@ -9948,12 +9954,12 @@ ${priceLine(v)}
 Te respondemos al tiro por interno.
 
 AMK Vehículos Selectos`;
-  return [A,B,C][k%3];
+  return [A,B,C][k%3]+'\n\n'+linkFicha(v);
 }
 
 /* 28/10/2026 (Andre): sin "TÍTULO / DESCRIPCIÓN". En Marketplace la marca, modelo y año se eligen en el formulario
    de vehículo, así que lo único que se pega es la descripción. */
-function genMP(v,k){ return genFB(v,k); }
+function genMP(v,k){ return sinLinkFicha(genFB(v,k)); }
 
 function genIG(v,k){
   const f=feats(v).slice(0,4);
@@ -9966,6 +9972,8 @@ ${priceLine(v)}
 
 📍 Iquique · Escríbenos por DM
 
+${linkFicha(v)}
+
 ${tags(v)}`;
   const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}
 
@@ -9975,6 +9983,8 @@ No compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.
 ${priceLine(v)}
 
 📍 DM para agendar
+
+${linkFicha(v)}
 
 ${tags(v)}`;
   return [A,B][k%2];
@@ -9991,6 +10001,8 @@ ${f.map(x=>'▸ '+x).join('\n')}${sv}
 
 ${CIERRE_VIDEO} 📍 Iquique, Zona Franca
 
+${linkFicha(v)}
+
 ${tags(v)}`;
   const B=`Llegó a Iquique: ${n} 🚗
 
@@ -9998,6 +10010,8 @@ ${f.join(' · ')}${sv}
 
 No compramos por foto: lo vemos en Corea y recién ahí lo traemos.
 ${CIERRE_VIDEO} 📍 Iquique, Zona Franca
+
+${linkFicha(v)}
 
 ${tags(v)}`;
   return [A,B][k%2];
@@ -10058,7 +10072,7 @@ Voz: "Por eso sabemos exactamente lo que te vendemos. AMK Vehículos Selectos, I
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-Así trabajamos antes de que tu auto llegue 🇰🇷➡️🇨🇱 #amkvehiculos #zofri_iquique`},
+Así trabajamos antes de que tu auto llegue 🇰🇷➡️🇨🇱 🌐 amkvehiculos.cl #amkvehiculos #zofri_iquique`},
   {cat:'Vida del local', title:'Un día en AMK Vehículos Selectos', guion:`GUIÓN — 18 s aprox. · vertical 9:16
 
 [0-4 s] GANCHO
@@ -10073,7 +10087,7 @@ Texto en pantalla: horario y dirección.
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-Así es un día cualquiera en AMK 🚗 #amkvehiculos #zofri_iquique`},
+Así es un día cualquiera en AMK 🚗 🌐 amkvehiculos.cl #amkvehiculos #zofri_iquique`},
   {cat:'Educativo', title:'Qué revisar al comprar un auto usado', guion:`GUIÓN — 26 s aprox. · vertical 9:16
 
 [0-4 s] GANCHO
@@ -10090,7 +10104,7 @@ Voz: "Por eso en AMK revisamos cada auto antes de venderlo. Si quieres ver el st
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-3 cosas que revisar antes de comprar un auto usado 👇 #amkvehiculos #consejosauto`},
+3 cosas que revisar antes de comprar un auto usado 👇 🌐 amkvehiculos.cl #amkvehiculos #consejosauto`},
   {cat:'Mantenimiento', title:'Antes de un viaje largo, revisa esto', guion:`GUIÓN — 22 s aprox. · vertical 9:16
 
 [0-4 s] GANCHO
@@ -10107,7 +10121,7 @@ Voz: "Si necesitas revisar tu auto antes de salir, pásate por AMK."
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-Checklist antes de un viaje largo 🧳🚗 #amkvehiculos #consejosauto`},
+Checklist antes de un viaje largo 🧳🚗 🌐 amkvehiculos.cl #amkvehiculos #consejosauto`},
   {cat:'Antes/después', title:'Así preparamos un auto en el taller', guion:`GUIÓN — 20 s aprox. · vertical 9:16
 
 [0-4 s] GANCHO
@@ -10123,7 +10137,7 @@ Toma: el mismo auto ya listo, brillante.
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-Antes/después de nuestro taller ✨ #amkvehiculos #detallado`},
+Antes/después de nuestro taller ✨ 🌐 amkvehiculos.cl #amkvehiculos #detallado`},
   {cat:'Preguntas frecuentes', title:'Preguntas que más te hacen sobre AMK', guion:`GUIÓN — 20 s aprox. · vertical 9:16
 
 [0-4 s] GANCHO
@@ -10137,7 +10151,7 @@ Voz: "¿Tienes otra pregunta? Escríbenos por interno."
 Cierre: logo + contacto.
 
 DESCRIPCIÓN DEL POST:
-Resolviendo tus dudas 👇 #amkvehiculos`}
+Resolviendo tus dudas 👇 🌐 amkvehiculos.cl #amkvehiculos`}
 ];
 function drawBrandIdeas(){
   const el=$('#brandIdeas'); if(!el) return;

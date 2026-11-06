@@ -369,7 +369,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-11-2026 13:45 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-11-2026 17:44 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1559,7 +1559,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const p=document.getElementById('logPass');
   if(p) p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbEntrar(); });
 });
-const WEB_BASE='https://amkvehiculos.github.io/amk-web/'; // URL pública de la web (GitHub Pages).
+const WEB_BASE='https://amkvehiculos.cl/'; // URL pública de la web (dominio propio desde 06/11/2026; antes amkvehiculos.github.io/amk-web, que redirige solo).
 function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
 /* 03/11/2026 (Andre): los videos que Andre publicó en TikTok (Sistema → Contenido), para mandarlos cuando pregunten por un auto.
    Se comparte el video y, debajo, la ficha en la web. Con varios, se elige cuál. */
@@ -2055,23 +2055,26 @@ const priceLine=v=>v.pventa?clp(v.pventa):((v.oferta&&v.vev)?clp(v.vev):'Consult
 function tags(v){/* Máximo 5 (Andre, 03/11/2026): las redes avisan si son más de 5. Lugar, zona franca, marca, modelo y lo que distingue. */
  const b=['#Iquique','#ZonaFranca','#'+v.ma.replace(/\s+/g,''),'#'+String(v.mo||'').replace(/\s+(I{1,3}|IV|V)$/i,'').replace(/[^A-Za-z0-9]/g,''),v.sv?'#SelloVerde':v.trab?'#VehiculosDeTrabajo':'#AutosIquique'];
  return [...new Set(b.filter(t=>t.length>1))].slice(0,5).join(' ')}
+/* 06/11/2026 (Andre): los textos de Facebook, Instagram y TikTok llevan el link de la ficha en la web. Marketplace no. */
+function linkFicha(v){ return '🌐 Ficha y fotos: '+webLink(v.ch) }
+const sinLinkFicha=t=>String(t).replace(/\n*🌐 Ficha y fotos: [^\n]*/,'');
 function genFB(v,k){const f=feats(v),sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
  const A=`${v.ma} ${v.mo} ${v.an||''} — importado directo desde Corea\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nLo revisamos en persona en Corea antes de comprarlo, y lo preparamos acá en Iquique.\n\n${priceLine(v)}\nEscríbeme por interno y coordinamos que lo veas.\n\nAMK Vehículos Selectos · Iquique`;
  const B=`Disponible: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.join(' · ')}${sv}\n\nSeleccionado en persona en Corea antes de subirlo al contenedor.\n\n${priceLine(v)}\nConsultas por mensaje.\n\nAMK Vehículos Selectos · Iquique`;
  const C=`${v.ma} ${v.mo} ${v.an||''} en stock\n\n${f.map(x=>'• '+x).join('\n')}${sv}\n\nPreparado y listo para entrega en Iquique.\n\n${priceLine(v)}\nTe respondo al tiro.\n\nAMK Vehículos Selectos`;
- return [A,B,C][k%3]}
+ return [A,B,C][k%3]+'\n\n'+linkFicha(v)}
 /* 28/10/2026 (Andre): sin "TÍTULO / DESCRIPCIÓN". En Marketplace la marca, modelo y año se eligen en el formulario. */
-function genMP(v,k){ return genFB(v,k) }
+function genMP(v,k){ return sinLinkFicha(genFB(v,k)) }
 function genIG(v,k){const f=feats(v).slice(0,4);
- const A=`${v.ma} ${v.mo} ${v.an||''} 🇰🇷➡️🇨🇱\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nElegido en persona en Corea. Preparado en Iquique.\n${priceLine(v)}\n\n📍 Iquique · Escríbeme por DM\n\n${tags(v)}`;
- const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nNo compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.\n${priceLine(v)}\n\n📍 DM para agendar\n\n${tags(v)}`;
+ const A=`${v.ma} ${v.mo} ${v.an||''} 🇰🇷➡️🇨🇱\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nElegido en persona en Corea. Preparado en Iquique.\n${priceLine(v)}\n\n📍 Iquique · Escríbeme por DM\n\n${linkFicha(v)}\n\n${tags(v)}`;
+ const B=`Llegó a Iquique: ${v.ma} ${v.mo} ${v.an||''}\n\n${f.map(x=>'▸ '+x).join('\n')}\n\nNo compramos por foto. Vamos, lo vemos, y recién ahí lo traemos.\n${priceLine(v)}\n\n📍 DM para agendar\n\n${linkFicha(v)}\n\n${tags(v)}`;
  return [A,B][k%2]}
 /* Descripción para TikTok (28/10/2026), con hashtags. Reemplaza al guion: los videos se arman con Claude en el Mac.
    Sin km ni precio (regla de videos del 27/10/2026). */
 function genTK(v,k){const f=featsVideo(v).slice(0,4), n=`${v.ma} ${v.mo} ${v.an||''}`.trim();
  const sv=v.sv?'\n🟢 Apto sello verde: circula en Santiago, Valparaíso y Viña del Mar.':'';
- const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.\n\n${f.map(x=>'▸ '+x).join('\n')}${sv}\n\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${tags(v)}`;
- const B=`Llegó a Iquique: ${n} 🚗\n\n${f.join(' · ')}${sv}\n\nNo compramos por foto: lo vemos en Corea y recién ahí lo traemos.\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${tags(v)}`;
+ const A=`${n} 🇰🇷➡️🇨🇱 Revisado en persona en Corea y preparado en Iquique.\n\n${f.map(x=>'▸ '+x).join('\n')}${sv}\n\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${linkFicha(v)}\n\n${tags(v)}`;
+ const B=`Llegó a Iquique: ${n} 🚗\n\n${f.join(' · ')}${sv}\n\nNo compramos por foto: lo vemos en Corea y recién ahí lo traemos.\nEscríbenos y te contamos todo. 📍 Iquique, Zona Franca\n\n${linkFicha(v)}\n\n${tags(v)}`;
  return [A,B][k%2]}
 /* Tomas para grabar el video (2026-10-27): siempre las mismas 8 y en este orden, para que el montaje
    automático del Mac (GENERAR VIDEOS) calce con lo grabado. La 3, la 4 y la 6 cambian según el vehículo. */
