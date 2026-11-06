@@ -870,7 +870,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 13:30<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 13:45<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8564,16 +8564,19 @@ async function fbVidsSync(forzar){
     /* 06/11/2026 (Víctor: "el tuyo no está disponible"): /videos NO trae los programados, así que el 2.º y 3.º video
        (los de Víctor y Bryan) no llegaban a Vendedores hasta que Facebook los publicaba. Están en /scheduled_posts,
        con el archivo listo (attachments → media.source) y el id del video (target.id). */
+    let progTxt='';   /* va en el aviso de abajo: si esto falla, que se vea (06/11/2026: fallaba en silencio) */
     try{
       const sj=await (await fetch('https://graph.facebook.com/v23.0/'+(FBPAGE||'me')+'/scheduled_posts?fields=message,attachments{target,media}&limit=100&access_token='+encodeURIComponent(FBTOKEN))).json();
-      if(sj&&sj.error) console.warn('fbVidsSync programados',sj.error.message);
+      if(sj&&sj.error){ console.warn('fbVidsSync programados',sj.error.message); progTxt=' · ✗ programados: Facebook respondió "'+String(sj.error.message||'').slice(0,100)+'"'; }
+      let np=0;
       (sj&&sj.data||[]).forEach(p=>{
         const m=String(p.message||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
         const a=((p.attachments||{}).data||[]).find(x=>x&&x.media&&x.media.source); if(!a) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase(), t=vend[ch]=vend[ch]||{};
-        if(!t[k]) t[k]={id:String((a.target&&a.target.id)||p.id),u:a.media.source};
+        if(!t[k]){ t[k]={id:String((a.target&&a.target.id)||p.id),u:a.media.source}; np++; }
       });
-    }catch(e){ console.warn('fbVidsSync programados (sin internet?)',e); }
+      if(!progTxt) progTxt=' · '+np+' video'+(np===1?'':'s')+' programado'+(np===1?'':'s')+' para Víctor y Bryan';
+    }catch(e){ console.warn('fbVidsSync programados (sin internet?)',e); progTxt=' · ✗ programados: sin conexión'; }
     /* 04/11/2026: Facebook no deja insertar en otras páginas los reels nuevos ("Este video no se puede insertar"), pero
        Instagram sí. Se buscan los reels de Instagram del mismo auto: por el link de la ficha en el texto (?ch=…&v=…) o, para
        los publicados antes de que el texto lo llevara, por marca y modelo en el texto y publicado hasta 3 días después del
@@ -8621,7 +8624,7 @@ async function fbVidsSync(forzar){
     if(cambios){ guardaCacheV(true); save(); try{ webSyncPronto(); }catch(_){} try{ draw(); }catch(_){}
       if(gv&&$('#vidsBox')) $('#vidsBox').outerHTML=vidsHTML(gv);
       toast('🎬 '+cambios+' vehículo'+(cambios>1?'s':'')+' con video nuevo de Facebook/Instagram (web y Vendedores al día)'); }
-    est('✓ Videos de la página revisados a las '+new Date().toTimeString().slice(0,5)+' · '+conVideo+' vehículo'+(conVideo===1?'':'s')+' con video publicado desde el Mac'+(cambios?' ('+cambios+' nuevo'+(cambios>1?'s':'')+')':''),'var(--green)');
+    est('✓ Videos de la página revisados a las '+new Date().toTimeString().slice(0,5)+' · '+conVideo+' vehículo'+(conVideo===1?'':'s')+' con video publicado desde el Mac'+(cambios?' ('+cambios+' nuevo'+(cambios>1?'s':'')+')':'')+progTxt,'var(--green)');
     return cambios;
   }catch(e){ console.warn('fbVidsSync (sin internet?)',e); est('✗ Videos de la página: no hay conexión ('+(e.message||e)+')','var(--red)'); return null; }
   finally{ fbVidsEnCurso=false; }
