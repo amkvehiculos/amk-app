@@ -368,7 +368,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->06-11-2026 18:22<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-11-2026 11:29<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1559,7 +1559,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(p) p.addEventListener('keydown',e=>{ if(e.key==='Enter') fbEntrar(); });
 });
 const WEB_BASE='https://amkvehiculos.cl/'; // URL pública de la web (dominio propio desde 06/11/2026; antes amkvehiculos.github.io/amk-web, que redirige solo).
-function webLink(ch){return WEB_BASE?WEB_BASE+'?ch='+encodeURIComponent(ch):''}
+function webLink(ch){return WEB_BASE?WEB_BASE+'v/'+encodeURIComponent(ch)+'/':''}   /* 07/11/2026: página corta del vehículo, así la miniatura al compartir muestra SU foto (la crea Sistema; si aún no existe, salta igual a la ficha) */
 /* 03/11/2026 (Andre): los videos que Andre publicó en TikTok (Sistema → Contenido), para mandarlos cuando pregunten por un auto.
    Se comparte el video y, debajo, la ficha en la web. Con varios, se elige cuál. */
 const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
@@ -1567,10 +1567,8 @@ const VID_EST=[['cla','Clásico'],['raz','3 razones'],['fic','Ficha']];
 function vidsDe(v){ const vs=Object.assign({},v.fbVids||{},v.igVids||{},v.vids||{}), out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
   if(!out.length&&v.video) out.push({n:'Video',u:v.video}); return out; }
 async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe(v);
-  if(i==null&&vs.length>1){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
-    if(!box.hidden&&box.dataset.modo!=='baja'){ box.hidden=true; return; }
-    box.dataset.modo='ver';
-    box.innerHTML=vs.map((x,j)=>`<button class="btn b-sec" data-vidi="${ch}|${j}">▶ ${x.n}</button>`).join(''); box.hidden=false; entraSuave&&entraSuave(box); return; }
+  /* 07/11/2026 (Andre): además de compartir, COPIAR solo el link (Marketplace no aparece en el menú de compartir) */
+  if(i==null){ abrePick(ch,'ver',vs.map((x,j)=>pickFila('▶ '+x.n,`data-vidi="${ch}|${j}"`,`data-vidcp="${ch}|${j}"`)).join('')); return; }
   const x=vs[i||0]; if(!x) return; const link=webLink(ch);
   const txt='Hola, te comparto el video del '+v.ma+' '+v.mo+' '+(v.an||'')+': '+x.u+(link?'\n\nFicha completa y fotos: '+link:'');
   if(navigator.share){try{await navigator.share({text:txt,title:v.ma+' '+v.mo+' '+(v.an||'')});return}catch(e){if(e&&e.name==='AbortError')return}}
@@ -1619,13 +1617,19 @@ async function bajaVideo(ch){ const v=IDX[ch]; if(!v) return;
         if(e&&e.name==='AbortError') return;
         /* iPhone: si bajar tardó, el teléfono ya no deja abrir el menú de compartir sin otro toque. Queda listo en un botón. */
         if(e&&e.name==='NotAllowedError'){ VID_LISTO[ch]=f; const box=document.getElementById('vidpick_'+ch);
-          if(box){ box.dataset.modo='baja'; box.innerHTML='<button class="btn b-pri" data-bajalisto="'+ch+'">📲 Listo: guardar o compartir tu video</button>'; box.hidden=false; entraSuave&&entraSuave(box); }
+          if(box){ box.dataset.modo='baja'; box.style.flexDirection=''; box.innerHTML='<button class="btn b-pri" data-bajalisto="'+ch+'">📲 Listo: guardar o compartir tu video</button>'; box.hidden=false; entraSuave&&entraSuave(box); }
           toast('Video listo: toca "Guardar o compartir"'); return; }
         throw e; }
     }else{ descargaArchivo(f); toast('✓ Video descargado'); }
   }catch(e){ console.warn('bajaVideo',e); toast('No se pudo bajar el video. Pídele a Andre que abra Sistema (renueva el link) y vuelve a intentar.'); }
   finally{ bajandoVid=false; }
 }
+/* Cuadro bajo los botones del vehículo (vidpick_): una fila por opción, con Compartir y Copiar. Tocar el mismo botón lo cierra. */
+function pickFila(txt,sh,cp){ return `<div style="display:flex;gap:8px;align-items:center"><span style="flex:1;min-width:0;font-size:14px">${txt}</span><button class="btn b-sec" ${sh} style="flex:0 0 auto">➦ Compartir</button><button class="btn b-sec" ${cp} style="flex:0 0 auto">📋 Copiar</button></div>`; }
+function abrePick(ch,modo,html){ const box=document.getElementById('vidpick_'+ch); if(!box) return;
+  if(!box.hidden&&box.dataset.modo===modo){ box.hidden=true; return; }
+  box.dataset.modo=modo; box.style.flexDirection='column'; box.innerHTML=html; box.hidden=false; entraSuave&&entraSuave(box); }
+function opcionesLink(ch){ abrePick(ch,'link',pickFila('🌐 Ficha y fotos',`data-lnksh="${ch}"`,`data-lnkcp="${ch}"`)); }
 async function shareLink(ch){const v=IDX[ch]; const link=webLink(ch);
  if(!link){toast('Todavía no está lista la web para compartir el link');return}
  const txt='Hola, te comparto el '+v.ma+' '+v.mo+' '+(v.an||'')+', puedes verlo aquí: '+link;
@@ -2714,7 +2718,10 @@ document.addEventListener('click',async e=>{
  if(vi){const [ch,j]=vi.dataset.vidi.split('|'); shareVideo(ch,+j);return}
  if(bj){bajaVideo(bj.dataset.baja);return}
  {const bl=e.target.closest('[data-bajalisto]'); if(bl){compartirListo(bl.dataset.bajalisto);return}}
- if(lk){shareLink(lk.dataset.link);return}
+ if(lk){opcionesLink(lk.dataset.link);return}
+ {const ls=e.target.closest('[data-lnksh]'); if(ls){shareLink(ls.dataset.lnksh);return}}
+ {const lc=e.target.closest('[data-lnkcp]'); if(lc){const u=webLink(lc.dataset.lnkcp); if(u) cp(u,'✓ Link copiado'); return}}
+ {const vc=e.target.closest('[data-vidcp]'); if(vc){const [ch,j]=vc.dataset.vidcp.split('|'), x=IDX[ch]&&vidsDe(IDX[ch])[+j]; if(x) cp(x.u,'✓ Link del video copiado'); return}}
  if(so){const v=IDX[so.dataset.sold]; if(!v) return; if(pideQuien('avisar una venta')) return;
   $('#soT').textContent=v.ma+' '+v.mo+' '+(v.an||'');
   $('#soC').textContent=v.ch;$('#soP').value='';$('#soOk').dataset.ch=v.ch;openSheet('shSold');return}

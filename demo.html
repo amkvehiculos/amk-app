@@ -871,7 +871,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->06-11-2026 18:22<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-11-2026 11:29<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -979,6 +979,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="webSyncBtn" style="width:100%">⇧ Actualizar la web pública ahora</button></div>
       <div id="webEstado" class="mtr" style="margin-top:9px"></div>
+      <div id="webPagEstado" class="mtr" style="margin-top:6px"></div>
       <div class="acts" style="margin-top:8px">
         <button class="btn b-sec" id="contCopiar" style="width:100%">✦ Copiar código del resumen para contenido (Claude)</button></div>
       <div id="contEstado" class="mtr" style="margin-top:6px"></div>
@@ -2024,7 +2025,7 @@ const FB_COREA_FIELDS=['krw','cc','senia'];
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk','fotoVisto'];  /* fotoVisto = hasta qué subida de fotos de Víctor/Bryan ya revisó Andre (ts), ver fotosParaPublicar */  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk','fotoVisto','pubVid'];  /* pubVid = cuándo se publicó solo por tener video (07/11/2026), para no volver a publicarlo si Andre lo saca */  /* fotoVisto = hasta qué subida de fotos de Víctor/Bryan ya revisó Andre (ts), ver fotosParaPublicar */  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -3228,6 +3229,59 @@ async function webPublicaPatio(btn){
     await webSync(true);
   }finally{ if(btn) btn.disabled=false; }
 }
+/* ===== VENDIDOS EN LA WEB (Andre, 07/11/2026) =====
+   Con poco stock publicado, la web muestra también lo que ya se vendió, para que un cliente de afuera vea que
+   AMK mueve vehículos de verdad. UN documento catalogoPublico/__vendidos (sin lista:true, así la web no lo
+   mezcla con el stock): total de vendidos y los 24 más recientes con marca, modelo, año, color, mes de venta,
+   la foto de portada (la poda de los 30 días deja las 3 primeras, así que la portada se queda) y el link del
+   video (el de Facebook/Instagram/TikTok no se borra con la poda). Nada de precio, cliente, chasis ni costos. */
+const WEB_VEND='__vendidos', WEB_VEND_MAX=24;
+function webVendidos(){
+  const L=V.filter(v=>!v.borrado&&sold(v.ch));
+  const items=L.map(v=>{ let foto=''; try{ foto=fotosEfectivas(v).fotos[0]||''; }catch(_){}
+      return {ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'', cat:v.cat||'', trab:!!(v.trab||esTrabV(v)),
+        mes:String(st(v.ch).date||'').slice(0,7), foto, video:v.video||fbVidWeb(v)||''}; })
+    .sort((a,b)=>String(b.mes).localeCompare(String(a.mes))||(b.foto?1:0)-(a.foto?1:0)).slice(0,WEB_VEND_MAX);
+  /* Andre (07/11/2026): "de esos 30 (en patio), todo lo demás está vendido". Lo antiguo que ya no estaba se
+     sacó del stock con "Archivar" (que no lo marca vendido), así que el TOTAL suma también los archivados.
+     Las tarjetas siguen siendo solo de los marcados vendidos (de los archivados no hay fecha de venta). */
+  const arch=V.filter(v=>!v.borrado&&v.baja&&!sold(v.ch)).length;   /* cada vehículo cuenta una vez: vendido (archivado o no) o archivado sin vender */
+  return {vendidos:true, total:L.length+arch, items};
+}
+/* Las portadas pueden venir incrustadas (data:, ~45 KB) y 24 juntas pasan el límite de 1 MB de un documento.
+   Para esta sección se achican a 360 px (~12 KB, se guardan en memoria para no repetir) y hay un tope de
+   ~650 KB: lo que no cabe va sin foto (se ve el color del auto). Las direcciones https no se tocan
+   (no se pueden achicar sin bajar el archivo y son cortas). */
+const webVendMini={};
+async function webVendFotos(d){
+  let tot=0;
+  for(const it of d.items){
+    let f=it.foto||'';
+    if(/^data:image\//.test(f)){
+      const k=f.length+':'+f.slice(-60);
+      if(!webVendMini[k]) webVendMini[k]=await Promise.race([shrinkDataURI(f,360,.6),new Promise(r=>setTimeout(()=>r(''),4000))]);
+      f=webVendMini[k]||'';
+    }
+    if(tot+f.length>650000) f='';
+    tot+=f.length; it.foto=f;
+  }
+  return d;
+}
+/* ===== CON VIDEO PERO SIN FOTOS (Andre, 07/11/2026) =====
+   Muchas veces el video de un vehículo sale antes que sus fotos. Si ya tiene video (TikTok ★ o el de Facebook/
+   Instagram que publicó el Mac), se publica solo en la web, una sola vez (S[ch].pubVid): si Andre después lo
+   despublica a mano, no se vuelve a publicar. En "cosas por revisar" queda el aviso de que le faltan las fotos. */
+const tieneVideoWeb=v=>!!(v&&(v.video||fbVidWeb(v)||(v.vidMp4&&v.vidMp4.u)));
+function webAutoPubVideo(){
+  let n=0;
+  V.forEach(v=>{ if(v.borrado||v.baja||v.creando||sold(v.ch)) return; const t=st(v.ch);
+    if(t.pub||t.pubVid||!tieneVideoWeb(v)) return; t.pub=true; t.pubVid=Date.now(); n++; });
+  if(n){ save(); try{ draw(); }catch(_){} try{ pintaPendientes(); }catch(_){} toast(n===1?'Publicado en la web porque ya tiene video':'Publicados '+n+' vehículos en la web porque ya tienen video'); }
+  return n;
+}
+function webVideoSinFotos(){
+  return V.filter(v=>webVaEnLaWeb(v)&&!v.baja&&!v.creando&&tieneVideoWeb(v)&&!fotosEfectivas(v).fotos.length);
+}
 let webTimer=null;
 async function webPendSale(){ try{ const r=await window.storage.get('amk_webPend'); if(r&&r.value) webSyncPronto(); }catch(_){} }
 /* 03/11/2026 (Andre): un cambio hecho sin sesión/sin señal antes se quedaba sin llegar a la web (no se reintentaba).
@@ -3244,11 +3298,12 @@ async function webSync(completo){
   const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
   let puestos=0, sacados=0;
   try{
+    webAutoPubVideo();
     let yaArriba=null;
     if(completo){
       pinta('Revisando qué hay publicado…');
       const s=await fbDb.collection(WEB_COL).get();
-      yaArriba=new Set(); s.forEach(d=>{ if(!d.id.endsWith('__fotos')) yaArriba.add(d.id); else if(!V.some(v=>v.ch===d.id.slice(0,-7)&&webVaEnLaWeb(v))) d.ref.delete().catch(e=>console.error('webSync galeria',e)); });
+      yaArriba=new Set(); s.forEach(d=>{ if(d.id.startsWith('__')) return; if(!d.id.endsWith('__fotos')) yaArriba.add(d.id); else if(!V.some(v=>v.ch===d.id.slice(0,-7)&&webVaEnLaWeb(v))) d.ref.delete().catch(e=>console.error('webSync galeria',e)); });
     }
     for(const v of V){
       const debe=webVaEnLaWeb(v);
@@ -3281,6 +3336,10 @@ async function webSync(completo){
         }
       }
     }
+    /* 07/11/2026 (Andre): vendidos en la web como prueba de que movemos vehículos (ver webVendidos) */
+    { const d=webVendidos(), f=JSON.stringify(d);
+      if(completo || webUltimo.__vendidos!==f){ await webVendFotos(d); await fbDb.collection(WEB_COL).doc(WEB_VEND).set(Object.assign({act:Date.now()},d)); webUltimo.__vendidos=f; } }
+    if(completo) setTimeout(()=>webPagSync(true),3000); else webPagPronto();   /* páginas para compartir (miniatura con la foto del auto) */
     try{ Promise.resolve(window.storage.delete('amk_webPend')).catch(()=>{}); }catch(_){}
     if(completo || puestos || sacados){
       const total=V.filter(webVaEnLaWeb).length;
@@ -7901,6 +7960,8 @@ function pendientesGlobales(){
   if(pendDato.length) p.push({texto:pendDato.length+' dato'+(pendDato.length===1?'':'s')+' de vehículo anotado'+(pendDato.length===1?'':'s')+' por Víctor/Bryan por confirmar', ir:()=>{show('pResumen'); setTimeout(()=>{const b=$('#boxSmda'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth'}); }},250);}});
   const pendFoto=AVISOSVEND.filter(x=>x.tipo==='fotoPend'&&!x.atendido).sort((a,b)=>a.ts-b.ts);
   if(pendFoto.length) p.push({texto:pendFoto.length+' vehículo'+(pendFoto.length===1?'':'s')+' con fotos nuevas por revisar (ya había de otra fuente)', ir:()=>abrirAvisoFoto(pendFoto[0])});
+  const vsf=webVideoSinFotos();
+  if(vsf.length) p.push({texto:vsf.length===1?('📷 '+vsf[0].ma+' '+vsf[0].mo+' está en la web con video pero sin fotos · faltan las fotos'):('📷 '+vsf.length+' vehículos en la web con video pero sin fotos · faltan las fotos'), ir:()=>openPhotos(vsf[0].ch)});
   const fpPub=fotosParaPublicar();
   if(fpPub.length) p.push({texto:fpPub.length===1?('📷 Fotos nuevas de '+fpPub[0].v.ma+' '+fpPub[0].v.mo+' ('+fpQuien(fpPub[0])+') · publicar en la web'):('📷 '+fpPub.length+' vehículos con fotos nuevas de Víctor/Bryan · publicar en la web'), ir:abrirFotosPub});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
@@ -8610,7 +8671,7 @@ async function fbVidsSync(forzar){
       const j=await (await fetch(url)).json();
       if(j&&j.error){ console.warn('fbVidsSync',j.error.message); est('✗ Videos de la página: Facebook respondió "'+String(j.error.message||'').slice(0,120)+'"','var(--red)'); return null; }
       (j&&j.data||[]).slice().sort((a,b)=>String(a.created_time).localeCompare(String(b.created_time))).forEach(x=>{
-        const m=String(x.description||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
+        const m=String(x.description||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase();
         /* archivo para que Víctor y Bryan lo bajen (los 3 estilos, también los programados: Facebook ya lo tiene) */
         if(x.source){ const t=vend[ch]=vend[ch]||{}; if(!t[k]) t[k]={id:x.id,u:x.source}; }
@@ -8630,7 +8691,7 @@ async function fbVidsSync(forzar){
       if(sj&&sj.error){ console.warn('fbVidsSync programados',sj.error.message); progTxt=' · ✗ programados: Facebook respondió "'+String(sj.error.message||'').slice(0,100)+'"'; }
       let np=0;
       (sj&&sj.data||[]).forEach(p=>{
-        const m=String(p.message||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
+        const m=String(p.message||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
         const a=((p.attachments||{}).data||[]).find(x=>x&&x.media&&x.media.source); if(!a) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase(), t=vend[ch]=vend[ch]||{};
         if(!t[k]){ t[k]={id:String((a.target&&a.target.id)||p.id),u:a.media.source}; np++; }
@@ -8648,7 +8709,7 @@ async function fbVidsSync(forzar){
         const lista=(ij&&ij.data||[]).filter(x=>x.permalink&&/VIDEO|REELS/i.test(x.media_type||'VIDEO'))
           .sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp)));
         const usados=new Set();
-        lista.forEach(x=>{ const m=String(x.caption||'').match(/[?&]ch=([A-Z0-9-]+)(?:&v=(cla|raz|fic))?/i); if(!m) return;
+        lista.forEach(x=>{ const m=String(x.caption||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
           const o=igNuevos[m[1].toUpperCase()]=igNuevos[m[1].toUpperCase()]||{}; const k=(m[2]||'cla').toLowerCase(); if(!o[k]){ o[k]=x.permalink; usados.add(x.id); } });
         Object.keys(fbFe).forEach(key=>{ const [ch,k]=key.split('|'), v=IDX[ch]; if(!v||(igNuevos[ch]&&igNuevos[ch][k])) return;
           const nom=(String(v.ma||'')+' '+String(v.mo||'')).trim().toUpperCase(), t0=fbFe[key];
@@ -9979,7 +10040,111 @@ function tags(v){
    con la ficha del vehículo. Marketplace no (Facebook rechaza avisos con links externos). El Mac (publicar.py)
    cambia esta línea por la suya con &v=estilo, para saber qué video es. */
 const WEB_URL='https://amkvehiculos.cl/';
-function linkFicha(v){ return '🌐 Ficha y fotos: '+WEB_URL+'?ch='+encodeURIComponent(v.ch); }
+function linkFicha(v){ return '🌐 Ficha y fotos: '+webPagLink(v.ch); }   /* 07/11/2026: la página corta del vehículo (miniatura con su foto) */
+/* ===== PÁGINA CORTA POR VEHÍCULO, PARA LA MINIATURA AL COMPARTIR (Andre, 07/11/2026) =====
+   WhatsApp, Messenger, Facebook e Instagram no ejecutan la web: leen solo las etiquetas fijas del archivo, así que
+   todos los links mostraban la misma imagen de marca (og.jpg). Ahora cada vehículo publicado tiene su página
+   amkvehiculos.cl/v/CHASIS/ (≈1 KB, en el repositorio amk-web) con su foto de portada, título y datos; al abrirla
+   una persona, salta sola a la ficha (?ch=CHASIS, conservando &v=estilo). Si la página todavía no existe, el 404.html
+   de amk-web hace el mismo salto, así que el link nunca queda roto. La foto es la misma de la bodega (no se sube
+   otra); solo si la portada viene incrustada (data:, fotos de Víctor/Bryan) va un foto.jpg de ~45 KB al lado.
+   Todo se sube en UN solo cambio de GitHub por pasada, y solo lo que cambió (se compara con el árbol de amk-web). */
+const WEB_REPO='amk-web', WEB_RAMA='main', WEB_PAG_BASE='https://amkvehiculos.cl/';
+function webPagLink(ch){ return WEB_PAG_BASE+'v/'+encodeURIComponent(ch)+'/'; }
+const pagEsc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pagMiles=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+/* d = el mismo documento público de la web (webDoc): sin costos, precio solo si está en oferta */
+function pagArchivos(d){
+  const ch=String(d.ch||''), dir='v/'+ch+'/', out={};
+  const titulo=[d.ma,d.mo,d.an].filter(Boolean).join(' ').trim()||'Vehículo';
+  const km=parseInt(String(d.km==null?'':d.km).replace(/\D/g,''),10);
+  const comb={DIESEL:'Diésel',BENCINA:'Bencina'}[String(d.comb||'')]||'';
+  const tr=String(d.trans||''), trans=/AUTO/.test(tr)?'Automático':(/MEC|MAN/.test(tr)?'Mecánico':'');
+  const precio=parseInt(String(d.precio==null?'':d.precio).replace(/\D/g,''),10);
+  const partes=[km>0?pagMiles(km)+' km':'', comb, trans,
+    d.enCorea?'En Corea':(d.eta?'En camino a Iquique':'En Iquique, Zona Franca'),
+    d.reservado?'Reservado':'', precio>0?'Oferta $'+pagMiles(precio):''].filter(Boolean);
+  const desc=partes.join(' · ')+'. Elegido en persona en Corea.';
+  const f=String(d.foto||'');
+  let img=WEB_PAG_BASE+'og.jpg';
+  if(/^https:\/\//.test(f)) img=f;
+  else if(/^data:image\/jpe?g;base64,/.test(f)){ out[dir+'foto.jpg']={b64:f.split(',')[1]}; img=WEB_PAG_BASE+dir+'foto.jpg'; }
+  const url=WEB_PAG_BASE+dir, dest='/?ch='+encodeURIComponent(ch);
+  out[dir+'index.html']={text:'<!doctype html>\n<html lang="es"><head><meta charset="utf-8">\n'+
+    '<title>'+pagEsc(titulo)+' · AMK Vehículos Selectos</title>\n'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1">\n'+
+    '<meta name="description" content="'+pagEsc(desc)+'">\n'+
+    '<meta property="og:type" content="website">\n'+
+    '<meta property="og:site_name" content="AMK Vehículos Selectos">\n'+
+    '<meta property="og:title" content="'+pagEsc(titulo)+' · AMK Vehículos Selectos">\n'+
+    '<meta property="og:description" content="'+pagEsc(desc)+'">\n'+
+    '<meta property="og:image" content="'+pagEsc(img)+'">\n'+
+    '<meta property="og:url" content="'+pagEsc(url)+'">\n'+
+    '<meta name="twitter:card" content="summary_large_image">\n'+
+    '<link rel="canonical" href="'+pagEsc(url)+'">\n'+
+    '<script>var q=new URLSearchParams(location.search);q.set("ch",'+JSON.stringify(ch)+');location.replace("/?"+q+location.hash)<\/script>\n'+
+    '</head><body style="font-family:system-ui,sans-serif;padding:24px"><a href="'+pagEsc(dest)+'">Ver '+pagEsc(titulo)+' en AMK Vehículos Selectos</a></body></html>\n'};
+  return out;
+}
+/* sha de Git de un archivo ("blob <largo>\0<bytes>"), para saber sin bajarlo si ya está igual en amk-web */
+async function pagShaGit(bytes){
+  const cab=new TextEncoder().encode('blob '+bytes.length+'\0'), todo=new Uint8Array(cab.length+bytes.length);
+  todo.set(cab); todo.set(bytes,cab.length);
+  const h=new Uint8Array(await crypto.subtle.digest('SHA-1',todo));
+  return [...h].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const pagBytes=a=>a.text!=null?new TextEncoder().encode(a.text):Uint8Array.from(atob(a.b64),c=>c.charCodeAt(0));
+/* Sube a amk-web las páginas de 'docs' y borra las de vehículos que ya no están. Devuelve {cambios, total} o lanza Error. */
+async function pagSubir(token,owner,docs){
+  const quiero={}; docs.forEach(d=>Object.assign(quiero,pagArchivos(d)));
+  for(const p in quiero) quiero[p].sha=await pagShaGit(pagBytes(quiero[p]));
+  const api='https://api.github.com/repos/'+owner+'/'+WEB_REPO+'/git/';
+  const cab={Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'};
+  const gh=async(ruta,met,cuerpo)=>{ const r=await fetch(api+ruta,{method:met||'GET',headers:cab,body:cuerpo?JSON.stringify(cuerpo):undefined});
+    const j=await r.json().catch(()=>({})); if(!r.ok){ const e=new Error('GitHub '+r.status+': '+((j&&j.message)||'')); e.status=r.status; throw e; } return j; };
+  for(let intento=0;intento<2;intento++){
+    const ref=await gh('ref/heads/'+WEB_RAMA), base=ref.object.sha;
+    const com=await gh('commits/'+base), arbol=await gh('trees/'+com.tree.sha+'?recursive=1');
+    const hay={}; (arbol.tree||[]).forEach(x=>{ if(x.type==='blob'&&/^v\//.test(x.path)) hay[x.path]=x.sha; });
+    const cambios=[];
+    for(const p in quiero){ if(hay[p]===quiero[p].sha) continue; const a=quiero[p];
+      if(a.text!=null) cambios.push({path:p,mode:'100644',type:'blob',content:a.text});
+      else{ const b=await gh('blobs','POST',{content:a.b64,encoding:'base64'}); cambios.push({path:p,mode:'100644',type:'blob',sha:b.sha}); } }
+    for(const p in hay) if(!quiero[p]) cambios.push({path:p,mode:'100644',type:'blob',sha:null});
+    if(!cambios.length) return {cambios:0,total:docs.length};
+    const t=await gh('trees','POST',{base_tree:com.tree.sha,tree:cambios});
+    const c=await gh('commits','POST',{message:'Páginas para compartir: '+cambios.length+' archivo(s) (AMK Sistema)',tree:t.sha,parents:[base]});
+    try{ await gh('refs/heads/'+WEB_RAMA,'PATCH',{sha:c.sha}); return {cambios:cambios.length,total:docs.length}; }
+    catch(e){ if(e.status!==422||intento) throw e; }   /* otro aparato subió justo antes: se vuelve a armar sobre lo nuevo */
+  }
+}
+
+let webPagEnCurso=false, webPagTimer=null, webPagUlt='';
+function webPagPronto(ms){ clearTimeout(webPagTimer); webPagTimer=setTimeout(()=>webPagSync(false),ms||15000); }
+async function webPagSync(forzar){
+  const el=document.getElementById('webPagEstado');
+  const pinta=(t,col)=>{ if(el) el.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
+  /* Solo la app real: las copias PRUEBAS/DEMO (WEB_COL con prefijo, p. ej. pruebas_catalogoPublico) borrarían las páginas reales */
+  if(/_/.test(WEB_COL)){ pinta('Páginas para compartir: solo las crea la app real (esta es una copia de prueba).'); return; }
+  if(!GHTOKEN||!GHOWNER){ pinta('Páginas para compartir: falta el token de GitHub (más arriba).','var(--amber)'); return; }
+  if(!V.length) return;
+  if(webPagEnCurso){ webPagPronto(); return; }
+  const docs=V.filter(webVaEnLaWeb).map(webDoc);
+  if(!docs.length) return;   /* nunca se borran todas de una vez (por ejemplo, si los vehículos todavía no cargan) */
+  const firma=JSON.stringify(docs.map(d=>[d.ch,d.ma,d.mo,d.an,d.km,d.comb,d.trans,d.enCorea,d.eta,d.reservado,d.precio,String(d.foto||'').length,String(d.foto||'').slice(-48)]));
+  if(!forzar&&firma===webPagUlt) return;
+  webPagEnCurso=true; pinta('Páginas para compartir: revisando…');
+  try{
+    const r=await pagSubir(GHTOKEN,GHOWNER,docs); webPagUlt=firma;
+    pinta('✓ Páginas para compartir al día · '+r.total+' vehículos'+(r.cambios?' · '+r.cambios+' archivo(s) actualizados':''),'var(--green)');
+  }catch(e){
+    console.error('webPagSync',e);
+    const sinPermiso=e&&(e.status===403||e.status===404);
+    pinta('✗ Páginas para compartir: '+(sinPermiso?'el token de GitHub no tiene permiso para escribir en '+WEB_REPO+'. En GitHub, edita el token y agrega '+WEB_REPO+' con "Contents: Read and write".':(e.message||e)),'var(--red)');
+    if(!sinPermiso) webPagPronto(60000);   /* sin señal: se reintenta solo */
+  }finally{ webPagEnCurso=false; }
+}
+
 const sinLinkFicha=t=>String(t).replace(/\n*🌐 Ficha y fotos: [^\n]*/,'');
 function genFB(v,k){
   const f=feats(v), sv=v.sv?'\nCircula en Santiago, Valparaíso y Viña del Mar (apto sello verde).':'';
@@ -10294,7 +10459,30 @@ function vidGuarda(k,url,web){
   else if(!v.video&&url) v.video=url;   /* el primero publicado va a la web */
   guardaCacheV(true); save(); draw();
   const b=$('#vidsBox'); if(b) b.outerHTML=vidsHTML(v);
+  const eb=$('#envioBox'); if(eb) eb.outerHTML=envioHTML(v);
   toast(url?(v.video===url?'✓ Guardado · este es el de la web':'✓ Guardado'):'Link quitado');
+}
+/* 07/11/2026 (Andre): "Mandar a un cliente" desde Sistema, igual que Víctor y Bryan en Vendedores, y además COPIAR solo el
+   link: las conversaciones de Marketplace no aparecen en el menú de compartir del teléfono, así que ahí se pega. Los videos
+   son los mismos que ve Vendedores (TikTok si se pegó; si no, Instagram; si no, Facebook). */
+function vidsClienteDe(v){ const vs=Object.assign({},v.fbVids||{},v.igVids||{},v.vids||{}), out=VID_EST.filter(([k])=>vs[k]).map(([k,n])=>({n,u:vs[k]}));
+  if(!out.length&&v.video) out.push({n:'Video',u:v.video}); return out; }
+function envioHTML(v){
+  const vs=vidsClienteDe(v), fila=(txt,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:8px"><span style="flex:1;min-width:0;font-size:14px">${txt}</span><button class="btn b-sec" type="button" data-envsh="${i}" style="flex:0 0 auto;padding:9px 12px">➦ Compartir</button><button class="btn b-sec" type="button" data-envcp="${i}" style="flex:0 0 auto;padding:9px 12px">📋 Copiar</button></div>`;
+  return `<div class="box" id="envioBox" style="margin-top:12px"><h3 style="margin:0 0 4px">Mandar a un cliente</h3>
+    <p class="mtr" style="margin:0">Compartir abre el menú del teléfono. Copiar deja solo el link, para pegarlo en Marketplace o donde sea.</p>
+    ${webVaEnLaWeb(v)?'':'<p class="mtr" style="margin:6px 0 0;color:var(--amber)">⚠ No está publicado en la web: el link abre el catálogo, no su ficha.</p>'}
+    ${fila('🌐 Ficha y fotos','f')}${vs.map((x,j)=>fila('▶ Video · '+x.n,j)).join('')}</div>`;
+}
+function envioAccion(i,copiar){
+  const v=gv; if(!v) return; const nom=[v.ma,v.mo,v.an].filter(Boolean).join(' '), link=webPagLink(v.ch);
+  let u, txt;
+  if(i==='f'){ u=link; txt='Hola, te comparto el '+nom+', puedes verlo aquí: '+link; }
+  else{ const x=vidsClienteDe(v)[+i]; if(!x) return; u=x.u; txt='Hola, te comparto el video del '+nom+': '+x.u+'\n\nFicha completa y fotos: '+link; }
+  if(copiar){ cp(u,i==='f'?'✓ Link copiado':'✓ Link del video copiado'); return; }
+  /* solo text, sin url aparte: el iPhone y WhatsApp los juntan y el link sale doble */
+  if(navigator.share){ navigator.share({text:txt,title:nom}).catch(e=>{ if(!e||e.name!=='AbortError') cp(txt,'Copiado · pégalo donde quieras'); }); return; }
+  cp(txt,'Copiado · pégalo donde quieras');
 }
 const RED_NOTA={mp:'Marca, modelo y año se eligen en el formulario de Marketplace. Esto va en "Descripción".',
   tk:'"Abrir" copia el texto y lleva a subir el video. Pégalo en la descripción.'};
@@ -10309,6 +10497,7 @@ function pintaRed(anim){
      ${RED_NOTA[redSel]?`<div class="mtr" style="margin:0 0 8px">${RED_NOTA[redSel]}</div>`:''}
      <pre>${blk[1].replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre></div>`;
     $('#mpExtra').hidden=redSel!=='mp';
+    $('#genOut').insertAdjacentHTML('beforeend',envioHTML(gv));
     if(redSel==='tk') $('#genOut').insertAdjacentHTML('beforeend',vidsHTML(gv));
   };
   if(anim){ alturaFluida($('#genOut'),poner); entraSuave($('#genOut')); } else poner();
@@ -10317,6 +10506,8 @@ $('#genOut').addEventListener('change',e=>{ const i=e.target.closest('[data-vid]
   const f=e.target.closest('[data-vidfe]');
   if(f&&gv&&f.value){ gv.vidsFe=Object.assign({},gv.vidsFe||{},{[f.dataset.vidfe]:f.value}); guardaCacheV(true); save(); toast('✓ Fecha guardada'); } });
 $('#genOut').addEventListener('click',async e=>{
+  { const es=e.target.closest('[data-envsh]'), ec=e.target.closest('[data-envcp]');
+    if(es){ envioAccion(es.dataset.envsh,false); return; } if(ec){ envioAccion(ec.dataset.envcp,true); return; } }
   const p=e.target.closest('[data-vidpega]'), w=e.target.closest('[data-vidweb]');
   if(p){ let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
     if(!t){ toast('No se pudo leer lo copiado: pégalo a mano en la casilla'); $('#vid_'+p.dataset.vidpega)?.focus(); return; }
