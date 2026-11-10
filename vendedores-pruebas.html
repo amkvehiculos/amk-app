@@ -315,6 +315,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
         <option value="cont">Por contenedor</option>
       </select>
     </div>
+    <div id="videoAviso"></div>
     <div id="precioAviso"></div>
     <div class="cntRow"><p class="cnt" id="cnt"></p><button id="vistaStock" class="cntVista" type="button" aria-label="Cambiar vista">☰ Compacta</button></div>
     <div id="list"></div>
@@ -369,7 +370,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->07-11-2026 11:29 · PRUEBAS<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->10-11-2026 10:27 · PRUEBAS<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -1578,13 +1579,14 @@ async function shareVideo(ch,i){ const v=IDX[ch]; if(!v) return; const vs=vidsDe
    sin que Andre lo mande por WhatsApp. El link lo renueva Sistema (vence en ~4 días). En el teléfono abre el menú de
    compartir con el ARCHIVO (Guardar video / WhatsApp / Instagram…); en computador lo descarga. */
 /* 05/11/2026 (Andre): cada uno sube a sus redes un video DISTINTO. Los estilos van en el orden en que el Mac los publica
-   (clásico → 3 razones → ficha): el 1.º es el de Andre (página de AMK), el 2.º el de Víctor y el 3.º el de Bryan.
-   Si el suyo todavía no existe, no se le ofrece el de otro: se le avisa que viene. */
-const VID_TURNO={'Víctor':1,'Bryan':2};
+   (clásico → 3 razones → ficha). Si el suyo todavía no existe, no se le ofrece el de otro: se le avisa que viene.
+   10/11/2026 (Andre): el clásico es de Andre (página de AMK), la FICHA de Víctor y el 3 RAZONES de Bryan (antes era al
+   revés). Va por estilo y no por posición: así no se corre si a un auto le falta uno de los videos. */
+const VID_TURNO={'Víctor':'fic','Bryan':'raz'};
 function miVideoDe(v){ const m=v.vidsMp4||{}, ks=VID_EST.filter(([k])=>m[k]&&m[k].u);
   if(!ks.length) return {estado:'nada'};
   const t=VID_TURNO[ST.vend]; if(t==null) return {estado:'quien'};
-  const e=ks[t]; if(!e) return {estado:'falta'};
+  const e=ks.find(([k])=>k===t); if(!e) return {estado:'falta'};
   const x=m[e[0]]; if(x.exp&&x.exp<=Date.now()+600e3) return {estado:'vencido',k:e[0],n:e[1]};
   return {estado:'ok',k:e[0],n:e[1],u:x.u}; }
 function miVideoHTML(v){ const x=miVideoDe(v);
@@ -1604,6 +1606,7 @@ async function bajaVideo(ch){ const v=IDX[ch]; if(!v) return;
   const x=miVideoDe(v);
   if(x.estado==='falta'||x.estado==='nada'){ toast('Tu video todavía no está listo'); return; }
   if(x.estado==='vencido'){ toast('El link del video venció. Pídele a Andre que abra Sistema (lo renueva) y vuelve a intentar.'); return; }
+  videoVisto([ch]).then(()=>{ try{ pintaVideoAviso(); }catch(_){} });   /* al bajarlo, deja de avisar */
   if(bajandoVid) return; bajandoVid=true;
   const nombre=(v.ma+' '+v.mo+' '+(v.an||'')+' - '+x.n).replace(/\s+/g,' ').trim().normalize('NFD').replace(/[̀-ͯ]/g,'')+'.mp4';
   try{
@@ -1895,7 +1898,35 @@ function pintaPrecioAviso(){
       ${lin('Venta',v.pventaAnt,v.pventa)}${lin('Mínimo',v.pminAnt,v.pmin)}</div>`).join('')}
     <button class="btn b-sec" id="precioVisto" style="width:100%;margin-top:6px">Entendido</button></div>`;
 }
+/* 10/11/2026 (Andre): aviso de video nuevo. Cuando Andre publica los videos de un auto desde el Mac, Sistema deja en la
+   nube el video de cada uno (vidsMp4: ficha → Víctor, 3 razones → Bryan). Arriba de Stock sale "🎬 Tu video para redes
+   está listo" con los autos cuyo video este teléfono todavía no bajó ni marcó visto, con el botón para bajarlo; si llega
+   con la app abierta, además sale un aviso abajo. Visto = por teléfono, en la despensa del aparato, por id de video
+   (si Andre lo rehace, vuelve a avisar). Es dentro de la app: avisos con la app cerrada necesitarían un servidor. */
+const VVISTO_K='amkv_video_visto'; let VVISTO={}; let VAVISADOS=null;
+function videoNuevo(v){ const x=miVideoDe(v); if(x.estado!=='ok') return null;
+  const id=String(((v.vidsMp4||{})[x.k]||{}).id||x.u); return VVISTO[v.ch]===id?null:{v,n:x.n,id}; }
+async function videoVisto(chs){ chs.forEach(ch=>{ const v=IDX[ch], x=v&&videoNuevo(v); if(x) VVISTO[ch]=x.id; });
+  try{ await window.storage.set(VVISTO_K,JSON.stringify(VVISTO)); }catch(_){} }
+function pintaVideoAviso(){
+  const box=$('#videoAviso'); if(!box) return;
+  const L=V.map(videoNuevo).filter(Boolean);
+  const nuevos=VAVISADOS?L.filter(x=>!VAVISADOS.has(x.v.ch+'|'+x.id)):[];
+  VAVISADOS=VAVISADOS||new Set(); L.forEach(x=>VAVISADOS.add(x.v.ch+'|'+x.id));
+  if(nuevos.length) toast('🎬 Nuevo video para tus redes: '+nuevos.map(x=>x.v.ma+' '+x.v.mo).join(', '));
+  if(!L.length){ box.innerHTML=''; return; }
+  const esc=t=>String(t||'').replace(/</g,'&lt;');
+  const antes=box.innerHTML;
+  box.innerHTML=`<div class="minbox" style="margin:0 0 12px;padding:11px 12px;display:block;color:var(--ink);background:var(--greenBg);border-color:#22553F">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--green)">🎬 ${L.length===1?'Tu video para redes está listo':'Tienes '+L.length+' videos para tus redes'}</div>
+    ${L.map(x=>`<div style="border-top:1px solid #22553F;padding:7px 0;display:flex;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0;font-size:13.5px;cursor:pointer" data-pver="${x.v.ch}"><b>${esc(x.v.ma)} ${esc(x.v.mo)} ${x.v.an||''}</b> <span style="color:var(--mute);font-size:11.5px">· ${esc(x.n)}</span></div>
+      <button class="btn b-pri" data-baja="${x.v.ch}" style="flex:none;padding:7px 12px">⬇ Bajar</button></div>`).join('')}
+    <button class="btn b-sec" id="videoVisto" style="width:100%;margin-top:6px">Entendido</button></div>`;
+  if(!antes&&typeof entraSuave==='function') try{ entraSuave(box); }catch(_){}
+}
 document.addEventListener('click',async e=>{
+  if(e.target.closest('#videoVisto')){ await videoVisto(V.map(videoNuevo).filter(Boolean).map(x=>x.v.ch)); draw(); toast('Listo · videos vistos'); return; }
   const pv=e.target.closest('[data-pver]');
   if(pv){ const v=V.find(x=>x.ch===pv.dataset.pver); if(!v) return; q=v.ch; $('#q').value=v.ch; draw(); try{$('#list').scrollIntoView({behavior:'smooth',block:'start'})}catch(_){} return; }
   if(e.target.closest('#precioVisto')){ V.filter(precioNuevo).forEach(v=>{ PVISTO[v.ch]=v.precioFe; });
@@ -1908,6 +1939,7 @@ async function boot(){
   try{const r=await window.storage.get(KEY); if(r&&r.value) ST=Object.assign(ST,JSON.parse(r.value))}catch(e){console.error('boot ST',e)}
   try{const r=await window.storage.get(ULT_KEY); if(r&&r.value) fbUltimaAct=Number(r.value)||0}catch(e){}
   try{const r=await window.storage.get(PVISTO_K); if(r&&r.value) PVISTO=JSON.parse(r.value)||{}}catch(e){}
+  try{const r=await window.storage.get(VVISTO_K); if(r&&r.value) VVISTO=JSON.parse(r.value)||{}}catch(e){}
   await outCarga();
   reindex(); $('#boot').remove(); show(tab); fbInit();
   if(window.AMK_SIN_DESPENSA) setTimeout(()=>toast('Este teléfono no está dejando guardar datos en la app: funciona, pero conviene abrirla desde el navegador'),1500);
@@ -2301,7 +2333,7 @@ function draw(){
  else L.sort((a,b)=>fe(b).localeCompare(fe(a)));
  { const nPat=V.filter(v=>v.st!=='ORIGEN').length, nCam=V.filter(v=>v.st==='ORIGEN').length;
    document.querySelectorAll('#estChips [data-fe]').forEach(b=>{ const k=b.dataset.fe; b.textContent=k==='todos'?'Todos ('+V.length+')':(k==='patio'?'En patio ('+nPat+')':(k==='corea'?'En Corea ('+V.filter(v=>v.st==='ORIGEN'&&v.enCorea).length+')':'En camino ('+V.filter(v=>v.st==='ORIGEN'&&!v.enCorea).length+')')); b.setAttribute('aria-selected',String(k===fE)); }); }
- cntN=L.length; $('#cnt').textContent=textoCnt(cntN); pintaPrecioAviso();
+ cntN=L.length; $('#cnt').textContent=textoCnt(cntN); pintaPrecioAviso(); pintaVideoAviso();
 /* 10/10/2026 (Andre): mismas etiquetas en la lista compacta y en la ficha desglosada; en vehículos de trabajo, el tipo va primero. */
 /* 16/10/2026 (Andre): en vehículos de trabajo SIEMPRE sale el tipo de carrocería, en la lista compacta y en la normal. Antes
    dependía de v.trab, que la app de Corea no mandaba: los Porter/Bongo cargados por la mamá salían sin tipo. Ahora es de

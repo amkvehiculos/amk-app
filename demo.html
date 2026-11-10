@@ -871,7 +871,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->07-11-2026 11:29<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 10:27<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -3373,10 +3373,12 @@ function contResumen(){
       nf:fotosEfectivas(v).fotos.length, n360:fotosEfectivas360(v).fotos.length, video:!!(v.video||fbVidWeb(v)),
       tx:[genTK(v,0),genTK(v,1)]};   /* 04/11/2026: texto de los videos que el Mac publica solo en Facebook e Instagram (sin km ni precio) */
   });
-  /* Vendidos de los últimos 60 días: solo qué se vendió y cuándo (sin precio ni cliente) */
+  /* Vendidos de los últimos 60 días: solo qué se vendió y cuándo (sin precio ni cliente).
+     ch (09/11/2026): con el chasis, el Mac reconoce que un auto de sus videos se vendió y deja el comentario
+     "✅ VENDIDO. ¿Buscas uno parecido?..." en esas publicaciones (GENERAR VIDEOS/fuente/publicar.py). */
   const desde60=isoDe(ahora-60*864e5);
   const vendidos=V.filter(v=>sold(v.ch)&&(st(v.ch).date||'')>=desde60)
-    .map(v=>({ma:v.ma||'', mo:v.mo||'', an:v.an||null, cat:v.cat||'', fe:st(v.ch).date||''}))
+    .map(v=>({ch:v.ch, ma:v.ma||'', mo:v.mo||'', an:v.an||null, cat:v.cat||'', fe:st(v.ch).date||''}))
     .sort((a,b)=>String(b.fe).localeCompare(String(a.fe)));
   /* Consultas de los últimos 90 días: solo conteos por red y por vehículo (sin nombres ni teléfonos) */
   const desde90=ahora-90*864e5, porRed={}, porAuto={};
@@ -4278,7 +4280,8 @@ function cardS(v){
   /* 05/11/2026 (Andre): el proveedor de Corea ya no se muestra en la tarjeta (a él no le sirve; a la mamá sí, en Corea). Se sigue guardando y editando en Editar vehículo. */
   const extra=''
     +(ccT?`<div class="xlist" style="font-size:12.5px;color:var(--ink2)">Corea: ${ccT}</div>`:'')
-    +(v.senia?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ₩${Number(v.krw||0).toLocaleString('es-CL')} · ${saldoCorea?'Pagado':'Seña'} ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':' · Saldo pagado'}</div>`:'')
+    /* 09/11/2026 (Andre): la compra en wones se ve siempre que exista, con o sin seña (antes solo con seña y parecía que no se había guardado). */
+    +((v.senia||+v.krw)?`<div class="xlist" style="font-size:12.5px;color:${saldoCorea?'var(--amber)':'var(--ink2)'}">Compra Corea: ${+v.krw?'₩'+Number(v.krw).toLocaleString('es-CL'):'<span style="color:var(--amber)">sin valor</span>'}${v.senia?` · ${saldoCorea?'Pagado':'Seña'} ₩${Number(v.senia).toLocaleString('es-CL')}${saldoCorea?' · <b>Saldo pendiente ₩'+saldoCorea.toLocaleString('es-CL')+'</b>':(+v.krw?' · Saldo pagado':'')}`:''}</div>`:'')
     +(()=>{ const pc=(v.pendCorea||[]).filter(x=>!x.hecho); if(!pc.length) return '';
         return `<div class="xlist" style="font-size:12.5px;color:var(--amber)">Corea estima: ${pc.map(x=>(CCN[x.cat]||x.cat)+(x.est?' ₩'+Number(x.est).toLocaleString('es-CL'):'')).join(' · ').replace(/</g,'&lt;')}</div>`; })()
     +(v.carga&&(v.st==='ORIGEN'||!v.llp||diasDesde(v.llp)<=10)?`<div class="xlist" style="font-size:13px;color:#fff;background:#B4321C;border-radius:8px;padding:7px 9px">📦 <b>Lleva accesorios dentro:</b> ${String(v.carga).replace(/</g,'&lt;')} · cuidar en la descarga</div>`:'')
@@ -4495,7 +4498,8 @@ function srfDatosFav(v,t){
   return {amkSRF:1,ch:v.ch,vin:String((v.zof||{}).vin||v.vin||'').toUpperCase(),auto:[v.ma,v.mo,v.an].filter(Boolean).join(' '),
     glosa:srfGlosa(v,t),zf:zf==='ARICA'?'80':(zf==='IQUIQUE'?'81':''),rut:rutPuntos(cl.r),nom:String(cl.n||'').toUpperCase(),
     dir:dp.calle,nro:dp.nro,com:comunaCod(cl.c),nota:String(t.srfNota||''),info:srfInfoAdic(t),
-    doc:ing?ing.doc:'',item:ing?ing.item:0,fob:v.fob?Math.round(+v.fob*100)/100:0};
+    doc:ing?ing.doc:'',item:ing?ing.item:0,fob:v.fob?Math.round(+v.fob*100)/100:0,
+    peso:(()=>{ try{ return parseInt(String(zofEf(v).peso||'').replace(/\D/g,''))||0; }catch(_){ return 0; } })()};
 }
 const SRF_ZFEXT={'IQUIQUE':'IQUIQUE','ALTO HOSPICIO':'IQUIQUE','POZO ALMONTE':'IQUIQUE','PICA':'IQUIQUE','ARICA':'ARICA'};
 function srfZF(comuna){ return SRF_ZFEXT[comSinT(comuna)]||''; }
@@ -11836,7 +11840,8 @@ function srfMarcador(){
       ['tipoIdCompradorCodigo','Tipo ID Comprador','R'],['rutComprador','RUT Comprador',D.rut],['nombreComprador','Nombre',D.nom],
       ['direccionComprador','Dirección',D.dir],['direccionCompradorNumero','Dirección nro.',D.nro],['comunasCodigo','Comuna',D.com],
       ['paisCodigo','País','997'],['medioTransporteCodigo','Medio Transporte',''],['modalidadImpuesto','Impuesto (Ley 18.211)',''],
-      ['numeroInternoUsuario','N° Int. Usuario',D.nota],['informacionAdicional','Información Adicional',D.info]];
+      ['numeroInternoUsuario','N° Int. Usuario',D.nota],['informacionAdicional','Información Adicional',D.info],
+      ['ingresoDocumental','Ingreso Documental','N']];
     const cambios=[], avisos=[], ops=[];
     for(const [a,lab,val] of C){
       const el=q(a); if(!el){ avisos.push('No encontré la casilla "'+lab+'" en la página.'); continue; }
@@ -11862,6 +11867,8 @@ function srfMarcador(){
     cambios.push(ya?('Ítem ya cargado en Zofri: '+itemInv(ya)+' (no se vuelve a buscar)'):('Buscar Doc. Ingreso '+(D.doc||'¿?')+' · ítem '+(D.item||'¿?')));
     cambios.push('Revisar que el chasis del ítem sea '+(D.vin||D.ch));
     if(D.fob) cambios.push('Valor FOB del ítem: '+D.fob); else avisos.push('Valor FOB: AMK no tiene el FOB Zeta de este auto, escríbelo tú.');
+    cambios.push('Cuentas del ítem: Impuesto Art. 11 Ley N 18.211 → Aceptar');
+    cambios.push('Bulto: [85] AUTOMOTOR · cantidad 1 · peso del vehículo (el Peso Bruto que trae el ítem en Zofri'+(D.peso?'; si no, '+D.peso:'')+')');
     cambios.push('Valor Venta: NO se toca (lo escribes tú)');
     if(!confirm('AMK · Rellenar SRF\n'+D.auto+' · '+D.ch+'\n\n'+cambios.join('\n')+(avisos.length?'\n\nOJO:\n'+avisos.join('\n'):'')+'\n\n¿Aplicar? No se guarda ni se envía nada.')) return;
     for(const f of ops){ f(); await sl(150); }
@@ -11879,8 +11886,40 @@ function srfMarcador(){
     if(!okCh){ tr.style.outline='3px solid #d33';
       alert('⚠ NO ES EL MISMO AUTO.\n\nEl ítem que trajo Zofri ('+itemInv(tr)+') tiene chasis '+(chZ||'(no lo pude leer)')+'.\nEl auto vendido es '+D.ch+'.\n\nNo guardes: quita esa fila y revisa el Doc. Ingreso / ítem. No se puso el FOB.'); return; }
     if(D.fob){ const f=col(tr,/valor fob/i); if(f){ if(J) J(f).trigger('focus'); f.value=(+D.fob).toFixed(2); if(J) J(f).trigger('change').trigger('blur'); else f.dispatchEvent(new Event('change',{bubbles:true})); } else avisos.push('No encontré la casilla Valor FOB: escríbela tú.'); }
+    /* Bulto (Andre 07/11/2026): AUTOMOTOR, 1 vehículo por SRF, peso del vehículo que sale */
+    const pesoFila=tr=>{ const n=tr.nextElementSibling, d=(n&&n.getAttribute('attr')==='fila_descriptor')?n:tr;
+      const i=d.querySelector('[attr-descriptorcodigo="62"]'); const s=(i&&i.value)?i.value:(((d.innerText||d.textContent||'').match(/Peso Bruto Vehicular:\s*([\d.,]+)/i)||[])[1]||'');
+      return parseInt(String(s).replace(/\D/g,''))||0; };
+    const peso=pesoFila(tr)||(+D.peso||0); let bultoTxt='';
+    const fb=[...document.querySelectorAll('[attr=docuBulto] tr.filaFocusable')].find(vis);
+    if(fb){
+      const bs=fb.querySelector('[attr=tipoBultoCodigo] select'), bc=fb.querySelector('[attr=cantidadBulto] input'), bp=fb.querySelector('[attr=pesoBulto] input');
+      if(bs){ if(J){ J(bs).val('85'); try{ J(bs).selectpicker('refresh'); }catch(_){} J(bs).trigger('change'); } else { bs.value='85'; bs.dispatchEvent(new Event('change',{bubbles:true})); } }
+      const pon=(el,v)=>{ if(!el) return; el.value=String(v); if(J) J(el).trigger('change').trigger('blur'); else el.dispatchEvent(new Event('change',{bubbles:true})); };
+      pon(bc,1); if(peso) pon(bp,peso);
+      bultoTxt='\nBulto: AUTOMOTOR · 1 · '+(peso?peso+' kg':'SIN PESO (escríbelo tú)');
+    } else bultoTxt='\nOJO: no encontré la fila de Bulto, rellénala tú (AUTOMOTOR · 1 · peso).';
+    /* Cuentas del ítem (Andre 07/11/2026): ícono cuadrícula bajo "Opc" → Impuesto "Art. 11 Ley N 18.211" (cuenta, tasa y total los pone Zofri) → Aceptar */
+    let cuentaTxt='';
+    try{
+      const bC=tr.querySelector('[attr=item_cuentas]'); if(!bC) throw new Error('sin botón');
+      bC.click(); let mo=null;
+      for(let k=0;k<20&&!(mo=[...document.querySelectorAll('.modal')].find(m=>vis(m)&&m.querySelector('[attr=btn_agregarFila]')));k++) await sl(250);
+      if(!mo) throw new Error('no se abrió la ventana');
+      await sl(300);
+      let fi=[...mo.querySelectorAll('[attr=fila_impuesto]')].find(vis);
+      if(!fi){ mo.querySelector('[attr=btn_agregarFila]').click(); await sl(600); fi=[...mo.querySelectorAll('[attr=fila_impuesto]')].find(vis); }
+      const si=fi&&fi.querySelector('[attr=item_nombre_impuesto] select'); if(!si) throw new Error('sin casilla Impuesto');
+      const oi=[...si.options].find(o=>/art\.?\s*11.*18\.?211/i.test(o.text)); if(!oi) throw new Error('sin opción Art. 11');
+      if(si.value!==oi.value){ if(J){ J(si).val(oi.value); try{ J(si).selectpicker('refresh'); }catch(_){} J(si).trigger('change'); } else { si.value=oi.value; si.dispatchEvent(new Event('change',{bubbles:true})); } await sl(900); }
+      const tot=(fi.querySelector('[attr=item_valor_total] input')||{}).value||'';
+      const ok=[...mo.querySelectorAll('button')].find(b=>/^aceptar$/i.test(b.textContent.trim())); if(!ok) throw new Error('sin botón Aceptar');
+      ok.click(); await sl(600);
+      cuentaTxt='\nCuentas del ítem: Art. 11 Ley N 18.211'+(tot?' (total '+tot+')':'')+' · aceptado';
+    }catch(err){ cuentaTxt='\nOJO: no pude completar "Cuentas del ítem" ('+(err&&err.message||err)+'). Hazlo tú: ícono cuadrícula bajo Opc → Impuesto "Art. 11 Ley N 18.211" → Aceptar.'; }
+    bultoTxt+=cuentaTxt;
     const vv=col(tr,/valor venta unit/i); if(vv){ vv.style.outline='3px solid #e8a33d'; try{ vv.focus(); }catch(_){} }
-    alert('✓ Listo. Chasis verificado: '+chZ+'.\n\nAhora escribe tú el Valor Venta (casilla marcada en naranjo). La Ley 18.211 la calcula Zofri.\nRevisa todo y aprieta Guardar / Enviar a Visar tú.');
+    alert('✓ Listo. Chasis verificado: '+chZ+'.'+bultoTxt+'\n\nAhora escribe tú el Valor Venta (casilla marcada en naranjo). La Ley 18.211 la calcula Zofri.\nRevisa todo y aprieta Guardar / Enviar a Visar tú.');
   })();
 }
 function srfMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+srfMarcador.toString()+')())'); }
