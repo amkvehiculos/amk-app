@@ -870,7 +870,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 10:27<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 10:53<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -2222,6 +2222,9 @@ const fbLimite=(p,ms)=>Promise.race([p,new Promise((_,no)=>setTimeout(()=>{const
    se decide en la hoja "Cambios sin enviar"). Sin internet la transacción falla y el cambio queda pendiente en el aparato
    (nunca queda una escritura vieja en cola esperando la señal). sinBase = subir sin copia de referencia (vehículo nuevo,
    "Enviar lo de este aparato" o "Subir todos mis datos"): en las listas no se borra nada de la nube y en un choque gana la nube. */
+/* 10/11/2026: videos que Sistema arma solo leyendo Facebook/Instagram (fbVidsSync). Si la nube tiene otra versión, gana la de
+   este aparato en vez de retener el auto como "choque": la nube suele tener la anterior (menos estilos o un link vencido). */
+const FB_AUTO_VID=['fbVids','igVids','vidMp4','vidsMp4'];
 const FB_CAMPOS={pub:FB_PUB_FIELDS.concat(FB_S_FIELDS), priv:FB_PRIV_FIELDS.concat(['costs'],FB_PRIV_S_FIELDS), cor:FB_COREA_FIELDS};
 async function fbSubeVeh(v,sinBase){
   const ch=v.ch, b=sinBase?null:fbBase[ch], forz=sinBase||fbForzar.has(ch);
@@ -2244,6 +2247,7 @@ async function fbSubeVeh(v,sinBase){
         if(p==='priv'&&FB_LISTAS.includes(k)){ const c2=[];   /* la nube sin esa lista: se toma como que no cambió (no como vacía) */
           const m=fbMezclaLista(loc[k],bas?bas[k]:null,nv===undefined?(bas?bas[k]:[]):nv,c2);
           if(c2.length) choq[k]=c2; if(!fbIgual(m,nv)) o.priv[k]=m; continue; }
+        if(p==='pub'&&FB_AUTO_VID.includes(k)){ o.pub[k]=loc[k]; continue; }
         if(nb&&nv!==undefined&&!forz&&(!bas||!fbIgual(nv===undefined?null:nv,bas[k]===undefined?null:bas[k]))){ cf[p+'.'+k]=nv; continue; }   /* cambió en los dos lados (04/11/2026: null en la nube = vacío, igual que no estar en la copia; antes era un falso choque) */
         o[p][k]=loc[k];
       } });
@@ -8600,9 +8604,29 @@ async function fbBorrar(id){
 function fbVidWeb(v){ const g=v&&v.igVids, f=v&&v.fbVids, K=['cla','raz','fic'];
   return (g&&K.map(k=>g[k]).find(Boolean))||(f&&K.map(k=>f[k]).find(Boolean))||''; }   /* Instagram primero: Facebook no deja insertar los reels nuevos */   /* sin constantes: se llama desde webDoc/contResumen, que pueden correr antes */
 let fbVidsEnCurso=false, fbVidsUlt=0;
+let fbVidsEspera=false;
+/* 10/11/2026: reparo para los autos a los que ya les pasó lo de arriba (los videos en este aparato pero no en la nube): una
+   vez por sesión, con la nube lista, se sacan esos campos de la copia de referencia y la próxima subida los manda. No pisa
+   nada ni gasta: si la nube ya los tiene iguales no se escribe; si los tiene distintos, ganan los de este aparato
+   (FB_AUTO_VID, ver fbSubeVeh). Por sesión y no "una sola vez": si se cerrara antes de subir, se reintenta al abrir. */
+let fbVidsReparado=false;
+function fbVidsReparo(){
+  if(fbVidsReparado) return; fbVidsReparado=true;
+  let n=0;
+  V.forEach(v=>{ if(v.borrado||!FB_AUTO_VID.some(k=>v[k])) return; const b=fbBase[v.ch];
+    if(b&&b.pub) FB_AUTO_VID.forEach(k=>{ delete b.pub[k]; });
+    delete fbLastPush[v.ch]; n++; });
+  if(n) fbSchedulePush();
+}
 async function fbVidsSync(forzar){
   const est=(t,col)=>{ const e=document.getElementById('fbVidsEst'); if(e) e.innerHTML='<span style="color:'+(col||'var(--mute)')+'">'+t+'</span>'; };
   if(!FBTOKEN){ est('Videos de la página: falta el token de Facebook (arriba).'); return null; }
+  /* 10/11/2026 (Andre: la Carnival tenía video en la web pero no en Vendedores): al abrir, esto corría a los 4 s, a veces
+     ANTES de que la nube estuviera lista. Los videos quedaban dentro de la "copia de referencia" (fbCaptureBaseline) como si
+     ya estuvieran en la nube y nunca se subían a la ficha (la web sí, que va por otro lado). Ahora espera a la nube. */
+  if(!fbReady||!fbBaseOk){ if(!fbVidsEspera){ fbVidsEspera=true; est('Videos de la página: esperando la conexión con la nube…');
+      setTimeout(()=>{ fbVidsEspera=false; fbVidsSync(true); },6000); } return null; }
+  fbVidsReparo();
   if(fbVidsEnCurso) return null;
   if(!V.length){ setTimeout(()=>fbVidsSync(true),5000); return null; }   /* los vehículos todavía no cargan: reintentar */
   if(!forzar&&Date.now()-fbVidsUlt<8*60000) return null;
