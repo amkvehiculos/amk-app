@@ -203,6 +203,12 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
 .updrop{border:1.5px dashed var(--line);border-radius:11px;padding:20px;text-align:center;color:var(--mute);
  font-size:13.5px;cursor:pointer;background:var(--seaL);margin-bottom:12px}
 .mtr{font-family:var(--mono);font-size:12px;color:var(--mute);margin-top:4px}
+.mpBox{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-top:12px}
+.mpBox .mpT{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px}
+.mpBox .mpB{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.mpBox .mpB button{flex:1 1 140px}
+.mpBox .mpMini{display:flex;gap:4px;margin-top:8px;overflow:hidden}
+.mpBox .mpMini img{width:44px;height:44px;object-fit:cover;border-radius:6px;flex:0 0 auto}
 .ph.sel{outline:3px solid var(--sea);outline-offset:-3px}
 .ph .sk{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;
  background:var(--sea);color:#fff;font-size:12px;display:none;align-items:center;justify-content:center;font-weight:700}
@@ -871,7 +877,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 11:05 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 17:44 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1475,6 +1481,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <button class="b-pri" style="background:var(--sea);color:#fff" id="phShare">➦ Enviar fotos</button>
   </div>
   <div class="phg" id="phGrid"></div>
+  <div id="phMp" class="mpBox"></div>
+  <input type="file" id="phMpFile" accept="image/*" multiple hidden>
   </div>
   <div id="sec360" hidden>
   <div id="t3FuenteSel" hidden style="margin-bottom:9px"></div>
@@ -2111,7 +2119,7 @@ async function fbInit(){
         /* 28/10/2026: lo de la nube se aplica recién cuando boot() terminó de leer lo guardado en el aparato. Antes, si la nube
            respondía primero, boot() reemplazaba los costos recién bajados por la copia vieja del aparato, y esa copia vieja
            quedaba como "cambio de este aparato" y se subía, pisando lo más nuevo (probado con una nube simulada). */
-        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } webPendSale(); fbStartListening(); fbFotosVendListen(); fbF360VendListen(); nubeRestauraDocs(); nubeValEscucha(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
+        if(!fbEscuchando){ fbEscuchando=true; bootListo.then(()=>{ if(!fbReady) { fbEscuchando=false; return; } webPendSale(); fbStartListening(); fbFotosVendListen(); fbF360VendListen(); mpPoda(); nubeRestauraDocs(); nubeValEscucha(); fbRecoreaListen(); fbEnviosPronto(); fbFletesCoreaListen(); fbGastosCoreaListen(); fbAvisosVendListen(); fbConfigPendListen(); fbConfigCtaListen(); fbDemandaListen(); fbSyncSueldos(); contSyncPronto(); }); }
         fbPintaEstado('✓ Conectado como '+(u.email||'?')+' · colección '+FB_COL,'var(--green)');
       }else{
         fbReady=false; fbEscuchando=false;
@@ -3167,7 +3175,7 @@ function webDoc(v){
   return {
     ch:v.ch, st:v.st||'', ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'',
     cat:v.cat||'', tr:v.tr||'', pa:v.pa||null, ca:v.ca||'', tp:!!v.tp&&!esTrabV(v), km:v.km||null,
-    trab:!!v.trab, sv:!!v.sv,
+    trab:!!v.trab, sv:svDe(v),
     oferta:!!t.of,
     dest:!!t.dest,   /* ★ Portada (03/11/2026): la web muestra en la foto grande solo los marcados; sin ninguno, elige sola */
     enCorea: !!v.enCorea,
@@ -3372,7 +3380,7 @@ function contResumen(){
     return {ch:v.ch, ma:v.ma||'', mo:v.mo||'', an:v.an||null, ce:v.ce||'', cat:v.cat||'', ca:v.ca||'', cab:v.cab||'',
       tr:v.tr||'', pa:v.pa||null, tp:!!v.tp&&!esTrabV(v), km:v.km||null, motor:v.motor||'', trans:transTxt(v), eq:eqDe(v,1,true),
       st:v.st||'', enCorea:!!v.enCorea, eta:v.st==='ORIGEN'&&!v.enCorea?(v.eta||null):null, llp:v.llp||null,
-      trab:!!v.trab, sv:!!v.sv, web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
+      trab:!!v.trab, sv:svDe(v), web:webVaEnLaWeb(v), reservado:!!resAct(v.ch), oferta:!!t.of,
       precio:t.of?(t.pprice||v.vev||null):null,
       nf:fotosEfectivas(v).fotos.length, n360:fotosEfectivas360(v).fotos.length, video:!!(v.video||fbVidWeb(v)),
       tx:[genTK(v,0),genTK(v,1)]};   /* 04/11/2026: texto de los videos que el Mac publica solo en Facebook e Instagram (sin km ni precio) */
@@ -4337,7 +4345,17 @@ setTimeout(async()=>{ try{ const r=await window.storage.get('amk_stCompacto'); i
    dependía de v.trab, que la app de Corea no mandaba: los Porter/Bongo cargados por la mamá salían sin tipo. Ahora es de
    trabajo si v.trab o si el modelo es Porter/Bongo (los únicos de trabajo). BARANDA = "Baranda baja". */
 const CARN_NOM={'BARANDA':'Baranda baja','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer','GAVIOTA':'Gaviota','CAJÓN SIMPLE':'Cajón simple','CAJON SIMPLE':'Cajón simple','POWER GATE':'Power Gate'};
-const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));   /* Porter y Bongo son los de trabajo (Andre) */
+const esTrabV=v=>!!(v&&(v.trab||/^(PORTER|BONGO)/i.test(String(v.mo||'').trim())));
+/* Sello verde (Andre, 10/11/2026): se CALCULA siempre, no se confía en lo guardado. Antes se guardaba solo al crear o al guardar
+   la ficha; si el año llegaba por otro camino (BL sin año, otro aparato, la nube, una restauración) quedaba en "no" para siempre
+   (le pasó a la Carnival 2019 KS544114). Regla: 2018 en adelante y no de trabajo (Porter/Bongo/trab). La Starex nunca califica.
+   No se usa el peso: con esto basta (Andre). svNormaliza() corrige los guardados al dibujar y los sube. */
+function svDe(v){ if(!v) return false; const mo=String(v.mo||'').toUpperCase().trim();
+  return (+v.an||0)>=2018 && !v.trab && !/^(PORTER|BONGO)/.test(mo) && !/STAREX/.test(mo); }
+function svNormaliza(){ let n=0; for(const v of V){ if(!v||!v.ch) continue; const ok=svDe(v); if(!!v.sv!==ok){ v.sv=ok; n++; } }
+  if(n){ guardaCacheV(true); try{ if(typeof fbSchedulePush==='function') fbSchedulePush(); }catch(e){ console.error('svNormaliza nube',e); }
+    try{ if(typeof webSyncPronto==='function') webSyncPronto(); }catch(e){ console.error('svNormaliza web',e); } }
+  return n; }   /* Porter y Bongo son los de trabajo (Andre) */
 /* Equipamiento (03/11/2026, Andre): v.eq = lista de códigos, la misma tabla en Corea y Vendedores.
    [código, texto, corto, 'a' solo autos | 't' solo de trabajo, 'i' se instala en Iquique | 'p' privado]. Sin marcar = no se sabe.
    03/11/2026 (Andre): Pantalla Android, pisaderas y cromados (lo que se pone en Iquique) van primero porque son lo que más vende;
@@ -4669,6 +4687,7 @@ document.addEventListener('click',async e=>{ if(!e.target.closest('#irZarpe')) r
   zarpeGuarda(L,f); toast(L.length+' marcados en camino'); });
 function draw(){
   try{ coreaSync(); }catch(_){}
+  try{ svNormaliza(); }catch(e){ console.error('svNormaliza',e); }
   try{ const fz=$('#ngFinanzas'); if(fz&&!fz.hidden&&$('#pDatos').classList.contains('on')&&!(document.activeElement&&fz.contains(document.activeElement)&&document.activeElement.matches('input'))) pintaFin(); }catch(e){ console.error('pintaFin',e); }
   try{ refrescaBaseLib(); }catch(_){}
   try{ estRadioPend(); }catch(_){}
@@ -5681,6 +5700,8 @@ async function openPhotos(c){
   segShow('fotos');
   phArr=await loadPhotos(c);
   drawPhotos();
+  delete mpInfo[c]; pintaMp();
+  mpCarga(c).then(()=>{ if(phCh===c) alturaFluida($('#shPhoto'),pintaMp); });
   await load360(c);
 }
 $('#phVideo').addEventListener('change',()=>{
@@ -5771,6 +5792,112 @@ $('#phFile').addEventListener('change',async e=>{
   await persist();
   if(full) toast('Espacio lleno en este vehículo. Se guardaron '+added+'.');
 });
+
+/* ===== FOTOS PARA MARKETPLACE: PUENTE AL MAC (Andre, 10/11/2026) =====
+   Andre publica en Marketplace solo con SUS fotos (los autos con fotos de Víctor/Bryan ya están en el Marketplace
+   de ellos). Sin carpetas ni GitHub: acá elige las fotos del teléfono, se suben EN ALTA a la nube y el Mac
+   (GENERAR VIDEOS/fuente/marketplace.py, con Claude en Chrome) las toma de ahí para publicar.
+   - Van a fotosVend (misma colección y reglas que las de Víctor/Bryan, sin regla nueva): una ficha
+     <ch>__mp {ch, mpCola, n, hd, ts, auto} y cada foto en <ch>__mp__hd<i>. Ninguna lleva "fuente", así que
+     los listeners de Sistema/Vendedores/Corea (where fuente != '') no las bajan y la web no las usa.
+   - No van a GitHub ni cambian las fotos de la web. Se borran solas a los MP_DIAS días (mpPoda, al abrir la app)
+     o con "Quitar". */
+const MP_HDW=1600, MP_HDQ=.8, MP_MAXB=900000, MP_MAX=20, MP_DIAS=10;
+const mpInfo={};     /* {ch: {n, ts, hd, mini} | null} lo leído de la nube para la hoja abierta */
+let mpSubiendo=false;
+function mpFecha(ms){ if(!ms) return ''; const d=new Date(ms); return d.getDate()+'/'+(d.getMonth()+1); }
+function pintaMp(){
+  const el=$('#phMp'); if(!el||!phCh) return;
+  const v=IDX[phCh]; if(!v){ el.innerHTML=''; return; }
+  const m=mpInfo[phCh];
+  const nota='<div class="mtr">Van directo al Mac para publicar en Marketplace. No se guardan en GitHub ni cambian la web; se borran solas a los '+MP_DIAS+' días.</div>';
+  if(mpSubiendo){ el.innerHTML='<div class="mpT"><b>🛒 Fotos para Marketplace</b><span class="mtr" id="mpProg">Subiendo…</span></div>'+nota; return; }
+  if(m===undefined){ el.innerHTML='<div class="mpT"><b>🛒 Fotos para Marketplace</b><span class="mtr">revisando…</span></div>'; return; }
+  if(m&&m.n){
+    el.innerHTML='<div class="mpT"><b>🛒 Listas para Marketplace</b><span style="color:var(--green);font-size:12.5px">'+m.n+' foto'+(m.n===1?'':'s')+' · '+mpFecha(m.ts)+'</span></div>'
+      +(m.mini&&m.mini.length?'<div class="mpMini">'+m.mini.map(s=>'<img src="'+s+'" alt="">').join('')+'</div>':'')
+      +'<div class="mtr">Dile a Claude en el Mac: «publica Marketplace». Se borran solas a los '+MP_DIAS+' días.</div>'
+      +'<div class="mpB"><button class="btn b-sec" type="button" data-mp="cambiar">Cambiar fotos</button><button class="btn b-sec" type="button" data-mp="quitar">Quitar</button></div>';
+    return;
+  }
+  el.innerHTML='<div class="mpT"><b>🛒 Fotos para Marketplace</b></div>'+nota
+    +'<div class="mpB"><button class="btn b-pri" type="button" data-mp="elegir">Elegir fotos para Marketplace</button></div>';
+}
+async function mpCarga(ch){
+  if(!fbReady||!fbDb){ mpInfo[ch]=null; return; }
+  try{
+    const s=await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(ch+'__mp').get(),12000);
+    const d=s.exists?s.data():null;
+    mpInfo[ch]=d&&d.mpCola?{n:d.n||0, hd:Array.isArray(d.hd)?d.hd:[], mini:Array.isArray(d.mini)?d.mini:[],
+      ts:(d.ts&&typeof d.ts.toMillis==='function')?d.ts.toMillis():(+d.ts||0)}:null;
+  }catch(e){ console.error('mpCarga',e); mpInfo[ch]=null; }
+}
+async function mpBorra(ch,hd){
+  for(const id of (hd||[])) { try{ await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(id).delete(),15000); }catch(_){} }
+  await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(ch+'__mp').delete(),15000);
+}
+$('#phMp').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-mp]'); if(!b||mpSubiendo) return;
+  const k=b.dataset.mp;
+  if(k==='elegir'||k==='cambiar'){
+    if(!fbReady){ toast('Sin conexión con la nube ahora mismo · prueba de nuevo con señal'); return; }
+    $('#phMpFile').click(); return;
+  }
+  if(k==='quitar'){
+    if(!confirm('¿Quitar estas fotos de la cola de Marketplace?\n\nNo cambia nada en la web ni en Marketplace.')) return;
+    const ch=phCh, m=mpInfo[ch];
+    try{ await mpBorra(ch,m&&m.hd); mpInfo[ch]=null; toast('Quitadas de la cola de Marketplace'); }
+    catch(err){ console.error('mpQuitar',err); toast(err&&err.timeout?'No hay señal suficiente · prueba de nuevo':'No se pudieron quitar'); }
+    alturaFluida($('#shPhoto'),pintaMp);
+  }
+});
+$('#phMpFile').addEventListener('change',async e=>{
+  const fs=[...e.target.files].slice(0,MP_MAX); e.target.value='';
+  if(!fs.length||mpSubiendo) return;
+  if(!fbReady){ toast('Sin conexión con la nube ahora mismo · prueba de nuevo con señal'); return; }
+  const ch=phCh, v=IDX[ch]; if(!v) return;
+  const prev=mpInfo[ch], prevHd=(prev&&prev.hd)||[];
+  mpSubiendo=true; alturaFluida($('#shPhoto'),pintaMp);
+  const ids=[], mini=[];
+  try{
+    for(let i=0;i<fs.length;i++){
+      const pr=$('#mpProg'); if(pr) pr.textContent='Subiendo '+(i+1)+' de '+fs.length+'…';
+      let q=MP_HDQ, x=await shrink(fs[i],MP_HDW,q);
+      while(x&&x.length>MP_MAXB&&q>.45){ q=Math.round((q-.1)*100)/100; x=await shrink(fs[i],MP_HDW,q); }
+      if(!x) continue;
+      const id=ch+'__mp__hd'+ids.length;
+      await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(id).set({ch, hd:true, src:'andre-mp', i:ids.length, d:x,
+        ts:firebase.firestore.FieldValue.serverTimestamp()}),40000);
+      ids.push(id);
+      if(mini.length<6){ const s=await shrinkDataURI(x,96,.5); if(s) mini.push(s); }
+    }
+    if(!ids.length){ toast('No se pudo procesar ninguna foto'); return; }
+    for(const id of prevHd){ if(!ids.includes(id)){ try{ await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(id).delete(),15000); }catch(_){} } }
+    await fbLimite(fbDb.collection(FB_FOTOS_COL).doc(ch+'__mp').set({ch, mpCola:true, n:ids.length, hd:ids, mini,
+      auto:[v.ma,v.mo,v.an].filter(Boolean).join(' '), ts:firebase.firestore.FieldValue.serverTimestamp()}),40000);
+    mpInfo[ch]={n:ids.length, hd:ids, mini, ts:Date.now()};
+    toast('Listas para Marketplace ✓ ('+ids.length+' foto'+(ids.length===1?'':'s')+')');
+  }catch(err){
+    console.error('mpSubir',err);
+    toast(err&&err.timeout?'No hay señal suficiente · toca «Elegir fotos para Marketplace» de nuevo con señal'
+      :(err&&err.code==='permission-denied'?'No se pudo subir: falta un permiso en la nube':'No se pudo subir: '+((err&&(err.message||err.code))||err)));
+  }finally{
+    mpSubiendo=false; if(phCh===ch) alturaFluida($('#shPhoto'),pintaMp);
+  }
+});
+/* Las fotos de Marketplace son de paso: a los MP_DIAS días se borran solas (una vez por sesión, con la nube lista). */
+let mpPodaHecha=false;
+async function mpPoda(){
+  if(mpPodaHecha||!fbReady||!fbDb) return; mpPodaHecha=true;
+  try{
+    const lim=Date.now()-MP_DIAS*864e5;
+    const s=await fbLimite(fbDb.collection(FB_FOTOS_COL).where('mpCola','==',true).get(),20000);
+    for(const doc of s.docs){
+      const d=doc.data()||{}, t=(d.ts&&typeof d.ts.toMillis==='function')?d.ts.toMillis():(+d.ts||0);
+      if(t&&t<lim){ try{ await mpBorra(d.ch,d.hd); }catch(e){ console.error('mpPoda',d.ch,e); } }
+    }
+  }catch(e){ console.error('mpPoda',e); mpPodaHecha=false; }
+}
 async function persist(){
   const ok=await savePhotos(phCh,phArr);
   if(!ok) return;
@@ -12518,7 +12645,7 @@ $('#emVNAdd').addEventListener('click',async()=>{
   const nuevo={ch,st:'ORIGEN',ma,mo,an,ce:$('#emVNCe').value.trim().toUpperCase(),cat:$('#emVNCat').value.trim().toUpperCase(),
     tr:$('#emVNTr').value.trim().toUpperCase(),pa:pnum($('#emVNPa').value)||null,ca,tp:false,km:null,
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
-    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#emVNProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso(), creando:true};
+    trab, sv:svDe({an,mo,trab}), prov:$('#emVNProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso(), creando:true};
   if(Object.keys(zofEmVN).length) nuevo.zof=zofEmVN;
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
@@ -12718,7 +12845,7 @@ document.addEventListener('click',async e=>{
         const paBl=x.pa||(paxSugeridos(moU)?+paxSugeridos(moU):null);
         const nv={ch,st:'ORIGEN',ma:x.ma||'',mo:normalizaModelo(x.mo)||'',an:x.an||null,ce:x.ce||'',
           cat:x.cat||'',tr:x.tr||'',pa:paBl,ca:x.ca||'S/N',tp:false,km:x.km||null,
-          cif:null,fob:null,ct:null,vev:null,xc:{},trab:trabBl,sv:!!(x.an&&x.an>=2018)&&!trabBl,krw:x.krw||null,
+          cif:null,fob:null,ct:null,vev:null,xc:{},trab:trabBl,sv:svDe({an:x.an,mo:moU,trab:trabBl}),krw:x.krw||null,
           motor:x.motor||motorSugerido(moU),cil:x.cil||cilSugerida(moU),
           fe:x.fe||iso(),nota:x.nota||'',prov:(x.prov||'').trim().toUpperCase(),cc:x.cc||{},creando:true};
         const transBl=x.trans||transSugerida(trabBl);
@@ -13356,7 +13483,7 @@ $('#nvAdd').addEventListener('click',async()=>{
     tr:$('#nvTr').value.trim().toUpperCase(),pa:pnum($('#nvPa').value)||null,ca,tp:false,km:null,
     motor:$('#nvMotor').value||'', cil:cilVal('nvCilSel','nvCil'), codMotor:codMotorDe(mo,cilVal('nvCilSel','nvCil')), cab:esModeloTrabajo(mo)?$('#nvCab').value:'',
     cif:null,cifusd:null,fob:null,ct:null,vev:null,xc:{},
-    trab, sv:!!(an&&an>=2018)&&!trab, prov:$('#nvProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
+    trab, sv:svDe({an,mo,trab}), prov:$('#nvProv').value.trim().toUpperCase(), cc:{}, nota:'', fe:iso()};
   if(Object.keys(zofNv).length) nuevo.zof=zofNv;
   let prev=[]; try{const r=await window.storage.get(EXK); if(r&&r.value) prev=JSON.parse(r.value)}catch(_){}
   try{await window.storage.set(EXK,JSON.stringify(prev.concat([nuevo])))}catch(e){toast('No se pudo guardar');return}
@@ -13485,7 +13612,7 @@ $('#evOk').addEventListener('click',()=>{
   v.motor=$('#evMotor').value||''; v.cil=cilVal('evCilSel','evCil'); { const cm=codMotorDe(v.mo,v.cil); if(cm) v.codMotor=cm; if(esModeloTrabajo(v.mo)&&$('#evCab').value) v.cab=$('#evCab').value; }
   v.tp=!evEsTrab(v)&&$('#evTp').getAttribute('aria-pressed')==='true';
   if(evEqT){ const ok=eqOpc(evEsTrab(v)).map(o=>o[0]); v.eq=ok.filter(k=>evEqSel.includes(k)); }
-  v.sv=!!(v.an&&v.an>=2018)&&!v.trab;
+  v.sv=svDe(v);
   { const k=pnum($('#evKrw').value)||0; if(!v.ct&&k!==evKrwIni) guardaValorCompra(ch,k).then(c=>{ if(c&&typeof pintaEmb==='function') pintaEmb(); }).catch(e=>console.error('valor de compra',e)); }
   const evTransVal=$('#evTrans').value;
   if(evTransVal){ v.zof=v.zof||{}; v.zof.trans=evTransVal; } else if(v.zof){ delete v.zof.trans; }
@@ -13529,7 +13656,7 @@ $('#eWeb').addEventListener('click',async()=>{
       if(arr&&arr.length) foto=await shrinkDataURI(arr[0],WEBW,WEBQ);
     }catch(_){}
     out.push({ch:v.ch,st:v.st,ma:v.ma,mo:v.mo,an:v.an,ce:v.ce,cat:v.cat,tr:v.tr,pa:v.pa,ca:v.ca,tp:v.tp,km:v.km,
-              trab:v.trab,sv:v.sv,oferta:!!t.of,precio:t.of?(t.pprice||v.vev):null,foto});
+              trab:v.trab,sv:svDe(v),oferta:!!t.of,precio:t.of?(t.pprice||v.vev):null,foto});
   }
   btn.disabled=false; btn.textContent=prevTxt;
   cp(JSON.stringify(out),out.length+' vehículos listos para la web')});
@@ -13549,7 +13676,7 @@ $('#rxBtn').addEventListener('click',async()=>{
     const nv={ch:e.ch,st:'ORIGEN',ma:e.ma||'',mo:normalizaModelo(e.mo)||'',an:e.an||null,ce:e.ce||'',
       cat:e.cat||'',tr:e.tr||'',pa,ca:e.ca||'S/N',tp:false,km:e.km||null,
       cif:null,fob:null,ct:null,vev:null,xc:{},
-      trab, sv:!!(e.an&&e.an>=2018)&&!trab,krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',
+      trab, sv:svDe({an:e.an,mo:e.mo,trab}),krw:e.krw||null,fe:e.fe||iso(),nota:e.nota||'',
       motor:e.motor||motorSugerido(moU), cil:e.cil||cilSugerida(moU),
       prov:e.prov||'',cc:e.cc||{}};
     const trans=e.trans||transSugerida(trab);
@@ -13582,7 +13709,7 @@ $('#eFree').addEventListener('click',async()=>{
 $('#eVend').addEventListener('click',()=>{
   const out=V.filter(v=>!sold(v.ch)).map(v=>{const t=st(v.ch);
     return {ch:v.ch,st:v.st,ma:v.ma,mo:v.mo,an:v.an,ce:v.ce,cat:v.cat,tr:v.tr,pa:v.pa,ca:v.ca,tp:v.tp,km:v.km,
-            trab:v.trab,sv:v.sv,oferta:!!t.of,vev:t.of?(t.pprice||v.vev):null,pmin:t.pmin||null}});
+            trab:v.trab,sv:svDe(v),oferta:!!t.of,vev:t.of?(t.pprice||v.vev):null,pmin:t.pmin||null}});
   if(!out.length){toast('No hay vehículos');return}
   cp(JSON.stringify(out),out.length+' vehículos con precio mínimo');
 });
