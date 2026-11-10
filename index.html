@@ -870,7 +870,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 10:53<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 11:05<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8639,8 +8639,10 @@ async function fbVidsSync(forzar){
       const j=await (await fetch(url)).json();
       if(j&&j.error){ console.warn('fbVidsSync',j.error.message); est('✗ Videos de la página: Facebook respondió "'+String(j.error.message||'').slice(0,120)+'"','var(--red)'); return null; }
       (j&&j.data||[]).slice().sort((a,b)=>String(a.created_time).localeCompare(String(b.created_time))).forEach(x=>{
-        const m=String(x.description||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
+        const m=String(x.description||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:\?ch=[A-Z0-9-]+)?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase();
+        /* 10/11/2026: el link desde el 07/11 es amkvehiculos.cl/v/CHASIS/?ch=CHASIS&v=raz; la expresión no saltaba el ?ch= y
+           perdía el estilo (todos quedaban "cla": Víctor y Bryan no recibían su video). Ahora salta ese ?ch= repetido. */
         /* archivo para que Víctor y Bryan lo bajen (los 3 estilos, también los programados: Facebook ya lo tiene) */
         if(x.source){ const t=vend[ch]=vend[ch]||{}; if(!t[k]) t[k]={id:x.id,u:x.source}; }
         if(x.published===false) return;   /* programado: todavía no se ve en la página ni en la web */
@@ -8659,7 +8661,7 @@ async function fbVidsSync(forzar){
       if(sj&&sj.error){ console.warn('fbVidsSync programados',sj.error.message); progTxt=' · ✗ programados: Facebook respondió "'+String(sj.error.message||'').slice(0,100)+'"'; }
       let np=0;
       (sj&&sj.data||[]).forEach(p=>{
-        const m=String(p.message||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
+        const m=String(p.message||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:\?ch=[A-Z0-9-]+)?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
         const a=((p.attachments||{}).data||[]).find(x=>x&&x.media&&x.media.source); if(!a) return;
         const ch=m[1].toUpperCase(), k=(m[2]||'cla').toLowerCase(), t=vend[ch]=vend[ch]||{};
         if(!t[k]){ t[k]={id:String((a.target&&a.target.id)||p.id),u:a.media.source}; np++; }
@@ -8677,7 +8679,7 @@ async function fbVidsSync(forzar){
         const lista=(ij&&ij.data||[]).filter(x=>x.permalink&&/VIDEO|REELS/i.test(x.media_type||'VIDEO'))
           .sort((a,b)=>String(a.timestamp).localeCompare(String(b.timestamp)));
         const usados=new Set();
-        lista.forEach(x=>{ const m=String(x.caption||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
+        lista.forEach(x=>{ const m=String(x.caption||'').match(/(?:[?&]ch=|amkvehiculos\.cl\/v\/)([A-Z0-9-]+)\/?(?:\?ch=[A-Z0-9-]+)?(?:[?&]v=(cla|raz|fic))?/i); if(!m) return;
           const o=igNuevos[m[1].toUpperCase()]=igNuevos[m[1].toUpperCase()]||{}; const k=(m[2]||'cla').toLowerCase(); if(!o[k]){ o[k]=x.permalink; usados.add(x.id); } });
         Object.keys(fbFe).forEach(key=>{ const [ch,k]=key.split('|'), v=IDX[ch]; if(!v||(igNuevos[ch]&&igNuevos[ch][k])) return;
           const nom=(String(v.ma||'')+' '+String(v.mo||'')).trim().toUpperCase(), t0=fbFe[key];
