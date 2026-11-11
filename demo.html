@@ -883,7 +883,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:23<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:47<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8779,10 +8779,19 @@ $('#fbVidsYa').addEventListener('click',()=>fbVidsSync(true));
    el Mac las copia (menú AMK VIDEO → L, mismo formato AMK1 que "Copiar llaves para el Mac") y acá se pegan una vez.
    Quedan solo en este aparato, como si se escribieran a mano. */
 $('#metaRecibeOk').addEventListener('click',async()=>{
-  const el=$('#metaRecibeEst'), t=$('#metaRecibeTxt'), s=(t.value||'').trim();
-  let o=null;
-  try{ if(s.indexOf('AMK1:')===0) o=JSON.parse(decodeURIComponent(escape(atob(s.slice(5).replace(/\s+/g,''))))); }catch(_){ o=null; }
-  if(!o||!o.fb_token){ el.innerHTML='<span style="color:var(--red)">No reconozco eso. En el Mac usa AMK VIDEO → L y vuelve a pegar acá.</span>'; return; }
+  const el=$('#metaRecibeEst'), t=$('#metaRecibeTxt'), s=String(t.value||'');
+  /* 11/11/2026: en el iPhone el pegado puede traer espacios, saltos de línea o caracteres invisibles alrededor (o dentro):
+     se busca "AMK1:" donde esté y se dejan solo las letras de base64. Si falla, se dice qué llegó (sin mostrar las llaves). */
+  const i=s.search(/AMK1\s*:/i);
+  let b64=i>=0?s.slice(i).replace(/^AMK1\s*:/i,'').replace(/[^A-Za-z0-9+/=_-]/g,'').replace(/-/g,'+').replace(/_/g,'/'):'';
+  b64=b64.replace(/=+$/,''); while(b64.length%4) b64+='=';
+  let o=null, motivo='';
+  if(i<0) motivo='no encontré "AMK1:"';
+  else{ let raw='';
+    try{ raw=atob(b64); }catch(_){ motivo='el texto está cortado o tiene letras de más ('+b64.length+' caracteres)'; }
+    if(raw){ try{ o=JSON.parse(decodeURIComponent(escape(raw))); }catch(_){ try{ o=JSON.parse(raw); }catch(__){ motivo='el texto llegó incompleto ('+b64.length+' caracteres)'; } } } }
+  if(o&&!o.fb_token){ motivo='el texto no trae el token de Facebook'; o=null; }
+  if(!o){ el.innerHTML='<span style="color:var(--red)">No pude leer las llaves: '+motivo+'. Vuelve a copiarlas en el Mac (botón "⧉ Copiar llaves para el Mac") y pega acá de nuevo.</span>'; return; }
   try{
     const igNuevo=o.ig_token&&o.ig_token!==IGTOKEN;
     FBTOKEN=o.fb_token; FBPAGE=o.fb_page||FBPAGE;
