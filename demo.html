@@ -883,7 +883,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:47<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:58<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1480,6 +1480,11 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
   <div class="sact fija"><button class="cx" data-close>Cancelar</button><button class="ok" id="spOk">Guardar</button></div>
 </div>
 
+<div class="sheet" id="shResp">
+  <h3>💬 Respuestas para ti</h3><div class="sb" id="rpSb"></div>
+  <div id="rpList"></div>
+  <div class="sact fija"><button class="cx" data-close>Cerrar</button></div>
+</div>
 <div class="sheet" id="shPhoto">
   <h3 id="phT"></h3><div class="sb" id="phC"></div>
   <div class="segs" id="phSegs">
@@ -2897,6 +2902,10 @@ NUBE_DOCS['amk_talleres_cat']={col:NUBE_DOCS['amk_embarques'].col,doc:'talleresC
    aparato donde se anotaban: el combustible del 30/10 estaba en el iPhone y el Mac no lo veía. Ahora viajan como los adelantos. */
 NUBE_DOCS['amk_gastos_gen']={col:NUBE_DOCS['amk_embarques'].col,doc:'gastosGenerales',tipo:'lista',clave:'ts',nom:'gastos generales'};
 NUBE_DOCS['amk_fx']={col:NUBE_DOCS['amk_embarques'].col,doc:'divisas',tipo:'lista',clave:'ts',nom:'compras de divisas'};
+/* 11/11/2026 (Andre): respuestas a clientes que el agente de Claude (Mac, cada 2 h) no manda solo y deja para que Andre
+   decida desde el teléfono. Mapa {id:{red,quien,auto,pregunta,sugerida,motivo,estado,respuesta,...}}. Va con embarques:
+   solo Sistema la lee (Víctor y Bryan no ven ofertas ni datos de clientes de acá). Ver pintaRP / window.AMK_RESP. */
+NUBE_DOCS['amk_resp_pend']={col:NUBE_DOCS['amk_embarques'].col,doc:'respuestasPend',tipo:'mapa',nom:'respuestas para Andre'};
 const NUBE_MAX=900000;
 const nubeUlt={}, nubeMod={}, nubeBorr={}, nubeTimers={}, nubePend={}, nubeListo={};
 /* Hasta que este aparato no se haya puesto al día con la nube, lo que se guarde NO se sella con hora:
@@ -3044,6 +3053,8 @@ function nubeRefresca(k){
     (async()=>{ try{ await cargaTalleresCat(); if($('#shCost').classList.contains('on')) pintaScProv(); }catch(e){ console.error('nubeRefresca',e); } })();
   } else if(k==='amk_cats_nube'){
     (async()=>{ try{ const r=await window.storage.get(k); aplicaCatsCustom(nubeParse(r&&r.value)||{}); repintaCats(); }catch(e){ console.error('nubeRefresca',e); } })();
+  } else if(k==='amk_resp_pend'){
+    (async()=>{ try{ await cargaRP(); pintaRP(); pintaPendientes(); }catch(e){ console.error('nubeRefresca',e); } })();
   }
 }
 /* Escucha la nube en vivo: cualquier cambio hecho en otro aparato llega solo. Reemplaza a la vieja
@@ -8193,9 +8204,80 @@ function pendientesGlobales(){
   if(vsf.length) p.push({texto:vsf.length===1?('📷 '+vsf[0].ma+' '+vsf[0].mo+' está en la web con video pero sin fotos · faltan las fotos'):('📷 '+vsf.length+' vehículos en la web con video pero sin fotos · faltan las fotos'), ir:()=>openPhotos(vsf[0].ch)});
   const fpPub=fotosParaPublicar();
   if(fpPub.length) p.push({texto:fpPub.length===1?('📷 Fotos nuevas de '+fpPub[0].v.ma+' '+fpPub[0].v.mo+' ('+fpQuien(fpPub[0])+') · publicar en la web'):('📷 '+fpPub.length+' vehículos con fotos nuevas de Víctor/Bryan · publicar en la web'), ir:abrirFotosPub});
+  const rpN=Object.values(RP||{}).filter(x=>x&&x.estado==='pendiente').length;
+  if(rpN) p.unshift({texto:'💬 '+rpN+(rpN===1?' cliente espera':' clientes esperan')+' tu respuesta', ir:abrirRP});
   if(PEND_CANDIDATOS.length) p.push({texto:PEND_CANDIDATOS.length+' categoría'+(PEND_CANDIDATOS.length===1?'':'s')+' nueva'+(PEND_CANDIDATOS.length===1?'':'s')+' por revisar', ir:()=>{show('pDatos'); ngseg('ajustes'); setTimeout(()=>{const b=$('#boxModeracion'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   return p;
 }
+/* ===== RESPUESTAS PARA TI (Andre, 11/11/2026) =====
+   El agente de Claude en el Mac (cada 2 h) responde solo lo de rutina en TikTok y Marketplace. Lo que necesita a Andre
+   (ofertas, fechas de llegada, cotizaciones, datos que Sistema no tiene, ventas en curso) lo deja acá con una respuesta
+   sugerida. Andre la corrige si quiere y toca "Mandar" (el agente la manda en su próxima vuelta) o "No responder".
+   El agente entra por Sistema abierto en su Chrome (con la sesión de Andre) y usa window.AMK_RESP. */
+var RP={};   /* var (no let): pendientesGlobales puede correr antes de llegar a esta línea */
+async function cargaRP(){ try{ const r=await window.storage.get('amk_resp_pend'); RP=nubeParse(r&&r.value)||{}; }catch(_){ RP={}; }
+  /* lo ya resuelto hace más de 30 días se va solo (el documento de la nube no crece sin fin) */
+  const lim=Date.now()-30*864e5; let borro=false;
+  Object.keys(RP).forEach(id=>{ const x=RP[id]; if(!x||(x.estado!=='pendiente'&&x.estado!=='mandar'&&(x.decidido||x.ts||0)<lim)){ delete RP[id]; borro=true; } });
+  if(borro) rpGuarda(); }
+function rpGuarda(){ return window.storage.set('amk_resp_pend',JSON.stringify(RP)); }
+const rpEsc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const RP_RED={tiktok:'TikTok',marketplace:'Marketplace',instagram:'Instagram',facebook:'Facebook'};
+function rpCuando(ms){ if(!ms) return ''; const d=new Date(ms); return d.getDate()+'/'+(d.getMonth()+1)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function abrirRP(){ pintaRP(); openSheet('shResp'); }
+function pintaRP(){
+  const el=$('#rpList'); if(!el) return;
+  const xs=Object.values(RP).filter(Boolean);
+  const pend=xs.filter(x=>x.estado==='pendiente').sort((a,b)=>(a.ts||0)-(b.ts||0));
+  const hechos=xs.filter(x=>x.estado!=='pendiente').sort((a,b)=>(b.decidido||b.ts||0)-(a.decidido||a.ts||0)).slice(0,15);
+  $('#rpSb').textContent=pend.length?(pend.length+(pend.length===1?' cliente espera':' clientes esperan')+' tu decisión. Corrige el texto si quieres y toca Mandar: el agente la envía en su próxima vuelta (máx. 2 h).')
+    :'No hay nada esperando. Acá aparece lo que el agente no puede responder solo.';
+  const tarjeta=x=>{
+    const est=x.estado==='mandar'?'<span class="tag t-or">Se manda en la próxima vuelta</span>'
+      :x.estado==='enviada'?'<span class="tag t-sold">✓ Enviada '+rpCuando(x.enviado)+'</span>'
+      :x.estado==='descartada'?'<span class="tag">No se responde</span>':'<span class="tag t-or">Espera tu decisión</span>';
+    const cab=`<div class="r1"><div><div class="tt" style="font-size:14.5px">${rpEsc(RP_RED[x.red]||x.red||'')} · ${rpEsc(x.quien)}</div>
+      <div class="ch">${rpEsc(x.auto||'')}${x.auto?' · ':''}${rpCuando(x.ts)}</div></div>${est}</div>`;
+    const pq=x.pregunta?`<div class="mtr" style="margin-top:8px">Preguntó</div><div style="font-size:14px">${rpEsc(x.pregunta)}</div>`:'';
+    const mo=x.motivo?`<div class="mtr" style="margin-top:6px">Por qué te lo dejé</div><div style="font-size:13px;color:var(--mute)">${rpEsc(x.motivo)}</div>`:'';
+    if(x.estado==='pendiente') return `<div class="card plain" style="padding:11px;margin-bottom:9px">${cab}${pq}${mo}
+      <div class="mtr" style="margin-top:8px">Respuesta (puedes cambiarla)</div>
+      <textarea data-rpt="${rpEsc(x.id)}" data-noup="1" rows="4" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;font:inherit;font-size:14px;background:var(--paper);color:var(--ink)">${rpEsc(x.respuesta||x.sugerida||'')}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn b-sec" type="button" style="flex:1 1 0" data-rpno="${rpEsc(x.id)}">No responder</button><button class="btn b-pri" type="button" style="flex:1 1 0" data-rpok="${rpEsc(x.id)}">Mandar</button></div></div>`;
+    return `<div class="card plain" style="padding:11px;margin-bottom:9px;opacity:.85">${cab}${pq}
+      ${x.respuesta&&x.estado!=='descartada'?`<div class="mtr" style="margin-top:6px">Respuesta</div><div style="font-size:13.5px">${rpEsc(x.respuesta)}</div>`:''}
+      ${x.estado==='mandar'||x.estado==='descartada'?`<div style="display:flex;margin-top:8px"><button class="btn b-sec" type="button" style="flex:1 1 0" data-rpvuelve="${rpEsc(x.id)}">Deshacer</button></div>`:''}</div>`;
+  };
+  el.innerHTML=(pend.length?pend.map(tarjeta).join(''):'')
+    +(hechos.length?`<details style="margin-top:6px"><summary style="cursor:pointer;font-size:13.5px;color:var(--mute)">Últimas decididas (${hechos.length})</summary><div style="margin-top:8px">${hechos.map(tarjeta).join('')}</div></details>`:'');
+}
+$('#rpList').addEventListener('click',e=>{
+  const ok=e.target.closest('[data-rpok]'), no=e.target.closest('[data-rpno]'), vu=e.target.closest('[data-rpvuelve]');
+  const id=(ok&&ok.dataset.rpok)||(no&&no.dataset.rpno)||(vu&&vu.dataset.rpvuelve); const x=id&&RP[id]; if(!x) return;
+  if(ok){ const ta=[...document.querySelectorAll('[data-rpt]')].find(t=>t.dataset.rpt===id); const txt=((ta&&ta.value)||'').trim();
+    if(!txt){ toast('Escribe la respuesta antes de mandarla'); return; }
+    x.respuesta=txt; x.estado='mandar'; x.decidido=Date.now(); toast('Listo: el agente la manda en su próxima vuelta'); }
+  else if(no){ x.estado='descartada'; x.decidido=Date.now(); toast('Ese cliente queda sin responder'); }
+  else if(vu){ x.estado='pendiente'; delete x.decidido; }
+  rpGuarda(); alturaFluida($('#shResp'),pintaRP); pintaPendientes();
+});
+/* Lo que usa el agente (Claude en Chrome, con Sistema abierto y la sesión de Andre):
+   AMK_RESP.listo()        → true cuando este aparato ya se puso al día con la nube (esperar antes de escribir)
+   AMK_RESP.agregar([..])  → casos nuevos {id, red, quien, auto, pregunta, sugerida, motivo}; no repite ids ya conocidos
+   AMK_RESP.paraMandar()   → los que Andre aprobó: {id, red, quien, auto, respuesta, ...}
+   AMK_RESP.marcar(id,'enviada'|'pendiente', nota) */
+window.AMK_RESP={
+  listo:()=>!!(fbReady&&nubeListo['amk_resp_pend']),
+  agregar(lista){ let n=0; (lista||[]).forEach(c=>{ if(!c||!c.id||RP[c.id]) return;
+      RP[c.id]={id:String(c.id), red:c.red||'', quien:c.quien||'', auto:c.auto||'', pregunta:c.pregunta||'', sugerida:c.sugerida||'',
+        motivo:c.motivo||'', ts:Date.now(), estado:'pendiente'}; n++; });
+    if(n){ rpGuarda(); pintaPendientes(); pintaRP(); } return n; },
+  paraMandar(){ return Object.values(RP).filter(x=>x&&x.estado==='mandar').map(x=>Object.assign({},x)); },
+  marcar(id,estado,nota){ const x=RP[id]; if(!x) return false; x.estado=estado; if(estado==='enviada') x.enviado=Date.now(); if(nota) x.nota=String(nota);
+    rpGuarda(); pintaPendientes(); pintaRP(); return true; },
+  todos(){ return Object.values(RP).map(x=>Object.assign({},x)); }
+};
+cargaRP().then(()=>{ try{ pintaPendientes(); }catch(_){} });
 function pintaPendientes(){
   const el=$('#bannerPend'); if(!el) return;
   const p=pendientesGlobales();
