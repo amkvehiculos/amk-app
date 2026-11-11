@@ -875,9 +875,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="ngSRF"></div>
       <div id="ngSRFfav"></div>
     </div>
+    <div class="box" id="boxTR" style="margin-top:13px">
+      <h3>Formulario Traspaso (Zofri)</h3>
+      <p class="mtr" style="margin:0 0 10px">Ventas a otra empresa de Zofri (exportación o cobradas en dólares): van por el documento "Traspaso" (203). Es más corto que el SRF: sin comuna, impuesto, bulto ni FOB. Con "Copiar para Rellenar Traspaso" y el favorito, Zofri se rellena solo (ver abajo). Después de enviarlo a visar, la otra empresa lo confirma desde su sistema y recién ahí haces la salida de bodega.</p>
+      <div id="ngTR"></div>
+      <div id="ngTRfav"></div>
+    </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->10-11-2026 17:44<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:23<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -923,7 +929,15 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <div id="fbVidsEst" class="mtr" style="margin-bottom:12px">Videos de la página: todavía sin revisar.</div>
       <p>Copia las llaves de Facebook e Instagram de este aparato para pegarlas una sola vez en el menú AMK VIDEO del Mac (opción F). Pégalas solo ahí: no las mandes por WhatsApp ni por correo.</p>
       <button class="btn b-sec" id="metaMac" style="width:100%">⧉ Copiar llaves para el Mac</button>
-      <div id="metaMacEst" class="mtr" style="margin-top:8px"></div></div>
+      <div id="metaMacEst" class="mtr" style="margin-top:8px"></div>
+      <details id="metaRecibe" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+        <summary style="cursor:pointer;font-weight:700;font-size:14px">Recibir las llaves en este aparato</summary>
+        <p style="margin-top:8px">Para que este aparato (por ejemplo el iPhone) también enlace solo los videos del Mac a la web y a Vendedores. En el Mac: menú AMK VIDEO → <b>L</b> (copia las llaves). Acá: mantén el dedo en el cuadro → <b>Pegar</b> → Guardar. Se pegan una sola vez.</p>
+        <textarea id="metaRecibeTxt" data-noup="1" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AMK1:…"
+          style="width:100%;height:64px;font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--paper);color:var(--ink)"></textarea>
+        <button class="btn b-pri" id="metaRecibeOk" style="width:100%;margin-top:8px">Guardar llaves pegadas</button>
+        <div id="metaRecibeEst" class="mtr" style="margin-top:8px"></div>
+      </details></div>
     <div class="box"><h3>Bodega de fotos (GitHub)</h3>
       <p>Desde el 03/11/2026 publicar en Instagram ya NO usa GitHub: el video o la foto pasa por tu página de Facebook. Estas bodegas quedan solo para las fotos y vistas 360° de la web.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Token de GitHub</div>
@@ -1259,6 +1273,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="chip" id="pPY" aria-pressed="false">Paraguay</button>
         <button class="chip" id="pBO" aria-pressed="false">Bolivia</button></div></div>
     <div class="fld"><label for="clN" id="clNL">Nombre completo</label><input id="clN" placeholder="Nombre y apellidos"></div>
+    <div class="fld" id="wUz" hidden><label for="clUz">Ubicación de la empresa en Zofri</label><input id="clUz" placeholder="Ej: 062-A (como la diga el cliente)">
+      <div class="mtr">Para el Traspaso (203). Si la empresa tiene una sola ubicación en Zofri, puedes dejarlo vacío.</div></div>
     <div class="fld" id="wGiro" hidden><label for="clG">Giro</label><input id="clG" placeholder="Ej: transporte de carga"></div>
     <div class="fld"><label for="clR">RUT</label><input id="clR" inputmode="text" autocapitalize="characters" placeholder="12345678-9">
       <div class="mtr" id="clRchk"></div></div>
@@ -2033,7 +2049,7 @@ const FB_COREA_FIELDS=['krw','cc','senia'];
    ninguna. Ojo, esto es distinto de `f360` (arriba): ese SÍ se sincroniza a propósito porque no
    son las tomas locales sino las direcciones ya subidas a GitHub, del mismo tamaño que una URL
    normal — solo se llenan cuando el 360° está completo y subido, nunca a medio hacer. */
-const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','dolarObs','revFin','obligNo','smda','chk','fotoVisto','pubVid'];  /* pubVid = cuándo se publicó solo por tener video (07/11/2026), para no volver a publicarlo si Andre lo saca */  /* fotoVisto = hasta qué subida de fotos de Víctor/Bryan ya revisó Andre (ts), ver fotosParaPublicar */  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
+const FB_PRIV_S_FIELDS=['tasks','srfInfoAdic','srfNota','trGlosa','dolarObs','revFin','obligNo','smda','chk','fotoVisto','pubVid'];  /* pubVid = cuándo se publicó solo por tener video (07/11/2026), para no volver a publicarlo si Andre lo saca */  /* fotoVisto = hasta qué subida de fotos de Víctor/Bryan ya revisó Andre (ts), ver fotosParaPublicar */  /* smda = cambios de datos declarados a Zofri, pendientes de pedir con SMDA */  /* revFin = fecha en que se apretó "Terminé de estimar" (revisión en patio cerrada) */  /* chk = checklist de estimado marcado a mano {PINTURA:true,...} (10/10/2026) */
 
 function fbPubData(v){
   const t=S[v.ch]||{};
@@ -4624,6 +4640,84 @@ function pintaSRF(){
   }).join('')
     + (otros?(`<p style="color:var(--mute);font-size:12px;margin:8px 0 0">No son SRF: ${otrosTxt}.</p>`):'');
 }
+/* ---------- FORMULARIO TRASPASO (203) ---------- */
+/* 10/11/2026 (Andre): venta a otra empresa de Zofri (exportación o cobrada en dólares) = Traspaso 203. Campos: Glosa
+   (EMPRESA + MODELO + CHASIS, la empresa en una palabra: "RAO"), RUT comprador (+ lupa: Zofri trae el nombre), Moneda
+   Ingreso 13, Moneda Venta, Cambio Ubicación "Si", Ubicación destino (una de la empresa compradora), N° Int. Usuario =
+   nota de venta, Información Adicional VACÍA. Ítem por chasis. Valor Venta lo escribe Andre. Sin comuna, impuesto,
+   bulto, contenedores ni FOB. Después de Enviar a Visar, la otra empresa confirma y AMK hace la salida de bodega. */
+function trAplica(t){ return !!(t&&t.sold&&(((t.cliente||{}).tipo==='export')||t.moneda==='USD')); }
+const TR_GEN=new Set('IMPORT EXPORT IMPORTADORA EXPORTADORA IMPORTACIONES EXPORTACIONES IMPORTACION EXPORTACION COMERCIAL COMERCIALIZADORA SOCIEDAD SOC EMPRESA EMPRESAS INVERSIONES Y E DE DEL LA LAS LOS EL CIA'.split(' '));
+function trEmpCorta(n){ const P=String(n||'').toUpperCase().replace(/[.,]/g,' ').split(/\s+/).filter(Boolean);
+  return P.find(w=>!TR_GEN.has(w))||P[0]||''; }
+function trGlosa(v,t){ if(t.trGlosa) return t.trGlosa; return [trEmpCorta((t.cliente||{}).n),String(v.mo||'').toUpperCase(),v.ch].filter(Boolean).join(' '); }
+function trMonVenta(t){ return t.moneda==='USD'?{c:'13',n:'DOLAR USA'}:{c:'200',n:'PESO CL'}; }
+function trCampos(v,t){
+  const cl=t.cliente||{}, mv=trMonVenta(t);
+  return [
+    ['Documento','TRASPASO (203)'],
+    ['Glosa',trGlosa(v,t)],
+    ['RUT Comprador',cl.r?rutPuntos(cl.r):''],
+    ['Empresa',cl.n||''],
+    ['Moneda Ingreso','DOLAR USA'],
+    ['Moneda Venta',mv.n],
+    ['Cambio Ubicación','SI'],
+    ['Ubicación Destino',cl.uz?'la que termine en '+cl.uz:'la única de la empresa (si tiene varias, anótala en la ficha)'],
+    ['N° Int. Usuario',t.srfNota||''],
+    ['Información Adicional','(vacío)'],
+    ['Ítem','se busca por chasis '+v.ch],
+    ['Valor Venta','lo escribes tú en Zofri'],
+  ];
+}
+function trFaltantes(v,t){
+  const cl=t.cliente||{}, F=[];
+  if(!cl.r) F.push('RUT de la empresa');
+  if(!cl.n) F.push('Razón social');
+  if(!t.srfNota) F.push('N° Int. Usuario (número de nota de venta)');
+  return F;
+}
+function trDatosFav(v,t){
+  const cl=t.cliente||{};
+  return {amkTR:1,ch:v.ch,vin:String((v.zof||{}).vin||v.vin||'').toUpperCase(),auto:[v.ma,v.mo,v.an].filter(Boolean).join(' '),
+    glosa:trGlosa(v,t),rut:rutPuntos(cl.r),nom:String(cl.n||'').toUpperCase(),emp:trEmpCorta(cl.n),mv:trMonVenta(t).c,
+    uz:String(cl.uz||'').toUpperCase(),nota:String(t.srfNota||'')};
+}
+function trAyuda(){
+  return `<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Cómo rellenar el Traspaso en Zofri con un clic</summary>
+    <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
+      <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos del navegador → <a href="${trMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">Rellenar Traspaso</a></li>
+      <li>Marca el auto como vendido con tipo de comprador <b>Exportación</b>: razón social, RUT de la empresa y, si tiene más de una, su ubicación en Zofri (ej. 062-A). Aquí anota el N° de nota de venta.</li>
+      <li>Toca "Copiar para Rellenar Traspaso".</li>
+      <li>En Zofri abre 203-Traspaso y toca el favorito. Te muestra los cambios; si aceptas, rellena todo, confirma la empresa con la lupa, elige su ubicación, busca el ítem por chasis y <b>revisa que sea el auto vendido</b> (si no, se detiene).</li>
+      <li>Tú escribes el Valor Venta, revisas y aprietas Guardar / Enviar a Visar. El favorito nunca guarda ni envía.</li>
+      <li>La otra empresa lo confirma desde su sistema; después haces la salida de bodega.</li>
+    </ol></details>`;
+}
+function pintaTR(){
+  const box=$('#ngTR'); if(!box) return;
+  { const fb=$('#ngTRfav'); if(fb&&!fb.innerHTML) fb.innerHTML=trAyuda(); }
+  const L=[];
+  for(const c in S){ const t=S[c]; if(!trAplica(t)||!inPer(t.date)) continue; const v=IDX[c]; if(v) L.push({c,v,t}); }
+  if(!L.length){ box.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin traspasos en este período.</p>'; return; }
+  const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const inp='width:100%;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;background:var(--paper);color:var(--ink)';
+  box.innerHTML=L.map(({c,v,t})=>{
+    const falt=trFaltantes(v,t);
+    return `<div class="card plain" style="padding:11px;margin-bottom:10px">
+      <div class="r1"><div><div class="tt" style="font-size:14.5px">${esc(v.ma)} ${esc(v.mo)} ${v.an||''}</div>
+        <div class="ch">${c}</div></div>
+        <div style="font-size:11px;color:${falt.length?'var(--amber)':'var(--green)'};text-align:right;max-width:170px">${falt.length?'Falta: '+falt.join(', '):'✓ Completo'}</div>
+      </div>
+      <div style="margin-top:8px">${trCampos(v,t).map(([k,val])=>`<div class="xrow" style="font-size:12px;color:var(--mute)"><span>${k}</span><b style="color:var(--ink)">${esc(val)||'—'}</b></div>`).join('')}</div>
+      <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Glosa (se arma sola; cámbiala si la empresa se abrevia distinto)</label>
+        <input data-trglosa="${c}" value="${esc(trGlosa(v,t))}" style="${inp}"></div>
+      <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">N° Int. Usuario (nota de venta)</label>
+        <input data-srfnota="${c}" value="${esc(t.srfNota)}" placeholder="Ej: 283" style="${inp}"></div>
+      <div class="acts" style="margin-top:8px;gap:8px"><button class="btn b-pri" data-trfav="${c}" style="flex:2;font-size:12px">Copiar para Rellenar Traspaso</button>
+        <button class="btn b-sec" data-trcp="${c}" style="flex:1;font-size:12px">Copiar texto</button></div>
+    </div>`;
+  }).join('');
+}
 function drawResumen(){
   const ven=[],cos=[];
   for(const c in S){
@@ -4678,7 +4772,7 @@ function drawResumen(){
       ${m.k==='g'?`<div class="acts"><button class="b-sec" style="flex:0 0 auto" data-genedit="${m.ts}">Corregir</button><button class="b-und" style="flex:0 0 auto" data-gendel="${m.ts}">Eliminar</button></div>`:''}
       </div>`}).join('')
     :'<div class="empty">Sin movimientos en este período.</div>';
-  pintaSRF();
+  pintaSRF(); pintaTR();
 }
 
 /* ---------- VITRINA ---------- */
@@ -8341,7 +8435,10 @@ document.addEventListener('change',async e=>{
   const srfdoc=e.target.closest('[data-srfdoc]');
   if(srfdoc){const ch=srfdoc.dataset.srfdoc; await setZof(ch,'docIngreso',srfdoc.value.trim().toUpperCase()); pintaSRF(); return}
   const srfnota=e.target.closest('[data-srfnota]');
-  if(srfnota){const ch=srfnota.dataset.srfnota; const t=st(ch); t.srfNota=srfnota.value.trim(); await save(); pintaSRF(); return}
+  if(srfnota){const ch=srfnota.dataset.srfnota; const t=st(ch); t.srfNota=srfnota.value.trim(); await save(); pintaSRF(); pintaTR(); return}
+  const trglosa=e.target.closest('[data-trglosa]');
+  if(trglosa){const ch=trglosa.dataset.trglosa; const t=st(ch); const v=IDX[ch]; const g=trglosa.value.trim().toUpperCase(); t.trGlosa=null;
+    if(g&&v&&g!==trGlosa(v,t)) t.trGlosa=g; await save(); pintaTR(); return}
   const srfinfo=e.target.closest('[data-srfinfo]');
   if(srfinfo){const ch=srfinfo.dataset.srfinfo; const t=st(ch); t.srfInfoAdic=srfinfo.value.trim(); await save(); pintaSRF(); return}
 });
@@ -8677,6 +8774,30 @@ $('#fbTest').addEventListener('click',async()=>{
    Por eso el código del resumen se lee al abrir (metaCont) y se copia de inmediato; si igual no deja, se intenta con
    execCommand y, como último recurso, se muestra el texto ya seleccionado para Cmd+C (se borra solo al minuto). */
 $('#fbVidsYa').addEventListener('click',()=>fbVidsSync(true));
+/* 11/11/2026 (Andre): los videos del Mac solo se enlazaban a la web desde el aparato con el token de Facebook (Safari del
+   Mac), y la Sportage 2014 quedó sin video en la web. Ahora cualquier aparato (el iPhone) puede recibir las mismas llaves:
+   el Mac las copia (menú AMK VIDEO → L, mismo formato AMK1 que "Copiar llaves para el Mac") y acá se pegan una vez.
+   Quedan solo en este aparato, como si se escribieran a mano. */
+$('#metaRecibeOk').addEventListener('click',async()=>{
+  const el=$('#metaRecibeEst'), t=$('#metaRecibeTxt'), s=(t.value||'').trim();
+  let o=null;
+  try{ if(s.indexOf('AMK1:')===0) o=JSON.parse(decodeURIComponent(escape(atob(s.slice(5).replace(/\s+/g,''))))); }catch(_){ o=null; }
+  if(!o||!o.fb_token){ el.innerHTML='<span style="color:var(--red)">No reconozco eso. En el Mac usa AMK VIDEO → L y vuelve a pegar acá.</span>'; return; }
+  try{
+    const igNuevo=o.ig_token&&o.ig_token!==IGTOKEN;
+    FBTOKEN=o.fb_token; FBPAGE=o.fb_page||FBPAGE;
+    await window.storage.set('amk_fb_token',FBTOKEN); if(FBPAGE) await window.storage.set('amk_fb_page',FBPAGE);
+    $('#fbToken').value=FBTOKEN; $('#fbPage').value=FBPAGE||'';
+    if(o.ig_token){ IGTOKEN=o.ig_token; IGUSER=o.ig_user||IGUSER;
+      await window.storage.set('amk_ig_token',IGTOKEN); if(IGUSER) await window.storage.set('amk_ig_user',IGUSER);
+      $('#igToken').value=IGTOKEN; $('#igUser').value=IGUSER||'';
+      if(igNuevo){ try{ await window.storage.delete('amk_ig_renovado'); await window.storage.delete('amk_ig_vence'); }catch(_){} pintaIGVence(); } }
+    t.value='';
+    el.innerHTML='<span style="color:var(--green)">✓ Llaves guardadas en este aparato. Buscando los videos de la página…</span>';
+    toast('Llaves de Facebook e Instagram guardadas');
+    fbVidsSync(true);
+  }catch(e){ console.error('metaRecibe',e); el.innerHTML='<span style="color:var(--red)">No se pudieron guardar ('+(e.message||e)+')</span>'; }
+});
 let metaCont='';
 (async()=>{ try{ const r=await window.storage.get('amk_cont_id'); if(r&&r.value) metaCont=r.value; }catch(_){} })();
 $('#metaMac').addEventListener('click',()=>{
@@ -9116,7 +9237,7 @@ async function recuerdaComuna(c){ /* ya no hace falta: la comuna se elige de la 
 function ponCliente(cl){
   cl=cl||{};
   $('#clN').value=cl.n||''; $('#clR').value=cl.r||''; $('#clD').value=cl.d||'';
-  $('#clT').value=cl.t||''; $('#clG').value=cl.giro||'';
+  $('#clT').value=cl.t||''; $('#clG').value=cl.giro||''; if($('#clUz')) $('#clUz').value=cl.uz||'';
   pintaComunas($('#clC'),cl.c||'');
   clPais=cl.pais||''; setPais(clPais); setPais(clPais);
   setTipo(cl.tipo||'persona'); chkRut(); pintaClDoc();
@@ -9150,6 +9271,7 @@ function setTipo(t){
   $('#clN').placeholder  = emp?'Ej: Transportes del Norte SpA':'Nombre y apellidos';
   $('#wGiro').hidden = !emp;
   $('#wPais').hidden = (t!=='export');
+  if($('#wUz')) $('#wUz').hidden = (t!=='export');
   $('#clCL').textContent = emp?'Carnet del representante (ambos lados)':'Carnet del cliente (ambos lados)';
   const n=$('#clNota');
   if(t==='export'){
@@ -9256,7 +9378,7 @@ document.addEventListener('click',async e=>{
 function leerCliente(){
   return {n:$('#clN').value.trim(),r:$('#clR').value.trim(),
           d:$('#clD').value.trim(),c:$('#clC').value.trim(),t:$('#clT').value.trim(),
-          tipo:clTipo,giro:$('#clG').value.trim(),pais:clPais};
+          tipo:clTipo,giro:$('#clG').value.trim(),pais:clPais,uz:($('#clUz')||{}).value?$('#clUz').value.trim().toUpperCase():''};
 }
 function notaVenta(ch){
   const v=IDX[ch], t=st(ch), cl=t.cliente||leerCliente();
@@ -12076,6 +12198,110 @@ function srfMarcador(){
   })();
 }
 function srfMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+srfMarcador.toString()+')())'); }
+/* Favorito "Rellenar Traspaso" (10/11/2026). Corre dentro de ZOFRI Virtual, en 203-Traspaso. Lee lo copiado con
+   "Copiar para Rellenar Traspaso", muestra los cambios y solo si Andre acepta: rellena el encabezado, confirma la empresa
+   con la lupa, pone Cambio Ubicación "Si" y elige la ubicación de la empresa, busca el ítem por chasis y REVISA QUE SEA
+   EL AUTO VENDIDO (si no, se detiene). Nunca escribe el Valor Venta y nunca aprieta Guardar ni Enviar a Visar. */
+function trMarcador(){
+  (async()=>{
+    const J=window.jQuery, sl=ms=>new Promise(r=>setTimeout(r,ms)), q=a=>document.querySelector('[attr="'+a+'"]');
+    const vis=el=>!!el&&el.getClientRects().length>0, norm=s=>String(s??'').trim().toUpperCase(), an=s=>norm(s).replace(/[^A-Z0-9]/g,'');
+    if(!q('rutComprador')||!q('cambioUbicacion')||q('zonaFrancaExtensionCodigo')){ alert('Abre primero en ZOFRI Virtual: 203-Traspaso (documento nuevo), y vuelve a tocar el favorito.'); return; }
+    let t=''; try{ t=await navigator.clipboard.readText(); }catch(_){}
+    if(!t||t.indexOf('amkTR')<0) t=prompt('Pega aquí los datos copiados desde AMK (Negocio → Ventas → Formulario Traspaso → "Copiar para Rellenar Traspaso"):')||'';
+    if(!t) return; let D; try{ D=JSON.parse(t.slice(t.indexOf('{'))); }catch(_){ alert('Los datos pegados no son válidos. Vuelve a copiarlos desde AMK.'); return; }
+    if(!D||!D.amkTR){ alert(D&&D.amkSRF?'Estos datos son para el SRF, no para el Traspaso. En AMK usa "Copiar para Rellenar Traspaso".':'Estos datos no vienen de AMK.'); return; }
+    const selTxt=el=>{ const o=el.options[el.selectedIndex]; return o&&o.value!==''?o.text:'(vacío)'; };
+    const setSel=(el,val)=>{ if(J){ J(el).val(val); try{ J(el).selectpicker('refresh'); }catch(_){} J(el).trigger('change'); } else { el.value=val; el.dispatchEvent(new Event('change',{bubbles:true})); } };
+    const setTxt=(el,val)=>{ el.value=val; if(J) J(el).trigger('change').trigger('blur'); else { el.dispatchEvent(new Event('change',{bubbles:true})); el.dispatchEvent(new Event('blur')); } };
+    const C=[['glosa','Glosa',D.glosa],['monedaIngresoCodigo','Moneda Ingreso','13'],['monedaVentaCodigo','Moneda Venta',D.mv||'200'],
+      ['numeroInternoUsuario','N° Int. Usuario',D.nota],['informacionAdicional','Información Adicional','']];
+    const cambios=[], avisos=[], ops=[];
+    for(const [a,lab,val] of C){
+      const el=q(a); if(!el){ avisos.push('No encontré la casilla "'+lab+'".'); continue; }
+      if(val==null||(val===''&&a!=='informacionAdicional')){ avisos.push(lab+': AMK no lo tiene, escríbelo tú.'); continue; }
+      if(el.tagName==='SELECT'){
+        if(String(el.value)===String(val)) continue;
+        const o=[...el.options].find(o=>String(o.value)===String(val)); if(!o){ avisos.push(lab+': Zofri no tiene la opción '+val+', elígela tú.'); continue; }
+        cambios.push(lab+': '+selTxt(el)+' → '+o.text); ops.push(()=>setSel(el,o.value));
+      }else{
+        if(norm(el.value)===norm(val)) continue;
+        cambios.push(lab+': '+(el.value||'(vacío)')+' → '+(val||'(vacío)')); ops.push(()=>setTxt(el,val));
+      }
+    }
+    const rutEl=q('rutComprador'), nomEl=q('nombreComprador');
+    const rutYa=an(rutEl.value)===an(D.rut)&&!!norm(nomEl&&nomEl.value);
+    if(!D.rut) avisos.push('RUT de la empresa: AMK no lo tiene, escríbelo tú y aprieta la lupa.');
+    else if(!rutYa) cambios.push('RUT Comprador: '+D.rut+' → lupa (Zofri trae el nombre; se compara con '+(D.nom||'¿?')+')');
+    cambios.push('Cambio Ubicación: Si → Ubicación Destino: '+(D.uz?'la que termine en '+D.uz:'la única de la empresa'));
+    const filas=()=>[...document.querySelectorAll('tr[attr=fila_item]')].filter(vis);
+    const cel=(tr,a,re)=>{ const e=tr.querySelector('[attr="'+a+'"]'); if(e) return e.matches('input,select')?e:e.querySelector('input,select');
+      const tb=tr.closest('table'); const ths=tb?[...tb.querySelectorAll('th')]:[]; const k=ths.findIndex(th=>re.test(th.textContent.replace(/\s+/g,' '))); const td=k>=0?tr.querySelectorAll(':scope > td')[k]:null; return td?td.querySelector('input,select'):null; };
+    const itemInv=tr=>{ const e=cel(tr,'item_itemInventario',/ítem inventario|item inventario/i); return e?norm(e.value):''; };
+    const chasisFila=tr=>{ const n=tr.nextElementSibling, d=(n&&n.getAttribute('attr')==='fila_descriptor')?n:tr;
+      const i=d.querySelector('[attr-descriptorcodigo="8"]'); if(i&&i.value) return norm(i.value);
+      const m=(d.innerText||d.textContent||'').match(/Chassis:\s*([A-Z0-9]+)/i); return m?norm(m[1]):''; };
+    const esCh=c=>!!c&&((D.vin&&c===norm(D.vin))||c.endsWith(norm(D.ch)));
+    const ya=filas().find(tr=>itemInv(tr));
+    cambios.push(ya?('Ítem ya cargado en Zofri: '+itemInv(ya)+' (no se vuelve a buscar)'):('Buscar el ítem por chasis '+D.ch+' y marcarlo'));
+    cambios.push('Revisar que el chasis del ítem sea '+(D.vin||D.ch));
+    cambios.push('Valor Venta: NO se toca (lo escribes tú)');
+    if(!confirm('AMK · Rellenar Traspaso\n'+D.auto+' · '+D.ch+'\n\n'+cambios.join('\n')+(avisos.length?'\n\nOJO:\n'+avisos.join('\n'):'')+'\n\n¿Aplicar? No se guarda ni se envía nada.')) return;
+    for(const f of ops){ f(); await sl(150); }
+    const fin=[];
+    /* Empresa: RUT + lupa; Zofri formatea el RUT y trae el nombre */
+    if(D.rut&&!rutYa){
+      if(nomEl) nomEl.value='';
+      setTxt(rutEl,D.rut); await sl(200);
+      const lupa=q('btn_buscarComprador'); if(lupa) lupa.click();
+      for(let k=0;k<40&&!norm(nomEl&&nomEl.value);k++) await sl(250);
+      if(!norm(nomEl&&nomEl.value)){ alert('Zofri no encontró la empresa con el RUT '+D.rut+'.\nRevisa el RUT (¿es usuaria de Zofri?). Me detengo aquí: no elegí ubicación ni busqué el ítem.'); return; }
+    }
+    const nomZ=norm(nomEl&&nomEl.value);
+    if(D.emp&&nomZ.indexOf(norm(D.emp))<0) fin.push('OJO: Zofri dice que el RUT es de "'+nomZ+'", y en AMK la empresa es "'+D.nom+'". Revisa que sea la correcta.');
+    else fin.push('Empresa: '+nomZ);
+    /* Cambio de ubicación "Si" → recién ahí Zofri carga las ubicaciones de la empresa compradora */
+    const cu=q('cambioUbicacion'), ud=q('ubicacionDestinoCodigo');
+    if(cu&&cu.value!=='Si'){ setSel(cu,'Si'); }
+    const opts=()=>ud?[...ud.options].filter(o=>o.value!==''):[];
+    for(let k=0;k<32&&!opts().length;k++) await sl(250);
+    await sl(300);
+    if(ud){
+      const O=opts(); let elegida=null;
+      if(D.uz){ const z=an(D.uz); const M=O.filter(o=>an(o.value).endsWith(z)||an(o.text).indexOf(z)>=0); if(M.length===1) elegida=M[0]; }
+      else if(O.length===1) elegida=O[0];
+      if(elegida){ if(ud.value!==elegida.value) setSel(ud,elegida.value); fin.push('Ubicación: '+elegida.text); }
+      else fin.push('OJO: elige tú la Ubicación Destino'+(D.uz?' (no encontré una sola que calce con "'+D.uz+'")':' (la empresa tiene '+O.length+')')+': '+(O.map(o=>o.value).join(', ')||'Zofri no trajo ninguna'));
+    }else fin.push('OJO: no encontré la casilla Ubicación Destino.');
+    /* Ítem: chasis en Descripción → Buscar → marcar la fila de ese chasis → Aceptar */
+    let tr=ya;
+    if(!tr){
+      const dI=q('itemDescripcion'), b=q('btn_rebajarDoc');
+      if(!dI||!b){ alert(fin.join('\n')+'\n\nNo encontré la búsqueda de ítems. Busca tú el chasis '+D.ch+' en Detalle de Items.'); return; }
+      setTxt(dI,D.ch); await sl(200); b.click();
+      const modal=()=>[...document.querySelectorAll('.modal')].find(m=>vis(m)&&/Items de Ingreso/i.test(m.textContent));
+      const filasM=m=>[...m.querySelectorAll('tbody tr')].filter(r=>vis(r)&&r.querySelector('td')&&r.cells.length>1);
+      let mo=null, R=[];
+      for(let k=0;k<80;k++){ mo=modal(); if(mo){ R=filasM(mo).filter(r=>{ const x=an(r.textContent); return x.indexOf(an(D.ch))>=0||(D.vin&&x.indexOf(an(D.vin))>=0); }); if(R.length) break; } await sl(250); }
+      if(!mo){ alert(fin.join('\n')+'\n\nNo se abrió la ventana de búsqueda de ítems. Busca tú el chasis '+D.ch+'.'); return; }
+      if(R.length!==1){ alert(fin.join('\n')+'\n\n'+(R.length?'Zofri trajo '+R.length+' ítems con el chasis '+D.ch+': elige tú el correcto y aprieta Aceptar.':'Zofri no trajo ningún ítem con el chasis '+D.ch+' (¿ya salió de bodega o está en otra ubicación?). Revísalo tú.')); return; }
+      const ck=R[0].querySelector('input[type=checkbox]'); if(ck){ if(!ck.checked) ck.click(); } else R[0].click();
+      await sl(400);
+      const ok=[...mo.querySelectorAll('button')].find(x=>/^aceptar$/i.test(x.textContent.trim()));
+      if(!ok){ alert(fin.join('\n')+'\n\nMarqué el ítem pero no encontré el botón Aceptar: apriétalo tú.'); return; }
+      ok.click();
+      for(let k=0;k<40&&!(tr=filas().find(x=>itemInv(x)));k++) await sl(250);
+      if(!tr){ alert(fin.join('\n')+'\n\nZofri no cargó el ítem en Detalle de Items. Revísalo tú.'); return; }
+      await sl(500);
+    }
+    const chZ=chasisFila(tr);
+    if(!esCh(chZ)){ tr.style.outline='3px solid #d33';
+      alert('⚠ NO ES EL MISMO AUTO.\n\nEl ítem que trajo Zofri ('+itemInv(tr)+') tiene chasis '+(chZ||'(no lo pude leer)')+'.\nEl auto vendido es '+D.ch+'.\n\nNo guardes: quita esa fila y revisa el ítem.'); return; }
+    const vv=cel(tr,'item_valorVentaUnit',/valor venta unit/i); if(vv){ vv.style.outline='3px solid #e8a33d'; try{ vv.focus(); }catch(_){} }
+    alert('✓ Listo. Ítem '+itemInv(tr)+' · chasis verificado: '+chZ+'.\n'+fin.join('\n')+'\n\nAhora escribe tú el Valor Venta (casilla marcada en naranjo).\nRevisa todo y aprieta Guardar / Enviar a Visar tú. Después la otra empresa lo confirma y haces la salida de bodega.');
+  })();
+}
+function trMarcadorHref(){ return 'javascript:'+encodeURIComponent('void(('+trMarcador.toString()+')())'); }
 async function setZof(ch,key,val){
   const v=IDX[ch]; if(!v) return;
   const smdaAntes=smdaFoto(v);
@@ -12986,6 +13212,13 @@ document.addEventListener('click',async e=>{
   if(srffav){const ch=srffav.dataset.srffav; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
     const F=srfFaltantes(v,t); if(F.length&&!confirm('A esta venta todavía le falta: '+F.join(', ')+'.\n\n¿Copiar igual? Lo que falte lo escribes tú en Zofri.')) return;
     await cp('AMK '+JSON.stringify(srfDatosFav(v,t)),'Copiado · en Zofri abre el SRF y toca el favorito "Rellenar SRF"'); return}
+  const trfav=e.target.closest('[data-trfav]');
+  if(trfav){const ch=trfav.dataset.trfav; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
+    const F=trFaltantes(v,t); if(F.length&&!confirm('A este traspaso todavía le falta: '+F.join(', ')+'.\n\n¿Copiar igual? Lo que falte lo escribes tú en Zofri.')) return;
+    await cp('AMK '+JSON.stringify(trDatosFav(v,t)),'Copiado · en Zofri abre 203-Traspaso y toca el favorito "Rellenar Traspaso"'); return}
+  const trcp=e.target.closest('[data-trcp]');
+  if(trcp){const ch=trcp.dataset.trcp; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
+    await cp(trCampos(v,t).map(([k,val])=>`${k}: ${val||''}`).join('\n'),'Datos del traspaso copiados'); return}
   const srfcp=e.target.closest('[data-srfcp]');
   if(srfcp){const ch=srfcp.dataset.srfcp; const v=IDX[ch]; const t=S[ch]; if(!v||!t)return;
     const texto=srfCampos(v,t).map(([k,val])=>`${k}: ${val||''}`).join('\n');
@@ -13898,9 +14131,9 @@ function descargaRespaldoExcel(auto){
 
   /* 01/10/2026: el respaldo incluye también todo lo nuevo (ventas, costos, reservas, sueldos, deudas, gastos, insumos). */
   try{
-    const sv=[['Chasis','Marca','Modelo','Año','Vendido','Fecha venta','Precio venta','Vendedor','Cliente','Teléfono cliente','RUT cliente','Dirección cliente','Comuna cliente','Documento Zofri','Precio a pedir','Precio mínimo','Publicado','Oferta','Reserva','Reserva: cliente','Reserva: RUT','Reserva: comuna','Reserva: precio','Reserva: pagado','Reserva: vence']];
+    const sv=[['Chasis','Marca','Modelo','Año','Vendido','Fecha venta','Precio venta','Vendedor','Cliente','Teléfono cliente','RUT cliente','Dirección cliente','Comuna cliente','Documento Zofri','Ubicación Zofri empresa','Precio a pedir','Precio mínimo','Publicado','Oferta','Reserva','Reserva: cliente','Reserva: RUT','Reserva: comuna','Reserva: precio','Reserva: pagado','Reserva: vence']];
     V.forEach(v=>{ const t=S[v.ch]||{}, r=t.res||null, pg=r?(r.pagos||[]).reduce((a,x)=>a+(+x.m||0),0):'';
-      sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',(t.cliente&&t.cliente.r)||'',(t.cliente&&t.cliente.d)||'',(t.cliente&&t.cliente.c)||'',t.sold?({SRF:'SRF',FI:'Factura de Importación',TRASPASO:'Traspaso'}[t.moneda==='USD'?'TRASPASO':docZofri(t.cliente)]||''):'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r&&r.cl?r.cl.r||'':'',r&&r.cl?r.cl.c||'':'',r?r.precio:'',pg,r?r.vence:'']); });
+      sv.push([v.ch,v.ma,v.mo,v.an,t.sold?'Sí':'No',t.date||'',t.price||'',t.vendedor||'',(t.cliente&&t.cliente.n)||'',(t.cliente&&t.cliente.t)||'',(t.cliente&&t.cliente.r)||'',(t.cliente&&t.cliente.d)||'',(t.cliente&&t.cliente.c)||'',t.sold?({SRF:'SRF',FI:'Factura de Importación',TRASPASO:'Traspaso'}[t.moneda==='USD'?'TRASPASO':docZofri(t.cliente)]||''):'',(t.cliente&&t.cliente.uz)||'',t.pventa||'',t.pmin||'',t.pub?'Sí':'No',t.of?'Sí':'No',r?r.est:'',r?r.cli:'',r&&r.cl?r.cl.r||'':'',r&&r.cl?r.cl.c||'':'',r?r.precio:'',pg,r?r.vence:'']); });
     sheets.push({name:'Ventas y precios',rows:sv});
     const co=[['Chasis','Marca','Modelo','Categoría','Proveedor','Detalle','Fecha','Acordado','Pagado','Debe','Posventa']];
     for(const ch in S){ const v=IDX[ch]||{}; (S[ch].costs||[]).forEach(x=>{ const pag=abo(x); co.push([ch,v.ma||'',v.mo||'',CN[x.cat]||x.cat,x.prov||'',x.det||'',x.date||'',x.acor||x.amt||0,pag,Math.max(0,(x.acor||0)-pag),x.post?'Sí':'No']); }); }
