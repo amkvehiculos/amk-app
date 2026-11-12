@@ -871,19 +871,19 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
       <button class="btn b-sec" id="ctaShare" style="width:100%;margin-top:9px">🖼️ Enviar imagen + datos al cliente</button></div>
     <div class="box" id="boxSRF" style="margin-top:13px">
       <h3>Formulario SRF (Zofri)</h3>
-      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Las ventas en dólares o de exportación no aparecen acá (van por Traspaso 203), ni las de comunas fuera de Iquique/Arica (van por Factura de Importación). Con "Copiar para Rellenar SRF" y el favorito, Zofri se rellena solo (ver abajo).</p>
+      <p class="mtr" style="margin:0 0 10px">Cómo quedaría cada venta en el documento "SRF" de Zofri (201-Salida), con las reglas ya confirmadas. Procedencia, monedas, condición de venta, medio de transporte e impuesto son siempre los mismos; Z.F. Extensión se calcula según la comuna del comprador. Los traspasos Zofri y las ventas en dólares no aparecen acá (van por Traspaso 203), ni las de comunas fuera de Iquique/Arica (van por Factura de Importación). Con "Copiar para Rellenar SRF" y el favorito, Zofri se rellena solo (ver abajo).</p>
       <div id="ngSRF"></div>
       <div id="ngSRFfav"></div>
     </div>
     <div class="box" id="boxTR" style="margin-top:13px">
       <h3>Formulario Traspaso (Zofri)</h3>
-      <p class="mtr" style="margin:0 0 10px">Ventas a otra empresa de Zofri (exportación o cobradas en dólares): van por el documento "Traspaso" (203). Es más corto que el SRF: sin comuna, impuesto, bulto ni FOB. Con "Copiar para Rellenar Traspaso" y el favorito, Zofri se rellena solo (ver abajo). Después de enviarlo a visar, la otra empresa lo confirma desde su sistema y recién ahí haces la salida de bodega.</p>
+      <p class="mtr" style="margin:0 0 10px">Ventas con tipo de comprador "Traspaso Zofri" (destino Chile, Paraguay o Bolivia) o cobradas en dólares: van por el documento "Traspaso" (203). Es más corto que el SRF: sin comuna, impuesto, bulto ni FOB. Con "Copiar para Rellenar Traspaso" y el favorito, Zofri se rellena solo (ver abajo). Después de enviarlo a visar, la otra empresa lo confirma desde su sistema y recién ahí haces la salida de bodega.</p>
       <div id="ngTR"></div>
       <div id="ngTRfav"></div>
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->11-11-2026 18:58 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->12-11-2026 09:52 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1266,20 +1266,21 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     <div class="fld"><label>Tipo de comprador</label><div class="catg" style="grid-template-columns:repeat(3,1fr)">
       <button class="cg" data-tipo="persona" aria-pressed="true">Persona</button>
       <button class="cg" data-tipo="empresa" aria-pressed="false">Empresa</button>
-      <button class="cg" data-tipo="export" aria-pressed="false">Exportación</button></div></div>
+      <button class="cg" data-tipo="traspaso" aria-pressed="false">Traspaso Zofri</button></div></div>
     <div class="note" id="clNota" hidden style="margin-bottom:12px"></div>
-    <div class="fld" id="wPais" hidden><label for="clP">País de destino</label>
-      <div class="opt" style="display:flex;gap:6px">
+    <div class="fld" id="wPais" hidden><label>Destino del vehículo</label>
+      <div class="opt" style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="chip" id="pCL" aria-pressed="true">Chile</button>
         <button class="chip" id="pPY" aria-pressed="false">Paraguay</button>
         <button class="chip" id="pBO" aria-pressed="false">Bolivia</button></div></div>
     <div class="fld"><label for="clN" id="clNL">Nombre completo</label><input id="clN" placeholder="Nombre y apellidos"></div>
-    <div class="fld" id="wUz" hidden><label for="clUz">Ubicación de la empresa en Zofri</label><input id="clUz" placeholder="Ej: 062-A (como la diga el cliente)">
-      <div class="mtr">Para el Traspaso (203). Si la empresa tiene una sola ubicación en Zofri, puedes dejarlo vacío.</div></div>
     <div class="fld" id="wGiro" hidden><label for="clG">Giro</label><input id="clG" placeholder="Ej: transporte de carga"></div>
     <div class="fld"><label for="clR">RUT</label><input id="clR" inputmode="text" autocapitalize="characters" placeholder="12345678-9">
       <div class="mtr" id="clRchk"></div></div>
-    <div class="fld"><label for="clD">Dirección</label><input id="clD" placeholder="Calle y número"></div>
-    <div class="fld"><label for="clC">Comuna</label>
+    <div class="fld" id="wUz" hidden><label for="clUz">Ubicación de la empresa en Zofri</label><input id="clUz" placeholder="Ej: 062-A (como la diga el cliente)">
+      <div class="mtr">Para el Traspaso (203). Si la empresa tiene una sola ubicación en Zofri, puedes dejarlo vacío.</div></div>
+    <div class="fld" id="wDir"><label for="clD">Dirección</label><input id="clD" placeholder="Calle y número"></div>
+    <div class="fld" id="wCom"><label for="clC">Comuna</label>
       <select id="clC"></select>
       <div class="mtr" id="clDoc" style="margin-top:6px"></div></div>
     <div class="fld"><label for="clT">Teléfono</label><input id="clT" inputmode="tel" placeholder="+56 9 ..."></div>
@@ -4494,7 +4495,7 @@ function srfDatosFav(v,t){
 const SRF_ZFEXT={'IQUIQUE':'IQUIQUE','ALTO HOSPICIO':'IQUIQUE','POZO ALMONTE':'IQUIQUE','PICA':'IQUIQUE','ARICA':'ARICA'};
 function srfZF(comuna){ return SRF_ZFEXT[comSinT(comuna)]||''; }
 /* 05/11/2026: comuna fuera de Iquique/Arica = Factura de Importación (docZofri), no SRF */
-function srfAplica(t){ return t.sold && t.moneda!=='USD' && (t.cliente||{}).tipo!=='export' && docZofri(t.cliente)!=='FI'; }
+function srfAplica(t){ return t.sold && t.moneda!=='USD' && !esTraspasoCl(t.cliente) && docZofri(t.cliente)!=='FI'; }
 function srfInfoAdic(t){
   if(t.srfInfoAdic) return t.srfInfoAdic;
   if(t.dolarObs) return `01:DOBS-${Number(t.dolarObs).toFixed(2)};`;
@@ -4564,8 +4565,8 @@ function pintaSRF(){
   }
   const srf=items.filter(x=>srfAplica(x.t));
   const otros=items.length-srf.length;
-  const nFI=items.filter(x=>x.t.moneda!=='USD'&&(x.t.cliente||{}).tipo!=='export'&&docZofri(x.t.cliente)==='FI').length, nTr=otros-nFI;
-  const otrosTxt=[nTr?nTr+' en dólares o exportación (van por Traspaso 203)':'',nFI?nFI+' a comunas fuera de Iquique/Arica (van por Factura de Importación)':''].filter(Boolean).join(' · ');
+  const nFI=items.filter(x=>x.t.moneda!=='USD'&&!esTraspasoCl(x.t.cliente)&&docZofri(x.t.cliente)==='FI').length, nTr=otros-nFI;
+  const otrosTxt=[nTr?nTr+' traspaso Zofri o en dólares (van por Traspaso 203)':'',nFI?nFI+' a comunas fuera de Iquique/Arica (van por Factura de Importación)':''].filter(Boolean).join(' · ');
   if(!srf.length){
     box.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin ventas SRF en este período.'
       +(otros?(' No son SRF: '+otrosTxt+'.'):'')+'</p>';
@@ -4598,7 +4599,7 @@ function pintaSRF(){
    Ingreso 13, Moneda Venta, Cambio Ubicación "Si", Ubicación destino (una de la empresa compradora), N° Int. Usuario =
    nota de venta, Información Adicional VACÍA. Ítem por chasis. Valor Venta lo escribe Andre. Sin comuna, impuesto,
    bulto, contenedores ni FOB. Después de Enviar a Visar, la otra empresa confirma y AMK hace la salida de bodega. */
-function trAplica(t){ return !!(t&&t.sold&&(((t.cliente||{}).tipo==='export')||t.moneda==='USD')); }
+function trAplica(t){ return !!(t&&t.sold&&(esTraspasoCl(t.cliente)||t.moneda==='USD')); }
 const TR_GEN=new Set('IMPORT EXPORT IMPORTADORA EXPORTADORA IMPORTACIONES EXPORTACIONES IMPORTACION EXPORTACION COMERCIAL COMERCIALIZADORA SOCIEDAD SOC EMPRESA EMPRESAS INVERSIONES Y E DE DEL LA LAS LOS EL CIA'.split(' '));
 function trEmpCorta(n){ const P=String(n||'').toUpperCase().replace(/[.,]/g,' ').split(/\s+/).filter(Boolean);
   return P.find(w=>!TR_GEN.has(w))||P[0]||''; }
@@ -4638,7 +4639,7 @@ function trAyuda(){
   return `<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Cómo rellenar el Traspaso en Zofri con un clic</summary>
     <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
       <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos del navegador → <a href="${trMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">Rellenar Traspaso</a></li>
-      <li>Marca el auto como vendido con tipo de comprador <b>Exportación</b>: razón social, RUT de la empresa y, si tiene más de una, su ubicación en Zofri (ej. 062-A). Aquí anota el N° de nota de venta.</li>
+      <li>Marca el auto como vendido con tipo de comprador <b>Traspaso Zofri</b> (destino Chile en pesos; Paraguay o Bolivia en dólares): razón social, RUT de la empresa y, si tiene más de una, su ubicación en Zofri (ej. 062-A). Aquí anota el N° de nota de venta.</li>
       <li>Toca "Copiar para Rellenar Traspaso".</li>
       <li>En Zofri abre 203-Traspaso y toca el favorito. Te muestra los cambios; si aceptas, rellena todo, confirma la empresa con la lupa, elige su ubicación, busca el ítem por chasis y <b>revisa que sea el auto vendido</b> (si no, se detiene).</li>
       <li>Tú escribes el Valor Venta, revisas y aprietas Guardar / Enviar a Visar. El favorito nunca guarda ni envía.</li>
@@ -5332,14 +5333,19 @@ document.addEventListener('click',async e=>{
 });
 $('#ssOk').addEventListener('click',async()=>{const c=editing,t=st(c);
   const avTsVenta=avisoVentaActivo;
+  /* 12/11/2026 (Andre): en un traspaso Zofri no se pide tipo de cambio (Zofri no lo exige, a diferencia del SRF): el campo
+     ni se muestra y no se guarda. Las cuentas en pesos usan el dólar observado del día de la venta (t.dolarObs, ver enCLP).
+     La revisión va ANTES de tocar la ficha: antes se marcaba vendido en memoria aunque faltara el tipo de cambio. */
+  const esTrV=esTraspasoCl(leerCliente()), tcV=(moneda==='USD'&&!esTrV)?(pnum($('#ssTC').value)||0):0;
+  if(moneda==='USD'&&!esTrV&&!tcV){toast('Falta el tipo de cambio');return}
   t.sold=true;t.price=pnum($('#ssP').value);t.date=$('#ssD').value||iso();t.pub=false;
-  t.moneda=moneda; t.tc=moneda==='USD'?(pnum($('#ssTC').value)||0):0;
+  t.moneda=moneda; t.tc=tcV;
   t.cambiado=false;
-  if(moneda==='USD'&&!t.tc){toast('Falta el tipo de cambio');return}
   if(t.res&&t.res.est==='activa'){ t.res=Object.assign({},t.res,{est:'completa',fin:t.date}); }
   t.cliente=leerCliente(); recuerdaComuna(t.cliente.c);
   t.vendedor=ssQ; t.comision=(ssQ==='bryan')?COMB:0;
   { const o=obsDe(t.date); if(o) t.dolarObs=Number(o.v); }   /* 15/10/2026: el del día de la venta */
+  if(t.moneda==='USD'&&!t.tc&&!t.dolarObs&&TC&&+TC.obs) t.dolarObs=+TC.obs;   /* traspaso en dólares sin tipo de cambio ni dólar del día: el vigente en Ajustes */
   const prune=!$('#ssPrWrap').hidden && $('#ssPrune').getAttribute('aria-pressed')==='true';
   await save();
   if(typeof fbSyncSueldosPronto==='function') fbSyncSueldosPronto();
@@ -5617,7 +5623,7 @@ function pintaPubGan(){ const v=IDX[editing]; if(!v||!$('#spVentaG')) return; co
   const f=(id,n)=>{ $(id).innerHTML=n>0?ganHTML(n,c)+' <span style="color:var(--mute)">· costo proyectado '+clp(c)+'</span>':''; };
   f('#spVentaG',pnum($('#spVenta').value)||0); f('#spMinG',pnum($('#spMin').value)||0); }
 function pintaVentaGan(){ const v=IDX[editing]; const box=$('#ssG'); if(!v||!box) return; const c=costoProy(v), t=st(v.ch);
-  const n=pnum($('#ssP').value)||0, tc=moneda==='USD'?(pnum($('#ssTC').value)||0):0, clpv=moneda==='USD'?Math.round(n*tc):n;
+  const n=pnum($('#ssP').value)||0, tc=moneda==='USD'?((esTraspasoCl({tipo:clTipo})?0:pnum($('#ssTC').value))||+(TC&&TC.obs)||0):0, clpv=moneda==='USD'?Math.round(n*tc):n;
   const L=[]; L.push('Costo del auto <b>'+clp(c)+'</b>');
   if(t.pventa) L.push('A pedir <b>'+clp(t.pventa)+'</b> · '+ganHTML(t.pventa,c));
   if(t.pmin) L.push('Mínimo <b style="color:var(--amber)">'+clp(t.pmin)+'</b> · '+ganHTML(t.pmin,c));
@@ -9247,7 +9253,7 @@ function pintaComunas(sel,actual){
    Factura de Importación con liberación por discapacidad (Ley 20.422). */
 function docZofri(cl){
   cl=cl||{};
-  if(cl.tipo==='export') return 'TRASPASO';
+  if(esTraspasoCl(cl)) return 'TRASPASO';
   if(!cl.c) return '';
   if(!comunaCanon(cl.c)) return 'REVISAR';   /* comuna vieja escrita a mano que no calza con la lista: no se adivina */
   return srfZF(cl.c)?'SRF':'FI';
@@ -9271,7 +9277,7 @@ function ponCliente(cl){
   $('#clN').value=cl.n||''; $('#clR').value=cl.r||''; $('#clD').value=cl.d||'';
   $('#clT').value=cl.t||''; $('#clG').value=cl.giro||''; if($('#clUz')) $('#clUz').value=cl.uz||'';
   pintaComunas($('#clC'),cl.c||'');
-  clPais=cl.pais||''; setPais(clPais); setPais(clPais);
+  setPais(cl.pais||'');
   setTipo(cl.tipo||'persona'); chkRut(); pintaClDoc();
 }
 /* El bloque Cliente es uno solo: vive en la hoja de venta y se presta a la reserva mientras está abierta. */
@@ -9288,35 +9294,44 @@ function rvCliFalta(alAbrir){
   if(alAbrir!==false){ const d=$('#rvCliDet'); if(d) d.open=F.length>0; }
 }
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target.closest&&e.target.closest('#rvCliBox')) rvCliFalta(false); }));
+/* 12/11/2026 (Andre): un traspaso a otra empresa de Zofri (para Chile o para exportar) solo necesita razón social, RUT y
+   la ubicación de la empresa en Zofri: no van dirección, comuna, giro ni carnet. */
+function esTraspasoCl(cl){ return !!cl&&(cl.tipo==='traspaso'||cl.tipo==='export'); }
 function cliFaltan(cl){
   cl=cl||{}; const F=[];
+  if(esTraspasoCl(cl)) return cl.r?[]:['RUT de la empresa'];
   if(!cl.r) F.push('RUT'); if(!cl.d) F.push('dirección'); if(!cl.c) F.push('comuna'); if(!cl.t) F.push('teléfono');
   return F;
 }
 let clLado='F', clArr={F:'',B:''}, clTipo='persona', clPais='', moneda='CLP';
 
+/* 12/11/2026 (Andre): "Exportación" y "Traspaso Zofri" son lo mismo → un solo tipo, con destino Chile / Paraguay / Bolivia.
+   Las ventas viejas guardadas como 'export' se abren como Traspaso con su país. Persona y Empresa piden los mismos datos
+   (solo cambia el nombre de la casilla, sirve para estadística): ya no se pide giro. */
 function setTipo(t){
+  if(t==='export') t='traspaso';
   clTipo=t;
   $$('[data-tipo]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tipo===t?'true':'false'));
-  const emp = (t!=='persona');
+  const emp = (t!=='persona'), tr = esTraspasoCl({tipo:t});
   $('#clNL').textContent = emp?'Razón social':'Nombre completo';
-  $('#clN').placeholder  = emp?'Ej: Transportes del Norte SpA':'Nombre y apellidos';
-  $('#wGiro').hidden = !emp;
-  $('#wPais').hidden = (t!=='export');
-  if($('#wUz')) $('#wUz').hidden = (t!=='export');
+  $('#clN').placeholder  = emp?(tr?'Ej: Import Export RAO Trading SpA':'Ej: Transportes del Norte SpA'):'Nombre y apellidos';
+  $('#wGiro').hidden = true;
+  $('#wPais').hidden = !tr;
+  if($('#wUz')) $('#wUz').hidden = !tr;
+  if($('#tcWrap')) $('#tcWrap').hidden = (moneda!=='USD') || tr;   /* traspaso: Zofri no pide tipo de cambio */
+  ['#wDir','#wCom','#wCarnet'].forEach(k=>{ const el=$(k); if(el) el.hidden=tr; });
   $('#clCL').textContent = emp?'Carnet del representante (ambos lados)':'Carnet del cliente (ambos lados)';
   const n=$('#clNota');
-  if(t==='export'){
+  if(t==='traspaso'){
     n.hidden=false;
-    n.innerHTML='En exportación no vendes al cliente final: es un <b>traspaso a otra empresa dentro de Zofri</b>, que se encarga de exportar el vehículo. Normalmente se cobra en dólares.';
-  }else if(t==='empresa'){
-    n.hidden=false; n.innerHTML='El RUT de empresa se valida igual que el de una persona.';
+    n.innerHTML='Venta a otra empresa <b>dentro de Zofri</b> (también si la exporta a Paraguay o Bolivia). Documento Zofri: <b>Traspaso (203)</b>. Solo hacen falta razón social, RUT y la ubicación de la empresa en Zofri: no van dirección, comuna ni carnet. Después de enviarlo a visar, la otra empresa lo confirma y haces la salida de bodega.';
   }else n.hidden=true;
   pintaClDoc();
 }
 $('#clC').addEventListener('change',pintaClDoc);
 function setPais(p){
-  clPais=(clPais===p)?'':p;
+  clPais=(p==='Paraguay'||p==='Bolivia')?p:'Chile';   /* sin país guardado = Chile */
+  $('#pCL').setAttribute('aria-pressed',clPais==='Chile'?'true':'false');
   $('#pPY').setAttribute('aria-pressed',clPais==='Paraguay'?'true':'false');
   $('#pBO').setAttribute('aria-pressed',clPais==='Bolivia'?'true':'false');
 }
@@ -9324,19 +9339,28 @@ function setMoneda(m){
   moneda=m;
   $('#mCLP').setAttribute('aria-pressed',m==='CLP'?'true':'false');
   $('#mUSD').setAttribute('aria-pressed',m==='USD'?'true':'false');
-  $('#tcWrap').hidden = m!=='USD';
+  $('#tcWrap').hidden = m!=='USD' || esTraspasoCl({tipo:clTipo});
   $('#ssPL').textContent = m==='USD'?'Precio de venta (USD)':'Precio de venta';
   $('#ssP').placeholder = m==='USD'?'0':'$0';
   try{ pintaVentaGan(); }catch(_){}
 }
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-tipo]'); if(b) setTipo(b.dataset.tipo);
+  const b=e.target.closest('[data-tipo]'); if(b){ const sec=$('#secCli'); if(sec&&typeof alturaFluida==='function') alturaFluida(sec,()=>setTipo(b.dataset.tipo)); else setTipo(b.dataset.tipo); }
 });
-$('#pPY').addEventListener('click',()=>setPais('Paraguay'));
-$('#pBO').addEventListener('click',()=>setPais('Bolivia'));
+/* 12/11/2026 (Andre): el traspaso para Chile se hace en pesos; para Paraguay o Bolivia, en dólares. Al tocar el destino
+   en la venta se cambia la moneda (se puede volver a cambiar a mano en la pestaña Venta). En la reserva no se toca. */
+function paisMoneda(p){
+  setPais(p);
+  const sec=$('#secCli'); if(!sec||!sec.closest('#shSell')) return;
+  const m=(clPais==='Chile')?'CLP':'USD';
+  if(moneda!==m){ setMoneda(m); toast(m==='USD'?'Moneda: dólares (traspaso a '+clPais+')':'Moneda: pesos (traspaso para Chile)'); }
+}
+$('#pCL').addEventListener('click',()=>paisMoneda('Chile'));
+$('#pPY').addEventListener('click',()=>paisMoneda('Paraguay'));
+$('#pBO').addEventListener('click',()=>paisMoneda('Bolivia'));
 $('#mCLP').addEventListener('click',()=>setMoneda('CLP'));
 $('#mUSD').addEventListener('click',()=>setMoneda('USD'));
-const enCLP=t=>(t.moneda==='USD'&&t.tc)?Math.round((t.price||0)*t.tc):(t.price||0);
+const enCLP=t=>{ if(t.moneda!=='USD') return t.price||0; const tc=+t.tc||+t.dolarObs||0; return tc?Math.round((t.price||0)*tc):(t.price||0); };   /* traspaso sin tipo de cambio: dólar observado del día */
 const fmtMon=t=>t.moneda==='USD'
   ? 'US$'+Number(t.price||0).toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2})
   : clp(t.price||0);
@@ -9408,16 +9432,19 @@ document.addEventListener('click',async e=>{
   drawCarnet();
 });
 function leerCliente(){
-  return {n:$('#clN').value.trim(),r:$('#clR').value.trim(),
+  const cl={n:$('#clN').value.trim(),r:$('#clR').value.trim(),
           d:$('#clD').value.trim(),c:$('#clC').value.trim(),t:$('#clT').value.trim(),
           tipo:clTipo,giro:$('#clG').value.trim(),pais:clPais,uz:($('#clUz')||{}).value?$('#clUz').value.trim().toUpperCase():''};
+  if(esTraspasoCl(cl)){ cl.d=''; cl.c=''; cl.giro=''; }   /* ocultos en el traspaso: no se guarda lo que quedó escrito de otro cliente */
+  if(!esTraspasoCl(cl)) cl.pais='';
+  return cl;
 }
 function notaVenta(ch){
   const v=IDX[ch], t=st(ch), cl=t.cliente||leerCliente();
   const precio=t.price||pnum($('#ssP').value)||0;
   const fecha=t.date||$('#ssD').value||iso();
-  const esExp=cl.tipo==='export';
-  const L=['AMK VEHÍCULOS SELECTOS',esExp?'Traspaso para exportación':'Nota de venta','Iquique, Región de Tarapacá','',
+  const esExp=esTraspasoCl(cl);
+  const L=['AMK VEHÍCULOS SELECTOS',esExp?((cl.pais==='Paraguay'||cl.pais==='Bolivia'||cl.tipo==='export')?'Traspaso para exportación':'Traspaso Zofri'):'Nota de venta','Iquique, Región de Tarapacá','',
     'DATOS DEL VEHÍCULO',
     `Marca y modelo: ${v.ma} ${v.mo} ${v.an||''}`,
     `Chasis: ${v.ch}`];
@@ -9427,8 +9454,9 @@ function notaVenta(ch){
   L.push('',esExp?'EMPRESA QUE RECIBE (ZOFRI)':(cl.tipo==='empresa'?'EMPRESA COMPRADORA':'DATOS DEL COMPRADOR'),
     `${cl.tipo==='persona'?'Nombre':'Razón social'}: ${cl.n||'—'}`,`RUT: ${cl.r||'—'}`);
   if(cl.giro) L.push(`Giro: ${cl.giro}`);
-  L.push(`Dirección: ${cl.d||'—'}${cl.c?', '+cl.c:''}`,`Teléfono: ${cl.t||'—'}`);
-  if(esExp&&cl.pais) L.push(`País de destino: ${cl.pais}`);
+  if(esExp){ if(cl.uz) L.push(`Ubicación en Zofri: ${cl.uz}`); if(cl.t) L.push(`Teléfono: ${cl.t}`); }
+  else L.push(`Dirección: ${cl.d||'—'}${cl.c?', '+cl.c:''}`,`Teléfono: ${cl.t||'—'}`);
+  if(esExp&&cl.pais) L.push(`Destino: ${cl.pais}`);
   L.push('',esExp?'TRASPASO':'VENTA',
     `Valor: ${t.moneda==='USD'?fmtMon(t):(clp(precio)||'—')}`,
     `Fecha: ${fd(fecha)}`,
