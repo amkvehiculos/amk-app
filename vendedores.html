@@ -369,7 +369,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
   <section class="panel" id="pAjustes">
     <h2>Herramientas</h2><p class="sub">Todo lo que usas para vender y reportar.</p>
-    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->14-11-2026 13:18<!--/VER--></b></p>
+    <p class="mtr" style="margin:-4px 0 10px">Versión de esta app: <b><!--VER-->14-11-2026 13:35<!--/VER--></b></p>
     <div class="segs" id="ajSegs">
       <button type="button" data-aj="vender" aria-pressed="true">Para vender</button>
       <button type="button" data-aj="reportar" aria-pressed="false">Reportar</button>
@@ -2986,6 +2986,7 @@ const COTPDF_TEL=[['Andre','56989116510','+56 9 8911 6510'],['Víctor','56977272
 const COTPDF_BANCO={tit:'Importadora y Exportadora AMK Corp. Limitada',rut:'77.245.784-7',banco:'SANTANDER',cta:'80962509',mail:'amkvehiculos@gmail.com'};
 const COTPDF_DIR='Of. Buenaventura C-20, Barrio Industrial Zofri, Iquique';
 const COTPDF_WEB='https://amkvehiculos.cl/';
+const COTPDF_MINW=900;   /* ancho mínimo de la foto de portada, en píxeles */
 const COTPDF_EQ={AND:'Pantalla Android',PANT:'Pantalla y cámara',LLAVE:'Llave inteligente',PORTON:'Portón eléctrico',PIS:'Pisaderas',CRO:'Cromados'};
 const cotpdfCap=x=>{ x=String(x||'').trim(); return x?x.charAt(0).toUpperCase()+x.slice(1).toLowerCase():''; };
 /* Lo que la cotización dice del vehículo, sacado de la ficha (mismas reglas que la web y los videos). */
@@ -3015,9 +3016,17 @@ function cotpdfVeh(v){
 function cotpdfNum(){ const h=new Date(), p=n=>String(n).padStart(2,'0');
   return 'AMK-'+String(h.getFullYear()).slice(2)+p(h.getMonth()+1)+p(h.getDate())+'-'+p(h.getHours())+p(h.getMinutes()); }
 function cotpdfFecha(d){ const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'-'+p(d.getMonth()+1)+'-'+d.getFullYear(); }
-function cotpdfImg(src){ return new Promise(res=>{ if(!src){ res(null); return; } const i=new Image();
-  if(!/^data:/.test(src)) i.crossOrigin='anonymous';
-  i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src; setTimeout(()=>res(null),12000); }); }
+/* Carga una foto para dibujarla. Las de internet se bajan como blob (con CORS y sin caché): una foto que la app ya mostró
+   en un <img> normal queda en caché sin permiso CORS y "ensucia" el canvas, y entonces el PDF saldría sin foto. */
+async function cotpdfImg(src){
+  if(!src||typeof src!=='string') return null;
+  let url=src, tmp='';
+  if(/^https?:/.test(src)){ try{ const r=await fetch(src,{mode:'cors',cache:'no-store'}); if(!r.ok) return null; tmp=url=URL.createObjectURL(await r.blob()); }catch(_){ return null; } }
+  else if(!/^(data|blob):/.test(src)) return null;   /* p. ej. un id de foto en alta ("…__hd0"): no es una imagen */
+  const im=await new Promise(res=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src=url; setTimeout(()=>res(null),15000); });
+  if(tmp) setTimeout(()=>URL.revokeObjectURL(tmp),60000);
+  return im&&im.width?im:null;
+}
 const COTPDF_T={
   osc:{imp:false,bg:'#0B1C23',bg2:'#041219',t1:'#EAF0F1',s050:'#C8D2D4',s200:'#9DACB2',s300:'#7B8B8E',line:'#3D5D6B',lineS:'#3D5D6B',
        arena:'#E6C2A0',arenaTxt:'#E6C2A0',celda:'rgba(4,18,25,.35)',verde:'#2E8B57',verdeTxt:'#EAF7EF'},
@@ -3235,8 +3244,14 @@ async function cotpdfArma(r,calidad){
 }
 /* Arma el PDF (para enviar) o las páginas (para imprimir). Si la foto no se deja usar, va con la portada sin foto. */
 async function cotpdfGenera(d,tema){
-  const foto=tema==='imp'?null:await cotpdfImg(d.fotoSrc);
-  d.foto=!!foto;
+  /* d.fotoSrc: lista de fuentes en orden de preferencia (texto o función que devuelve una promesa); se usa la primera que cargue (14/11/2026). */
+  let foto=null; const fs=Array.isArray(d.fotoSrc)?d.fotoSrc:[d.fotoSrc];
+  /* Calidad mínima (Andre, 14/11/2026): la foto va a todo lo ancho de la hoja; si mide menos de COTPDF_MINW px de ancho
+     se vería borrosa, y es mejor la portada con el logo. Las de la web normal (640 px) y la miniatura no alcanzan. */
+  let baja=false;
+  if(tema!=='imp') for(const f of fs){ if(!f) continue; let s=f; if(typeof f==='function'){ try{ s=await f(); }catch(_){ s=''; } }
+    const im=await cotpdfImg(s); if(!im) continue; if(im.width<COTPDF_MINW){ baja=true; continue; } foto=im; break; }
+  d.foto=!!foto; d.fotoHay=fs.some(Boolean); d.fotoBaja=!foto&&baja;
   let r=await cotpdfDibuja(d,tema,tema==='imp'?250:200,foto);
   try{ r.pags[0].getContext('2d').getImageData(0,0,1,1); }
   catch(e){ d.foto=false; r=await cotpdfDibuja(d,tema,200,null); }   /* foto de otro sitio que el navegador no deja exportar */
@@ -3256,7 +3271,7 @@ async function cotpdfPrepara(d,idPrev){
     cotpdfUlt={file:new File([blob],cotpdfNombre(d),{type:'application/pdf'}), d};
     alturaFluida(MAIN,()=>{ el.hidden=false;
       el.innerHTML=`<img src="${prev}" alt="Vista previa de la cotización" style="display:block;width:100%;max-width:300px;margin:12px auto 8px;border-radius:10px;border:1px solid var(--line)">
-        <div class="mtr" style="text-align:center;font-size:12px;margin-bottom:8px">Página 1 de 2 · ${(blob.size/1024/1024).toFixed(1).replace('.',',')} MB${d.foto||!d.fotoSrc?'':' · la foto no se pudo usar, va sin foto'}</div>
+        <div class="mtr" style="text-align:center;font-size:12px;margin-bottom:8px">Página 1 de 2 · ${(blob.size/1024/1024).toFixed(1).replace('.',',')} MB${d.foto?'':(d.fotoBaja?' · la foto disponible es de baja calidad, va con el logo':d.fotoHay?' · la foto no se pudo cargar (¿sin internet?), va con el logo':' · el vehículo no tiene fotos, va con el logo')}</div>
         <button class="btn b-pri" type="button" data-cotpdf="enviar" style="width:100%">➦ Enviar PDF</button>
         <button class="btn b-sec" type="button" data-cotpdf="bajar" style="width:100%;margin-top:8px">⤓ Guardar PDF</button>`; });
   }catch(e){ console.error('cotpdfPrepara',e); toast('No se pudo armar el PDF'); }
@@ -3290,7 +3305,10 @@ function cbPdfDatos(){
   }
   const vin=String(v.vin||'').trim().toUpperCase();
   const fw=fuenteWeb(v), a=fw.k?(fw.k==='sistema'?v.fotos:((fotosVendCache[v.ch]||{})[fw.k]||{}).fotos):null;
-  const fotoSrc=(a&&typeof a[0]==='string'&&a[0])||fst(v.ch).cov||'';
+  /* Foto de portada, en orden: la misma de la web en alta (documento <ch>__<fuente>__hd0 en fotosVend), y la normal (si mide menos de COTPDF_MINW, no se usa). */
+  const fotoSrc=[], cc=fw.k&&fw.k!=='sistema'?(fotosVendCache[v.ch]||{})[fw.k]:null;
+  if(cc&&cc.nhd&&fbDb) fotoSrc.push(()=>fbDb.collection(FB_FOTOS_COL).doc(v.ch+'__'+fw.k+'__hd0').get().then(s=>(s.exists&&(s.data()||{}).d)||''));
+  if(a&&typeof a[0]==='string') fotoSrc.push(a[0]);
   const hayVideo=!!(v.video||(Array.isArray(v.vids)&&v.vids.length)||v.fbVids||v.igVids);
   const webOk=v.pub===true&&(!!(a&&a.length)||hayVideo);
   const h=new Date();
