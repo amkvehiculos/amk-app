@@ -785,16 +785,26 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emAplicar" style="width:100%">Aplicar costos</button></details>
     </div>
     <div id="ngVentas" hidden>
-    <div class="box" id="boxLib" style="margin-top:13px"><h3>Cotización de liberación</h3>
-      <p>Para cotizarle a un cliente con cupo de discapacidad. Víctor y Bryan ven la misma base imponible en su app.</p>
+    <div class="box" id="boxLib" style="margin-top:13px"><h3>Cotización para cliente</h3>
+      <p>Arma un PDF con el logo, la ficha del vehículo, el precio y los datos para transferir. Marca "Con franquicia" si es por discapacidad.</p>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Vehículo</div>
         <input type="hidden" id="lbV">
         <input class="search" id="lbQ" placeholder="Buscar chasis, marca, modelo o año…" autocomplete="off">
         <div id="lbRes" style="margin-top:8px"></div>
         <div id="lbSel" hidden></div>
         <datalist id="dlVeh"></datalist></div>
+      <div class="fld" id="lbVinF" style="margin-bottom:10px" hidden><div class="mtr" style="margin:0 0 4px">VIN completo (17)</div>
+        <input id="lbVin" maxlength="17" autocapitalize="characters" autocomplete="off" placeholder="Ej: KMHS381ABKU104839" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;font-family:var(--mono);letter-spacing:.04em;background:var(--paper);color:var(--ink)">
+        <div class="mtr" id="lbVinNota" style="margin:5px 0 0;font-size:12px">Sale en la cotización. Si lo escribes o corriges, queda guardado en el vehículo (y Víctor y Bryan también lo ven).</div></div>
+      <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Cliente <span style="color:var(--mute)">(opcional)</span></div>
+        <input id="lbCli" autocomplete="off" placeholder="Nombre" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <input id="lbCliTel" inputmode="tel" autocomplete="off" placeholder="Teléfono" style="width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
+          <input id="lbCliCiu" autocomplete="off" placeholder="Ciudad" style="width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div></div>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Valor de venta al cliente</div>
         <input id="lbVenta" inputmode="numeric" placeholder="Lo que se acuerde con el cliente" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
+      <label style="display:flex;align-items:center;gap:10px;margin:2px 0 10px;font-size:14px;font-weight:600;cursor:pointer"><input type="checkbox" id="lbDisc" style="width:20px;height:20px;flex:none"><span>Con franquicia por discapacidad <span style="color:var(--mute);font-weight:400;font-size:12.5px">(Ley 20.422)</span></span></label>
+      <div id="lbDiscBox" hidden>
       <div class="fld" style="margin-bottom:10px"><div class="mtr" style="margin:0 0 4px">Base imponible</div>
         <input id="lbBase" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)">
         <div class="mtr" id="lbBaseNota" style="margin:5px 0 0;font-size:12px">Al elegir el vehículo se calcula sola: (CIF US$ del Z + US$1.000) × dólar observado, redondeada hacia arriba a los $100.000.</div></div>
@@ -805,15 +815,19 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <input id="lbTras" inputmode="numeric" placeholder="$0" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
       </div>
       <div id="lbDet"></div>
-      <button class="btn b-pri" id="lbImg" style="width:100%;margin-top:10px">🖼️ Copiar imagen de la cotización</button>
-      <div class="acts" style="margin-top:8px">
+      <div class="acts" style="margin-top:10px">
+        <button class="btn b-sec" id="lbImg">🖼️ Copiar imagen</button>
         <button class="btn b-sec" id="lbImgSave">⤓ Guardar imagen</button>
         <button class="btn b-sec" id="lbEnv">➦ Enviar texto</button>
-        <button class="btn b-sec" id="lbFijos" style="flex-basis:100%">Editar costos fijos</button></div>
+        <button class="btn b-sec" id="lbFijos">Editar costos fijos</button></div>
       <div id="lbPrev" hidden></div>
       <div id="boxLbFijos" hidden style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
         <div style="font-weight:600;font-size:14px;margin-bottom:4px">Costos de puesta en marcha</div>
         <div id="lbCampos"></div></div>
+      </div>
+      <button class="btn b-pri" id="lbPdf" type="button" style="width:100%;margin-top:12px">📄 Armar cotización en PDF</button>
+      <button class="btn b-sec" id="lbImprime" type="button" style="width:100%;margin-top:8px">🖨️ Imprimir (blanco y negro)</button>
+      <div id="lbPdfPrev" hidden></div>
       <details id="lbConfBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:10px">
         <summary style="cursor:pointer;font-weight:600;font-size:14px" id="lbConfSum">Revisión del stock: base imponible vs. mínimo</summary>
         <div id="lbConf" style="margin-top:8px"></div></details></div>
@@ -883,7 +897,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->12-11-2026 09:52 · PRUEBAS<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->14-11-2026 13:18 · PRUEBAS<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -4794,6 +4808,7 @@ document.addEventListener('click',async e=>{ if(!e.target.closest('#irZarpe')) r
 function draw(){
   try{ coreaSync(); }catch(_){}
   try{ svNormaliza(); }catch(e){ console.error('svNormaliza',e); }
+  try{ vinNormaliza(); }catch(e){ console.error('vinNormaliza',e); }
   try{ const fz=$('#ngFinanzas'); if(fz&&!fz.hidden&&$('#pDatos').classList.contains('on')&&!(document.activeElement&&fz.contains(document.activeElement)&&document.activeElement.matches('input'))) pintaFin(); }catch(e){ console.error('pintaFin',e); }
   try{ refrescaBaseLib(); }catch(_){}
   try{ estRadioPend(); }catch(_){}
@@ -6153,7 +6168,7 @@ function pintaLB(){
       <span style="font-weight:700;font-size:16px">${clp(venta?tot:extra)}</span></div>`
     +(venta?'':'<p class="mtr" style="margin:4px 0 0;font-size:12px">Escribe el valor de venta para ver el total a pagar.</p>');
   window.__LBTOT=tot; window.__LBEXTRA=extra;
-  cotOculta('lbPrev');   /* si cambió algo, la vista previa ya no corresponde */
+  cotOculta('lbPrev'); if(typeof cotpdfOculta==='function') cotpdfOculta('lbPdfPrev');   /* si cambió algo, la vista previa ya no corresponde */
 }
 ['#lbBase','#lbTras','#lbVenta'].forEach(sel=>$(sel).addEventListener('input',e=>{
   const n=pnum(e.target.value); fmtVivo(e.target,()=>n===''?'':clp(n)); pintaLB()}));
@@ -6182,6 +6197,8 @@ function lbElige(ch){
     $('#lbQ').value=''; $('#lbQ').hidden=true; $('#lbRes').innerHTML='';
     $('#lbSel').innerHTML=`<div class="pk" style="cursor:default;margin:0">${c?`<img class="cover" src="${c}" alt="">`:''}<div style="flex:1;min-width:0"><div class="tt">${v.ma} ${v.mo} <span class="y">${v.an||''}</span></div><div class="ch">${v.ch}</div></div><button type="button" class="b-und" data-lbcambia="1" style="flex:0 0 auto">Cambiar</button></div>`;
     $('#lbSel').hidden=false;
+    $('#lbVenta').placeholder=(S[ch]||{}).pventa?'Precio de venta: '+clp(S[ch].pventa):'Lo que se acuerde con el cliente';
+    lbPoneVin(v);
     lbAutoBase();
   });
 }
@@ -6189,6 +6206,7 @@ function lbQuita(){
   alturaFluida(MAIN,()=>{
     $('#lbV').value=''; $('#lbBase').value=''; $('#lbVenta').value='';
     $('#lbSel').hidden=true; $('#lbSel').innerHTML=''; $('#lbQ').hidden=false;
+    $('#lbVenta').placeholder='Lo que se acuerde con el cliente'; lbPoneVin(null);
     lbAutoBase();
   });
   $('#lbQ').focus();
@@ -6253,6 +6271,371 @@ function lbDatos(){
 }
 $('#lbImg').addEventListener('click',()=>cotCopia(lbDatos(),'lbPrev'));
 $('#lbImgSave').addEventListener('click',()=>cotGuarda(lbDatos(),'lbPrev'));
+/* ---------- Cotización en PDF (14/11/2026, Andre) ----------
+   Un correo o un texto no dan la confianza de un documento: se arma un PDF de 2 páginas con el estilo de la web
+   (fondo petróleo, títulos Archivo, rótulos mono, detalles en arena): foto, ficha con el VIN completo, distintivos en
+   arena, sello verde, precio, contactos (Andre, Víctor, Bryan) y link a la ficha en la web; en la 2.ª página el detalle
+   de la franquicia por discapacidad (solo si se marca), cómo reservar, datos para transferir y condiciones.
+   Se dibuja en canvas (sin librerías, funciona sin internet) y se empaqueta como PDF con los links que se pueden tocar.
+   Tema 'imp' = versión para imprimir en blanco y negro (solo Sistema): fondo blanco, sin foto, recuadros solo con borde.
+   Mismo código en Sistema y Vendedores; lo único distinto es de dónde salen los datos (lbPdfDatos / cbPdfDatos). */
+const COTPDF_TEL=[['Andre','56989116510','+56 9 8911 6510'],['Víctor','56977272269','+56 9 7727 2269'],['Bryan','56963354241','+56 9 6335 4241']];
+const COTPDF_BANCO={tit:'Importadora y Exportadora AMK Corp. Limitada',rut:'77.245.784-7',banco:'SANTANDER',cta:'80962509',mail:'amkvehiculos@gmail.com'};
+const COTPDF_DIR='Of. Buenaventura C-20, Barrio Industrial Zofri, Iquique';
+const COTPDF_WEB='https://amkvehiculos.cl/';
+const COTPDF_EQ={AND:'Pantalla Android',PANT:'Pantalla y cámara',LLAVE:'Llave inteligente',PORTON:'Portón eléctrico',PIS:'Pisaderas',CRO:'Cromados'};
+const cotpdfCap=x=>{ x=String(x||'').trim(); return x?x.charAt(0).toUpperCase()+x.slice(1).toLowerCase():''; };
+/* Lo que la cotización dice del vehículo, sacado de la ficha (mismas reglas que la web y los videos). */
+function cotpdfVeh(v){
+  const trab=esTrabV(v), m=String(v.motor||'').toUpperCase()+' '+String((v.zof&&v.zof.combustible)||'').toUpperCase();
+  /* v.motor a veces trae el código del motor (G4KE, D4HA): en Hyundai/Kia la D es diésel y la G bencina. Si no se sabe, no se pone. */
+  const comb=/DI[EÉ]SEL/.test(m)?'Diésel':/BENC|GASOL/.test(m)?'Bencina':/H[IÍ]BRID/.test(m)?'Híbrido':/EL[EÉ]CTR/.test(m)?'Eléctrico':/(^|\s)D\d/.test(m)?'Diésel':/(^|\s)G\d/.test(m)?'Bencina':'';
+  let cil=parseFloat(String(v.cil==null?'':v.cil).replace(',','.')); if(cil>100) cil=cil/1000;
+  const combTxt=[comb,cil?cil.toFixed(1):''].filter(Boolean).join(' ');
+  let tr=''; try{ tr=cotpdfCap(transTxt(v)); }catch(_){ tr=''; }
+  const trac=String(v.tr||'').toLowerCase(), color=cotpdfCap(v.ce), pa=+v.pa||0;
+  const cn=(typeof carNom==='function')?carNom(v):(()=>{ const k=String(v.ca||'').trim(); if(!k||k.toUpperCase()==='S/N'||!trab) return '';
+    return {'BARANDA':'Baranda baja','BARANDA BAJA':'Baranda baja','FREEZER':'Freezer','GAVIOTA':'Gaviota','CAJON SIMPLE':'Cajón simple','CAJÓN SIMPLE':'Cajón simple','POWER GATE':'Power Gate'}[k.toUpperCase()]||cotpdfCap(k); })();   /* en Vendedores carNom vive dentro de draw() */
+  const specs=[['Año',String(v.an||'—')],['Combustible',combTxt||'—'],['Transmisión',tr||'—'],['Tracción',trac||'—'],
+    trab?['Carrocería',cn||'—']:['Pasajeros',pa?String(pa):'—'],['Color',color||'—']];
+  const dest=[];
+  if(trab&&cn) dest.push(cn);
+  if(/4X4|4WD|AWD/i.test(String(v.tr||''))) dest.push('4x4');
+  if(!trab&&v.tp) dest.push('Techo panorámico');
+  const eq=v.eq||[];
+  ['AND','PANT','LLAVE','PORTON','PIS','CRO'].forEach(k=>{ if(eq.includes(k)&&!(k==='PANT'&&eq.includes('AND'))&&!(k==='PORTON'&&trab)) dest.push(COTPDF_EQ[k]); });
+  if(!trab&&pa>=7) dest.push(pa+' asientos');
+  const sv=(+v.an||0)>=2018&&!trab&&!/STAREX/i.test(String(v.mo||''));
+  const sub=[color,combTxt,tr,(!trab&&pa)?pa+' asientos':cn].filter(Boolean).join(' · ');
+  return {tit:[v.ma,v.mo,v.an].filter(Boolean).join(' ').toUpperCase(), sub, specs, dest, sv, patio:v.st==='IQQ', link:COTPDF_WEB+'?ch='+encodeURIComponent(v.ch)};
+}
+function cotpdfNum(){ const h=new Date(), p=n=>String(n).padStart(2,'0');
+  return 'AMK-'+String(h.getFullYear()).slice(2)+p(h.getMonth()+1)+p(h.getDate())+'-'+p(h.getHours())+p(h.getMinutes()); }
+function cotpdfFecha(d){ const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'-'+p(d.getMonth()+1)+'-'+d.getFullYear(); }
+function cotpdfImg(src){ return new Promise(res=>{ if(!src){ res(null); return; } const i=new Image();
+  if(!/^data:/.test(src)) i.crossOrigin='anonymous';
+  i.onload=()=>res(i); i.onerror=()=>res(null); i.src=src; setTimeout(()=>res(null),12000); }); }
+const COTPDF_T={
+  osc:{imp:false,bg:'#0B1C23',bg2:'#041219',t1:'#EAF0F1',s050:'#C8D2D4',s200:'#9DACB2',s300:'#7B8B8E',line:'#3D5D6B',lineS:'#3D5D6B',
+       arena:'#E6C2A0',arenaTxt:'#E6C2A0',celda:'rgba(4,18,25,.35)',verde:'#2E8B57',verdeTxt:'#EAF7EF'},
+  imp:{imp:true,bg:'#FFFFFF',bg2:'#FFFFFF',t1:'#111111',s050:'#111111',s200:'#444444',s300:'#666666',line:'#8A8A8A',lineS:'#C8C8C8',
+       arena:'#999999',arenaTxt:'#111111',celda:null,verde:null,verdeTxt:'#111111'}
+};
+/* Dibuja las 2 páginas. Unidades en milímetros (A4 = 210 × 297); dpi define la nitidez.
+   Devuelve {pags:[canvas,canvas], links:[[{x,y,w,h,url}],[]]}. */
+async function cotpdfDibuja(d,tema,dpi,foto){
+  const T=COTPDF_T[tema]||COTPDF_T.osc, k=(dpi||200)/25.4, W=210, H=297, M=14, AN=W-2*M;
+  try{ await Promise.all(['800 40px Archivo','700 40px Archivo','400 30px "Instrument Sans"','600 30px "Instrument Sans"','400 30px "JetBrains Mono"','600 30px "JetBrains Mono"'].map(f=>document.fonts.load(f))); }catch(_){}
+  const FA='Archivo, "Helvetica Neue", Arial, sans-serif', FB='"Instrument Sans", "Helvetica Neue", Arial, sans-serif', FM='"JetBrains Mono", Menlo, monospace';
+  const pt=n=>n*0.3528;
+  const nuevo=()=>{ const c=document.createElement('canvas'); c.width=Math.round(W*k); c.height=Math.round(H*k);
+    const x=c.getContext('2d'); x.setTransform(k,0,0,k,0,0); x.textBaseline='alphabetic'; x.fillStyle=T.bg; x.fillRect(0,0,W,H); return [c,x]; };
+  /* ayudas de dibujo */
+  const fnt=(x,peso,tam,fam,esp)=>{ x.font=peso+' '+pt(tam).toFixed(3)+'px '+fam; if('letterSpacing' in x) x.letterSpacing=esp?(pt(tam)*esp).toFixed(3)+'px':'0px'; };
+  const txt=(x,s,px,py,col,al)=>{ x.fillStyle=col; x.textAlign=al||'left'; x.fillText(s,px,py); };
+  const ancho=(x,s)=>x.measureText(s).width;
+  const rr=(x,px,py,w,h,r)=>{ x.beginPath(); x.roundRect(px,py,w,h,r); };
+  const panel=(x,px,py,w,h)=>{ const g=x.createLinearGradient(px,py,px+w,py+h); g.addColorStop(0,'#2B5F70'); g.addColorStop(.55,'#1F4553'); g.addColorStop(1,'#172F39'); return g; };
+  const linea=(x,x1,y1,x2,y2,col,gr)=>{ x.strokeStyle=col; x.lineWidth=gr||0.25; x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke(); };
+  const parte=(x,s,max)=>{ const pal=String(s).split(/\s+/), out=[]; let l='';
+    pal.forEach(p=>{ const t=l?l+' '+p:p; if(ancho(x,t)>max&&l){ out.push(l); l=p; } else l=t; }); if(l) out.push(l); return out; };
+  const caja=(x,px,py,w,h,r,relleno,borde,gr)=>{ rr(x,px,py,w,h,r); if(relleno){ x.fillStyle=relleno; x.fill(); } if(borde){ x.strokeStyle=borde; x.lineWidth=gr||0.3; x.stroke(); } };
+  const logo=(x,px,py,h,col,col2)=>{ const w=h*673/309; dibujaLogo(x,px,py,w,col,col2); return w; };
+  const ICO_WA='M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.2.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3z';
+  const ICO_OK='M4 12.5l5 5L20 6.5';
+  const icono=(x,path,px,py,tam,col,trazo)=>{ x.save(); x.translate(px,py); x.scale(tam/24,tam/24);
+    if(trazo){ x.strokeStyle=col; x.lineWidth=2.6; x.lineCap='round'; x.lineJoin='round'; x.stroke(new Path2D(path)); } else { x.fillStyle=col; x.fill(new Path2D(path)); } x.restore(); };
+  const links1=[], links2=[];
+
+  /* ================= PÁGINA 1 ================= */
+  const [c1,x]=nuevo();
+  let y;
+  const hayFoto=!!foto&&!T.imp;
+  if(!T.imp){
+    if(hayFoto){
+      const fh=96, r=Math.max(W/foto.width,fh/foto.height), dw=foto.width*r, dh=foto.height*r;
+      x.save(); x.beginPath(); x.rect(0,0,W,fh); x.clip(); x.drawImage(foto,(W-dw)/2,(fh-dh)*0.32,dw,dh); x.restore();
+      const g=x.createLinearGradient(0,0,0,fh); g.addColorStop(0,'rgba(11,28,35,1)'); g.addColorStop(.3,'rgba(11,28,35,.25)');
+      g.addColorStop(.55,'rgba(11,28,35,.15)'); g.addColorStop(.99,'rgba(11,28,35,1)'); x.fillStyle=g; x.fillRect(0,0,W,fh+.5);
+      y=74;
+    } else {
+      const fh=92, g=x.createRadialGradient(W*.85,fh*.2,0,W*.85,fh*.2,W*.75); g.addColorStop(0,'#1F4553'); g.addColorStop(1,'rgba(31,69,83,0)');
+      x.fillStyle=g; x.fillRect(0,0,W,fh);
+      x.save(); x.strokeStyle='rgba(200,210,212,.05)'; x.lineWidth=.3; for(let i=-fh;i<W+fh;i+=14){ x.beginPath(); x.moveTo(i,fh); x.lineTo(i+fh*0.58,0); x.stroke(); } x.restore();
+      x.save(); x.globalAlpha=.07; logo(x,W-123,20,62,'#C8D2D4','#C8D2D4'); x.restore();
+      const g2=x.createLinearGradient(0,fh-30,0,fh); g2.addColorStop(0,'rgba(11,28,35,0)'); g2.addColorStop(1,'#0B1C23'); x.fillStyle=g2; x.fillRect(0,fh-30,W,30.5);
+      y=72;
+    }
+  } else y=34;
+  /* encabezado */
+  logo(x,M,T.imp?8:10,12,T.imp?'#183640':'#C8D2D4',T.imp?'#51686E':'#9DACB2');
+  fnt(x,'400',8.4,FM,.18); txt(x,'COTIZACIÓN',W-M,T.imp?12:13.5,T.arenaTxt,'right');
+  fnt(x,'600',10.5,FM,.06); txt(x,'N° '+d.num,W-M,T.imp?17.5:19,T.t1,'right');
+  fnt(x,'400',9.1,FB,0); txt(x,d.fecha+' · válida hasta el '+d.vence,W-M,T.imp?22:24.2,T.s200,'right');
+  /* pastilla + título */
+  fnt(x,'700',8.6,FA,.06); { const s='ELEGIDO EN PERSONA EN COREA', w=ancho(x,s)+8; caja(x,M,y,w,6.4,3.2,null,T.imp?'#111':'rgba(230,194,160,.5)',.3); txt(x,s,M+4,y+4.4,T.arenaTxt); }
+  y+=8.5;
+  let tam=37; fnt(x,'800',tam,FA,-.03); while(ancho(x,d.tit)>AN&&tam>18){ tam-=1; fnt(x,'800',tam,FA,-.03); }
+  y+=pt(tam)*0.78; txt(x,d.tit,M,y,T.t1); y+=8.4;
+  fnt(x,'400',11.5,FB,0); txt(x,d.sub,M,y,T.s200); y+=6.5;
+  /* ficha */
+  { const ch=14.6, vh=11.5, cw=AN/3, top=y;
+    if(T.celda){ caja(x,M,top,AN,ch*2+vh,3,'rgba(4,18,25,.25)'); x.fillStyle='rgba(4,18,25,.35)'; x.fillRect(M,top+ch*2,AN,vh); }
+    d.specs.forEach((s,i)=>{ const cx=M+(i%3)*cw, cy=top+Math.floor(i/3)*ch;
+      fnt(x,'400',8.4,FM,.18); txt(x,s[0].toUpperCase(),cx+4.5,cy+5.6,T.s300);
+      fnt(x,'800',13.8,FA,0); txt(x,s[1],cx+4.5,cy+11.4,T.imp?T.t1:T.s050); });
+    linea(x,M+cw,top,M+cw,top+ch*2,T.lineS); linea(x,M+2*cw,top,M+2*cw,top+ch*2,T.lineS);
+    linea(x,M,top+ch,W-M,top+ch,T.lineS); linea(x,M,top+ch*2,W-M,top+ch*2,T.lineS);
+    fnt(x,'400',8.4,FM,.18); txt(x,'VIN',M+4.5,top+ch*2+7.2,T.s300);
+    fnt(x,'600',14.3,FM,.12); txt(x,d.vin||'Por confirmar',W-M-4.5,top+ch*2+7.6,T.t1,'right');
+    caja(x,M,top,AN,ch*2+vh,3,null,T.line,.3);
+    y=top+ch*2+vh+4.2; }
+  /* distintivos en arena + sello verde + en patio */
+  { const it=d.dest.map(s=>({s,k:'d'})); if(d.sv) it.push({s:'Sello verde · todo Chile',k:'v'}); if(d.patio) it.push({s:'En patio, Iquique',k:'p'});
+    let cx=M; const h=7;
+    it.forEach(o=>{ fnt(x,'700',9.2,FA,0); const ico=o.k==='d'?4.6:0, w=ancho(x,o.s)+8+ico;
+      if(cx+w>W-M){ cx=M; y+=h+2.4; }
+      if(o.k==='d'){ if(!T.imp){ const g=x.createLinearGradient(cx,y,cx+w,y+h); g.addColorStop(0,'rgba(230,194,160,.22)'); g.addColorStop(1,'rgba(230,194,160,.08)'); caja(x,cx,y,w,h,3.5,g,'rgba(230,194,160,.6)',.3); } else caja(x,cx,y,w,h,3.5,null,'#111',.35);
+        icono(x,ICO_OK,cx+3.2,y+1.7,3.6,T.arenaTxt,true); txt(x,o.s,cx+4+ico,y+4.75,T.arenaTxt); }
+      else if(o.k==='v'){ if(!T.imp) caja(x,cx,y,w,h,3.5,T.verde); else caja(x,cx,y,w,h,3.5,null,'#111',.4); txt(x,o.s,cx+4,y+4.75,T.verdeTxt); }
+      else { caja(x,cx,y,w,h,3.5,null,T.line,.3); txt(x,o.s,cx+4,y+4.75,T.imp?T.t1:T.s050); }
+      cx+=w+2.4; });
+    if(it.length) y+=h+4.5; }
+  /* cliente */
+  if(d.cli&&d.cli.nom){ linea(x,M,y,W-M,y,T.lineS); y+=5.5;
+    fnt(x,'400',8.4,FM,.18); txt(x,'PREPARADA PARA',M,y,T.s300); y+=5.2;
+    fnt(x,'800',13.2,FA,0); txt(x,d.cli.nom.toUpperCase(),M,y,T.t1); y+=4.6;
+    const sc=[d.cli.tel,d.cli.ciu].filter(Boolean).join(' · '); if(sc){ fnt(x,'400',9.4,FB,0); txt(x,sc,M,y,T.s200); y+=2; }
+    y+=4; }
+  else { linea(x,M,y,W-M,y,T.lineS); y+=5; }
+  /* precios */
+  { const dos=!!d.disc, gap=4, w=dos?(AN-gap)/2:AN, h=31;
+    const card=(px,dest,eti,mon,des)=>{
+      if(!T.imp){ if(dest) caja(x,px,y,w,h,3.5,panel(x,px,y,w,h),'#2E4752',.3); else caja(x,px,y,w,h,3.5,'rgba(4,18,25,.3)',T.line,.3); }
+      else caja(x,px,y,w,h,3.5,null,dest?'#111':T.line,dest?.7:.3);
+      fnt(x,'400',8.4,FM,.18); txt(x,eti,px+5.5,y+7,dest?T.s300:T.arenaTxt);
+      fnt(x,'800',dos?26:33,FA,-.02); txt(x,mon,px+5.5,y+(dos?17.5:19),T.t1);
+      fnt(x,'400',9.2,FB,0); parte(x,des,w-11).slice(0,2).forEach((l,i)=>txt(x,l,px+5.5,y+(dos?23.6:25.2)+i*4,T.s200)); };
+    card(M,true,'PRECIO DEL VEHÍCULO',clp(d.venta),'En Zona Franca de Iquique, entregado en nuestra oficina.');
+    if(dos) card(M+w+gap,false,'CON FRANQUICIA · LEY 20.422',clp(d.disc.total),'Total con impuesto, trámites'+(d.disc.tras?' y traslado':' para circular')+'. Detalle en la página 2.');
+    y+=h+8; }
+  /* contactos */
+  { fnt(x,'400',8.4,FM,.18); icono(x,ICO_WA,M,y-2.9,3.4,T.arenaTxt); txt(x,'ESCRÍBENOS POR WHATSAPP',M+4.6,y,T.arenaTxt); y+=3.6;
+    const h=15, cols=d.webOk?[1,1,1,1.45]:[1,1,1], tot=cols.reduce((a,b)=>a+b,0); let cx=M;
+    if(!T.imp) caja(x,M,y,AN,h,3,'rgba(4,18,25,.3)');
+    /* El link a la ficha en la web solo va si el vehículo ya tiene fotos o videos publicados (Andre, 14/11/2026): si no, la ficha sale vacía. */
+    const celdas=COTPDF_TEL.map(t=>[t[0],t[2],'https://wa.me/'+t[1]]).concat(d.webOk?[['Fotos y video',d.link.replace(/^https?:\/\//,''),d.link]]:[]);
+    celdas.forEach((c,i)=>{ const w=AN*cols[i]/tot;
+      if(i===3&&!T.imp){ x.save(); rr(x,M,y,AN,h,3); x.clip(); x.fillStyle=panel(x,cx,y,w,h); x.fillRect(cx,y,w,h); x.restore(); }
+      if(i) linea(x,cx,y,cx,y+h,T.lineS);
+      fnt(x,'800',11.6,FA,0); txt(x,c[0],cx+4.5,y+6.4,T.t1);
+      fnt(x,'600',i===3?8:9,FM,0); txt(x,c[1],cx+4.5,y+11,i===3?T.arenaTxt:(T.imp?'#333':T.s200));
+      links1.push({x:cx,y,w,h,url:c[2]}); cx+=w; });
+    caja(x,M,y,AN,h,3,null,T.line,.3); y+=h; }
+  /* franja de abajo, como la de la web */
+  { const props=[['Elegidos en persona','Revisamos cada vehículo en Corea'],['Importación propia','Sin intermediarios'],['Revisión y detallado','Verificación mecánica en Iquique']];
+    const by=T.imp?272:281, bx=T.imp?M:0, bw=T.imp?AN:W;
+    if(!T.imp){ x.fillStyle=T.bg2; x.fillRect(0,by,W,H-by); linea(x,0,by,W,by,T.line); }
+    else { linea(x,bx,by,bx+bw,by,T.line); linea(x,bx,by+15,bx+bw,by+15,T.line); }
+    props.forEach((p,i)=>{ const cx=bx+i*bw/3; if(i) linea(x,cx,by,cx,T.imp?by+15:H,T.lineS);
+      fnt(x,'800',10.2,FA,0); txt(x,p[0],cx+(T.imp?4:(i?5:M)),by+6.6,T.imp?T.t1:T.s050);
+      fnt(x,'400',8.8,FB,0); txt(x,p[1],cx+(T.imp?4:(i?5:M)),by+11,T.s200); }); }
+
+  /* ================= PÁGINA 2 ================= */
+  const [c2,z]=nuevo();
+  { const hh=T.imp?20:18; if(!T.imp){ z.fillStyle=T.bg2; z.fillRect(0,0,W,hh); } linea(z,0,hh,W,hh,T.line);
+    logo(z,M,T.imp?6:5,8.5,T.imp?'#183640':'#C8D2D4',T.imp?'#51686E':'#9DACB2');
+    fnt(z,'600',8.8,FM,.06); txt(z,'COTIZACIÓN N° '+d.num,W-M,(T.imp?9.5:8.6),T.t1,'right');
+    fnt(z,'400',8.8,FM,.06); txt(z,d.tit+(d.vin?' · VIN '+d.vin:''),W-M,(T.imp?14:13.2),T.s200,'right');
+    y=hh+5; }
+  const titulo=(s)=>{ z.fillStyle=T.arena; rr(z,M,y,9,.9,.4); z.fill(); y+=7.6; fnt(z,'800',15.4,FA,-.02); txt(z,s.toUpperCase(),M,y,T.t1); y+=2; };
+  if(d.disc){
+    titulo('Detalle con franquicia por discapacidad');
+    fnt(z,'400',9.7,FB,0); y+=3.8; txt(z,'Ley 20.422. Impuesto sobre la base imponible; valores referenciales que se confirman al iniciar el trámite.',M,y,T.s200); y+=2.4;
+    const filas=[['Valor del vehículo',d.venta],['Base imponible',d.disc.base,1],['Impuesto ('+String(d.disc.tasa).replace('.',',')+' % sobre la base imponible)',d.disc.imp]]
+      .concat(d.disc.fijos).concat(d.disc.tras?[[d.disc.trasLbl,d.disc.tras]]:[]);
+    filas.forEach(f=>{ y+=6.6; const sub=!!f[2];
+      fnt(z,'400',sub?9.7:10.6,FB,0); txt(z,f[0],M,y-1.9,sub?T.s300:(T.imp?T.t1:T.s050));
+      fnt(z,'600',sub?9.7:10.6,FM,0); txt(z,clp(f[1]),W-M,y-1.9,sub?T.s300:T.t1,'right');
+      linea(z,M,y+.4,W-M,y+.4,T.lineS); });
+    y+=3;
+    const h=15; if(!T.imp) caja(z,M,y,AN,h,3,panel(z,M,y,AN,h)); else caja(z,M,y,AN,h,3,null,'#111',.7);
+    fnt(z,'800',14.5,FA,.02); txt(z,'TOTAL A PAGAR',M+5.5,y+7,T.t1);
+    fnt(z,'600',9.1,FB,0); txt(z,'Vehículo + impuesto + trámites'+(d.disc.tras?' + traslado':''),M+5.5,y+11.6,T.imp?'#444':T.arena);
+    fnt(z,'800',21,FA,-.02); txt(z,clp(d.disc.total),W-M-5.5,y+10,T.t1,'right');
+    y+=h+5;
+  }
+  titulo('Cómo reservar');
+  { y+=3.5; const gap=3, w=(AN-2*gap)/3, h=22;
+    [['01','Transfiere','A la cuenta de la empresa que aparece abajo.'],['02','Envía el comprobante','Por WhatsApp o al correo, con el N° de esta cotización.'],['03','Queda reservado','Te confirmamos y coordinamos la entrega en Iquique.']]
+    .forEach((p,i)=>{ const px=M+i*(w+gap); caja(z,px,y,w,h,3,T.imp?null:'rgba(4,18,25,.35)',T.line,.3);
+      fnt(z,'600',9.4,FM,0); txt(z,p[0],px+4.2,y+5.8,T.arenaTxt);
+      fnt(z,'800',11,FA,0); txt(z,p[1],px+4.2,y+10.8,T.t1);
+      fnt(z,'400',9.4,FB,0); parte(z,p[2],w-8.4).slice(0,2).forEach((l,j)=>txt(z,l,px+4.2,y+15.4+j*4.1,T.s200)); });
+    y+=h+5; }
+  titulo('Datos para transferencia');
+  { y+=3.5; const h=48, wi=AN*1.35/2.35;
+    if(!T.imp){ caja(z,M,y,AN,h,3.5,panel(z,M,y,AN,h)); z.save(); rr(z,M,y,AN,h,3.5); z.clip(); z.fillStyle='rgba(4,18,25,.35)'; z.fillRect(M+wi,y,AN-wi,h); z.restore(); }
+    else { z.save(); rr(z,M,y,AN,h,3.5); z.clip(); z.fillStyle='#F2F2F2'; z.fillRect(M+wi,y,AN-wi,h); z.restore(); caja(z,M,y,AN,h,3.5,null,'#111',.5); }
+    linea(z,M+wi,y,M+wi,y+h,T.imp?'#C8C8C8':'rgba(200,210,212,.12)');
+    const px=M+5.5, iw=wi-11;
+    fnt(z,'400',8.4,FM,.18); txt(z,'TITULAR',px,y+6,T.arenaTxt);
+    fnt(z,'800',12.7,FA,-.01); const lt=parte(z,COTPDF_BANCO.tit.toUpperCase(),iw); lt.slice(0,2).forEach((l,i)=>txt(z,l,px,y+11+i*4.6,T.t1));
+    let ry=y+11+lt.slice(0,2).length*4.6;
+    [['RUT',COTPDF_BANCO.rut],['Banco',COTPDF_BANCO.banco],['Cuenta corriente',COTPDF_BANCO.cta],['Correo',COTPDF_BANCO.mail]].forEach(r=>{
+      linea(z,px,ry,px+iw,ry,T.imp?'#CCCCCC':'rgba(200,210,212,.16)'); ry+=6;
+      fnt(z,'400',10.2,FB,0); txt(z,r[0],px,ry-1.8,T.s200); fnt(z,'600',10.2,FM,0); txt(z,r[1],px+iw,ry-1.8,T.t1,'right'); });
+    const dx=M+wi+5.5, dw=AN-wi-11;
+    fnt(z,'400',9.5,FB,0); const ld=parte(z,'Transfiere solo a esta cuenta, a nombre de la empresa. Nunca te pediremos depositar a una persona.',dw);
+    ld.forEach((l,i)=>txt(z,l,dx,y+8+i*4.6,T.imp?'#333':T.s200));
+    let gy=y+8+ld.length*4.6+3; txt(z,'En la glosa indica:',dx,gy,T.imp?'#333':T.s200);
+    fnt(z,'600',9.5,FM,0); txt(z,d.num,dx,gy+4.8,T.arenaTxt);
+    y+=h+5; }
+  titulo('Condiciones');
+  { y+=2.5; fnt(z,'400',9.5,FB,0);
+    const cond=['Cotización válida por 7 días o hasta la venta del vehículo, lo que ocurra primero.',
+      d.disc&&d.disc.tras?d.disc.trasLbl+': incluido en el total.':'El vehículo se entrega en nuestra oficina de Zona Franca, Iquique. El traslado a otra ciudad se cotiza aparte.',
+      'Sin sello verde un vehículo no puede circular en Santiago, Valparaíso ni Viña del Mar. Este vehículo '+(d.sv?'sí':'no')+' tiene sello verde.']
+      .concat(d.disc?['Valores de impuesto y trámites referenciales; el monto final lo fija el trámite de liberación.']:[]);
+    cond.forEach(cn=>{ parte(z,cn,AN-5).forEach((l,i)=>{ y+=4.7; if(!i){ z.fillStyle=T.s200; z.beginPath(); z.arc(M+1,y-1.2,.45,0,7); z.fill(); } txt(z,l,M+4.5,y,T.imp?'#333':T.s200); }); y+=.6; }); }
+  { const py=T.imp?283:285; if(!T.imp){ z.fillStyle=T.bg2; z.fillRect(0,py,W,H-py); linea(z,0,py,W,py,T.line); } else linea(z,M,py,W-M,py,T.line);
+    fnt(z,'800',9,FA,0); const a='AMK VEHÍCULOS SELECTOS'; txt(z,a,M,py+7.2,T.imp?T.t1:T.s050); const aw=ancho(z,a);
+    fnt(z,'400',9,FB,0); txt(z,' · '+COTPDF_DIR,M+aw,py+7.2,T.s200); fnt(z,'400',9,FM,0); txt(z,'2 / 2',W-M,py+7.2,T.s200,'right'); }
+  return {pags:[c1,c2], links:[links1,links2]};
+}
+/* PDF mínimo: cada página es una imagen JPEG a tamaño A4, más los links (wa.me y la ficha en la web) que se pueden tocar. */
+async function cotpdfArma(r,calidad){
+  const enc=new TextEncoder(), partes=[], offs=[]; let largo=0;
+  const pon=b=>{ const u=typeof b==='string'?enc.encode(b):b; partes.push(u); largo+=u.length; };
+  const PW=595.28, PH=841.89, mm=72/25.4;
+  const jpgs=[];
+  for(const c of r.pags){ const b=await new Promise((ok,mal)=>{ try{ c.toBlob(x=>x?ok(x):mal(new Error('jpeg')),'image/jpeg',calidad||.9); }catch(e){ mal(e); } });
+    jpgs.push(new Uint8Array(await b.arrayBuffer())); }
+  const n=r.pags.length, objs=[]; let id=3; const pagIds=[];
+  const plan=r.pags.map((c,i)=>{ const p={pag:id++,cont:id++,img:id++,annots:r.links[i].map(()=>id++)}; pagIds.push(p.pag); return p; });
+  const esc=s=>String(s).replace(/[\\()]/g,m=>'\\'+m);
+  pon('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj=(num,cuerpo,flujo)=>{ offs[num]=largo; pon(num+' 0 obj\n'); pon(cuerpo); if(flujo){ pon('\nstream\n'); pon(flujo); pon('\nendstream'); } pon('\nendobj\n'); };
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Kids ['+pagIds.map(p=>p+' 0 R').join(' ')+'] /Count '+n+' >>');
+  plan.forEach((p,i)=>{ const c=r.pags[i];
+    const an=p.annots.length?' /Annots ['+p.annots.map(a=>a+' 0 R').join(' ')+']':'';
+    obj(p.pag,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PW+' '+PH+'] /Resources << /XObject << /Im0 '+p.img+' 0 R >> >> /Contents '+p.cont+' 0 R'+an+' >>');
+    const cs='q '+PW+' 0 0 '+PH+' 0 0 cm /Im0 Do Q'; obj(p.cont,'<< /Length '+cs.length+' >>',cs);
+    obj(p.img,'<< /Type /XObject /Subtype /Image /Width '+c.width+' /Height '+c.height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpgs[i].length+' >>',jpgs[i]);
+    r.links[i].forEach((l,j)=>{ const x1=(l.x*mm).toFixed(2), y1=(PH-(l.y+l.h)*mm).toFixed(2), x2=((l.x+l.w)*mm).toFixed(2), y2=(PH-l.y*mm).toFixed(2);
+      obj(p.annots[j],'<< /Type /Annot /Subtype /Link /Rect ['+x1+' '+y1+' '+x2+' '+y2+'] /Border [0 0 0] /A << /S /URI /URI ('+esc(l.url)+') >> >>'); }); });
+  const xref=largo, tot=id;
+  let xr='xref\n0 '+tot+'\n0000000000 65535 f \n'; for(let i=1;i<tot;i++) xr+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+  pon(xr); pon('trailer\n<< /Size '+tot+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF');
+  return new Blob(partes,{type:'application/pdf'});
+}
+/* Arma el PDF (para enviar) o las páginas (para imprimir). Si la foto no se deja usar, va con la portada sin foto. */
+async function cotpdfGenera(d,tema){
+  const foto=tema==='imp'?null:await cotpdfImg(d.fotoSrc);
+  d.foto=!!foto;
+  let r=await cotpdfDibuja(d,tema,tema==='imp'?250:200,foto);
+  try{ r.pags[0].getContext('2d').getImageData(0,0,1,1); }
+  catch(e){ d.foto=false; r=await cotpdfDibuja(d,tema,200,null); }   /* foto de otro sitio que el navegador no deja exportar */
+  return r;
+}
+const cotpdfNombre=d=>'Cotizacion AMK - '+String(d.tit).split(' ').map(cotpdfCap).join(' ').replace(/[^\wÁÉÍÓÚÑáéíóúñ ]+/g,'').replace(/\s+/g,' ').trim()+'.pdf';
+var cotpdfUlt=null, cotpdfOcupado=false;   /* var: pintaLB() puede llamar a cotpdfOculta() antes de llegar a esta línea */
+/* 1.er toque: arma el PDF y muestra la vista previa con "Enviar PDF". Se hace en dos toques porque el iPhone solo deja
+   abrir "Compartir" justo después de tocar un botón, y armar el PDF toma un par de segundos. */
+async function cotpdfPrepara(d,idPrev){
+  if(!d||cotpdfOcupado) return; cotpdfOcupado=true;
+  const el=document.getElementById(idPrev);
+  try{
+    toast('Armando la cotización…');
+    const r=await cotpdfGenera(d,'osc'), blob=await cotpdfArma(r,.9);
+    const prev=r.pags[0].toDataURL('image/jpeg',.6);
+    cotpdfUlt={file:new File([blob],cotpdfNombre(d),{type:'application/pdf'}), d};
+    alturaFluida(MAIN,()=>{ el.hidden=false;
+      el.innerHTML=`<img src="${prev}" alt="Vista previa de la cotización" style="display:block;width:100%;max-width:300px;margin:12px auto 8px;border-radius:10px;border:1px solid var(--line)">
+        <div class="mtr" style="text-align:center;font-size:12px;margin-bottom:8px">Página 1 de 2 · ${(blob.size/1024/1024).toFixed(1).replace('.',',')} MB${d.foto||!d.fotoSrc?'':' · la foto no se pudo usar, va sin foto'}</div>
+        <button class="btn b-pri" type="button" data-cotpdf="enviar" style="width:100%">➦ Enviar PDF</button>
+        <button class="btn b-sec" type="button" data-cotpdf="bajar" style="width:100%;margin-top:8px">⤓ Guardar PDF</button>`; });
+  }catch(e){ console.error('cotpdfPrepara',e); toast('No se pudo armar el PDF'); }
+  finally{ cotpdfOcupado=false; }
+}
+function cotpdfOculta(idPrev){ const el=document.getElementById(idPrev); if(el&&!el.hidden){ el.hidden=true; el.innerHTML=''; } cotpdfUlt=null; }
+function cotpdfBaja(f){ const u=URL.createObjectURL(f), a=document.createElement('a'); a.href=u; a.download=f.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),10000); }
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-cotpdf]'); if(!b||!cotpdfUlt) return;
+  const f=cotpdfUlt.file;
+  if(b.dataset.cotpdf==='enviar'){
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      try{ await navigator.share({files:[f],title:'Cotización AMK'}); return; }
+      catch(er){ if(er&&er.name==='AbortError') return; console.warn('cotpdf share',er); } }
+    cotpdfBaja(f); toast('PDF guardado: adjúntalo en el chat');
+  } else cotpdfBaja(f);
+});
+
+/* ---- Cotización en PDF, parte de Sistema (14/11/2026, Andre): VIN, cliente, franquicia opcional, enviar e imprimir ---- */
+function lbPoneVin(v){ const f=$('#lbVinF'), i=$('#lbVin'); if(!v){ f.hidden=true; i.value=''; return; }
+  i.value=String((v.zof||{}).vin||v.vin||'').toUpperCase(); f.hidden=false; lbVinNota(); }
+function lbVinNota(){ const n=$('#lbVinNota'), s=$('#lbVin').value.trim();
+  n.innerHTML=!s?'<span style="color:var(--amber)">Este vehículo no tiene VIN guardado: escríbelo (17 caracteres) para que salga en la cotización.</span>'
+    :s.length!==17?`<span style="color:var(--amber)">Lleva ${s.length} caracteres; el VIN tiene 17.</span>`
+    :'Sale en la cotización. Si lo corriges, queda guardado en el vehículo (Víctor y Bryan también lo ven).'; }
+$('#lbVin').addEventListener('input',()=>{ lbVinNota(); cotpdfOculta('lbPdfPrev'); });
+$('#lbVin').addEventListener('change',()=>{
+  const v=lbVeh(), s=$('#lbVin').value.trim().toUpperCase(); if(!v||s.length!==17) return;
+  if(!/^[A-HJ-NPR-Z0-9]{17}$/.test(s)){ toast('Revisa el VIN: no lleva I, O ni Q'); return; }
+  if(String((v.zof||{}).vin||'').toUpperCase()===s&&v.vin===s) return;
+  v.zof=Object.assign({},v.zof||{},{vin:s}); v.vin=s; guardaCacheV(true);
+  try{ fbSchedulePush(); }catch(e){ console.error('vin nube',e); }
+  toast('VIN guardado en el vehículo'); });
+/* El VIN se escribe en Zofri (v.zof.vin, privado). Para que Vendedores lo tenga en su cotización se copia a v.vin
+   (documento público del vehículo, que ellos sí leen). Igual que svNormaliza: corrige al dibujar y sube lo cambiado. */
+function vinNormaliza(){ let n=0; for(const v of V){ if(!v||!v.ch) continue; const z=String((v.zof||{}).vin||'').toUpperCase();
+    if(z.length===17&&v.vin!==z){ v.vin=z; n++; } }
+  if(n){ guardaCacheV(true); try{ if(typeof fbSchedulePush==='function') fbSchedulePush(); }catch(e){ console.error('vinNormaliza nube',e); } }
+  return n; }
+$('#lbDisc').addEventListener('change',()=>{ alturaFluida(MAIN,()=>{ $('#lbDiscBox').hidden=!$('#lbDisc').checked; }); cotpdfOculta('lbPdfPrev'); cotOculta('lbPrev'); });
+['#lbCli','#lbCliTel','#lbCliCiu'].forEach(s=>$(s).addEventListener('input',()=>cotpdfOculta('lbPdfPrev')));
+async function lbPdfDatos(){
+  const v=lbVeh(); if(!v){ toast('Elige el vehículo'); $('#lbQ').focus(); return null; }
+  const venta=pnum($('#lbVenta').value)||0; if(!venta){ toast('Escribe el valor de venta'); $('#lbVenta').focus(); return null; }
+  const ciu=$('#lbCliCiu').value.trim();
+  let disc=null;
+  if($('#lbDisc').checked){
+    const base=pnum($('#lbBase').value)||0; if(!base){ toast('Ingresa la base imponible'); $('#lbBase').focus(); return null; }
+    const tasa=pdec($('#lbTasa').value)||0, tras=pnum($('#lbTras').value)||0, imp=Math.round(base*tasa/100);
+    const fijos=Object.keys(LB).filter(k=>LB[k]).map(k=>[nombreLB(k),LB[k]]);
+    disc={base,tasa,imp,fijos,tras,trasLbl:'Traslado'+(ciu?' a '+cotpdfCap(ciu):''),total:venta+imp+fijos.reduce((a,f)=>a+f[1],0)+tras};
+  }
+  let vin=$('#lbVin').value.trim().toUpperCase(); if(vin.length!==17) vin='';
+  let fotoSrc='';
+  try{ const loc=await loadPhotos(v.ch); if(loc[0]&&/^data:/.test(loc[0])) fotoSrc=loc[0]; }catch(_){}
+  const fe=fotosEfectivas(v); if(!fotoSrc) fotoSrc=(fe.hd&&fe.hd[0])||fe.fotos[0]||'';
+  const webOk=webVaEnLaWeb(v)&&(fe.fotos.length>0||tieneVideoWeb(v));
+  const h=new Date();
+  return Object.assign(cotpdfVeh(v),{num:cotpdfNum(),fecha:cotpdfFecha(h),vence:cotpdfFecha(new Date(h.getTime()+7*864e5)),vin,venta,disc,
+    cli:{nom:$('#lbCli').value.trim(),tel:$('#lbCliTel').value.trim(),ciu:cotpdfCap(ciu)},fotoSrc,webOk});
+}
+let lbPdfArmando=false;   /* doble toque: el 2.º no arma otro PDF mientras se buscan los datos y la foto */
+$('#lbPdf').addEventListener('click',async()=>{ if(cotpdfOcupado||lbPdfArmando) return; lbPdfArmando=true;
+  try{ const d=await lbPdfDatos(); if(d) await cotpdfPrepara(d,'lbPdfPrev'); } finally{ lbPdfArmando=false; } });
+/* Imprimir (solo Sistema, Andre 14/11/2026): versión blanca para la impresora en blanco y negro, sin foto. */
+$('#lbImprime').addEventListener('click',async()=>{
+  if(cotpdfOcupado||lbPdfArmando) return; cotpdfOcupado=true;
+  try{
+    const d=await lbPdfDatos(); if(!d) return;
+    toast('Preparando la impresión…');
+    const r=await cotpdfGenera(d,'imp'), urls=r.pags.map(c=>c.toDataURL('image/png'));
+    let fr=document.getElementById('cotpdfFr'); if(fr) fr.remove();
+    fr=document.createElement('iframe'); fr.id='cotpdfFr'; fr.setAttribute('aria-hidden','true');
+    fr.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(fr);
+    const doc=fr.contentWindow.document;
+    doc.open(); doc.write('<!doctype html><html><head><meta charset="utf-8"><title>'+cotpdfNombre(d).replace(/\.pdf$/,'')+'</title><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}img{display:block;width:210mm;height:297mm;page-break-after:always;break-after:page}img:last-child{page-break-after:auto;break-after:auto}</style></head><body>'+urls.map(u=>'<img src="'+u+'" alt="">').join('')+'</body></html>'); doc.close();
+    await new Promise(ok=>{ const im=[...doc.images]; let n=im.length; if(!n) return ok(); im.forEach(i=>{ if(i.complete){ if(--n===0) ok(); } else i.onload=i.onerror=()=>{ if(--n===0) ok(); }; }); });
+    fr.contentWindow.focus(); fr.contentWindow.print();
+  }catch(e){ console.error('lbImprime',e); toast('No se pudo preparar la impresión'); }
+  finally{ cotpdfOcupado=false; }
+});
 
 /* ---------- Cotización de liberación como IMAGEN (27/10/2026, Andre) ----------
    En Messenger, las conversaciones de Marketplace no aparecen al "compartir" (solo los contactos), y un texto pegado no da
