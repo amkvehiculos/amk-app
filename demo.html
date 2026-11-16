@@ -728,14 +728,14 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
         <button class="btn b-pri" id="emFobCp" style="width:100%;margin-top:11px">➦ Copiar lista para Zofri</button>
       </details>
     <div class="box"><h3>Impuesto Ley 18.211</h3>
-      <p>Se calcula sobre el CIF en dólares de Zofri y se suma al costo de cada vehículo.</p>
-      <div class="two" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><div class="mtr" style="margin:0 0 4px">Dólar aduanero</div>
+      <p>Igual que Zofri (cuenta 227): CIF unitario del Z × dólar observado del día de la venta × tasa. Se suma al costo de cada vehículo; sin vender se estima con el dólar observado de hoy.</p>
+      <div class="two" style="display:grid;grid-template-columns:1fr;gap:10px">
+        <div hidden><div class="mtr" style="margin:0 0 4px">Dólar aduanero (ya no se usa)</div>
           <input id="lbDA" inputmode="decimal" placeholder="935,57" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
         <div><div class="mtr" style="margin:0 0 4px">Tasa (%)</div>
           <input id="lbT18" inputmode="decimal" placeholder="0,33" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:16px;background:var(--paper);color:var(--ink)"></div>
       </div>
-      <div class="mtr" style="margin-top:7px">Aduanas fija el dólar aduanero el primer día hábil de cada mes.</div></div>
+      <div class="mtr" style="margin-top:7px">El dólar observado se actualiza solo (Negocio → Plata).</div></div>
     <details class="box" id="emAccZof"><summary style="cursor:pointer"><h3 style="display:inline-block;margin:0">Vista previa de Zofri</h3></summary>
         <p class="mtr" style="margin:0 0 10px">El Zeta completo tal como va en Zofri: encabezado con los totales y cada vehículo del "Detalle de Items". Casi todo sale solo de la ficha del vehículo (lo marcado "auto"); si algo no calza, escríbelo encima y queda guardado. Borra lo escrito para volver a lo automático. Lo único que hay que poner a mano es el VIN completo (si no vino en el BL) y confirmar el motor.</p>
         <div id="emZof"></div>
@@ -897,7 +897,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->14-11-2026 17:16<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-11-2026 12:53<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -1216,6 +1216,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
           <div id="rmTot" style="border:1px solid var(--line);border-radius:10px;padding:12px;font-family:var(--mono);font-weight:600;font-size:16px;background:var(--seaL);color:var(--ink)">—</div></div>
       </div>
       <button class="btn b-pri" id="rmAdd" style="width:100%">Registrar envío</button>
+      <button class="btn b-sec" id="rmPdfBtn" style="width:100%;margin-top:8px">⇪ Cargar comprobantes de Office Banking (PDF)</button>
+      <input id="rmPdf" type="file" accept="application/pdf,.pdf" multiple hidden>
+      <div class="mtr" style="margin:4px 0 0">Los PDF que mandas por WhatsApp (MERCURY AMKKOREA, GOLDWAVE…). Se crea cada envío solo, sin repetir los que ya están; los que no van a AMK KOREA quedan como pago de flete.</div>
       <div class="fld" hidden style="margin:12px 0 8px"><div class="mtr" style="margin:0 0 4px">Confirmación de Corea</div>
         <textarea id="rmRx" rows="3" placeholder="Pega aquí el código que te envía tu mamá"
           style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--paper);color:var(--ink)"></textarea></div>
@@ -1931,9 +1934,24 @@ const csal=x=>Math.max(0,acor(x)-abo(x));
 const app=c=>(S[c]?S[c].costs:[]).reduce((a,x)=>a+abo(x),0);        // efectivamente pagado
 const debe=c=>(S[c]?S[c].costs:[]).reduce((a,x)=>a+csal(x),0);      // saldo por pagar
 const postv=c=>(S[c]?S[c].costs:[]).filter(x=>x.post).reduce((a,x)=>a+abo(x),0);
+/* 16/11/2026 (Andre): la Ley 18.211 se calcula IGUAL que Zofri en "Cuentas del ítem" (cuenta 227):
+   CIF unitario del Z × dólar observado del DÍA DE LA VENTA × 0,33 %, redondeado al peso.
+   Antes se usaba el dólar aduanero del mes y el CIF del prorrateo, y no cuadraba con Zofri.
+   Ejemplos reales: Sportage BK021998 → 3.672,93 × 999,10 × 0,0033 = $12.110 · Trax HB098077 → 3.774,87 × 970,94 × 0,0033 = $12.095.
+   CIF: v.cifZ (CIF Zeta reajustado, se guarda al "Aplicar costos" desde 16/11/2026); si no está, v.cifusd (aprox.).
+   Dólar: vendido → t.dolarObs (capturado al vender); sin vender → el observado vigente (estimado). */
+const cif18=v=>+(v&&(v.cifZ||v.cifusd))||0;
+function dolar18(v){
+  try{
+    const t=(v&&S[v.ch])||null;
+    if(t&&t.sold&&+t.dolarObs) return +t.dolarObs;
+    const o=obsDe(); if(o&&o.v) return +o.v;
+    return (TC&&+TC.obs)||0;
+  }catch(_){ return 0; }   /* S/TC todavía sin cargar */
+}
 const imp18=v=>{
-  const u=v.cifusd||0, da=(typeof dolAd!=='undefined'?dolAd:0), t=(typeof t18!=='undefined'?t18:0);
-  return Math.round(u*da*t/100);
+  const u=cif18(v), d=dolar18(v), t=(typeof t18!=='undefined'?t18:0);
+  return Math.round(u*d*t/100);
 };
 /* ctIncCC: el costo hasta Chile (ct) ya trae el taller en Corea adentro (aplicado desde Embarque desde 2026-09-29); los aplicados antes no. */
 const ctot=v=>(v.ct?v.ct+(v.ctIncCC?0:ccCLP(v)):((v.cif||0)+xls(v))+ccCLP(v))+app(v.ch)+imp18(v);
@@ -2055,7 +2073,7 @@ const FB_BASE_KEY='amk_fb_base';
 function fbBaseGuarda(){ try{ const o={}; for(const c in fbPend) if(fbBase[c]) o[c]=fbBase[c]; Promise.resolve(window.storage.set(FB_BASE_KEY,JSON.stringify(o))).catch(()=>{}); }catch(_){} }
 const FB_PUB_FIELDS=['ch','st','ma','mo','an','ce','cat','tr','pa','ca','tp','eq','video','vids','vidsFe','fbVids','igVids','vidMp4','vidsMp4','km','trab','sv','nota','prov','fe','vev','fotos','f360','llp','motor','cil','baja','bajaFe','creando','vin','trans','eta','enCorea','zarpe','codMotor','cab','carga','ctr','ctrN'];  /* ctr/ctrN = código y número del contenedor en que viene (del embarque), para agrupar 'En camino' por contenedor */  /* cab: SIMPLE | MEDIA | DOBLE en vehículos de trabajo */  /* eq: equipamiento (lista de códigos de EQ_OPC), lo marca la mamá en Corea o Andre en Editar vehículo */  /* zarpe: fecha en que se embarcó en Corea (lo marca la mamá en su app o Andre aquí) */  /* enCorea: comprado en Corea y todavía en ningún embarque (lo calcula coreaSync) */  /* eta = fecha de arribo al puerto (manifiesto del embarque): Vendedores muestra 'En puerto' / 'llega ~' */  /* llp = fecha en que llego a patio (para mostrar hace cuanto esta ahi) */  /* vev = precio de venta: va en el documento principal (no en privado/costos) porque Vendedores lo necesita. f360 = direcciones (GitHub) de la vista 360° YA COMPLETA y subida — ver subir360Nube(). baja/bajaFe = vehículo archivado (Stock → Archivados) y cuándo -- SIN esto en la lista, "archivar" no viajaba a la nube: quedaba solo en el aparato donde se archivó. creando = vehículo todavía "en creación" (recién cargado por BL o a mano, completando datos/costos) -- no aparece en ninguna pestaña normal de Stock hasta que se confirme con "Confirmar y enviar a Stock". */
 const FB_S_FIELDS=['sold','price','date','pub','of','dest','pprice','pmin','pventa','pventaAnt','pminAnt','precioFe','pventaUSD','pminUSD','moneda','tc','cliente','vendedor','comision','nf','cov','pendPub','fuentePref','fuentePref360','res','baseLib','baseLibDia'];  /* baseLib = base imponible de liberación en pesos ya redondeada (la ven Víctor y Bryan; ver calcBaseLib) */  /* res = reserva del cliente {cli,tel,precio,fecha,vence,pagos:[{m,f,med}],est:'activa'|'completa'|'anulada'} */  /* pventa = precio de venta a pedir, uso interno (ver 'Editar publicación'). pventaUSD/pminUSD = equivalente en dólares de pventa/pmin, para cotizar a Paraguay (ver calcPventaUSD). fuentePref/fuentePref360 = fuente que André eligió a mano para fotos/vista 360° (anula el orden automático Andre>Víctor/Bryan>Corea) */
-const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof'];  /* zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
+const FB_PRIV_FIELDS=['cif','cifusd','fob','ct','ctIncCC','xc','zof','cifZ'];  /* cifZ = CIF unitario del Z (Ley 18.211, 16/11/2026); zof = datos de Zofri (N° doc. ingreso, tipo de vehículo) */
 /* 17/10/2026 (Andre: la mamá debe ver "todo lo que ha incurrido en costos allá en Corea, mas no lo adicional aquí en Iquique").
    Lo de Corea viaja aparte, en privado/corea, que es lo único privado que puede leer la cuenta de Corea; privado/costos
    (CIF, FOB, costo total, gastos en Chile) queda solo para Sistema. krw = compra en wones, cc = taller en Corea,
@@ -4576,7 +4594,7 @@ function srfInfoAdic(t){
 }
 function srfCampos(v,t){
   const cl=t.cliente||{}, zf=srfZF(cl.c);
-  const i18=(v.cifusd&&t18&&dolAd)?imp18(v):null;
+  const i18=(cif18(v)&&t18&&dolar18(v))?imp18(v):null;
   return [
     ['Documento','SRF'],
     ['Glosa',srfGlosa(v,t)],
@@ -4915,15 +4933,15 @@ function abrirVentaSheet(ch){const v=IDX[ch];editing=v.ch;
     /* 05/11/2026: si el vehículo está reservado y todavía no tiene cliente de venta, se usan los datos de la reserva */
     cliA('venta');
     { const r=resAct(v.ch); ponCliente(st(v.ch).cliente||(r&&(r.cl||{n:r.cli||'',t:r.tel||''}))||{}); }
-    const cu=v.cifusd||0;
+    const cu=cif18(v), d18=dolar18(v);
     $('#ss18Wrap').hidden=false;
-    if(cu&&t18&&dolAd){
+    if(cu&&t18&&d18){
       const i18=imp18(v);
       $('#ss18').textContent=clp(i18);
       $('#ss18Cp').dataset.v=String(i18);
-      $('#ss18F').textContent=`${String(t18).replace('.',',')}% sobre US$${obs2(cu)} × ${obs2(dolAd)} · ya incluido en el costo`;
+      $('#ss18F').textContent=`CIF ${v.cifZ?'del Z':'aprox. (falta CIF del Z)'} US$${obs2(cu)} × dólar observado ${obs2(d18)} × ${String(t18).replace('.',',')}% · igual que Zofri, cuenta 227 · ya incluido en el costo`;
     }else{
-      $('#ss18').textContent=cu?'Falta tasa o dólar aduanero':'Sin CIF en dólares';
+      $('#ss18').textContent=cu?'Falta tasa o dólar observado':'Sin CIF en dólares';
       $('#ss18Cp').dataset.v='';
       $('#ss18F').textContent=cu?'Configúralos en Negocio → Embarque':'Agrégalo en Negocio → Embarque: pon el vehículo con su CIF y usa "Aplicar costos"';
     }
@@ -5278,10 +5296,10 @@ $('#scCoreaGuardar').addEventListener('click',guardaScCorea);
 $('#scCoreaDeshacer').addEventListener('click',async()=>{
   const ch=editing||$('#scV').value; const v=IDX[ch]; if(!v) return;
   if(!confirm('¿Deshacer "Aplicar costos" de '+v.ma+' '+v.mo+' ('+ch+')?\n\nSe vacían costo hasta Chile, CIF y FOB Zeta -- quedan en blanco, no se intenta recuperar el valor que traían antes de aplicar (si tenía uno del Excel, ya se perdió al aplicar). El vehículo vuelve a quedar editable.\n\nNo se toca nada más: ni los costos de taller en Corea, ni el embarque, ni el resto de la ficha.')) return;
-  v.ct=null; v.cifusd=null; v.fob=null;
+  v.ct=null; v.cifusd=null; v.fob=null; v.cifZ=null;
   let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
   const idxP=prev.findIndex(p=>p.ch===ch);
-  if(idxP>=0){ prev[idxP].ct=null; prev[idxP].cifusd=null; prev[idxP].fob=null; try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){} }
+  if(idxP>=0){ prev[idxP].ct=null; prev[idxP].cifusd=null; prev[idxP].fob=null; prev[idxP].cifZ=null; try{await window.storage.set(EXK,JSON.stringify(prev))}catch(_){} }
   guardaCacheV(true);
   if(typeof fbSchedulePush==='function') fbSchedulePush();
   if(typeof webSyncPronto==='function') webSyncPronto();
@@ -7836,6 +7854,72 @@ document.addEventListener('click',async e=>{
 let RM=[];
 function rmComisionTotalUSD(x){ return (x.com||0)*(1+((x.iva||0)/100)); }
 function rmComisionPorVehUSD(x){ const n=(x.veh||[]).length; return n?rmComisionTotalUSD(x)/n:0; }
+/* 16/11/2026 (Andre): cambio REAL de cada remesa, para costear y para el FOB del Z (como el Excel original, col. R
+   "T.C USD/KRW al momento del envío", pero ponderado por remesa en vez de uno fijo para todo).
+   · Wones por dólar: lo que anotó la mamá (krw/u) = confirmado; si no, estimado = spot USD/KRW de 2 días hábiles
+     después del envío (lo que tarda en llegar) menos el diferencial del banco en Corea (TC.krwSpread, 15 por defecto).
+   · Pesos por dólar: lo escrito a mano (x.tcClp); si no, las compras de dólares vinculadas; si no, el costo promedio
+     de los dólares comprados hasta esa fecha (salen de la cuenta en dólares); si no, el dólar observado de ese día. */
+function rmKrwUsd(x){
+  if(+x.krw>0&&+x.u>0) return {v:x.krw/x.u,tipo:'confirmado'};
+  if(+x.estAuto>0) return {v:+x.estAuto,tipo:'estimado'};
+  if(+x.est>0) return {v:+x.est,tipo:'estimado'};
+  return null;
+}
+/* 16/11/2026 (Andre, con el reporte OTFX de Santander): cada envío se paga con los dólares comprados justo antes
+   (13/10: envía 9.350, compra 9.400 ese día; 22/10: 3.800 y 3.800; 30/10: 20.000 de los 29.000 del 29/10).
+   Así que a cada remesa (en orden de fecha) se le asignan las compras más recientes hasta su fecha, hasta cubrir sus
+   dólares, sin volver a usar dólares ya asignados, y solo de los 120 días anteriores (no mezclar dólares de 2023). */
+let _fxLotesK='', _fxLotesR={};
+function fxLotesRemesas(){
+  const k=FX.map(y=>y.ts+':'+y.u+':'+y.c+':'+y.f+':'+(y.estado||'')).join()+'|'+RM.map(x=>x.ts+':'+x.u+':'+x.f+':'+(x.tcClp||'')+':'+(x.fxIds||[]).length).join();
+  if(k===_fxLotesK) return _fxLotesR;
+  const lots=FX.filter(y=>+y.u>0&&+y.c>0&&!/cancel/i.test(y.estado||'')).map(y=>({f:String(y.f||''),u:+y.u,c:+y.c,left:+y.u,ts:+y.ts||0})).sort((a,b)=>a.f.localeCompare(b.f)||a.ts-b.ts);
+  const res={};
+  for(const x of RM.filter(x=>+x.u>0&&x.f).slice().sort((a,b)=>String(a.f).localeCompare(String(b.f))||a.ts-b.ts)){
+    const desde=sumaDias(x.f,-120); let need=+x.u, c=0; const usados=[];
+    for(let i=lots.length-1;i>=0&&need>0.005;i--){ const L=lots[i]; if(L.f>x.f||L.f<desde||L.left<=0.005) continue;
+      const t=Math.min(L.left,need); c+=t*(L.c/L.u); L.left-=t; need-=t; usados.push(fd(L.f).slice(0,5)+' a '+obs2(L.c/L.u)); }
+    const cub=+x.u-Math.max(0,need); if(cub>0.005) res[x.ts]={v:c/cub,cub,total:+x.u,de:'compras de dólares: '+usados.join(' · ')+(need>0.005?' (cubren US$'+obs2(cub)+' de '+obs2(+x.u)+')':'')};
+  }
+  _fxLotesK=k; _fxLotesR=res; return res;
+}
+function rmClpUsd(x){
+  if(+x.tcClp>0) return {v:+x.tcClp,tipo:'real',de:'escrito'};
+  const fx=fxRatePonderado(x.fxIds||[]); if(fx>0) return {v:fx,tipo:'real',de:'compras vinculadas'};
+  const lt=fxLotesRemesas()[x.ts]; if(lt) return {v:lt.v,tipo:lt.cub>=lt.total-0.005?'real':'estimado',de:lt.de};
+  try{ const o=obsDe(x.f); if(o&&o.v) return {v:+o.v,tipo:'estimado',de:'dólar observado del '+fd(o.d||x.f)}; }catch(_){}
+  return null;
+}
+function sumaHabiles(f,n){ const d=new Date(f+'T12:00:00'); let k=0; while(k<n){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w!==0&&w!==6) k++; } return d.toISOString().slice(0,10); }
+let _rmEstBusca=false;
+async function rmEstAutoBusca(){
+  if(_rmEstBusca||navigator.onLine===false) return; _rmEstBusca=true; let n=0;
+  try{
+    for(const x of RM){
+      if(+x.krw>0||!x.f||!(+x.u>0)) continue;
+      const fd2=sumaHabiles(x.f,2); if(fd2>iso()) continue;
+      if(x.estAutoF===fd2&&+x.estAuto>0) continue;
+      const r=await fetch('https://api.frankfurter.dev/v1/'+fd2+'?base=USD&symbols=KRW'); if(!r.ok) continue;
+      const j=await r.json(); const spot=+(j&&j.rates&&j.rates.KRW)||0; if(!spot) continue;
+      const sp=(TC.krwSpread||TC.krwSpread===0)?+TC.krwSpread:15;
+      x.estSpot=spot; x.estAuto=Math.round((spot-sp)*100)/100; x.estAutoF=fd2; n++;
+    }
+    if(n){ try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){} pintaRM(); if(typeof pintaEmb==='function') pintaEmb(); }
+  }catch(e){ console.error('rmEstAutoBusca',e); } finally{ _rmEstBusca=false; }
+}
+/* Cambio ponderado de un embarque: cada auto con la remesa que lo pagó, pesado por lo que costó en wones. */
+function cambioRemesasEmb(e){
+  if(!e||typeof RM==='undefined') return null; let W=0,U=0,C=0,nV=0,nConf=0;
+  for(const x of e.veh||[]){
+    const r=RM.find(y=>y.tipo!=='flete'&&(y.veh||[]).includes(x.ch)); const w=+x.valor||0; if(!r||!w) continue;
+    const k=rmKrwUsd(r), c=rmClpUsd(r); if(!k||!c) continue;
+    const usd=w/k.v; W+=w; U+=usd; C+=usd*c.v; nV++; if(k.tipo==='confirmado'&&c.tipo==='real') nConf++;
+  }
+  if(!W||!U) return null;
+  return {krwUsd:W/U,clpUsd:C/U,clpKrw:C/W,nV,nConf,nTot:(e.veh||[]).length};
+}
+function comisionBancoVehUSD(ch){ const x=RM.find(r=>r.tipo!=='flete' && (r.veh||[]).includes(ch)); return x?rmComisionPorVehUSD(x):0; }
 function comisionBancoVeh(ch){
   const x=RM.find(r=>r.tipo!=='flete' && (r.veh||[]).includes(ch));
   if(!x) return 0;
@@ -8678,6 +8762,12 @@ function fbAvisoVeh(ch){
 function pendientesGlobales(){
   const p=fbAvisosNube();
   const nRec=RECOREA.filter(x=>!x.vinculada).length;
+  { const lim=sumaDias(iso(),-3); const sinK=RM.filter(x=>x.tipo!=='flete'&&!(+x.krw>0)&&x.f&&x.f<=lim);
+    if(sinK.length) p.push({texto:'₩ '+sinK.length+' remesa'+(sinK.length===1?'':'s')+' a Corea sin wones confirmados (más de 3 días) · recordarle a tu mamá', ir:async()=>{
+      const txt='Hola mamá 🙂 ¿Te llegó la plata?\n\n'+sinK.map(x=>'• '+obs2(x.u)+' USD enviados el '+fd(x.f)).join('\n')
+        +'\n\nCuando puedas, en la app de AMK: Dinero → Remesas → "✓ Ya llegó". Puedes escribir los wones o sacarle una captura al aviso del banco y la app los lee sola.';
+      try{ if(navigator.share){ await navigator.share({text:txt}); return; } }catch(err){ if(err&&err.name==='AbortError') return; }
+      cp(txt,'Mensaje copiado · pégalo en WhatsApp'); }}); }
   if(nRec) p.push({texto:nRec+' remesa'+(nRec===1?'':'s')+' de Corea por vincular a un envío', ir:()=>{show('pDatos'); ngseg('dinero'); setTimeout(()=>{const b=$('#boxRemesas'); if(b){ secMuestra(b); b.scrollIntoView({behavior:'smooth',block:'start'}); }},60);}});
   try{ Object.values(EMB||{}).forEach(em=>{ const cod=em.contCod||{}; if(em.itiInsc||!Object.values(cod).some(Boolean)||!(em.veh||[]).length) return;
     if(!(em.veh||[]).some(x=>IDX[x.ch]&&IDX[x.ch].st==='ORIGEN')) return;
@@ -8799,7 +8889,9 @@ function pintaRM(){
   try{ fbEnviosPronto(); }catch(_){}
   const el=$('#rmList'); if(!el)return;
   if(!RM.length){el.innerHTML='<p style="color:var(--mute);font-size:13.5px;margin:0">Sin remesas registradas.</p>';return}
+  setTimeout(()=>{ try{ rmEstAutoBusca(); }catch(_){} },0);
   el.innerHTML=RM.slice().reverse().map(x=>{
+    const kU=rmKrwUsd(x), cU=rmClpUsd(x);
     const est=x.est?x.u*x.est:0;
     const real=x.krw||0;
     const tcReal=(real&&x.u)?real/x.u:0;
@@ -8812,7 +8904,9 @@ function pintaRM(){
         <div class="ch">${fd(x.f)} · costo ${obs2(x.tot)} USD</div></div>
         <span class="tag ${real?'t-sold':'t-or'}">${real?'Recibida':'En camino'}</span></div>
       <div class="money">
-        ${x.est?`<div>KRW estimado <b>${Math.round(est).toLocaleString('es-CL')}</b></div>`:''}
+        ${!real&&+x.estAuto>0?`<div>KRW estimado <b>${Math.round(x.u*x.estAuto).toLocaleString('es-CL')}</b></div><div style="font-size:12px;color:var(--mute)">spot del ${fd(x.estAutoF)} ${obs2(x.estSpot)} − ${obs2(x.estSpot-x.estAuto)} = ${obs2(x.estAuto)} ₩/US$</div>`
+          :(x.est?`<div>KRW estimado <b>${Math.round(est).toLocaleString('es-CL')}</b></div>`:'')}
+        ${cU?`<div>Pesos por dólar <b>${obs2(cU.v)}</b></div><div style="font-size:12px;color:var(--mute)">${cU.de}</div>`:''}
         ${real?`<div>KRW recibido <b style="color:var(--green)">${Math.round(real).toLocaleString('es-CL')}</b></div>
           <div>Cambio real <b>${obs2(tcReal)}</b></div>`:''}
         ${x.comKrw?`<div>Comisión allá <b class="neg">${Math.round(x.comKrw).toLocaleString('es-CL')} ₩</b></div>`:''}
@@ -8851,6 +8945,7 @@ function pintaRM(){
       <div class="acts">${''/* 01/10: 'Avisar a Corea' por código ya no hace falta (sincronización automática) */}
         <button class="btn b-sec" data-rmk="${x.ts}">${real?'Corregir wones':'Anotar wones'}</button>
         <button class="btn b-sec" data-rmc="${x.ts}" style="flex:0 0 auto">Comisión</button>
+        <button class="btn b-sec" data-rmclp="${x.ts}" style="flex:0 0 auto">$/US$</button>
         <button class="b-und" style="flex:0 0 auto" data-rmdel="${x.ts}">✕</button></div></div>`}).join('');
 }
 $('#rmRxBtn').addEventListener('click',async()=>{
@@ -8867,6 +8962,43 @@ $('#rmRxBtn').addEventListener('click',async()=>{
   try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
   $('#rmRx').value=''; pintaRM(); toast(n+' remesa'+(n===1?'':'s')+' confirmada'+(n===1?'':'s'));
 });
+/* 16/11/2026 (Andre): comprobante "Autorización transferencias internacionales" de Office Banking (Santander).
+   Trae N° de operación, dólares, fecha y a quién; no trae pesos (sale de la cuenta en dólares). Se lee en el mismo
+   aparato con pdf.js; no se sube a ningún lado. */
+let rmPdfLibP=null;
+function rmPdfLib(){ if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!rmPdfLibP) rmPdfLibP=new Promise((ok,mal)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; s.async=true;
+    s.onload=()=>{ try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; ok(window.pdfjsLib); }catch(e){ mal(e); } };
+    s.onerror=()=>{ rmPdfLibP=null; mal(new Error('red')); }; document.head.appendChild(s); });
+  return rmPdfLibP; }
+async function rmPdfTexto(file){ const lib=await rmPdfLib(); const doc=await lib.getDocument({data:await file.arrayBuffer()}).promise; let t='';
+  for(let i=1;i<=doc.numPages;i++){ const pg=await doc.getPage(i); const c=await pg.getTextContent(); t+=c.items.map(it=>it.str).join(' ')+'\n'; } return t.replace(/\s+/g,' '); }
+function rmPdfLee(t){
+  if(!/transferencias internacionales/i.test(t)) return null;
+  const m=t.match(/(\d{10})\s+(\d[\d-]{5,})\s+(.+?)\s+USD\s*([\d.]+,\d{2})\s+(\d{2})\/(\d{2})\/(\d{4})/i); if(!m) return null;
+  const u=parseFloat(m[4].replace(/\./g,'').replace(',','.'))||0; if(!u) return null;
+  return {op:m[1], dest:m[3].trim().toUpperCase(), u, f:m[7]+'-'+m[6]+'-'+m[5]};
+}
+$('#rmPdfBtn').addEventListener('click',()=>$('#rmPdf').click());
+$('#rmPdf').addEventListener('change',async ev=>{
+  const files=[...(ev.target.files||[])]; ev.target.value=''; if(!files.length) return;
+  const b=$('#rmPdfBtn'); b.disabled=true; const t0=b.textContent; b.textContent='Leyendo…';
+  const nuevos=[], repetidos=[], malos=[];
+  const ult=RM.slice().reverse().find(y=>+y.com>0)||{};
+  try{
+    for(const f of files){ let d=null; try{ d=rmPdfLee(await rmPdfTexto(f)); }catch(e){ console.error('rmPdf',e); if(e&&e.message==='red'){ toast('Para leer el PDF se necesita internet la primera vez'); break; } }
+      if(!d){ malos.push(f.name); continue; }
+      if(RM.some(y=>String(y.op||'')===d.op||(!y.op&&y.f===d.f&&Math.abs((+y.u||0)-d.u)<0.005))){ repetidos.push(d); continue; }
+      const flete=!/AMK\s*KOREA/.test(d.dest);
+      const x={ts:Date.now()+nuevos.length,u:d.u,com:+ult.com||0,iva:+ult.iva||0,est:0,tot:0,f:d.f,krw:0,veh:[],tipo:flete?'flete':'vehiculos',embId:'',op:d.op,dest:d.dest};
+      x.tot=x.u+rmComisionTotalUSD(x); RM.push(x); nuevos.push(x);
+    }
+    if(nuevos.length){ RM.sort((a,b)=>String(a.f).localeCompare(String(b.f))||a.ts-b.ts); try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){} pintaRM(); if(typeof pintaEmb==='function') pintaEmb(); }
+  } finally { b.disabled=false; b.textContent=t0; }
+  const msg=[nuevos.length?nuevos.length+' envío'+(nuevos.length===1?'':'s')+' nuevo'+(nuevos.length===1?'':'s')+' ('+nuevos.map(x=>fd(x.f).slice(0,5)+' US$'+obs2(x.u)+(x.tipo==='flete'?' flete':'')).join(' · ')+')':'',
+    repetidos.length?repetidos.length+' ya estaba'+(repetidos.length===1?'':'n'):'', malos.length?'no reconocí: '+malos.join(', '):''].filter(Boolean).join(' · ');
+  toast(msg?(msg+(nuevos.length?' · revisa la comisión y vincula los autos':'')):'Nada que cargar');
+});
 $('#rmAdd').addEventListener('click',async()=>{
   const u=pdec($('#rmUSD').value)||0;
   if(!u){toast('Ingresa los dólares enviados');return}
@@ -8882,6 +9014,12 @@ document.addEventListener('click',async e=>{
     if(!v)return; x.krw=v;
     try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
     pintaRM(); toast('Cambio real: '+obs2(v/x.u)+' KRW por USD'); return}
+  const rc=e.target.closest('[data-rmclp]');
+  if(rc){const x=RM.find(y=>String(y.ts)===rc.dataset.rmclp); if(!x)return;
+    const v=await pedirDato({t:'Pesos por dólar',s:'El cambio al que se compraron los dólares de esta remesa. Vacío = el promedio de tus compras de dólares.',l:'Pesos por US$',v:+x.tcClp>0?obs2(x.tcClp):'',modo:'num',ok:'Guardar'});
+    if(v===null)return; const n=parseFloat(String(v).replace(/[^0-9.,]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'))||0; if(n>0) x.tcClp=n; else delete x.tcClp;
+    try{await window.storage.set('amk_remesas',JSON.stringify(RM))}catch(_){}
+    pintaRM(); if(typeof pintaEmb==='function') pintaEmb(); return}
   const cr=e.target.closest('[data-rmc]');
   if(cr){const x=RM.find(y=>String(y.ts)===cr.dataset.rmc); if(!x)return;
     const v=await pedirDato({t:'Comisión en Corea',s:'Lo que cobraron al recibir en Corea (ej: 8 USD)',l:'Comisión',v:x.comRec||'',ok:'Guardar'});
@@ -9004,8 +9142,9 @@ document.addEventListener('change',async e=>{
   if(zofdoc){const em=E(); if(!em)return; const k=zofdoc.dataset.zofdoc; let val=zofdoc.value.trim();
     if(k==='pesoBL') val=parseFloat(val.replace(/\./g,'').replace(',','.'))||0;
     else if(k==='tcKRW') val=parseFloat(val.replace(',','.'))||0;
+    else if(k==='tcUSD') val=parseFloat(val.replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.'))||0;
     else if(['buque','naviera','proveedor','manifiesto','agencia'].includes(k)) val=val.toUpperCase();
-    if(val) em[k]=val; else delete em[k]; await guardaEmb(); if(k==='fechaManifiesto') etaSync(em); pintaEmZofri(); return}
+    if(val) em[k]=val; else delete em[k]; await guardaEmb(); if(k==='fechaManifiesto') etaSync(em); if(k==='tcUSD'){ pintaEmb(); return } pintaEmZofri(); return}
   const zof=e.target.closest('[data-zof]');
   if(zof){const [ch,key]=zof.dataset.zof.split('|');
     let val=zof.value.trim();
@@ -11877,7 +12016,23 @@ const montoCLP=(c,embIdCtx)=>{
 /* 2026-09-29: cada embarque puede tener su propio cambio pesos por won (e.tcKRW): los autos se compraron con
    dólares comprados en su momento, no al cambio de hoy. Viaja con el embarque (se sincroniza entre aparatos).
    Si el embarque no lo tiene, se usa el general de Negocio → Datos. */
-function tcKRWEmb(embIdCtx){ const e=embIdCtx&&typeof EMB!=='undefined'&&EMB[embIdCtx]; if(e&&+e.tcKRW>0) return +e.tcKRW; return (typeof tcKRW!=='undefined'&&tcKRW)?tcKRW:0.685; }
+function tcKRWEmb(embIdCtx){ const e=embIdCtx&&typeof EMB!=='undefined'&&EMB[embIdCtx]; if(e&&+e.tcKRW>0) return +e.tcKRW;
+  /* 16/11/2026: sin cambio escrito, el ponderado de las remesas que pagaron esos autos (si hay al menos uno) */
+  if(e){ try{ const cr=cambioRemesasEmb(e); if(cr&&cr.clpKrw>0) return cr.clpKrw; }catch(_){} }
+  return (typeof tcKRW!=='undefined'&&tcKRW)?tcKRW:0.685; }
+/* 16/11/2026 (Andre): el FOB/CIF que se declara en el Z tiene que quedar FIJO, como en el Excel original ("4. DDU EQ":
+   todo se pasa a dólares con el cambio del momento de la compra/remesa, nunca con el dólar del día). Antes embCalc
+   dividía por TC.medio de HOY: el Z 101-26-065045 se armó con 972 y "Aplicar costos" se apretó con 974, y los 30 autos
+   quedaron ~0,2 % bajo lo declarado. Ahora cada embarque guarda su dólar (e.tcUSD) y se fija solo la primera vez que se
+   copia algo para Zofri, se aplican los costos o se marca el Z presentado. Vacío = el de hoy (todavía se puede mover). */
+function tcUSDEmb(e){ if(e&&+e.tcUSD>0) return +e.tcUSD;
+  if(e){ try{ const cr=cambioRemesasEmb(e); if(cr&&cr.clpUsd>0) return cr.clpUsd; }catch(_){} }
+  return (typeof TC!=='undefined'&&+TC.medio)||0; }
+/* Al comprometerse con Zofri se congelan LOS DOS cambios del embarque (el Z es una foto: no se mueve después). */
+function fijaDolarEmb(e){ if(!e) return false; let c=false;
+  if(!(+e.tcUSD>0)){ const t=tcUSDEmb(e); if(t>0){ e.tcUSD=Math.round(t*100)/100; c=true; } }
+  if(!(+e.tcKRW>0)){ const k=tcKRWEmb(e.id); if(k>0){ e.tcKRW=Math.round(k*1e6)/1e6; c=true; } }
+  return c; }
 let PER={saldoDesde:''};
 let emVerNoAplica=false;
 function embNuevo(){
@@ -11908,7 +12063,7 @@ async function cargaEmb(){
   pintaEmb();
 }
 document.addEventListener('click',async ev=>{ const b=ev.target.closest('[data-zpres]'); if(!b) return; const em=E(); if(!em) return;
-  if(b.dataset.zpres==='1') em.zPres=iso(); else { if(!confirm('¿Desmarcar el Z como presentado?')) return; em.zPres=''; }
+  if(b.dataset.zpres==='1'){ em.zPres=iso(); fijaDolarEmb(em); } else { if(!confirm('¿Desmarcar el Z como presentado?')) return; em.zPres=''; }
   await guardaEmb(); pintaEmZofri(); draw(); toast(em.zPres?'Z marcado como presentado · desde ahora los cambios van a SMDA':'Desmarcado'); });
 async function guardaEmb(){
   const st=$('#emSaveStatus');
@@ -13014,12 +13169,21 @@ function pintaEmZofri(){
         <input data-zofdoc="pesoBL" inputmode="decimal" value="${e.pesoBL||''}" placeholder="55499" style="${est}"></div>
       <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Pesos por won de este embarque (cambio al que se compraron los autos; vacío = el general, ${String(tcKRW).replace('.',',')})</label>
         <input data-zofdoc="tcKRW" inputmode="decimal" value="${e.tcKRW?String(e.tcKRW).replace('.',','):''}" placeholder="${String(tcKRW).replace('.',',')}" style="${est}"></div>
+      <div class="fld" style="margin:8px 0 0"><label style="font-size:11px">Dólar de este embarque (pesos por US$) · con él se pasan a dólares el FOB y el CIF del Z. ${+e.tcUSD>0?'Fijo: no cambia aunque cambie el dólar.':'Todavía sin fijar (usa el de hoy, '+obs2(+TC.medio||0)+'): se fija solo al copiar para Zofri, aplicar costos o marcar el Z presentado.'}</label>
+        <input data-zofdoc="tcUSD" inputmode="decimal" value="${+e.tcUSD>0?obs2(+e.tcUSD):''}" placeholder="${obs2(+TC.medio||0)}" style="${est}"></div>
+      ${(()=>{ const cr=cambioRemesasEmb(e); if(!cr) return '<p class="mtr" style="margin:6px 0 0">Ningún auto de este embarque está vinculado a una remesa (Negocio → Dinero → Remesas): sin eso no se puede sacar el cambio real ponderado.</p>';
+        const ok=e.zPres?'':`<button class="btn b-sec" data-usarrm="1" style="width:100%;margin-top:6px;font-size:12.5px">Usar el cambio de las remesas</button>`;
+        return `<div class="card plain" style="padding:9px;margin:8px 0 0"><div style="font-size:12.5px"><b>Según las remesas</b> (${cr.nV} de ${cr.nTot} autos; ${cr.nConf} con wones confirmados por tu mamá${cr.nConf<cr.nV?', el resto estimado':''})</div>
+          <div class="money" style="margin-top:4px"><div>Wones por dólar <b>${obs2(cr.krwUsd)}</b></div><div>Pesos por dólar <b>${obs2(cr.clpUsd)}</b></div><div>Pesos por won <b>${String(Math.round(cr.clpKrw*10000)/10000).replace('.',',')}</b></div></div>
+          ${e.zPres?'<p class="mtr" style="margin:4px 0 0">El Z ya está presentado: sus cambios quedan fijos (una corrección iría a SMDA).</p>':ok}</div>`; })()}
       ${doc.sinCompra?`<p style="font-size:12px;color:var(--amber);margin:8px 0 0">${doc.sinCompra} vehículo${doc.sinCompra===1?'':'s'} sin FOB/CIF todavía: completa sus costos para que los totales queden bien.</p>`:''}
       ${nSinVin?`<div class="fld" style="margin:10px 0 0"><label style="font-size:11px">${nSinVin} vehículo${nSinVin===1?'':'s'} sin VIN completo: pega aquí los VIN (de la factura, el BL o un Zeta anterior), en cualquier orden — cada uno se asigna solo al vehículo cuyo chasis coincide</label>
         <textarea id="zofVins" rows="3" placeholder="KMHSW81UBFU432757&#10;KMFZCY7KAGU259761" style="${est};width:100%;font-family:var(--mono);text-transform:uppercase"></textarea>
         <button class="btn b-sec" id="zofVinsBtn" style="width:100%;margin-top:6px;font-size:12px">Guardar VINs</button></div>`:''}
       <p style="font-size:12px;margin:8px 0 0">${nListos} listo${nListos===1?'':'s'} · ${nRev} para revisar · ${nFalta} con datos faltantes</p>
       <button class="btn b-pri" id="zofPayloadCp" style="width:100%;margin-top:10px">➦ Copiar datos para Rellenar Zeta</button>
+      <button class="btn b-sec" id="zofGuardaZ" style="width:100%;margin-top:8px">Guardar FOB Zeta y CIF del Z en las fichas</button>
+      <div class="mtr" style="margin:4px 0 0">Deja en cada vehículo exactamente lo declarado en el Z (para el SRF y la Ley 18.211). No toca el costo hasta Chile ni los precios.</div>
       <details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px">Cómo rellenar el Zeta en Zofri con un clic</summary>
         <ol style="font-size:12.5px;padding-left:18px;margin:8px 0">
           <li>Una sola vez, en el Mac: arrastra este botón a la barra de favoritos del navegador → <a href="${zofMarcadorHref()}" data-zofmarcador="1" style="display:inline-block;padding:4px 10px;border-radius:8px;background:var(--sea);color:#fff;text-decoration:none;font-weight:600">Rellenar Zeta</a></li>
@@ -13060,9 +13224,16 @@ function embCalc(){
   // gate in, porteo, THC, EDS, trámites, comisión bancaria) quedan FUERA: son gasto posterior
   // a la compra, no forman parte del valor que se declara. El CIF suma el 2% de seguro sobre
   // el FOB más la parte de flete que le toca a cada vehículo (mismo reparto 30/70).
-  const fleteCLP=e.costos.filter(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor').reduce((a,c)=>a+costoTotalCLP(c,e),0);
-  const poolCnFlete=(fleteCLP*pCont)/contsConVeh;
-  const tcUSD=(typeof TC!=='undefined'&&TC.medio)?TC.medio:0;
+  const tcUSD=tcUSDEmb(e);
+  /* Flete en dólares tal cual se pagó (Excel: FLETE (USD) × reparto), sin ir y volver por pesos. */
+  const fleteUSD=e.costos.filter(c=>c.n==='Flete marítimo'&&c.tipo==='contenedor')
+    .reduce((a,c)=>a+((c.moneda==='USD')?(c.monto||0)*costoMult(c,e):(tcUSD?costoTotalCLP(c,e)/tcUSD:0)),0);
+  const poolCnFleteUSD=(fleteUSD*pCont)/contsConVeh;
+  /* Partes iguales para el FOB: lo cargado en dólares entra en dólares; lo demás (pesos/wones) se pasa con el dólar
+     del embarque. Si no hay costos en dólares da exactamente lo mismo que porIgual/tcUSD. */
+  const igualNoUSD=e.costos.filter(c=>c.tipo!=='contenedor'&&c.moneda!=='USD').reduce((a,c)=>a+costoTotalCLP(c,e),0);
+  const igualUSD=e.costos.filter(c=>c.tipo!=='contenedor'&&c.moneda==='USD').reduce((a,c)=>a+(c.monto||0)*costoMult(c,e),0);
+  const porIgualUSD=n?(tcUSD?Math.round(igualNoUSD/n)/tcUSD:0)+igualUSD/n:0;
   const filas=e.veh.map(x=>{
     const compraCLP=Math.round((x.valor||0)*tcKRWEmb(e.id));
     const pct=sumVal?(x.valor||0)/sumVal:0;
@@ -13081,13 +13252,11 @@ function embCalc(){
     const ccCLPveh=(typeof ccCLP==='function')?ccCLP(IDX[x.ch]||{}):0;
     const bruto=compraCLP+asignado+ccCLPveh;
     const lleg=arriba(bruto);
-    const fobCLP=compraCLP+porIgual+comisionBanco+ccCLPveh;
-    const fobUSD=tcUSD?fobCLP/tcUSD:0;
-    const fleteValorCLP=pct*fleteCLP*pVal;
-    const fleteVolCLP=shareVol*poolCnFlete;
-    const fleteVehUSD=tcUSD?(fleteValorCLP+fleteVolCLP)/tcUSD:0;
+    const fobCLP=compraCLP+ccCLPveh;   /* compra y taller en Corea: wones → pesos con el cambio fijo del embarque */
+    const fobUSD=tcUSD?fobCLP/tcUSD+porIgualUSD+((typeof comisionBancoVehUSD==='function')?comisionBancoVehUSD(x.ch):0):0;
+    const fleteVehUSD=pct*fleteUSD*pVal+shareVol*poolCnFleteUSD;
     const cifSugerido=Math.round((fobUSD*1.02+fleteVehUSD)*100)/100;
-    return {...x, compraCLP, pct, porValor, porContVol, porIgual, porFijo, comisionBanco, asignado, ccCLPveh, bruto, lleg, sube:lleg-bruto, fobUSD, fleteVehUSD, cifSugerido};
+    return {...x, compraCLP, pct, porValor, porContVol, porIgual, porFijo, comisionBanco, asignado, ccCLPveh, bruto, lleg, sube:lleg-bruto, fobUSD, fleteVehUSD, cifSugerido, tcUSD};
   });
   // FOB Zeta: se calcula solo, igual que la hoja "5. FOB ZETA" del Excel — sin
   // totales que haya que escribir a mano. El FOB Zeta de cada vehículo es su
@@ -13812,7 +13981,24 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('[data-zofmarcador]')){e.preventDefault(); toast('Arrástralo a la barra de favoritos del navegador; se usa en la página de Zofri'); return}
   if(e.target.closest('#zofVinsBtn')){const ta=$('#zofVins'); const r=await zofGuardarVins(ta?ta.value:'');
     toast(r&&r.total?(r.n+' VIN guardado'+(r.n===1?'':'s')+(r.total>r.n?' ('+(r.total-r.n)+' ya estaban o no son de este embarque)':'')):'No encontré VINs de 17 caracteres'); return}
+  if(e.target.closest('[data-usarrm]')){const em=E(); if(!em) return; if(em.zPres){toast('El Z ya está presentado: no se cambia');return}
+    const cr=cambioRemesasEmb(em); if(!cr){toast('Sin remesas vinculadas a estos autos');return}
+    em.tcUSD=Math.round(cr.clpUsd*100)/100; em.tcKRW=Math.round(cr.clpKrw*1e6)/1e6;
+    await guardaEmb(); pintaEmb(); toast('Cambio del embarque: '+obs2(cr.clpUsd)+' $/US$ · '+obs2(cr.krwUsd)+' ₩/US$'); return}
+  if(e.target.closest('#zofGuardaZ')){const em=E(); if(!em||!em.veh.length){toast('Sin vehículos en este embarque');return}
+    const r0=embCalc(); const con=(r0?r0.filas:[]).filter(f=>f.fobUSD&&IDX[f.ch]); const H=(r0&&r0.zetaHdr)||{};
+    if(!con.length){toast('Ningún vehículo tiene FOB/CIF todavía');return}
+    if(!confirm('Guardar en '+con.length+' fichas el FOB Zeta y el CIF del Z (dólar del embarque '+obs2(tcUSDEmb(em))+'):\n\nFOB '+obs2(H.fob)+' · Flete '+obs2(H.flete)+' · Seguro '+obs2(H.seguro)+' · CIF '+obs2(H.cif)+'\n\nRevisa que sea igual a la cabecera del Z. No cambia el costo hasta Chile ni los precios.')) return;
+    if(fijaDolarEmb(em)) await guardaEmb();
+    let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
+    const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
+    for(const f of con){ const v=IDX[f.ch]; v.fob=f.fobZetaReaj; v.cifZ=f.cifZetaReaj; v.cifusd=f.cifZetaReaj;
+      if(mapa[f.ch]){ mapa[f.ch].fob=f.fobZetaReaj; mapa[f.ch].cifZ=f.cifZetaReaj; mapa[f.ch].cifusd=f.cifZetaReaj; } }
+    try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
+    if(typeof fbSchedulePush==='function') fbSchedulePush(); guardaCacheV(true);
+    draw(); pintaEmb(); toast(con.length+' fichas con el FOB Zeta y CIF del Z · subiendo a la nube'); return}
   if(e.target.closest('#zofPayloadCp')){const em=E(); if(!em||!em.veh.length){toast('Sin vehículos en este embarque');return}
+    if(fijaDolarEmb(em)) await guardaEmb();
     const P=zofPayload(em); await cp(JSON.stringify(P),'Datos del Zeta copiados ('+P.items.length+' vehículos) — ahora toca el favorito "Rellenar Zeta" en Zofri'); return}
   const zofcp=e.target.closest('[data-zofcp]');
   if(zofcp){const ch=zofcp.dataset.zofcp; const v=IDX[ch]; if(!v)return;
@@ -13853,6 +14039,7 @@ $('#emLista').addEventListener('click',async()=>{
   if(i!==null&&i>=0&&i<ids.length){embId=ids[i]; guardaEmb(); pintaEmb()}
 });
 $('#emFobCp').addEventListener('click',async()=>{
+  { const em=E(); if(fijaDolarEmb(em)) await guardaEmb(); }
   const r=embCalc(); const con=(r?r.filas:[]).filter(f=>f.fobUSD);
   if(!con.length){toast('Ningún vehículo tiene compra en wones');return}
   const filas=con.map(f=>{
@@ -13982,6 +14169,7 @@ function emResFlush(){ for(const key in emResT){ clearTimeout(emResT[key]); dele
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) emResFlush(); });
 window.addEventListener('pagehide',emResFlush);
 $('#emAplicar').addEventListener('click',async()=>{
+  { const em=E(); if(fijaDolarEmb(em)) await guardaEmb(); }
   const r=embCalc(); if(!r||!r.filas.length){toast('No hay vehículos');return}
   let n=0;
   /* 2026-09-29 (lo acordado con Andre): "Aplicar costos" también saca los vehículos de "en creación" y los deja
@@ -13989,10 +14177,10 @@ $('#emAplicar').addEventListener('click',async()=>{
      patio o vendidos no cambian de estado. */
   let nConf=0;
   for(const f of r.filas){ const v=IDX[f.ch]; if(v&&v.creando){ v.creando=false; if(!v.st) v.st='ORIGEN'; nConf++; } }
-  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.ctIncCC=true; v.cifusd=f.cif||f.cifSugerido; if(f.fobUSD) v.fob=f.fobZetaReaj; n++; }
+  for(const f of r.filas){ const v=IDX[f.ch]; if(!v) continue; v.ct=f.lleg; v.ctIncCC=true; v.cifusd=f.cif||f.cifZetaReaj||f.cifSugerido; if(f.fobUSD){ v.fob=f.fobZetaReaj; v.cifZ=f.cifZetaReaj||null; } n++; }
   let prev=[]; try{const x=await window.storage.get(EXK); if(x&&x.value) prev=JSON.parse(x.value)}catch(_){}
   const mapa=Object.fromEntries(prev.map(v=>[v.ch,v]));
-  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].ctIncCC=true; mapa[f.ch].cifusd=f.cif||f.cifSugerido; if(f.fobUSD) mapa[f.ch].fob=f.fobZetaReaj; } }
+  for(const f of r.filas){ if(mapa[f.ch]){ mapa[f.ch].ct=f.lleg; mapa[f.ch].ctIncCC=true; mapa[f.ch].cifusd=f.cif||f.cifZetaReaj||f.cifSugerido; if(f.fobUSD){ mapa[f.ch].fob=f.fobZetaReaj; mapa[f.ch].cifZ=f.cifZetaReaj||null; } } }
   try{await window.storage.set(EXK,JSON.stringify(Object.values(mapa)))}catch(_){}
   for(const inp of document.querySelectorAll('[data-emres]')) await emResGuarda(inp);
   if(typeof fbSchedulePush==='function') fbSchedulePush(); guardaCacheV(true);
@@ -14696,14 +14884,14 @@ function buildXLSX(sheets){
 function descargaRespaldoExcel(auto){
   const sheets=[];
 
-  const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
+  const vehHead=['Chasis','Estado','Marca','Modelo','Año','Color','Categoría','Tracción','Pasajeros','Carrocería','T. panorámico','KM','CIF','FOB (USD)','CIF (USD)','CIF Zeta (USD)','Costo total','Precio de venta','Trabajado','Vendido en la web',
     'Alerón','Pintura','Eléctrico','TV','Parabrisas','Mecánica','Obligatorio','Repuestos','Rep. usados','Batería','Neumáticos','Asientos',
     'Transmisión','Combustible','Cilindrada','Motor','Equipamiento'];
   /* Datos del Z (2026-10-27): los mismos que se declaran en Zofri, con la transmisión por defecto si no se anotó
      (automática; mecánica en los de trabajo). Los guiones de video salen de este respaldo. */
   const vehZ=v=>{ try{ const ef=zofEf(v), lin=x=>String(x||'').toLowerCase().replace('automatica','automática').replace('mecanica','mecánica');
     return [lin(ef.trans),lin(ef.combustible).replace('diesel o semidiesel','diésel'),ef.cilind||'',ef.motor||'']; }catch(_){ return ['','','','']; } };
-  const vehRows=[vehHead, ...V.map(v=>[v.ch,v.st,v.ma,v.mo,v.an,v.ce,v.cat,v.tr,v.pa,v.ca,v.tp?'Sí':'No',v.km,v.cif,v.fob,v.cifusd,v.ct,v.vev,v.trab?'Sí':'No',v.sv?'Sí':'No',
+  const vehRows=[vehHead, ...V.map(v=>[v.ch,v.st,v.ma,v.mo,v.an,v.ce,v.cat,v.tr,v.pa,v.ca,v.tp?'Sí':'No',v.km,v.cif,v.fob,v.cifusd,v.cifZ||'',v.ct,v.vev,v.trab?'Sí':'No',v.sv?'Sí':'No',
     (v.xc&&v.xc.ALERON)||0,(v.xc&&v.xc.PINTURA)||0,(v.xc&&v.xc.ELECT)||0,(v.xc&&v.xc.TV)||0,(v.xc&&v.xc.PARB)||0,(v.xc&&v.xc.MECANICO)||0,(v.xc&&v.xc.OBLIG)||0,(v.xc&&v.xc.REPNUE)||0,(v.xc&&v.xc.REPUSA)||0,(v.xc&&v.xc.BATERIA)||0,(v.xc&&v.xc.NEUMAT)||0,(v.xc&&v.xc.ASIENTOS)||0,...vehZ(v),eqDe(v).join(', ')])];
   sheets.push({name:'Vehículos',rows:vehRows});
 

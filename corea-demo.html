@@ -359,7 +359,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
       <div id="csSel" hidden style="margin-top:10px"><div class="fld" style="margin-bottom:8px"><label for="csDia">Copia desde la cual recuperar</label><select id="csDia"></select></div>
         <button class="btn b-pri" id="csComparar" type="button" style="width:100%">Ver qué falta hoy</button></div>
       <div id="csRes" class="mtr" style="margin-top:8px"></div></details>
-    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->14-11-2026 13:18<!--/VER--></b></p>
+    <p class="mtr" style="margin-top:18px;text-align:center">Versión de esta app: <b><!--VER-->16-11-2026 12:53<!--/VER--></b></p>
   </section>
 </main>
 
@@ -495,6 +495,9 @@ h2{font-family:var(--disp);font-weight:700;font-size:20px;margin:0 0 3px;letter-
 
 <div class="sheet" id="shLleg">
   <h3>Remesa recibida</h3><div class="sb" id="llC">Anota cuántos wones llegaron a tu banco. Andre ya sabe cuánto envió; con tu dato confirma cuánto llegó de verdad.</div>
+  <button class="btn b-sec" id="llFoto" type="button" style="width:100%;margin:0 0 10px">📷 Leer de una captura del banco</button>
+  <input id="llFile" type="file" accept="image/*" hidden>
+  <div class="nota" id="llOcr" hidden style="margin:0 0 10px"></div>
   <div class="fld"><label for="llK">Wones que llegaron</label><input id="llK" inputmode="numeric" data-dinero="1" placeholder="0"></div>
   <div class="fld"><label for="llCom">Comisión que descontaron (opcional)</label><input id="llCom" inputmode="numeric" data-dinero="1" placeholder="En wones"></div>
   <div class="fld"><label for="llD">Fecha en que llegó</label><input id="llD" type="date"></div>
@@ -2826,7 +2829,8 @@ function pintaRE(){
   const rc=$('#reCamino');
   if(rc) rc.innerHTML=cam.length?`<h3 style="font-family:var(--disp);font-size:16px;margin:2px 0 8px">En camino · ${cam.length}</h3>`+cam.map(e=>`<div class="card" style="border-color:var(--amber)">
       <div class="r1"><div><div class="tt">${dec2(e.u)} USD</div><div class="ch">Enviados el ${fd(e.f)}</div></div><span class="tag t-pend">En camino</span></div>
-      <div class="acts"><button class="btn b-pri big" data-yallego="${e.id}">✓ Ya llegó</button></div></div>`).join(''):'';
+      <div class="acts"><button class="btn b-pri big" data-yallego="${e.id}">✓ Ya llegó</button></div>
+      <div class="mtr" style="margin:6px 0 0">Puedes sacarle una captura al aviso de tu banco: la app lee el monto sola.</div></div>`).join(''):'';
   const bn=$('#reNueva'); if(bn) bn.textContent=cam.length?'＋ Anotar una remesa que no está en la lista':'＋ Anotar remesa recibida';
   const porInf=RE.filter(x=>!avisada(x)).length;
   $('#reCnt').textContent=RE.length?RE.length+' remesa'+(RE.length===1?'':'s')+(porInf?' · '+porInf+' por avisar':' · todas avisadas ✓'):'';
@@ -2846,12 +2850,12 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-yallego]'); if(!b) return;
   const en=ENV.find(x=>String(x.id)===b.dataset.yallego); if(!en) return;
   llId=null; llEnvio=en.id; $('#llC').textContent='Envío de '+dec2(en.u)+' USD del '+fd(en.f)+'. Anota los wones que llegaron a tu banco.';
-  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso();
+  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso(); llOcrReset();
   openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240);
 });
 $('#reNueva').addEventListener('click',()=>{
   llId=null; llEnvio=null; $('#llC').textContent='Anota cuántos wones llegaron a tu banco. Andre ya sabe cuánto envió; con tu dato confirma cuánto llegó de verdad.';
-  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso();
+  $('#llK').value='';$('#llCom').value='';$('#llD').value=iso(); llOcrReset();
   openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240);
 });
 $('#llOk').addEventListener('click',async()=>{
@@ -2867,11 +2871,42 @@ $('#llOk').addEventListener('click',async()=>{
   toast(fbReady?'Registrada · se avisa sola a Iquique':'Registrada · sin internet: se avisa sola cuando haya señal (o usa el botón de WhatsApp)');
 });
 let llId=null;
+/* 16/11/2026 (Andre): para que la mamá no tenga que escribir el número: saca una captura del aviso de su banco y
+   la app lee los montos en el mismo teléfono (Tesseract, el mismo lector del VIN; la foto no se sube a ningún lado).
+   Si el envío es conocido, solo se proponen montos que calcen con esos dólares (entre 1.100 y 1.700 wones por dólar). */
+function llOcrReset(){ const n=$('#llOcr'); if(n){ n.hidden=true; n.innerHTML=''; } }
+$('#llFoto').addEventListener('click',()=>{ if(!ocrOcupado) $('#llFile').click(); });
+$('#llFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f||ocrOcupado) return;
+  const b=$('#llFoto'), n=$('#llOcr'); ocrOcupado=true; b.disabled=true;
+  n.hidden=false; n.style.borderLeftColor='var(--sea)'; n.innerHTML='⏳ Leyendo la captura… '+(ocrW?'':'<span class="mtr" style="margin:0">(la primera vez tarda un poco más)</span>');
+  try{
+    const {c,u}=await vinLienzo(f), w=await ocrListo();
+    let txt='';
+    await w.setParameters({tessedit_char_whitelist:'0123456789,.원KRW '});
+    try{ txt=(await w.recognize(c)).data.text; } finally{ await w.setParameters({tessedit_char_whitelist:VIN_LETRAS}); }
+    const en=llEnvio?ENV.find(x=>String(x.id)===String(llEnvio)):null;
+    const lo=en&&en.u?en.u*1100:100000, hi=en&&en.u?en.u*1700:1e12;
+    const nums=[...new Set((String(txt).match(/\d{1,3}(?:[.,]\d{3})+|\d{5,}/g)||[]).map(x=>+x.replace(/[.,]/g,'')))].filter(x=>x>=lo&&x<=hi).sort((a,b)=>b-a);
+    const foto=`<img src="${u}" alt="Captura" style="display:block;width:100%;max-height:170px;object-fit:contain;border-radius:8px;margin-top:8px;background:#000">`;
+    const pon=k=>{ $('#llK').value=String(k); $('#llK').dispatchEvent(new Event('input',{bubbles:true})); };
+    if(nums.length===1){ pon(nums[0]); n.style.borderLeftColor='var(--green)';
+      n.innerHTML=`✓ Leí <b>₩${nums[0].toLocaleString('es-CL')}</b>. Revisa que sea lo que llegó.${en?` <span class="mtr" style="margin:0">(${(nums[0]/en.u).toFixed(2).replace('.',',')} wones por dólar)</span>`:''}${foto}`; }
+    else if(nums.length){ n.style.borderLeftColor='var(--amber)';
+      n.innerHTML='Encontré varios montos. Toca el que llegó:<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">'+nums.slice(0,6).map(k=>`<button type="button" class="btn b-sec" data-llk="${k}" style="flex:0 0 auto">₩${k.toLocaleString('es-CL')}</button>`).join('')+'</div>'+foto; }
+    else { n.style.borderLeftColor='var(--amber)'; n.innerHTML='No encontré el monto en esta captura. Prueba con una captura más cerca del número, o escríbelo abajo.'+foto; }
+  }catch(err){ console.error('ll foto',err); n.style.borderLeftColor='var(--red)';
+    n.textContent=err&&err.message==='red'?'Para leer la captura se necesita internet la primera vez. Inténtalo con señal, o escribe el monto abajo.':'No se pudo leer la captura. Inténtalo otra vez o escribe el monto abajo.'; }
+  finally{ ocrOcupado=false; b.disabled=false; }
+});
+document.addEventListener('click',e=>{ const k=e.target.closest('[data-llk]'); if(!k) return;
+  $('#llK').value=k.dataset.llk; $('#llK').dispatchEvent(new Event('input',{bubbles:true}));
+  const n=$('#llOcr'); if(n){ n.style.borderLeftColor='var(--green)'; const im=n.querySelector('img'); n.innerHTML='✓ Elegiste <b>₩'+(+k.dataset.llk).toLocaleString('es-CL')+'</b>.'+(im?im.outerHTML:''); } });
 document.addEventListener('click',async e=>{
   const l=e.target.closest('[data-rell]');
   if(l){llId=l.dataset.rell; llEnvio=null; const x=RE.find(y=>String(y.ts)===llId);
     $('#llC').textContent=x?('Registrada el '+fd(x.fll||x.f)):'';
-    $('#llK').value=x?(x.k||''):'';$('#llCom').value=x?(x.com||''):'';$('#llD').value=x?(x.fll||x.f):iso();
+    $('#llK').value=x?(x.k||''):'';$('#llCom').value=x?(x.com||''):'';$('#llD').value=x?(x.fll||x.f):iso(); llOcrReset();
     openSheet('shLleg'); setTimeout(()=>$('#llK').focus(),240); return}
   const d=e.target.closest('[data-redel]'); if(!d)return;
   const delTs=d.dataset.redel;
