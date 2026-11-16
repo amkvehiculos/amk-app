@@ -896,7 +896,7 @@ h2{font-family:var(--disp);font-weight:700;font-size:21px;margin:0 0 3px;letter-
     </div>
     </div>
     <div id="ngAjustes" hidden>
-    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-11-2026 12:53<!--/VER--></b></div>
+    <div class="mtr" style="margin-bottom:10px">Versión de esta app: <b><!--VER-->16-11-2026 13:38<!--/VER--></b></div>
     <div class="box" id="boxModeracion"><h3>Botones y categorías</h3>
       <p>Cuando Víctor o Bryan escriben algo en "Otro", queda acá para que decidas si se vuelve un botón fijo para la próxima vez. El pendiente o insumo que reportaron ya quedó anotado igual, esto es solo para dejarlo ordenado a futuro.</p>
       <div id="modList"></div>
@@ -8005,6 +8005,8 @@ function fbEnviosPronto(){ clearTimeout(envioTimer); envioTimer=setTimeout(fbEnv
 async function fbEnviosSync(){
   if(!fbReady) return; await envioCargaSig(); let cambio=false;
   for(const x of RM){
+    /* 16/11/2026: el pago de flete va a la naviera, no a la mamá: no se le muestra "En camino" (y si ya se publicó, se quita) */
+    if(x.tipo==='flete'){ if(ENVIO_SIG[x.ts]!==undefined){ try{ await fbDb.collection(RENVIO_COL).doc(String(x.ts)).delete(); delete ENVIO_SIG[x.ts]; cambio=true; }catch(e){ console.error('fbEnviosSync flete',e); } } continue; }
     const f=envioFirma(x), ya=ENVIO_SIG[x.ts];
     if(ya===f) continue;
     if(x.krw && ya===undefined) continue;   /* ya recibido y nunca publicado: no hace falta */
